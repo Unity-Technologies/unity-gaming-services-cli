@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>10</LangVersion>
+    <AssemblyName>ugs</AssemblyName>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionSuffix>beta.1</VersionSuffix>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>false</ExcludeFromSingleFile>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine.Hosting" Version="0.4.0-alpha.22272.1" />
+    <ProjectReference Include="..\Unity.Services.Cli.CloudCode\Unity.Services.Cli.CloudCode.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.Common\Unity.Services.Cli.Common.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.Deploy\Unity.Services.Cli.Deploy.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.Environment\Unity.Services.Cli.Environment.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.RemoteConfig\Unity.Services.Cli.RemoteConfig.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.Lobby\Unity.Services.Cli.Lobby.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="../../CHANGELOG.md">
+      <Link>CHANGELOG.md</Link>
+    </Content>
+  </ItemGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugType>full</DebugType>
+    <DefineConstants>TRACE;</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DefineConstants>TRACE;</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>
+  </PropertyGroup>
+</Project>

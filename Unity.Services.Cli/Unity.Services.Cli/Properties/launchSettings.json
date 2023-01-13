@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "Unity.Services.Cli": {
+      "commandName": "Project",
+      "workingDirectory": "$(SolutionDir)/../"
+    },
+    "Unity.Services.Cli.PrintTree": {
+      "commandName": "Project",
+      "workingDirectory": "$(SolutionDir)/../",
+      "commandLineArgs": "--print-tree"
+    },
+    "Unity.Services.Cli.PrintTreeFull": {
+      "commandName": "Project",
+      "workingDirectory": "$(SolutionDir)/../",
+      "commandLineArgs": "--print-tree --print-tree-show-hidden"
+    }
+  }
+}

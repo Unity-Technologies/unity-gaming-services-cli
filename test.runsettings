@@ -1,0 +1,18 @@
+<RunSettings>
+  <RunConfiguration>  
+    <ResultsDirectory>./TestResults</ResultsDirectory>
+    <SolutionDirectory>./TestResults</SolutionDirectory>
+  </RunConfiguration>  
+  <LoggerRunSettings>
+    <Loggers>
+      <Logger friendlyName="console" enabled="True">
+        <Configuration>
+            <Verbosity>quiet</Verbosity>
+        </Configuration>
+      </Logger>
+      <Logger friendlyName="html" enabled="True">
+      </Logger>
+      <Logger friendlyName="blame" enabled="True" />
+    </Loggers>
+  </LoggerRunSettings>
+</RunSettings>

@@ -1,0 +1,6 @@
+{
+  "bleu": {
+    "type": "STRING",
+    "required": "Yes"
+  }
+}
