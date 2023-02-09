@@ -26,7 +26,7 @@ public class DiagnosticsTests
 
     readonly Dictionary<string, string> m_ExpectedPackageTags = new()
     {
-        [TagKeys.ProductName] = "com.unity.ugs-cli",
+        [TagKeys.ProductName] = CommonModule.m_CliProductName,
         [TagKeys.CliVersion] = TelemetryConfigurationProvider.GetCliVersion()
     };
 

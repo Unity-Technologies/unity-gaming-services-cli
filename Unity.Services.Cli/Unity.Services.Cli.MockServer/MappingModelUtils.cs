@@ -38,7 +38,6 @@ public static class MappingModelUtils
     /// <returns>model with replaced value</returns>
     public static MappingModel ConfigBodyAsJsonResponse(this MappingModel model, object response)
     {
-        //We are looking for the following pattern key/{old-value} or and replace with key/{value}
         model.Response.BodyAsJson = response;
         return model;
     }
@@ -79,6 +78,8 @@ public static class MappingModelUtils
         else
         {
             var openApiPath = Path.Combine(k_RepositoryPath, inputSpec);
+            openApiPath = openApiPath.Replace('/', Path.DirectorySeparatorChar);
+            openApiPath = openApiPath.Replace('\\', Path.DirectorySeparatorChar);
             if (!File.Exists(openApiPath))
             {
                 throw new FileNotFoundException($"Open API source does not exist: {openApiPath}");

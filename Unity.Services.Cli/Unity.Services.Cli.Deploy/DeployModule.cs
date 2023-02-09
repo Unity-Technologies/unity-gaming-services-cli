@@ -5,6 +5,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Unity.Services.Cli.Common;
 using Unity.Services.Cli.Common.Console;
+using Unity.Services.Cli.Common.Input;
+using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Deploy.Input;
 using Unity.Services.Cli.Deploy.Handlers;
 using Unity.Services.Cli.Deploy.Service;
@@ -25,11 +27,15 @@ public class DeployModule : ICommandModule
             $"Deploy configuration files of supported services to the backend.{Environment.NewLine}"
             + "Services currently supported are: remote-config, cloud-code.")
         {
-            DeployInput.PathsArgument
+            DeployInput.PathsArgument,
+                                    CommonInput.EnvironmentNameOption,
+            CommonInput.CloudProjectIdOption
         };
         ModuleRootCommand.SetHandler<
             IHost,
             DeployInput,
+            IDeployFileService,
+            IUnityEnvironment,
             ILogger,
             ILoadingIndicator,
             CancellationToken>(
@@ -43,6 +49,7 @@ public class DeployModule : ICommandModule
     {
         serviceCollection.AddTransient<IFile>(_ => new FileSystem().File);
         serviceCollection.AddTransient<IDirectory>(_ => new FileSystem().Directory);
+        serviceCollection.AddTransient<IPath>(_ => new FileSystem().Path);
         serviceCollection.AddTransient<IDeployFileService, DeployFileService>();
     }
 }

@@ -12,6 +12,7 @@ using Unity.Services.Cli.Common.Middleware;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.Common.Services;
 using Unity.Services.Cli.Common.SystemEnvironment;
+using Unity.Services.Cli.Common.Telemetry.AnalyticEvent.AnalyticEventFactory;
 using Unity.Services.Cli.Common.Utils;
 using ContextBinder = Unity.Services.Cli.Common.Middleware.ContextBinder;
 using HostBuilderContext = Microsoft.Extensions.Hosting.HostBuilderContext;
@@ -271,6 +272,9 @@ class ContextBinderTests
                 Mock<IUnityEnvironment> mockUnityEnvironment = new Mock<IUnityEnvironment>();
                 host.ConfigureServices(serviceCollection => serviceCollection
                     .AddSingleton(mockUnityEnvironment.Object));
+                Mock<IAnalyticEventFactory> mockAnalyticEventFactory = new Mock<IAnalyticEventFactory>();
+                host.ConfigureServices(serviceCollection => serviceCollection
+                    .AddSingleton(mockAnalyticEventFactory.Object));
             })
             .AddCommandInputParserMiddleware();
 
@@ -298,6 +302,10 @@ class ContextBinderTests
                     Mock<IUnityEnvironment> mockUnityEnvironment = new Mock<IUnityEnvironment>();
                     host.ConfigureServices(serviceCollection => serviceCollection
                         .AddSingleton(mockUnityEnvironment.Object));
+
+                    Mock<IAnalyticEventFactory> mockAnalyticEventFactory = new Mock<IAnalyticEventFactory>();
+                    host.ConfigureServices(serviceCollection => serviceCollection
+                        .AddSingleton(mockAnalyticEventFactory.Object));
                 })
             .AddCommandInputParserMiddleware();
 

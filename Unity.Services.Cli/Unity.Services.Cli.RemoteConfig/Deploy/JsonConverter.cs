@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json.Converters;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Json;
 
 namespace Unity.Services.Cli.RemoteConfig.Deploy;
@@ -20,6 +21,6 @@ class JsonConverter : IJsonConverter
 
     public string SerializeObject<T>(T obj)
     {
-        return JsonConvert.SerializeObject(obj);
+        return JsonConvert.SerializeObject(obj, Formatting.Indented, new StringEnumConverter());
     }
 }

@@ -1,9 +1,13 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
+using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.MockServer;
+using Unity.Services.Gateway.IdentityApiV1.Generated.Model;
 
 namespace Unity.Services.Cli.IntegrationTest.EnvTests;
 
@@ -77,18 +81,14 @@ public class EnvTests : UgsCliFixture
     [Test]
     public async Task EnvironmentListWithJsonOptionReturnsZeroExitCode()
     {
-        var expectedReturn = string.Format(@"{{
-  ""Result"": [
-    {{
-      ""id"": ""{0}"",
-      ""projectId"": ""{1}"",
-      ""name"": ""production"",
-      ""isDefault"": true,", CommonKeys.ValidEnvironmentId, "390121ca-bb43-494f-b418-55be4e0c0faf");
-
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         await GetLoggedInCli()
             .Command("env list -j")
-            .AssertStandardOutputContains(expectedReturn)
+            .AssertStandardOutput(output =>
+            {
+                Assert.DoesNotThrow(()=>JsonConvert.DeserializeObject(output));
+                StringAssert.Contains(CommonKeys.ValidEnvironmentId, output);
+            })
             .AssertNoErrors()
             .ExecuteAsync();
     }

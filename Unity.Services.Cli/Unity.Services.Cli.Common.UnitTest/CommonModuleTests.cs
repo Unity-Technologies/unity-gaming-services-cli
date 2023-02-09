@@ -8,12 +8,12 @@ using Moq;
 using NUnit.Framework;
 using Spectre.Console;
 using Unity.Services.Cli.Common.Console;
-using Unity.Services.Cli.Common.Features;
 using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.Common.Models;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.Common.SystemEnvironment;
 using Unity.Services.Cli.Common.Telemetry;
+using Unity.Services.Cli.Common.Telemetry.AnalyticEvent.AnalyticEventFactory;
 using Unity.Services.Gateway.IdentityApiV1.Generated.Api;
 
 namespace Unity.Services.Cli.Common.UnitTest;
@@ -25,6 +25,7 @@ class CommonModuleTests
     List<ServiceDescriptor>? m_Services;
     Mock<IServiceCollection>? m_MockedServiceCollection;
     readonly Mock<ISystemEnvironmentProvider> m_MockSystemEnvironmentProvider;
+    readonly Mock<IAnalyticEventFactory> m_MockAnalyticEventFactory = new();
     Parser? m_Parser;
 
     public CommonModuleTests()
@@ -36,11 +37,12 @@ class CommonModuleTests
     public void SetUp()
     {
         m_MockSystemEnvironmentProvider.Reset();
+        m_MockAnalyticEventFactory.Reset();
         m_CommandLineBuilder = new(new RootCommand("Test root command"));
         m_Parser = m_CommandLineBuilder.UseHost(_ => Host.CreateDefaultBuilder(),
             host =>
             {
-                CommonModule.ConfigureCommonServices(host, new Logger(), new StaticFeatures(), AnsiConsole.Create(new AnsiConsoleSettings()));
+                CommonModule.ConfigureCommonServices(host, new Logger(), AnsiConsole.Create(new AnsiConsoleSettings()), m_MockAnalyticEventFactory.Object);
 
             }).UseDefaults().AddGlobalCommonOptions().Build();
         m_Parser!.InvokeAsync("");
@@ -91,6 +93,16 @@ class CommonModuleTests
     }
 
     [Test]
+    public void CreateAndRegisterCliAnalyticsSenderService_RegisterAllServices()
+    {
+        CommonModule.CreateAndRegisterCliAnalyticsSenderService(m_MockedServiceCollection!.Object);
+        Assert.NotNull(m_Services!.Find(p => p.ServiceType.Name is "AnalyticService"));
+        Assert.NotNull(m_Services!.Find(p => p.ServiceType.Name is "BigQueryExporter"));
+        Assert.NotNull(m_Services!.Find(p => p.ServiceType.Name is "IAnalyticConfiguration"));
+        Assert.NotNull(m_Services!.Find(p => p.ServiceType.Name is "AnalyticBuilder"));
+    }
+
+    [Test]
     public void CreateAndRegisterProgressBarServiceNoQuietAliasSetsConsole()
     {
         var console = AnsiConsole.Create(new AnsiConsoleSettings());
@@ -133,7 +145,7 @@ class CommonModuleTests
     public void CreateTelemetrySender_SetsBaseProductTags()
     {
         var telemetrySender = CommonModule.CreateTelemetrySender(m_MockSystemEnvironmentProvider.Object);
-        StringAssert.AreEqualIgnoringCase(telemetrySender.ProductTags[TagKeys.ProductName],"com.unity.ugs-cli");
+        StringAssert.AreEqualIgnoringCase(telemetrySender.ProductTags[TagKeys.ProductName], CommonModule.m_CliProductName);
         StringAssert.AreEqualIgnoringCase(telemetrySender.ProductTags[TagKeys.CliVersion], TelemetryConfigurationProvider.GetCliVersion());
     }
 }

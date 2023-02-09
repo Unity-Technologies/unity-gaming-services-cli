@@ -12,6 +12,10 @@ internal static class TagKeys
     /// </summary>
     public const string Platform = "platform";
 
+    public const string Timestamp = "time";
+
+    public const string ProjectId = "project_id";
+
     public const string ProductName = "product_name";
 
     /// <summary>

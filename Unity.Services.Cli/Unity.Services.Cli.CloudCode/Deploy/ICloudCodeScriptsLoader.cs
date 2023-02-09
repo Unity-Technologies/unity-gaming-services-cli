@@ -7,7 +7,7 @@ namespace Unity.Services.Cli.CloudCode.Deploy;
 interface ICloudCodeScriptsLoader
 {
     Task<List<IScript>> LoadScriptsAsync(
-        ICollection<string> paths,
+        IReadOnlyCollection<string> paths,
         string serviceType,
         string extension,
         ICloudCodeInputParser cloudCodeInputParser,

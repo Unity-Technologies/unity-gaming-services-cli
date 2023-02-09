@@ -7,6 +7,9 @@ using IdentityApiException = Unity.Services.Gateway.IdentityApiV1.Generated.Clie
 using CloudCodeApiException = Unity.Services.Gateway.CloudCodeApiV1.Generated.Client.ApiException;
 using EconomyApiException = Unity.Services.Gateway.EconomyApiV2.Generated.Client.ApiException;
 using LobbyApiException = Unity.Services.MpsLobby.LobbyApiV1.Generated.Client.ApiException;
+using LeaderboardApiException = Unity.Services.Gateway.LeaderboardApiV1.Generated.Client.ApiException;
+using AccountsApiException = Unity.Services.Gateway.AccountsApiV2.Generated.Client.ApiException;
+using PlayerAuthException = Unity.Services.Gateway.PlayerAuthApiV1.Generated.Client.ApiException;
 
 namespace Unity.Services.Cli.Common.Exceptions;
 
@@ -28,6 +31,13 @@ public class ExceptionHelper
 
     public void HandleException(Exception exception, ILogger logger, InvocationContext context)
     {
+        var cancellationToken = context.GetCancellationToken();
+        if (cancellationToken.IsCancellationRequested)
+        {
+            context.ExitCode = ExitCode.Cancelled;
+            return;
+        }
+
         switch (exception)
         {
             case CliException cliException:
@@ -51,8 +61,14 @@ public class ExceptionHelper
             case LobbyApiException lobbyApiException:
                 HandleApiException(exception, logger, context, lobbyApiException.ErrorCode);
                 break;
-            case TaskCanceledException:
-                context.ExitCode = ExitCode.Cancelled;
+            case LeaderboardApiException leaderboardApiException:
+                HandleApiException(exception, logger, context, leaderboardApiException.ErrorCode);
+                break;
+            case AccountsApiException accountsApiException:
+                HandleApiException(exception, logger, context, accountsApiException.ErrorCode);
+                break;
+            case PlayerAuthException playerAuthApiException:
+                HandleApiException(exception, logger, context, playerAuthApiException.ErrorCode);
                 break;
             case AggregateException aggregateException:
                 HandleAggregateException(aggregateException, logger, context);
@@ -82,19 +98,21 @@ public class ExceptionHelper
         // Check for CLI Exceptions in the aggregated exceptions
         var cliExceptions =
             aggregateException.InnerExceptions.Where(e => e is CliException);
+
         // Log any CLI Exception found
         foreach (var e in cliExceptions)
         {
             logger.LogError(e.Message);
         }
+
         // Sets handled error in case no unhandled error is found
         if (cliExceptions.Any())
         {
             context.ExitCode = ExitCode.HandledError;
         }
-
         var unhandledExceptions =
             aggregateException.InnerExceptions.Where(e => e is not CliException);
+
         // Sets default flow in case any exception is unhandled
         if (unhandledExceptions.Any())
         {

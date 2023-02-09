@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Builder;
@@ -13,7 +14,6 @@ using Unity.Services.Cli.CloudCode;
 using Unity.Services.Cli.Lobby;
 using Unity.Services.Cli.Common;
 using Unity.Services.Cli.Common.Exceptions;
-using Unity.Services.Cli.Common.Features;
 using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.Common.Middleware;
 using Unity.Services.Cli.Common.Services;
@@ -22,6 +22,8 @@ using Unity.Services.Cli.Environment;
 using Unity.Services.Cli.ServiceAccountAuthentication;
 using Unity.Services.Cli.RemoteConfig;
 using Unity.Services.Cli.Common.Telemetry;
+using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
+using Unity.Services.Cli.Common.Telemetry.AnalyticEvent.AnalyticEventFactory;
 using Unity.Services.Cli.Deploy;
 
 namespace Unity.Services.Cli;
@@ -30,20 +32,19 @@ static class Program
 {
     static async Task<int> Main(string[] args)
     {
-        var features = await FeaturesFactory.BuildAsync(Host.CreateDefaultBuilder());
         var logger = new Logger();
         var services = new ServiceTypesBridge();
         var ansiConsole = AnsiConsole.Create(new AnsiConsoleSettings());
         TelemetrySender telemetrySender = null;
-        SystemEnvironmentProvider systemEnvironmentProvider = null;
+        SystemEnvironmentProvider systemEnvironmentProvider = new SystemEnvironmentProvider();
+        IAnalyticEventFactory analyticEventFactory = new AnalyticEventFactory(systemEnvironmentProvider);
 
         var parser = BuildCommandLine()
             .UseHost(_ => Host.CreateDefaultBuilder(),
                 host =>
                 {
-                    systemEnvironmentProvider = new SystemEnvironmentProvider();
                     host.UseServiceProviderFactory(_ => services);
-                    CommonModule.ConfigureCommonServices(host, logger, features, ansiConsole);
+                    CommonModule.ConfigureCommonServices(host, logger, ansiConsole, analyticEventFactory);
                     telemetrySender = CommonModule.CreateTelemetrySender(systemEnvironmentProvider);
 
                     host.ConfigureServices(ConfigurationModule.RegisterServices);
@@ -70,6 +71,10 @@ static class Program
                                 "cli/blob/main/docs/project-roles.md for required project roles." +
                                 $"{System.Environment.NewLine}"));
 
+                    // Replace built-in subcommand help section by custom subcommand help section
+                    helpSectionDelegates.Remove(HelpBuilder.Default.SubcommandsSection());
+                    helpSectionDelegates.Add(SubcommandsSectionDelegate(ctx, ansiConsole));
+
                     return helpSectionDelegates.AsEnumerable();
                 });
             })
@@ -93,11 +98,11 @@ static class Program
             .AddGlobalCommonOptions()
             .AddCommandInputParserMiddleware()
             .AddCliServicesMiddleware(services)
-            // Manually keep modules in alphabetical order
             .AddModule(new AuthenticationModule())
             .AddModule(new CloudCodeModule())
             .AddModule(new ConfigurationModule())
             .AddModule(new DeployModule())
+            .AddModule(new FetchModule())
             .AddModule(new EnvironmentModule())
             .AddModule(new LobbyModule())
             .AddModule(new RemoteConfigModule())
@@ -107,6 +112,7 @@ static class Program
             .ContinueWith(commandTask =>
             {
                 logger.Write();
+                TrySendCommandUsageMetric(analyticEventFactory, parser.Parse(args).CommandResult);
                 return commandTask.Result;
             });
     }
@@ -115,5 +121,35 @@ static class Program
     {
         var root = new RootCommand("Unity Gaming Services CLI. Use the CLI to interact with Unity Dashboard.");
         return new CommandLineBuilder(root);
+    }
+
+    static HelpSectionDelegate SubcommandsSectionDelegate(HelpContext context, IAnsiConsole ansiConsole)
+    {
+        var subcommands = context.Command.Subcommands
+            .OrderBy(command => command.Name)
+            .Where(command => !command.IsHidden)
+            .Select(command => context.HelpBuilder.GetTwoColumnRow(command, context))
+            .ToArray();
+
+        return WriteSubcommands();
+
+        HelpSectionDelegate WriteSubcommands() => helpContext
+            =>
+        {
+            if (subcommands.Length <= 0)
+                return;
+
+            ansiConsole.Markup($"Commands:{System.Environment.NewLine}");
+            helpContext.HelpBuilder.WriteColumns(subcommands, helpContext);
+        };
+    }
+
+    static void TrySendCommandUsageMetric(IAnalyticEventFactory analyticEventFactory, SymbolResult symbol)
+    {
+        var command = AnalyticEventUtils.ConvertSymbolResultToString(symbol);
+        var analyticEvent = analyticEventFactory.CreateEvent();
+        analyticEvent.AddData("command", command);
+        analyticEvent.AddData("time", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+        analyticEvent.Send();
     }
 }

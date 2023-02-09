@@ -5,7 +5,7 @@
     <LangVersion>10</LangVersion>
     <AssemblyName>ugs</AssemblyName>
     <VersionPrefix>1.0.0</VersionPrefix>
-    <VersionSuffix>beta.1</VersionSuffix>
+    <VersionSuffix>beta.2</VersionSuffix>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -34,10 +34,10 @@
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugType>full</DebugType>
-    <DefineConstants>TRACE;</DefineConstants>
+    <DefineConstants>TRACE;_DEPLOY;</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DefineConstants>TRACE;</DefineConstants>
+    <DefineConstants>TRACE;_DEPLOY;</DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>

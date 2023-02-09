@@ -1,22 +1,14 @@
 using Unity.Services.Cli.CloudCode.Exceptions;
 using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.Cli.Deploy.Model;
-using Unity.Services.Cli.Deploy.Service;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 
 namespace Unity.Services.Cli.CloudCode.Deploy;
 
 internal class CloudCodeScriptsLoader : ICloudCodeScriptsLoader
 {
-    readonly IDeployFileService m_DeployFileService;
-
-    public CloudCodeScriptsLoader(IDeployFileService deployFileService)
-    {
-        m_DeployFileService = deployFileService;
-    }
-
     public async Task<List<IScript>> LoadScriptsAsync(
-        ICollection<string> paths,
+        IReadOnlyCollection<string> paths,
         string serviceType,
         string extension,
         ICloudCodeInputParser cloudCodeInputParser,
@@ -25,8 +17,7 @@ internal class CloudCodeScriptsLoader : ICloudCodeScriptsLoader
         CancellationToken cancellationToken)
     {
         var scriptList = new List<IScript>();
-        var filePaths = m_DeployFileService.ListFilesToDeploy(paths, extension);
-        foreach (var path in filePaths)
+        foreach (var path in paths)
         {
             try
             {

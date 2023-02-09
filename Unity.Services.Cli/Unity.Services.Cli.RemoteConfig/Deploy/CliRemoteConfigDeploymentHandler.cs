@@ -19,8 +19,8 @@ class CliRemoteConfigDeploymentHandler : RemoteConfigDeploymentHandler, ICliDepl
         IFormatValidator formatValidator,
         IConfigMerger configMerger,
         IJsonConverter jsonConverter,
-        IFileReader fileReader) :
-        base(remoteConfigClient, remoteConfigParser, remoteConfigValidator, formatValidator, configMerger, jsonConverter, fileReader)
+        IFileSystem fileSystem) :
+        base(remoteConfigClient, remoteConfigParser, remoteConfigValidator, formatValidator, configMerger, jsonConverter, fileSystem)
     {
     }
 

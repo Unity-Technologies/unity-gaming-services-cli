@@ -5,12 +5,17 @@ using Unity.Services.Cli.Common;
 using Unity.Services.Cli.Deploy.Input;
 using Unity.Services.Cli.Deploy.Service;
 using Unity.Services.Cli.RemoteConfig.Deploy;
+using Unity.Services.Cli.RemoteConfig.Templates;
+using Unity.Services.Cli.Deploy.Handlers;
 using Unity.Services.Cli.RemoteConfig.Service;
+using Unity.Services.RemoteConfig.Editor.Authoring.Core.Fetch;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Formatting;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.IO;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Json;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Networking;
+using FileSystem = Unity.Services.Cli.RemoteConfig.Deploy.FileSystem;
+using IFileSystem = Unity.Services.RemoteConfig.Editor.Authoring.Core.IO.IFileSystem;
 
 namespace Unity.Services.Cli.RemoteConfig;
 
@@ -23,7 +28,14 @@ public class RemoteConfigModule : ICommandModule
 
     public RemoteConfigModule()
     {
-        ModuleRootCommand = null;
+        ModuleRootCommand = new Command(
+            name: "remote-config",
+            description: "Manage RemoteConfig.")
+        {
+            ModuleRootCommand.AddNewFileCommand<RemoteConfigTemplate>("Remote Config")
+        };
+
+        ModuleRootCommand.AddAlias("rc");
     }
 
     /// <summary>
@@ -39,7 +51,7 @@ public class RemoteConfigModule : ICommandModule
         serviceCollection.AddTransient<IFormatValidator, FormatValidator>();
         serviceCollection.AddTransient<IConfigMerger, ConfigMerger>();
         serviceCollection.AddTransient<IJsonConverter, JsonConverter>();
-        serviceCollection.AddTransient<IFileReader, FileReader>();
+        serviceCollection.AddTransient<IFileSystem, FileSystem>();
         serviceCollection.AddTransient<IRemoteConfigScriptsLoader, RemoteConfigScriptsLoader>();
 
         serviceCollection.AddSingleton<RemoteConfigClient>();
@@ -56,6 +68,8 @@ public class RemoteConfigModule : ICommandModule
             s.GetRequiredService<IRemoteConfigService>(),
             s.GetRequiredService<IRemoteConfigScriptsLoader>()));
 
+        serviceCollection.AddTransient<IRemoteConfigFetchHandler, RemoteConfigFetchHandler>();
         serviceCollection.AddTransient<IDeploymentService, RemoteConfigDeploymentService>();
+        serviceCollection.AddTransient<IFetchService, RemoteConfigFetchService>();
     }
 }

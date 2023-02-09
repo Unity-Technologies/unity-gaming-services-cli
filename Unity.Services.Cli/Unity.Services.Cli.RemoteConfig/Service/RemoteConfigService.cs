@@ -6,6 +6,7 @@ using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Models;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.Common.Validator;
+using Unity.Services.Cli.RemoteConfig.Exceptions;
 using Unity.Services.Cli.RemoteConfig.Model;
 using Unity.Services.Cli.RemoteConfig.Types;
 using Unity.Services.Cli.ServiceAccountAuthentication;
@@ -18,7 +19,7 @@ public class RemoteConfigService : IRemoteConfigService
 
     static readonly string k_BaseUrl = $"{EndpointHelper.GetCurrentEndpointFor<RemoteConfigEndpoints>()}/remote-config/v1";
 
-    static readonly JsonSerializerSettings k_JsonSerializerSettings = new ()
+    static readonly JsonSerializerSettings k_JsonSerializerSettings = new()
     {
         ContractResolver = new CamelCasePropertyNamesContractResolver()
     };
@@ -66,7 +67,7 @@ public class RemoteConfigService : IRemoteConfigService
         }
         catch (HttpRequestException exception)
         {
-            throw new CliException($"{nameof(CreateConfigAsync)} failed: {exception.Message}", exception, ExitCode.UnhandledError);
+            throw new ApiException($"{nameof(CreateConfigAsync)} failed: {exception.Message}", exception, ExitCode.UnhandledError);
         }
     }
 
@@ -125,7 +126,7 @@ public class RemoteConfigService : IRemoteConfigService
         }
         catch (HttpRequestException exception)
         {
-            throw new CliException($"{nameof(UpdateConfigInternalAsync)} failed: {exception.Message}", exception, ExitCode.HandledError);
+            throw new ApiException($"{nameof(UpdateConfigInternalAsync)} failed: {exception.Message}", exception, ExitCode.HandledError);
         }
     }
 
@@ -161,7 +162,7 @@ public class RemoteConfigService : IRemoteConfigService
         }
         catch (HttpRequestException exception)
         {
-            throw new CliException($"{nameof(GetAllConfigsFromEnvironmentAsync)} failed: {exception.Message}", exception, ExitCode.HandledError);
+            throw new ApiException($"{nameof(GetAllConfigsFromEnvironmentAsync)} failed: {exception.Message}", exception, ExitCode.HandledError);
         }
     }
 

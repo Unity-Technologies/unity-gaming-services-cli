@@ -49,11 +49,11 @@ public class ConfigTests : UgsCliFixture
     [Test]
     public async Task ConfigGetJsonReturnsJson()
     {
-        const string expected = @"{
-  ""Result"": ""some-value"",
-  ""Messages"": []
-}
-";
+        var expected = JsonConvert.SerializeObject(new
+        {
+            Result = "some-value",
+            Messages = Array.Empty<string>()
+        }, Formatting.Indented);
         await new UgsCliTestCase()
             .Command("config set environment-name some-value")
             .Command("config get environment-name -j")

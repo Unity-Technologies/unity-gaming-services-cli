@@ -10,9 +10,10 @@ public class DeployInput : CommonInput
 {
     public static readonly Argument<ICollection<string>> PathsArgument = new(
         "paths",
-        $"The paths to deploy from. Accepts multiple directory or file paths. Specify '.' to deploy in current directory");
+        "The paths to deploy from. Accepts multiple directory or file paths. Specify '.' to deploy in current directory");
 
     [InputBinding(nameof(PathsArgument))]
-    public ICollection<string> Paths { get; set; } = new List<string>();
+    public IReadOnlyList<string> Paths { get; set; } = new List<string>();
+
 
 }

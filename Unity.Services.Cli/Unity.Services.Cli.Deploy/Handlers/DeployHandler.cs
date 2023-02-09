@@ -5,8 +5,10 @@ using Spectre.Console;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Logging;
+using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Deploy.Input;
 using Unity.Services.Cli.Deploy.Model;
+using Unity.Services.Cli.Deploy.Service;
 
 namespace Unity.Services.Cli.Deploy.Handlers;
 
@@ -15,6 +17,8 @@ static class DeployHandler
     public static async Task DeployAsync(
         IHost host,
         DeployInput input,
+        IDeployFileService deployFileService,
+        IUnityEnvironment unityEnvironment,
         ILogger logger,
         ILoadingIndicator loadingIndicator,
         CancellationToken cancellationToken
@@ -24,6 +28,8 @@ static class DeployHandler
             context => DeployAsync(
                 host,
                 input,
+                deployFileService,
+                unityEnvironment,
                 logger,
                 context,
                 cancellationToken));
@@ -32,6 +38,8 @@ static class DeployHandler
     internal static async Task DeployAsync(
         IHost host,
         DeployInput input,
+        IDeployFileService deployFileService,
+        IUnityEnvironment unityEnvironment,
         ILogger logger,
         StatusContext? loadingContext,
         CancellationToken cancellationToken
@@ -45,7 +53,16 @@ static class DeployHandler
             logger.LogInformation("Currently supported services are: {SupportedServicesStr}", supportedServicesStr);
         }
 
-        var tasks = services.Select(m => m.Deploy(input, loadingContext, cancellationToken)).ToArray();
+        var environmentId = await unityEnvironment.FetchIdentifierAsync();
+        var projectId = input.CloudProjectId!;
+        var tasks = services.Select(
+            m => m.Deploy(
+                input,
+                deployFileService.ListFilesToDeploy(input.Paths, m.DeployFileExtension),
+                projectId,
+                environmentId,
+                loadingContext,
+                cancellationToken)).ToArray();
         try
         {
             await Task.WhenAll(tasks);

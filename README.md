@@ -64,7 +64,7 @@ Requires [Windows] 10 or later.
 
 ### Linux
 
-Requires [Ubuntu], [Alpine] and most other major distros.
+Requires [Ubuntu], [Alpine] or most other major distros.
 
 ### macOS
 

@@ -18,13 +18,15 @@ directory.
 
 ### Options
 
-|             | Alias                  | Description                         |
-| ----------- | ---------------------- | ----------------------------------- |
-| project-id  | -p, --project-id       | The Unity cloud project ID.         |
-| environment | -e, --environment-name | The services environment name.      |
-| help        | -?, -h, --help         | Display help and usage information. |
-| quiet       | -q, --quiet            | Reduce logging to a minimum.        |
-| json        | -j, --json             | Use JSON as the output format.      |
+|             | Alias                  | Description                             		 |
+| ----------- | ---------------------- | --------------------------------------------------------|
+| project-id  | -p, --project-id       | The Unity cloud project ID.             		 |
+| environment | -e, --environment-name | The services environment name.          		 |
+| help        | -?, -h, --help         | Display help and usage information.     		 |
+| quiet       | -q, --quiet            | Reduce logging to a minimum.                            |
+| json        | -j, --json             | Use JSON as the output format.                          |
+| reconcile   | --reconcile            | Delete content not part of deploy                       |
+| dry run     | --dry-run              | Perform a trial run with no changes made  |
 
 
 

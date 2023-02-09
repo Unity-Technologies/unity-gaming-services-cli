@@ -6,8 +6,8 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="WireMock.Net" Version="1.5.13" />
-    <PackageReference Include="WireMock.Net.OpenApiParser" Version="1.5.12" />
+    <PackageReference Include="WireMock.Net" Version="1.5.15" />
+    <PackageReference Include="WireMock.Net.OpenApiParser" Version="1.5.15" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">

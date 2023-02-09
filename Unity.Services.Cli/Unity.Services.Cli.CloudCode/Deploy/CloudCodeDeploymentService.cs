@@ -2,7 +2,6 @@ using Spectre.Console;
 using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.Cli.Deploy.Input;
 using Unity.Services.Cli.Deploy.Model;
-using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Deploy.Service;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Client;
@@ -11,7 +10,6 @@ namespace Unity.Services.Cli.CloudCode.Deploy;
 
 internal class CloudCodeDeploymentService : IDeploymentService
 {
-    readonly IUnityEnvironment m_UnityEnvironment;
     readonly ICloudCodeInputParser m_CloudCodeInputParser;
     readonly ICloudCodeService m_CloudCodeService;
     readonly ICliDeploymentOutputHandler m_CliDeploymentOutputHandler;
@@ -20,15 +18,11 @@ internal class CloudCodeDeploymentService : IDeploymentService
     readonly ICliCloudCodeClient m_CliCloudCodeClient;
     readonly ICloudCodeDeploymentHandler m_CloudCodeDeploymentHandler;
     string m_ServiceType;
-    string m_DeployFileExtension;
 
     public CloudCodeDeploymentService(
-            IUnityEnvironment unityEnvironment,
             ICloudCodeServicesWrapper servicesWrapper
             )
     {
-        m_UnityEnvironment = unityEnvironment;
-
         m_CloudCodeInputParser = servicesWrapper.CloudCodeInputParser;
         m_CloudCodeService = servicesWrapper.CloudCodeService;
         m_CliDeploymentOutputHandler = servicesWrapper.CliDeploymentOutputHandler;
@@ -38,38 +32,42 @@ internal class CloudCodeDeploymentService : IDeploymentService
         m_CloudCodeDeploymentHandler = servicesWrapper.CloudCodeDeploymentHandler;
 
         m_ServiceType = "Cloud Code";
-        m_DeployFileExtension = ".js";
+        DeployFileExtension = ".js";
     }
 
     string IDeploymentService.ServiceType => m_ServiceType;
-
-    string IDeploymentService.DeployFileExtension => m_DeployFileExtension;
+    public string DeployFileExtension { get; }
 
     public async Task<DeploymentResult> Deploy(
         DeployInput input,
+        IReadOnlyList<string> filePaths,
+        string projectId,
+        string environmentId,
         StatusContext? loadingContext,
         CancellationToken cancellationToken)
     {
-        var environmentId = await m_UnityEnvironment.FetchIdentifierAsync();
-
-        m_CliCloudCodeClient.Initialize(environmentId, input.CloudProjectId!, cancellationToken);
+        m_CliCloudCodeClient.Initialize(environmentId, projectId, cancellationToken);
         m_EnvironmentProvider.Current = environmentId;
 
         loadingContext?.Status($"Reading {m_ServiceType} Scripts...");
 
         var scriptList = await m_CloudCodeScriptsLoader.LoadScriptsAsync(
-            input.Paths,
+            filePaths,
             m_ServiceType,
-            m_DeployFileExtension,
+            DeployFileExtension,
             m_CloudCodeInputParser,
             m_CloudCodeService,
             m_CliDeploymentOutputHandler.Contents,
             cancellationToken);
 
         loadingContext?.Status($"Deploying {m_ServiceType} Scripts...");
+
+        var dryrun = false;
+
+        
         try
         {
-            await m_CloudCodeDeploymentHandler.DeployAsync(scriptList);
+            await m_CloudCodeDeploymentHandler.DeployAsync(scriptList, dryrun);
         }
         catch (ApiException)
         {

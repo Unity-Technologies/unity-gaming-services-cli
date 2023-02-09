@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -6,15 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
-using Spectre.Console;
 using Unity.Services.Cli.CloudCode.Deploy;
 using Unity.Services.Cli.CloudCode.Exceptions;
 using Unity.Services.Cli.CloudCode.Input;
 using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.Cli.CloudCode.UnitTest.Utils;
-using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Deploy.Model;
-using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Deploy.Service;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
@@ -35,14 +31,12 @@ public class CloudCodeDeploymentServiceTests
         "test_b.js"
     };
 
-    readonly Mock<IUnityEnvironment> m_MockUnityEnvironment = new();
     readonly Mock<ICliCloudCodeClient> m_MockCloudCodeClient = new();
     readonly Mock<ICliEnvironmentProvider> m_MockEnvironmentProvider = new();
     readonly Mock<ICloudCodeInputParser> m_MockCloudCodeInputParser = new();
     readonly Mock<ICloudCodeService> m_MockCloudCodeService = new();
     readonly Mock<ICloudCodeDeploymentHandler> m_MockCloudCodeDeploymentHandler = new();
     readonly Mock<ICloudCodeServicesWrapper> m_MockServicesWrapper = new();
-    readonly Mock<IDeployFileService> m_MockDeployFileService = new();
     readonly Mock<ICliDeploymentOutputHandler> m_MockCliDeploymentOutputHandler = new();
     readonly Mock<ICloudCodeScriptsLoader> m_MockCloudCodeScriptsLoader = new();
     readonly Mock<ILogger> m_MockLogger = new();
@@ -65,14 +59,12 @@ public class CloudCodeDeploymentServiceTests
     [SetUp]
     public void SetUp()
     {
-        m_MockUnityEnvironment.Reset();
         m_MockCloudCodeClient.Reset();
         m_MockEnvironmentProvider.Reset();
         m_MockCloudCodeInputParser.Reset();
         m_MockCloudCodeService.Reset();
         m_MockCloudCodeDeploymentHandler.Reset();
         m_MockServicesWrapper.Reset();
-        m_MockDeployFileService.Reset();
         m_MockLogger.Reset();
         m_MockCliDeploymentOutputHandler.Reset();
         m_MockCloudCodeScriptsLoader.Reset();
@@ -110,7 +102,7 @@ public class CloudCodeDeploymentServiceTests
             .Returns(m_MockCloudCodeScriptsLoader.Object);
 
 
-        m_DeploymentService = new CloudCodeDeploymentService(m_MockUnityEnvironment.Object, m_MockServicesWrapper.Object);
+        m_DeploymentService = new CloudCodeDeploymentService(m_MockServicesWrapper.Object);
 
         m_MockCloudCodeScriptsLoader.Setup(
             c => c.LoadScriptsAsync(
@@ -130,17 +122,15 @@ public class CloudCodeDeploymentServiceTests
         {
             CloudProjectId = TestValues.ValidProjectId,
         };
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
-            .ReturnsAsync(TestValues.ValidEnvironmentId);
-        m_MockDeployFileService.Setup(d => d.ListFilesToDeploy(input.Paths, "*.js"))
-            .Returns(k_ValidFilePaths);
 
         var result = await m_DeploymentService!.Deploy(
             input,
-            (StatusContext)null!,
+            k_ValidFilePaths,
+            TestValues.ValidProjectId,
+            TestValues.ValidEnvironmentId,
+            null!,
             CancellationToken.None);
 
-        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(), Times.Once);
         m_MockCloudCodeClient.Verify(
             x => x.Initialize(
                 TestValues.ValidEnvironmentId,
@@ -148,7 +138,7 @@ public class CloudCodeDeploymentServiceTests
                 CancellationToken.None),
             Times.Once);
         m_MockEnvironmentProvider.VerifySet(x => { x.Current = TestValues.ValidEnvironmentId; }, Times.Once);
-        m_MockCloudCodeDeploymentHandler.Verify(x => x.DeployAsync(It.IsAny<List<IScript>>()), Times.Once);
+        m_MockCloudCodeDeploymentHandler.Verify(x => x.DeployAsync(It.IsAny<List<IScript>>(), false), Times.Once);
         Assert.AreEqual(k_DeployedContents, result.Deployed);
         Assert.AreEqual(k_FailedContents, result.Failed);
     }
@@ -163,16 +153,15 @@ public class CloudCodeDeploymentServiceTests
         };
 
         m_MockCloudCodeDeploymentHandler.Setup(ex => ex
-            .DeployAsync(It.IsAny<IEnumerable<IScript>>())).ThrowsAsync(new ApiException());
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
-            .ReturnsAsync(TestValues.ValidEnvironmentId);
-        m_MockDeployFileService.Setup(d => d.ListFilesToDeploy(input.Paths, "*.js"))
-            .Returns(k_ValidFilePaths);
+            .DeployAsync(It.IsAny<IEnumerable<IScript>>(), false)).ThrowsAsync(new ApiException());
 
         Assert.DoesNotThrowAsync(
             () => m_DeploymentService!.Deploy(
                 input,
-                (StatusContext)null!,
+                k_ValidFilePaths,
+                TestValues.ValidProjectId,
+                TestValues.ValidEnvironmentId,
+                null!,
                 CancellationToken.None));
     }
 }

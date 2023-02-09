@@ -12,9 +12,11 @@ using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.Common.Services;
+using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Deploy.Handlers;
 using Unity.Services.Cli.Deploy.Input;
 using Unity.Services.Cli.Deploy.Model;
+using Unity.Services.Cli.Deploy.Service;
 using Unity.Services.Cli.TestUtils;
 
 namespace Unity.Services.Cli.Deploy.UnitTest.Handlers;
@@ -26,9 +28,11 @@ public class DeployHandlerTests
     readonly Mock<ILogger> m_Logger = new();
     readonly Mock<IServiceProvider> m_ServiceProvider = new();
     readonly Mock<IDeploymentService> m_DeploymentService = new();
-
+    readonly Mock<IUnityEnvironment> m_UnityEnvironment = new();
+    readonly Mock<IDeployFileService> m_DeployFileService = new();
     readonly ServiceTypesBridge m_Bridge = new();
 
+    const string ValidEnvironmentId = "00000000-0000-0000-0000-000000000000";
     public class TestDeploymentService : IDeploymentService
     {
         string m_ServiceType = "Test";
@@ -38,7 +42,8 @@ public class DeployHandlerTests
 
         string IDeploymentService.DeployFileExtension => m_DeployFileExtension;
 
-        public Task<DeploymentResult> Deploy(DeployInput input, StatusContext? loadingContext, CancellationToken cancellationToken)
+        public Task<DeploymentResult> Deploy(DeployInput deployInput, IReadOnlyList<string> filePaths, string projectId, string environmentId,
+            StatusContext? loadingContext, CancellationToken cancellationToken)
         {
             return Task.FromResult(new DeploymentResult(new List<DeployContent>(), new List<DeployContent>()));
         }
@@ -53,7 +58,8 @@ public class DeployHandlerTests
 
         string IDeploymentService.DeployFileExtension => m_DeployFileExtension;
 
-        public Task<DeploymentResult> Deploy(DeployInput input, StatusContext? loadingContext, CancellationToken cancellationToken)
+        public Task<DeploymentResult> Deploy(DeployInput deployInput, IReadOnlyList<string> filePaths, string projectId, string environmentId,
+            StatusContext? loadingContext, CancellationToken cancellationToken)
         {
             return Task.FromResult(new DeploymentResult(
                 new List<DeployContent>()
@@ -76,11 +82,11 @@ public class DeployHandlerTests
 
         string IDeploymentService.DeployFileExtension => m_DeployFileExtension;
 
-        public Task<DeploymentResult> Deploy(DeployInput input, StatusContext? loadingContext, CancellationToken cancellationToken)
+        public Task<DeploymentResult> Deploy(DeployInput deployInput, IReadOnlyList<string> filePaths, string projectId, string environmentId,
+            StatusContext? loadingContext, CancellationToken cancellationToken)
         {
             return Task.FromException<DeploymentResult>(new NotImplementedException());
 
-            // throw new NotImplementedException();
         }
     }
 
@@ -91,13 +97,23 @@ public class DeployHandlerTests
         m_ServiceProvider.Reset();
         m_DeploymentService.Reset();
         m_Logger.Reset();
-
+        m_UnityEnvironment.Reset();
+        m_DeployFileService.Reset();
         var collection = m_Bridge.CreateBuilder(new ServiceCollection());
         collection.AddScoped<IDeploymentService, TestDeploymentService>();
         var provider = m_Bridge.CreateServiceProvider(collection);
 
         m_Host.Setup(x => x.Services)
             .Returns(provider);
+
+        m_UnityEnvironment.Setup(x => x.FetchIdentifierAsync()).Returns(Task.FromResult(ValidEnvironmentId));
+        m_DeployFileService.Setup(x => x.ListFilesToDeploy(new[]
+        {
+            ""
+        }, "*.ext")).Returns(new[]
+        {
+            ""
+        });
     }
 
     [Test]
@@ -106,7 +122,13 @@ public class DeployHandlerTests
         var mockLoadingIndicator = new Mock<ILoadingIndicator>();
 
         await DeployHandler.DeployAsync(
-            null!, null!, null!, mockLoadingIndicator.Object, CancellationToken.None);
+            It.IsAny<IHost>(),
+            It.IsAny<DeployInput>(),
+            m_DeployFileService.Object,
+            m_UnityEnvironment.Object,
+            It.IsAny<ILogger>(),
+            mockLoadingIndicator.Object,
+            CancellationToken.None);
 
         mockLoadingIndicator.Verify(
             ex => ex.StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?, Task>>()), Times.Once);
@@ -117,7 +139,10 @@ public class DeployHandlerTests
     public async Task DeployAsync_CallsGetServicesCorrectly()
     {
         await DeployHandler.DeployAsync(
-            m_Host.Object, new DeployInput(), m_Logger.Object, (StatusContext)null!, CancellationToken.None);
+            m_Host.Object, new DeployInput(),
+            m_DeployFileService.Object,
+            m_UnityEnvironment.Object,
+            m_Logger.Object, (StatusContext)null!, CancellationToken.None);
 
         TestsHelper.VerifyLoggerWasCalled(m_Logger, LogLevel.Critical, LoggerExtension.ResultEventId, Times.Once);
     }
@@ -137,10 +162,12 @@ public class DeployHandlerTests
         Assert.ThrowsAsync<DeploymentFailureException>(async () =>
         {
             await DeployHandler.DeployAsync(
-                m_Host.Object, new DeployInput(), m_Logger.Object, (StatusContext)null!, CancellationToken.None);
+                m_Host.Object, new DeployInput(),
+                m_DeployFileService.Object,
+                m_UnityEnvironment.Object,
+                m_Logger.Object, (StatusContext)null!, CancellationToken.None);
         });
     }
-
 
     [Test]
     public void DeployAsync_DeploymentFailureThrowsAggregateException()
@@ -155,7 +182,10 @@ public class DeployHandlerTests
         Assert.ThrowsAsync<AggregateException>(async () =>
         {
             await DeployHandler.DeployAsync(
-                m_Host.Object, new DeployInput(), m_Logger.Object, (StatusContext)null!, CancellationToken.None);
+                m_Host.Object, new DeployInput(),
+                m_DeployFileService.Object,
+                m_UnityEnvironment.Object,
+                m_Logger.Object, (StatusContext)null!, CancellationToken.None);
         });
     }
 }

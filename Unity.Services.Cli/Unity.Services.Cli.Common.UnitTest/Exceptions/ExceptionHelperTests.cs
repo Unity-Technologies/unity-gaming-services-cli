@@ -146,19 +146,6 @@ class ExceptionHelperTests
     }
 
     [Test]
-    public void HandlerCancelledOperation()
-    {
-        var cancelledException = new TaskCanceledException();
-
-        Assert.DoesNotThrow(
-            () => m_ExceptionHelper!.HandleException(
-                cancelledException, k_MockHelper.MockLogger.Object, m_Context!));
-
-        TestsHelper.VerifyLoggerWasCalled(k_MockHelper.MockLogger, expectedTimes: Times.Never);
-        Assert.AreEqual(ExitCode.Cancelled, m_Context!.ExitCode);
-    }
-
-    [Test]
     public void ExceptionHandler_DoesNotThrowWhenDiagnosticsFailToSend()
     {
         var exception = new Exception("");

@@ -9,13 +9,15 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Configuration;
 using Spectre.Console;
+using Unity.Analytics.Sender;
 using Unity.Services.Cli.Common.Console;
-using Unity.Services.Cli.Common.Features;
 using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.Common.SystemEnvironment;
 using Unity.Services.Cli.Common.Telemetry;
+using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
+using Unity.Services.Cli.Common.Telemetry.AnalyticEvent.AnalyticEventFactory;
 using Unity.Services.Gateway.IdentityApiV1.Generated.Api;
 using IdentityClient = Unity.Services.Gateway.IdentityApiV1.Generated.Client;
 
@@ -23,6 +25,7 @@ namespace Unity.Services.Cli.Common;
 
 public static class CommonModule
 {
+    public const string m_CliProductName = "com.unity.ugs-cli";
     public static CommandLineBuilder UseTreePrinter(this CommandLineBuilder builder)
     {
         var printTreeFlag = new Option<bool>("--print-tree")
@@ -53,8 +56,8 @@ public static class CommonModule
         return builder;
     }
 
-    public static void ConfigureCommonServices(IHostBuilder hostBuilder, Logger logger, IFeatures features,
-        IAnsiConsole ansiConsole)
+    public static void ConfigureCommonServices(IHostBuilder hostBuilder, Logger logger,
+        IAnsiConsole ansiConsole, IAnalyticEventFactory analyticEventFactory)
     {
         var parseResult = hostBuilder.GetInvocationContext().ParseResult;
         bool silentAnsiConsole = parseResult.GetValueForOption(CommonInput.QuietOption) ||
@@ -67,13 +70,14 @@ public static class CommonModule
         hostBuilder.ConfigureAppConfiguration(ConfigAppConfiguration);
         hostBuilder.ConfigureLogging(logBuilder => ConfigureLogging(parseResult, logBuilder, logger));
         hostBuilder.ConfigureServices(collection => collection.AddSingleton<ILogger>(logger));
-        hostBuilder.ConfigureServices(collection => collection.AddSingleton(features));
+        hostBuilder.ConfigureServices(collection => collection.AddSingleton(analyticEventFactory));
         hostBuilder.ConfigureServices(CreateAndRegisterIdentityApiServices);
         hostBuilder.ConfigureServices(serviceCollection =>
             CreateAndRegisterProgressBarService(serviceCollection, usedConsole));
         hostBuilder.ConfigureServices(serviceCollection =>
             CreateAndRegisterLoadingIndicatorService(serviceCollection, usedConsole));
         hostBuilder.ConfigureServices(CreateAndRegisterCliPromptService);
+        hostBuilder.ConfigureServices(CreateAndRegisterCliAnalyticsSenderService);
     }
 
     internal static void ConfigAppConfiguration(IConfigurationBuilder config)
@@ -151,7 +155,7 @@ public static class CommonModule
         };
         var productTags = new Dictionary<string, string>
         {
-            [TagKeys.ProductName] = "com.unity.ugs-cli",
+            [TagKeys.ProductName] = m_CliProductName,
             [TagKeys.CliVersion] = TelemetryConfigurationProvider.GetCliVersion()
         };
 
@@ -163,5 +167,19 @@ public static class CommonModule
         }
 
         return new TelemetrySender(telemetryApi, commonTags, productTags);
+    }
+
+    internal static void CreateAndRegisterCliAnalyticsSenderService(IServiceCollection serviceCollection)
+    {
+        serviceCollection.AddAnalytics(((x, _) =>
+                x.WithSourceName(m_CliProductName)
+                    .WithDefaultUnityBigQueryExporter()
+                    .WithCommonHeader(new Dictionary<string, string>
+                    {
+                        ["uuid"]= ""
+                    })
+            ));
+        var provider = serviceCollection.BuildServiceProvider();
+        provider.InitAnalytics();
     }
 }

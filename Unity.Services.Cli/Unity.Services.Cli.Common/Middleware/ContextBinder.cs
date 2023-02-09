@@ -13,6 +13,8 @@ using Unity.Services.Cli.Common.SystemEnvironment;
 using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.Common.Services;
 using Unity.Services.Cli.Common.Telemetry;
+using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
+using Unity.Services.Cli.Common.Telemetry.AnalyticEvent.AnalyticEventFactory;
 using Unity.Services.Cli.Common.Utils;
 
 namespace Unity.Services.Cli.Common.Middleware;
@@ -60,7 +62,7 @@ public static class ContextBinder
         builder.AddMiddleware(AddInputParserToContext);
         return builder;
 
-        static void AddInputParserToContext(InvocationContext context)
+        void AddInputParserToContext(InvocationContext context)
         {
             var customInputTypes = GetCustomInputTypes();
             foreach (var inputType in customInputTypes)
@@ -77,6 +79,7 @@ public static class ContextBinder
                     SetInputFromConfigAsync(inputInstance, configService, logger, context, memberInfos).Wait();
                     SetInputFromParseResult(inputType, context.ParseResult, inputInstance);
                     SetUnityEnvironment(inputInstance, context);
+                    SetAnalyticEventFactory(inputInstance, context);
                     return inputInstance;
                 });
             }
@@ -90,6 +93,15 @@ public static class ContextBinder
                 .Where(type => type.IsAssignableTo(typeof(CommonInput)))
                 .ToArray();
         }
+    }
+
+    static void SetAnalyticEventFactory(
+        object inputInstance,
+        InvocationContext context)
+    {
+        var host = context.GetHost();
+        var eventFactory = host.Services.GetRequiredService<IAnalyticEventFactory>();
+        eventFactory.ProjectId = ((CommonInput)inputInstance).CloudProjectId ?? "";
     }
 
     static void SetUnityEnvironment(object inputInstance, InvocationContext context)

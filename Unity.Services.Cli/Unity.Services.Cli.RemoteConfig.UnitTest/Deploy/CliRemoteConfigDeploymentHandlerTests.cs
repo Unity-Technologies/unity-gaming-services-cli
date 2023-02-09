@@ -1,12 +1,13 @@
+using System.IO.Abstractions;
 using Moq;
 using NUnit.Framework;
 using Unity.Services.Cli.Deploy.Model;
 using Unity.Services.Cli.RemoteConfig.Deploy;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Formatting;
-using Unity.Services.RemoteConfig.Editor.Authoring.Core.IO;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Json;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Networking;
+using IFileSystem = Unity.Services.RemoteConfig.Editor.Authoring.Core.IO.IFileSystem;
 
 namespace Unity.Services.Cli.RemoteConfig.UnitTest.Deploy;
 
@@ -19,7 +20,7 @@ public class CliRemoteConfigDeploymentHandlerTests
     readonly Mock<IFormatValidator> m_FormatValidator = new();
     readonly Mock<IConfigMerger> m_ConfigMerger = new();
     readonly Mock<IJsonConverter> m_JsonConverter = new();
-    readonly Mock<IFileReader> m_FileReader = new();
+    readonly Mock<IFileSystem> m_FileReader = new();
 
     class DeploymentHandlerForTest : CliRemoteConfigDeploymentHandler
     {
@@ -44,8 +45,16 @@ public class CliRemoteConfigDeploymentHandlerTests
             IFormatValidator formatValidator,
             IConfigMerger configMerger,
             IJsonConverter jsonConverter,
-            IFileReader fileReader)
-            : base(remoteConfigClient, remoteConfigParser, remoteConfigValidator, formatValidator, configMerger, jsonConverter, fileReader) { }
+            IFileSystem fileSystem)
+            : base(remoteConfigClient,
+                remoteConfigParser,
+                remoteConfigValidator,
+                formatValidator,
+                configMerger,
+                jsonConverter,
+                fileSystem)
+        {
+        }
     }
 
     DeploymentHandlerForTest? m_DeploymentHandlerForTest;
@@ -70,7 +79,8 @@ public class CliRemoteConfigDeploymentHandlerTests
     {
         Assert.DoesNotThrowAsync(async () =>
         {
-            await m_DeploymentHandlerForTest!.DeployAsync(Array.Empty<IRemoteConfigFile>(), false);
+            await m_DeploymentHandlerForTest!.DeployAsync(
+                Array.Empty<IRemoteConfigFile>(), false);
         });
     }
 

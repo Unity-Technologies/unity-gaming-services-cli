@@ -120,6 +120,12 @@ public abstract class UgsCliFixture
         }
     }
 
+    public void SetupProjectAndEnvironment()
+    {
+        SetConfigValue("project-id", CommonKeys.ValidProjectId);
+        SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
+    }
+
     string GetBackUpConfigFile(string original) => original + $".{GetType()}.back";
 
     protected static UgsCliTestCase GetLoggedInCli()

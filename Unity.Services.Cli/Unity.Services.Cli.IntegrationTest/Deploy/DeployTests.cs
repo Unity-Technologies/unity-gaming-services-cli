@@ -18,7 +18,7 @@ public class DeployTests : UgsCliFixture
 {
     const string k_ConfigId = "config-id";
 
-    static readonly string k_TestDirectory = Path.Combine(UgsCliBuilder.RootDirectory, ".tmp/FilesDir");
+    static readonly string k_TestDirectory = Path.GetFullPath(Path.Combine(UgsCliBuilder.RootDirectory, ".tmp/FilesDir"));
 
     readonly IReadOnlyList<DeployTestCase> m_DeployedTestCases = new[]
     {
@@ -142,9 +142,9 @@ public class DeployTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        const string invalidDirectory = "invalid-directory";
+        var invalidDirectory = Path.GetFullPath("invalid-directory");
         var expectedOutput = $"[Error]: {Environment.NewLine}"
-                             + $"    Path {invalidDirectory} could not be found.{Environment.NewLine}";
+                             + $"    Path \"{invalidDirectory}\" could not be found.{Environment.NewLine}";
 
         await GetLoggedInCli()
             .Command($"deploy {invalidDirectory}")
@@ -197,6 +197,18 @@ public class DeployTests : UgsCliFixture
         var deployedConfigFileString = string.Join(Environment.NewLine + "    ", m_DeployedTestCases.Select(r => r.ConfigFileName));
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory}")
+            .AssertStandardOutputContains($"Successfully deployed the following contents:{Environment.NewLine}    {deployedConfigFileString}")
+            .AssertNoErrors()
+            .ExecuteAsync();
+    }
+
+    [Test]
+    public async Task DeployValidConfigWithOptionsSucceed()
+    {
+        await CreateDeployTestFilesAsync(m_DeployedTestCases, m_DeployedContents);
+        var deployedConfigFileString = string.Join(Environment.NewLine + "    ", m_DeployedTestCases.Select(r => r.ConfigFileName));
+        await GetLoggedInCli()
+            .Command($"deploy {k_TestDirectory} -p {CommonKeys.ValidProjectId} -e {CommonKeys.ValidEnvironmentName}")
             .AssertStandardOutputContains($"Successfully deployed the following contents:{Environment.NewLine}    {deployedConfigFileString}")
             .AssertNoErrors()
             .ExecuteAsync();

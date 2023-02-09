@@ -1,7 +1,16 @@
 # Remote-Config Module
 
-This module is an interface to make calls to the Remote-Config UGS service.
+Use `ugs remote-config -h` to get help on how to use the remote-config commands.
 
-Currently, you may only deploy remote-config files with the `ugs deploy` command.
+### Remote-Config Commands
 
-To learn how to create remote config files, please see [documentation](https://docs.unity3d.com/Packages/com.unity.remote-config@3.2/manual/Authoring/remote_config_files.html)
+```
+ugs remote-config new-file <file name>
+```
+
+### Arguments
+
+`<file name>` The name of the file to create.
+
+To learn how to create a remote config files, please
+see [documentation](https://docs.unity3d.com/Packages/com.unity.remote-config@3.2/manual/Authoring/remote_config_files.html)

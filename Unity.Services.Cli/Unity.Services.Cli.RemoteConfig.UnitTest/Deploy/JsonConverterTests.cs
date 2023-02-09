@@ -1,5 +1,6 @@
+using Newtonsoft.Json;
 using NUnit.Framework;
-using Unity.Services.Cli.RemoteConfig.Deploy;
+using JsonConverter = Unity.Services.Cli.RemoteConfig.Deploy.JsonConverter;
 
 namespace Unity.Services.Cli.RemoteConfig.UnitTest.Deploy;
 
@@ -17,7 +18,7 @@ class JsonConverterTests
 
     public JsonConverterTests()
     {
-        m_ExpectedJson = Newtonsoft.Json.JsonConvert.SerializeObject(m_TestData);
+        m_ExpectedJson = Newtonsoft.Json.JsonConvert.SerializeObject(m_TestData, Formatting.Indented);
     }
 
     [Test]

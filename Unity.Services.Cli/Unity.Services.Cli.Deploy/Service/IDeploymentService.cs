@@ -1,15 +1,19 @@
 using Spectre.Console;
+using Unity.Services.Cli.Deploy.Input;
 using Unity.Services.Cli.Deploy.Model;
 
-namespace Unity.Services.Cli.Deploy.Input;
+namespace Unity.Services.Cli.Deploy.Service;
 
 public interface IDeploymentService
 {
     string ServiceType { get; }
-    protected string DeployFileExtension { get; }
+    public string DeployFileExtension { get; }
 
     Task<DeploymentResult> Deploy(
-        DeployInput input,
+        DeployInput deployInput,
+        IReadOnlyList<string> filePaths,
+        string projectId,
+        string environmentId,
         StatusContext? loadingContext,
         CancellationToken cancellationToken);
 }

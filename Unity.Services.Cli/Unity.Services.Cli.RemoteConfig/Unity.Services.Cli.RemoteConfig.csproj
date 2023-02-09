@@ -20,12 +20,10 @@
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Unity.Services.RemoteConfig.Authoring.Editor.Core" Version="0.1.5-beta.1" />
+    <PackageReference Include="Unity.Services.RemoteConfig.Authoring.Editor.Core" Version="0.3.0" />
   </ItemGroup>
   <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <DefineConstants>FEATURE_REMOTE_CONFIG_NEW_FILE;</DefineConstants>
+    <DefineConstants></DefineConstants>
   </PropertyGroup>
 </Project>
