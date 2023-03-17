@@ -8,7 +8,7 @@ using CloudCodeApiException = Unity.Services.Gateway.CloudCodeApiV1.Generated.Cl
 using EconomyApiException = Unity.Services.Gateway.EconomyApiV2.Generated.Client.ApiException;
 using LobbyApiException = Unity.Services.MpsLobby.LobbyApiV1.Generated.Client.ApiException;
 using LeaderboardApiException = Unity.Services.Gateway.LeaderboardApiV1.Generated.Client.ApiException;
-using AccountsApiException = Unity.Services.Gateway.AccountsApiV2.Generated.Client.ApiException;
+using PlayerAdminApiException = Unity.Services.Gateway.PlayerAdminApiV2.Generated.Client.ApiException;
 using PlayerAuthException = Unity.Services.Gateway.PlayerAuthApiV1.Generated.Client.ApiException;
 
 namespace Unity.Services.Cli.Common.Exceptions;
@@ -20,7 +20,7 @@ public class ExceptionHelper
     internal const string TroubleshootingHelp = "For help troubleshooting this error, visit this page in your browser:";
     internal readonly IReadOnlyDictionary<HttpStatusCode, string> HttpErrorTroubleshootingLinks = new Dictionary<HttpStatusCode, string>
     {
-        [HttpStatusCode.Forbidden] = "https://github.com/Unity-Technologies/unity-gaming-services-cli/blob/main/docs/Troubleshooting/403-unauthorized-error.md"
+        [HttpStatusCode.Forbidden] = "https://services.docs.unity.com/guides/ugs-cli/latest/general/troubleshooting/unauthorized-error-403"
     };
 
     public ExceptionHelper(IDiagnostics diagnostics, IAnsiConsole ansiConsole)
@@ -64,8 +64,8 @@ public class ExceptionHelper
             case LeaderboardApiException leaderboardApiException:
                 HandleApiException(exception, logger, context, leaderboardApiException.ErrorCode);
                 break;
-            case AccountsApiException accountsApiException:
-                HandleApiException(exception, logger, context, accountsApiException.ErrorCode);
+            case PlayerAdminApiException playerAdminApiException:
+                HandleApiException(exception, logger, context, playerAdminApiException.ErrorCode);
                 break;
             case PlayerAuthException playerAuthApiException:
                 HandleApiException(exception, logger, context, playerAuthApiException.ErrorCode);

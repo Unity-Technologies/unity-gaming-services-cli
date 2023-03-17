@@ -1,0 +1,11 @@
+{
+  "statements": [
+    {
+      "Sid": "DenyAccessForCloudCode",
+      "Action": ["Read"],
+      "Resource": "urn:ugs:cloud-code:/*",
+      "Effect": "Deny",
+      "Principal": "Player"
+    }
+  ]
+}

@@ -3,15 +3,17 @@ using Moq;
 using NUnit.Framework;
 using Spectre.Console;
 using Unity.Services.Cli.Common.Utils;
-using Unity.Services.Cli.Deploy.Input;
-using Unity.Services.Cli.Deploy.Model;
-using Unity.Services.Cli.Deploy.Service;
+using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.RemoteConfig.Deploy;
 using Unity.Services.Cli.RemoteConfig.Service;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Deployment;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.ErrorHandling;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Fetch;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
+using Unity.Services.RemoteConfig.Editor.Authoring.Core.Results;
+using FetchResult = Unity.Services.RemoteConfig.Editor.Authoring.Core.Results.FetchResult;
 
 namespace Unity.Services.Cli.RemoteConfig.UnitTest.Deploy;
 
@@ -79,7 +81,7 @@ public class RemoteConfigFetchServiceTests
             m_RemoteConfigFiles.Add(rcFile);
         }
 
-        m_Result = new Result(
+        m_Result = new FetchResult(
             Array.Empty<(string,string)>(),
             new [] {("updated key", "updated file")},
             new [] {("deleted key", "deleted file")},
@@ -94,7 +96,11 @@ public class RemoteConfigFetchServiceTests
                     false,
                     false,
                     CancellationToken.None))
-            .Returns(Task.FromResult<Result>(m_Result));
+            .Returns(Task.FromResult((FetchResult)m_Result));
+
+        m_MockRemoteConfigScriptsLoader.Setup(loader =>
+                loader.LoadScriptsAsync(It.IsAny<IReadOnlyList<string>>(), It.IsAny<ICollection<DeployContent>>()))
+            .Returns(Task.FromResult(new LoadResult(new List<IRemoteConfigFile>(), new List<DeployContent>())));
     }
 
     [Test]

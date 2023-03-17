@@ -26,4 +26,9 @@ class CloudCodeAuthoringLogger : ICloudCodeAuthoringLogger
     {
         m_Logger.LogInformation("{Message}", message.ToString());
     }
+
+    public void LogVerbose(object message)
+    {
+
+    }
 }

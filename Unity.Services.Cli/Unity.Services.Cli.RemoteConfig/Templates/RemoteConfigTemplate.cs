@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Unity.Services.Cli.Deploy.Handlers;
-using Unity.Services.Cli.Deploy.Templates;
+using Unity.Services.Cli.Authoring.Handlers;
+using Unity.Services.Cli.Authoring.Templates;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Formatting;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
 using JsonConverter = Unity.Services.Cli.RemoteConfig.Deploy.JsonConverter;

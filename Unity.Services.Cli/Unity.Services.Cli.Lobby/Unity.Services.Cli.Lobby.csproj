@@ -20,7 +20,7 @@
     <ProjectReference Include="..\Unity.Services.Cli.RemoteConfig\Unity.Services.Cli.RemoteConfig.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.22.1" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.27.0" />
     <PackageReference Include="Unity.Services.Gateway.Auth.Generated" Version="1.0.1" />
     <PackageReference Include="Unity.Services.MpsLobby.LobbyApiV1.Generated" Version="0.11.1" />
   </ItemGroup>

@@ -13,4 +13,6 @@ interface ICloudCodeInputParser
     public Task<string> LoadScriptCodeAsync(CloudCodeInput input, CancellationToken cancellationToken);
 
     public Task<string> LoadScriptCodeAsync(string filePath, CancellationToken cancellationToken);
+
+    public Task<Stream> LoadModuleContentsAsync(string filePath);
 }

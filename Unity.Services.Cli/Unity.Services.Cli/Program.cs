@@ -24,7 +24,12 @@ using Unity.Services.Cli.RemoteConfig;
 using Unity.Services.Cli.Common.Telemetry;
 using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
 using Unity.Services.Cli.Common.Telemetry.AnalyticEvent.AnalyticEventFactory;
-using Unity.Services.Cli.Deploy;
+using Unity.Services.Cli.Authoring;
+#if FEATURE_LEADERBOARDS
+using Unity.Services.Cli.Leaderboards;
+#endif
+using Unity.Services.Cli.Player;
+using Unity.Services.Cli.Access;
 
 namespace Unity.Services.Cli;
 
@@ -53,7 +58,12 @@ static class Program
                     host.ConfigureServices(DeployModule.RegisterServices);
                     host.ConfigureServices(CloudCodeModule.RegisterServices);
                     host.ConfigureServices(RemoteConfigModule.RegisterServices);
+                    host.ConfigureServices(AccessModule.RegisterServices);
                     host.ConfigureServices(LobbyModule.RegisterServices);
+#if FEATURE_LEADERBOARDS
+                    host.ConfigureServices(LeaderboardsModule.RegisterServices);
+#endif
+                    host.ConfigureServices(PlayerModule.RegisterServices);
                     host.ConfigureServices(serviceCollection => serviceCollection
                         .AddSingleton<ISystemEnvironmentProvider>(systemEnvironmentProvider));
                 })
@@ -67,8 +77,8 @@ static class Program
                     helpSectionDelegates.Insert(1, _ => ansiConsole
                         .Markup($"Project Role Requirements:{System.Environment.NewLine}  You may need " +
                                 $"permissions to use this module or command.{System.Environment.NewLine}  " +
-                                "Visit https://github.com/Unity-Technologies/unity-gaming-services-" +
-                                "cli/blob/main/docs/project-roles.md for required project roles." +
+                                "Visit https://services.docs.unity.com/guides/ugs-cli/latest/general/" +
+                                "troubleshooting/project-roles for required project roles." +
                                 $"{System.Environment.NewLine}"));
 
                     // Replace built-in subcommand help section by custom subcommand help section
@@ -103,8 +113,13 @@ static class Program
             .AddModule(new ConfigurationModule())
             .AddModule(new DeployModule())
             .AddModule(new FetchModule())
+            .AddModule(new AccessModule())
             .AddModule(new EnvironmentModule())
+#if FEATURE_LEADERBOARDS
+            .AddModule(new LeaderboardsModule())
+#endif
             .AddModule(new LobbyModule())
+            .AddModule(new PlayerModule())
             .AddModule(new RemoteConfigModule())
             .Build();
 

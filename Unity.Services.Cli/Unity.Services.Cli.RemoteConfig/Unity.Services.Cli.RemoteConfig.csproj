@@ -16,14 +16,13 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Unity.Services.Cli.Common\Unity.Services.Cli.Common.csproj" />
-    <ProjectReference Include="..\Unity.Services.Cli.Deploy\Unity.Services.Cli.Deploy.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.Authoring\Unity.Services.Cli.Authoring.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Unity.Services.RemoteConfig.Authoring.Editor.Core" Version="0.3.0" />
+    <PackageReference Include="Unity.Services.RemoteConfig.Authoring.Editor.Core" Version="0.3.4-beta.1" />
   </ItemGroup>
   <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>
-    <DefineConstants></DefineConstants>
   </PropertyGroup>
 </Project>

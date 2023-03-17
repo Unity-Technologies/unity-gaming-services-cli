@@ -1,5 +1,5 @@
 using System.CommandLine;
-using Unity.Services.Cli.Deploy.Input;
+using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Common.Input;
 
 namespace Unity.Services.Cli.CloudCode.Input;
@@ -30,6 +30,9 @@ public class CloudCodeInput : DeployInput
         "--version"
     }, "The script version to be republished");
 
+    public static readonly Argument<string> ModuleNameArgument =
+        new("module-name", "Name of the target module");
+
     [InputBinding(nameof(ScriptNameArgument))]
     public string? ScriptName { get; set; }
 
@@ -44,4 +47,7 @@ public class CloudCodeInput : DeployInput
 
     [InputBinding(nameof(VersionOption))]
     public int? Version { get; set; }
+
+    [InputBinding(nameof(ModuleNameArgument))]
+    public string? ModuleName { get; set; }
 }

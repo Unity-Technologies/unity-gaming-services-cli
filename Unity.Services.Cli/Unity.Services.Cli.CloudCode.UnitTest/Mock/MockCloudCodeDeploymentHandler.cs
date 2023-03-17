@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Unity.Services.Cli.Deploy.Model;
-using Unity.Services.Cli.Deploy.Service;
+using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Analytics;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Logging;

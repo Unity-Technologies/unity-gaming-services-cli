@@ -78,4 +78,22 @@ class CloudCodeInputParser : ICloudCodeInputParser
                 "specified path points to a file and not a directory."), ExitCode.HandledError);
         }
     }
+
+    public async Task<Stream> LoadModuleContentsAsync(string filePath)
+    {
+        try
+        {
+            return await Task.FromResult<Stream>(File.Open(filePath, FileMode.Open, FileAccess.Read));
+        }
+        catch (FileNotFoundException exception)
+        {
+            throw new CliException(exception.Message, ExitCode.HandledError);
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            throw new CliException(string.Join(" ", exception.Message,
+                "Make sure that the CLI has the permissions to access the file and that the " +
+                "specified path points to a file and not a directory."), ExitCode.HandledError);
+        }
+    }
 }

@@ -19,7 +19,6 @@ using Unity.Services.CloudCode.Authoring.Editor.Core.Analytics;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Crypto;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Api;
-using Unity.Services.Gateway.CloudCodeApiV1.Generated.Client;
 
 namespace Unity.Services.Cli.CloudCode.UnitTest;
 
@@ -103,9 +102,6 @@ class CloudCodeModuleTests
     [TestCase(typeof(ICloudCodeScriptParser))]
     [TestCase(typeof(ICloudCodeService))]
     [TestCase(typeof(ICloudCodeInputParser))]
-    [TestCase(typeof(CloudCodeClient))]
-    [TestCase(typeof(ICliCloudCodeClient))]
-    [TestCase(typeof(ICloudCodeClient))]
     [TestCase(typeof(IDeploymentAnalytics))]
     [TestCase(typeof(Unity.Services.CloudCode.Authoring.Editor.Core.Logging.ILogger))]
     [TestCase(typeof(EnvironmentProvider))]
@@ -115,7 +111,6 @@ class CloudCodeModuleTests
     [TestCase(typeof(IScriptCache))]
     [TestCase(typeof(IPreDeployValidator))]
     [TestCase(typeof(CliCloudCodeDeploymentHandler))]
-    [TestCase(typeof(ICloudCodeServicesWrapper))]
     public void CloudCodeModuleRegistersServices(Type serviceType)
     {
         EndpointHelper.InitializeNetworkTargetEndpoints(new[]

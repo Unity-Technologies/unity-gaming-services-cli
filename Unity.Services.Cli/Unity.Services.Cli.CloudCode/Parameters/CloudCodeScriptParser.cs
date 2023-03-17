@@ -9,10 +9,10 @@ namespace Unity.Services.Cli.CloudCode.Parameters;
 internal class CloudCodeScriptParser : ICloudCodeScriptParser
 {
     const string k_EmbeddedParameterScript = "Unity.Services.Cli.CloudCode.JavaScripts.script_parameters.js";
-    const int k_TimeoutInSeconds = 1;
-    const int k_MemoryLimitInByte = 1000000;
-    const int k_StatementLimit = 100;
-    const int k_RecursionLimit = 10;
+    const string k_TimeoutExceptionMessage = "Script took too much time to parse (timed out).";
+    const int k_TimeoutInSeconds = 5;
+    const int k_MemoryLimitInByte = 256000000;
+
     public async Task<string?> ParseToScriptParamsJsonAsync(string script, CancellationToken token)
     {
         var parameterParseScript = await ReadResourceFileAsync(k_EmbeddedParameterScript);
@@ -25,9 +25,7 @@ internal class CloudCodeScriptParser : ICloudCodeScriptParser
     {
         using var engine = new Engine(options =>
         {
-            options.MaxStatements(k_StatementLimit);
             options.LimitMemory(k_MemoryLimitInByte);
-            options.LimitRecursion(k_RecursionLimit);
             options.TimeoutInterval(TimeSpan.FromSeconds(k_TimeoutInSeconds));
             options.CancellationToken(token);
         });
@@ -36,6 +34,10 @@ internal class CloudCodeScriptParser : ICloudCodeScriptParser
         try
         {
             return engine.Invoke(paramParser, cloudCodeScript);
+        }
+        catch (TimeoutException)
+        {
+            throw new ScriptEvaluationException(k_TimeoutExceptionMessage);
         }
         catch (JintException ex)
         {

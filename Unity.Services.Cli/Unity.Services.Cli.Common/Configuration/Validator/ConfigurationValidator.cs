@@ -6,10 +6,10 @@ namespace Unity.Services.Cli.Common.Validator;
 
 public class ConfigurationValidator : IConfigurationValidator
 {
-    const string k_EnvironmentNameRegexPattern = "^[a-zA-Z0-9_-]*$";
+    const string k_EnvironmentNameRegexPattern = "^[a-z0-9_-]*$";
     const string k_GuidRegexPattern = "^[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?$";
 
-    public const string EnvironmentNameInvalidMessage = "Valid input should have only alphanumerical and dash (-) characters.";
+    public const string EnvironmentNameInvalidMessage = "Valid input should have only lowercase alphanumerical and dash (-) characters.";
     public const string GuidInvalidMessage =
         "Valid input should have characters 0-9, a-f, A-F and follow the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX.";
 

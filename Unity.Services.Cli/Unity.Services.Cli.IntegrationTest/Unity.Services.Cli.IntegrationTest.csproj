@@ -6,16 +6,20 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.3.1" />
-    <PackageReference Include="coverlet.collector" Version="3.1.2" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
+    <PackageReference Include="coverlet.collector" Version="3.2.0" />
     <PackageReference Include="Unity.Services.Gateway.LeaderboardApiV1.Generated" Version="1.0.5-beta" />
+    <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.1.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Unity.Services.Cli.Common\Unity.Services.Cli.Common.csproj" />
-    <ProjectReference Include="..\Unity.Services.Cli.Deploy\Unity.Services.Cli.Deploy.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.Authoring\Unity.Services.Cli.Authoring.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.MockServer\Unity.Services.Cli.MockServer.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.RemoteConfig\Unity.Services.Cli.RemoteConfig.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="CloudCodeTests\Mock\" />
   </ItemGroup>
 </Project>

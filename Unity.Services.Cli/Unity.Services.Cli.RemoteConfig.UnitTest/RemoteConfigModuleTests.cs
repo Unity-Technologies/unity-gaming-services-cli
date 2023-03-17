@@ -7,7 +7,7 @@ using Unity.Services.Cli.RemoteConfig.Service;
 using Unity.Services.Cli.ServiceAccountAuthentication;
 using Unity.Services.Cli.TestUtils;
 using Unity.Services.Cli.Common.Validator;
-using Unity.Services.Cli.Deploy.Handlers;
+using Unity.Services.Cli.Authoring.Handlers;
 using Unity.Services.Cli.RemoteConfig.Templates;
 
 namespace Unity.Services.Cli.RemoteConfig.UnitTest;

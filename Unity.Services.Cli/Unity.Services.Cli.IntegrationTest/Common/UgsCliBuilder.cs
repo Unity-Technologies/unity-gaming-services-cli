@@ -32,7 +32,11 @@ public static class UgsCliBuilder
     public static async Task Build()
     {
         const string buildScript = "build.py";
-        var pythonPath = await GetPythonPathAsync();
+        var pythonPath = "python3";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            pythonPath = await GetWindowsPythonPathAsync();
+        }
 
         var process = new Process
         {
@@ -52,17 +56,17 @@ public static class UgsCliBuilder
         var (exitCode, _, error) = await process.GetProcessResultAsync();
         if (exitCode != 0)
         {
-            throw new Exception(error);
+            throw new Exception($"{process.StartInfo.FileName} {process.StartInfo.Arguments}: {error}");
         }
     }
 
-    static async Task<string> GetPythonPathAsync()
+    static async Task<string> GetWindowsPythonPathAsync()
     {
         var process = new Process
         {
             StartInfo = new ProcessStartInfo
             {
-                FileName = GetWhereIsCommandName(),
+                FileName = "where",
                 WorkingDirectory = RootDirectory,
                 Arguments = "python"
             },
@@ -71,22 +75,9 @@ public static class UgsCliBuilder
         var (exitCode, output, error) = await process.GetProcessResultAsync();
         if (exitCode != 0)
         {
-            throw new Exception(error);
+            throw new Exception($"{process.StartInfo.FileName} {process.StartInfo.Arguments}: {error}");
         }
-
         return output.Split("\r\n").First();
-
-        static string GetWhereIsCommandName()
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-                || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return "whereis";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return "where";
-
-            throw new NotSupportedException("Current platform not supported");
-        }
     }
 
     static IDictionary<string, string> GetCliBuildEnvironmentVariables()

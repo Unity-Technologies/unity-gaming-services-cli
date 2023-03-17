@@ -1,5 +1,5 @@
-using Unity.Services.Cli.Deploy.Model;
-using Unity.Services.Cli.Deploy.Service;
+using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Formatting;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.IO;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Json;

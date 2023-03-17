@@ -1,6 +1,6 @@
 using Moq;
 using NUnit.Framework;
-using Unity.Services.Cli.Deploy.Model;
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Analytics;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Logging;

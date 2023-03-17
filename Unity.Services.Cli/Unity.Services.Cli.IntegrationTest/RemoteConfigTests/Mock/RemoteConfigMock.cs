@@ -14,6 +14,7 @@ public class RemoteConfigMock
 
     readonly string UpdateConfigUrl;
     readonly string GetAllConfigsUrl;
+    readonly string DeleteConfigUrl;
 
     readonly string m_ProjectId;
     readonly string m_EnvironmentId;
@@ -27,6 +28,7 @@ public class RemoteConfigMock
         m_EnvironmentId = environmentId;
         UpdateConfigUrl = $"{MockApi.Server?.Url}{k_RemoteConfigPath}/projects/{m_ProjectId}/configs";
         GetAllConfigsUrl = $"{MockApi.Server?.Url}{k_RemoteConfigPath}/projects/{m_ProjectId}/environments/{m_EnvironmentId}/configs";
+        DeleteConfigUrl = $"{MockApi.Server?.Url}{k_RemoteConfigPath}/projects/{m_ProjectId}/configs";
         m_Config = new() {
             ProjectId = m_ProjectId,
             EnvironmentId = environmentId,
@@ -35,6 +37,9 @@ public class RemoteConfigMock
             CreatedAt = "2022-11-14T18:58:19Z",
             UpdatedAt = "2022-11-30T22:16:00Z",
             Value = new List<RemoteConfigEntry>()
+            {
+                new RemoteConfigEntry() {key = "test", type ="Remote Config", value = "west"}
+            }
         };
         m_GetResponse = new GetResponse
         {
@@ -56,6 +61,13 @@ public class RemoteConfigMock
     {
         MockApi.Server?
             .Given(Request.Create().WithPath($"{UpdateConfigUrl}/{configId}").UsingPut())
+            .RespondWith(Response.Create().WithStatusCode(HttpStatusCode.NoContent));
+    }
+
+    public void MockDeleteConfigAsync(string configId)
+    {
+        MockApi.Server?
+            .Given(Request.Create().WithPath($"{DeleteConfigUrl}/{configId}").UsingDelete())
             .RespondWith(Response.Create().WithStatusCode(HttpStatusCode.NoContent));
     }
 }

@@ -1,6 +1,6 @@
 using Unity.Services.Cli.CloudCode.Exceptions;
 using Unity.Services.Cli.CloudCode.Service;
-using Unity.Services.Cli.Deploy.Model;
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 
 namespace Unity.Services.Cli.CloudCode.Deploy;

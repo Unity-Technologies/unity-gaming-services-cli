@@ -5,10 +5,10 @@ namespace Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
 
 public class AnalyticEvent : AnalyticEventBase, IAnalyticEvent
 {
-#if USE_MOCKSERVER_ENDPOINTS || USE_STAGING_ENDPOINTS
-    const string k_MetricsName = "ugs.cli.metric.v3.stg";
-#else
+#if ENABLE_UGS_CLI_TELEMETRY
     const string k_MetricsName = "ugs.cli.metric.v3";
+#else
+    const string k_MetricsName = "ugs.cli.metric.v3.stg";
 #endif
 
     readonly ISystemEnvironmentProvider m_SystemEnvironmentProvider;

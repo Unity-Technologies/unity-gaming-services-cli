@@ -1,9 +1,10 @@
 using Spectre.Console;
 using Unity.Services.Cli.Common.Utils;
-using Unity.Services.Cli.Deploy.Input;
-using Unity.Services.Cli.Deploy.Model;
-using Unity.Services.Cli.Deploy.Service;
+using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Fetch;
+using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
 
 namespace Unity.Services.Cli.RemoteConfig.Deploy;
 
@@ -48,18 +49,18 @@ class RemoteConfigFetchService : IFetchService
         var remoteConfigFiles = m_DeployFileService.ListFilesToDeploy(new[] {input.Path}, m_DeployFileExtension).ToList();
 
         var contents = new List<DeployContent>();
-        var configFiles = await m_RemoteConfigScriptsLoader
+        var loadResult = await m_RemoteConfigScriptsLoader
             .LoadScriptsAsync(remoteConfigFiles, contents);
+        var configFiles = loadResult.Loaded.ToList();
+
         loadingContext?.Status($"Fetching {ServiceType} Files...");
 
-        Result fetchResult = await m_FetchHandler.FetchAsync(
+        Services.RemoteConfig.Editor.Authoring.Core.Results.FetchResult fetchResult = await m_FetchHandler.FetchAsync(
                 input.Path,
                 configFiles,
                 input.DryRun,
                 input.Reconcile,
                 cancellationToken);
-
-
 
         return new FetchResult(
             fetchResult.Updated.Select(kvp => string.Format(m_KeyFileMessageFormat, kvp.Key, NormalizePath(kvp.File)) ).ToList(),

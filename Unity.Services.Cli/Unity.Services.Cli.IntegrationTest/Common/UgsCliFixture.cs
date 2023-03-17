@@ -14,6 +14,15 @@ namespace Unity.Services.Cli.IntegrationTest;
 [TestFixture]
 public abstract class UgsCliFixture
 {
+#if DISABLE_CLI_REBUILD
+    static Task? s_BuildCliTask = Task.CompletedTask;
+#else
+    /// <summary>
+    /// Build task to rebuild CLI for mock server
+    /// </summary>
+    static Task? s_BuildCliTask;
+#endif
+
     /// <summary>
     /// Returns the path to the configuration file used by the config module
     /// </summary>
@@ -24,24 +33,16 @@ public abstract class UgsCliFixture
     /// </summary>
     protected string? CredentialsFile { get; private set; }
 
-    static Task? s_BuildCliTask;
 
     [OneTimeSetUp]
     public async Task BuildCliIfNeeded()
     {
-        if (File.Exists(UgsCliBuilder.CliPath))
-        {
-            await TestContext.Progress.WriteLineAsync($"{UgsCliBuilder.CliPath} exists, skipping CLI build...");
-            return;
-        }
-
         if (s_BuildCliTask == null)
         {
             await TestContext.Progress.WriteLineAsync("Building UGS CLI...");
             s_BuildCliTask = UgsCliBuilder.Build();
+            await s_BuildCliTask;
         }
-
-        await s_BuildCliTask;
     }
 
     [OneTimeSetUp]

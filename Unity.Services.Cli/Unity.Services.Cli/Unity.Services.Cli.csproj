@@ -5,7 +5,7 @@
     <LangVersion>10</LangVersion>
     <AssemblyName>ugs</AssemblyName>
     <VersionPrefix>1.0.0</VersionPrefix>
-    <VersionSuffix>beta.2</VersionSuffix>
+    <VersionSuffix>beta.3</VersionSuffix>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -19,10 +19,13 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.CommandLine.Hosting" Version="0.4.0-alpha.22272.1" />
+    <ProjectReference Include="..\Unity.Services.Cli.Player\Unity.Services.Cli.Player.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.Access\Unity.Services.Cli.Access.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.CloudCode\Unity.Services.Cli.CloudCode.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Common\Unity.Services.Cli.Common.csproj" />
-    <ProjectReference Include="..\Unity.Services.Cli.Deploy\Unity.Services.Cli.Deploy.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.Authoring\Unity.Services.Cli.Authoring.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Environment\Unity.Services.Cli.Environment.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.Leaderboards\Unity.Services.Cli.Leaderboards.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.RemoteConfig\Unity.Services.Cli.RemoteConfig.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Lobby\Unity.Services.Cli.Lobby.csproj" />
@@ -32,12 +35,9 @@
       <Link>CHANGELOG.md</Link>
     </Content>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+  <PropertyGroup>
     <DebugType>full</DebugType>
-    <DefineConstants>TRACE;_DEPLOY;</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DefineConstants>TRACE;_DEPLOY;</DefineConstants>
+    <DefineConstants>TRACE;FEATURE_LEADERBOARDS;</DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>

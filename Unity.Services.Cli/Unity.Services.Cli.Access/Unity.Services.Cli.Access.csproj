@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>10</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>$(AssemblyName).UnitTest</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Unity.Services.Cli.Common\Unity.Services.Cli.Common.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Unity.Services.Gateway.AccessApiV1.Generated" Version="1.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="YamlDotNet" Version="13.0.1" />
+  </ItemGroup>
+  <PropertyGroup>
+    <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>
+  </PropertyGroup>
+</Project>

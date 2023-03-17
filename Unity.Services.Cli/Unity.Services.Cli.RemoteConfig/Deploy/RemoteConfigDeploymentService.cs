@@ -1,11 +1,13 @@
 using Spectre.Console;
-using Unity.Services.Cli.Deploy.Input;
-using Unity.Services.Cli.Deploy.Model;
-using Unity.Services.Cli.Deploy.Service;
+using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.RemoteConfig.Exceptions;
 using Unity.Services.Cli.RemoteConfig.Service;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Deployment;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.ErrorHandling;
+using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
+using Unity.Services.RemoteConfig.Editor.Authoring.Core.Results;
 
 namespace Unity.Services.Cli.RemoteConfig.Deploy;
 
@@ -37,15 +39,18 @@ internal class RemoteConfigDeploymentService : IDeploymentService
     public async Task<DeploymentResult> Deploy(DeployInput deployInput, IReadOnlyList<string> filePaths, string projectId, string environmentId,
         StatusContext? loadingContext, CancellationToken cancellationToken)
     {
+        DeployResult deploymentResult = null!;
         m_RemoteConfigClient.Initialize(projectId, environmentId, cancellationToken);
-        var configFiles = await m_RemoteConfigScriptsLoader.LoadScriptsAsync(filePaths, m_DeploymentOutputHandler.Contents);
+        var loadResult = await m_RemoteConfigScriptsLoader.LoadScriptsAsync(filePaths, m_DeploymentOutputHandler.Contents);
+        var configFiles = loadResult.Loaded.ToList();
         loadingContext?.Status($"Deploying {m_ServiceType} Files...");
+
         try
         {
-            var reconcile = false;
-            var dryRun = false;
+            var reconcile = deployInput.Reconcile;
+            var dryRun = deployInput.DryRun;
 
-            await m_DeploymentHandler.DeployAsync(configFiles, reconcile, dryRun);
+            deploymentResult = await m_DeploymentHandler.DeployAsync(configFiles, reconcile, dryRun);
         }
         catch (RemoteConfigDeploymentException)
         {
@@ -56,6 +61,53 @@ internal class RemoteConfigDeploymentService : IDeploymentService
             // Ignoring it because this exception should already be logged into the deployment content status
         }
 
-        return new DeploymentResult(m_DeploymentOutputHandler.Contents.ToList());
+        if (deploymentResult == null || configFiles == null)
+        {
+            return new DeploymentResult(m_DeploymentOutputHandler.Contents.ToList());
+        }
+
+        var failed = ToDeployContents(deploymentResult.Failed).Concat(loadResult.Failed).ToList();
+
+        return new DeploymentResult(
+            ToDeployContents(deploymentResult.Created),
+            ToDeployContents(deploymentResult.Updated),
+            ToDeployContents(deploymentResult.Deleted),
+            ToDeployContents(deploymentResult.Deployed, 100, "Deployed", "Deployed Successfully"),
+            failed);
+    }
+
+    IReadOnlyCollection<DeployContent> ToDeployContents(
+        IEnumerable<(string, string)> files,
+        float progress = 0f,
+        string status = "",
+        string detail = "")
+    {
+        var contents = new List<DeployContent>();
+
+        foreach (var file in files)
+        {
+            contents.Add(new DeployContent(file.Item1, "Remote Config", file.Item2, progress, status, detail));
+        }
+
+        return contents;
+    }
+
+    IReadOnlyCollection<DeployContent> ToDeployContents(
+        IEnumerable<IRemoteConfigFile> files,
+        float progress = 0f,
+        string status = "",
+        string detail = "")
+    {
+        var contents = new List<DeployContent>();
+
+        foreach (var file in files)
+        {
+            foreach (var key in file.Content.entries.Keys)
+            {
+                contents.Add(new DeployContent(key, "Remote Config", file.Path, progress, status, detail));
+            }
+        }
+
+        return contents;
     }
 }

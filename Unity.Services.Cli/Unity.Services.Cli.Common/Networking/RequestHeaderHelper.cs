@@ -8,7 +8,11 @@ public static class RequestHeaderHelper
     /// <summary>
     /// Key of the header, the header is used to identify where the service request come from.
     /// </summary>
+#if ENABLE_UGS_CLI_TELEMETRY
     public const string XClientIdHeaderKey = "x-client-id";
+#else
+    public const string XClientIdHeaderKey = "x-client-id-staging";
+#endif
 
     internal static string XClientIdHeaderValue { get; } = InitXClientIdHeaderValue();
 

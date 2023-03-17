@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
-using Unity.Services.Cli.Deploy.Model;
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.IntegrationTest.Deploy;
 using Unity.Services.Cli.IntegrationTest.EnvTests;
 using Unity.Services.Cli.IntegrationTest.RemoteConfigTests.Mock;

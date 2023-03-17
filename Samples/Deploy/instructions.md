@@ -65,13 +65,13 @@ ugs deploy .
 You will find all the contents deployed in your dashboard for the configured project and environment. The command deploys all the samples in current (`Deploy`) directory for supported services.
 
 ---
-[`deploy`]: /docs/deploy-command.md
+[`deploy`]: https://services.docs.unity.com/guides/ugs-cli/latest/general/base-commands/deploy
 [Remote Config files]: https://docs.unity3d.com/Packages/com.unity.remote-config@3.3/manual/Authoring/remote_config_files.html
 [Declare parameters in the script]: https://docs.unity.com/cloud-code/authoring-scripts-editor.html#Declare_parameters_in_the_script
 [Script.js]: /Samples/Deploy/CloudCode/Script.js
 [configuration.rc]: /Samples/Deploy/RemoteConfig/configuration.rc
 [Samples/Deploy]: /Samples/Deploy
-[Deploy Command]: /docs/project-roles.md#deploy-command
+[Deploy Command]: https://services.docs.unity.com/guides/ugs-cli/latest/general/troubleshooting/project-roles#deploy-command
 [Service Account]: https://services.docs.unity.com/docs/service-account-auth/index.html
-[Login]: /docs/module-authentication.md#login
-[configuration]: /docs/module-configuration.md#configuration-module
+[Login]: https://services.docs.unity.com/guides/ugs-cli/latest/general/base-commands/authentication/login
+[configuration]: https://services.docs.unity.com/guides/ugs-cli/latest/general/base-commands/configuration/configuration-keys

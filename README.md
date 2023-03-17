@@ -1,17 +1,10 @@
 # UGS CLI
-For installing the UGS CLI and getting started, see [Getting Started](docs/getting-started.md).
-
-For information regarding services or UGS CLI commands, see [Base Modules](#base-modules) and [Service Modules](#service-modules).
+For installing the UGS CLI and getting started, see [Getting Started](https://services.docs.unity.com/guides/ugs-cli/latest/general/get-started/install-the-cli).
 
 The source code project is for reference only. You may not be able to build it due to lack of access to internal dependencies.
 
-Jump to section:
-- [Basic Commands](#basic-commands)
-- [Base Modules](#base-modules)
-- [Service Modules](#service-modules)
-- [Examples](#examples)
-- [System Compatibility](#system-compatibility)
-- [Getting Help](#getting-help)
+## Documentation
+To see the full list of services and commands available in the UGS CLI, visit the documentation on https://services.docs.unity.com/guides/ugs-cli/latest/general/overview
 
 ## Basic Commands
 An UGS CLI command has the following format:
@@ -28,33 +21,6 @@ To get the version of the CLI:
 ```
 ugs --version
 ```
-
-## Base Modules
-[Configuration](docs/module-configuration.md)
-
-[Environment](docs/module-environment.md)
-
-[Authentication](docs/module-authentication.md)
-
-[Deploy](docs/deploy-command.md)
-
-## Service Modules
-[Cloud-Code](docs/module-cloud-code.md)
-
-[Lobby](docs/module-lobby.md)
-
-## Samples
-
-[Samples](Samples) are provided to demonstrate how to use CLI.
-
-## Examples
-[Example of the CLI in Unity Cloud Build](docs/ci-cd-recipes.md#unity-cloud-build)
-
-[Example of the CLI in Github Actions](docs/ci-cd-recipes.md#github-actions)
-
-[Example of the CLI in Jenkins](docs/ci-cd-recipes.md#jenkins)
-
-[Example of the CLI in Docker](docs/ci-cd-recipes.md#docker)
 
 ## System Compatibility
 

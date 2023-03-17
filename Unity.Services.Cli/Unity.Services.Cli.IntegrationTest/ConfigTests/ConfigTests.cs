@@ -7,6 +7,7 @@ using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Common.Models;
+using Unity.Services.Cli.Common.Validator;
 
 namespace Unity.Services.Cli.IntegrationTest.ConfigTests;
 
@@ -65,7 +66,7 @@ public class ConfigTests : UgsCliFixture
     [Test]
     public async Task ConfigSetEnvironmentFails()
     {
-        const string expectedError = "Your environment-name is not valid. Valid input should have only alphanumerical and dash (-) characters.";
+        const string expectedError = ConfigurationValidator.EnvironmentNameInvalidMessage;
 
         await new UgsCliTestCase()
             .Command("config set environment-name test@")

@@ -1,5 +1,5 @@
 using System.IO;
-using Unity.Services.Cli.Deploy.Model;
+using Unity.Services.Cli.Authoring.Model;
 
 namespace Unity.Services.Cli.IntegrationTest;
 

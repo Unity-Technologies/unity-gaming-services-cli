@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.Common.Networking;
+using Unity.Services.Cli.Common.Validator;
 using Unity.Services.Cli.MockServer;
 using Unity.Services.Gateway.IdentityApiV1.Generated.Model;
 
@@ -13,6 +14,8 @@ namespace Unity.Services.Cli.IntegrationTest.EnvTests;
 
 public class EnvTests : UgsCliFixture
 {
+    const string k_InvalidEnvNameMsg = ConfigurationValidator.EnvironmentNameInvalidMessage;
+
     const string k_NotLoggedInMessage
         = "You are not logged into any service account. Please login using the 'ugs login' command.";
 
@@ -86,7 +89,7 @@ public class EnvTests : UgsCliFixture
             .Command("env list -j")
             .AssertStandardOutput(output =>
             {
-                Assert.DoesNotThrow(()=>JsonConvert.DeserializeObject(output));
+                Assert.DoesNotThrow(() => JsonConvert.DeserializeObject(output));
                 StringAssert.Contains(CommonKeys.ValidEnvironmentId, output);
             })
             .AssertNoErrors()
@@ -121,13 +124,11 @@ public class EnvTests : UgsCliFixture
     [Test]
     public async Task EnvironmentAdditionThrowsInvalidEnvironmentFormatException()
     {
-        var expectedMsg = "Your environment-name is not valid. Valid input should have only alphanumerical and dash (-) characters.";
-
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         await GetLoggedInCli()
             .Command("env add test@")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardOutputContains(k_InvalidEnvNameMsg)
             .ExecuteAsync();
     }
 
@@ -172,13 +173,11 @@ public class EnvTests : UgsCliFixture
     [Test]
     public async Task EnvironmentDeleteThrowsInvalidEnvironmentFormatException()
     {
-        var expectedMsg = "Your environment-name is not valid. Valid input should have only alphanumerical and dash (-) characters.";
-
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         await GetLoggedInCli()
             .Command("env delete test@")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardOutputContains(k_InvalidEnvNameMsg)
             .ExecuteAsync();
     }
 
@@ -199,12 +198,10 @@ public class EnvTests : UgsCliFixture
     [Test]
     public async Task EnvironmentUseThrowsInvalidEnvironmentFormatException()
     {
-        var expectedMsg = "Your environment-name is not valid. Valid input should have only alphanumerical and dash (-) characters.";
-
         await new UgsCliTestCase()
             .Command("env use test@")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardOutputContains(k_InvalidEnvNameMsg)
             .ExecuteAsync();
     }
 

@@ -1,7 +1,7 @@
 using Moq;
 using Unity.Services.Cli.CloudCode.Deploy;
 using Unity.Services.Cli.CloudCode.Service;
-using Unity.Services.Cli.Deploy.Service;
+using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
 
 namespace Unity.Services.Cli.CloudCode.UnitTest.Mock;
@@ -11,6 +11,7 @@ class MockCloudCodeServiceWrapper : ICloudCodeServicesWrapper
     public ICliEnvironmentProvider EnvironmentProvider { get; }
     public IDeployFileService DeployFileService { get; }
     public ICloudCodeScriptsLoader CloudCodeScriptsLoader { get; }
+    public ICloudCodeModulesLoader CloudCodeModulesLoader { get; }
     public ICloudCodeInputParser CloudCodeInputParser { get; }
     public ICloudCodeService CloudCodeService { get; }
     public ICliCloudCodeClient CliCloudCodeClient { get; }
@@ -25,7 +26,9 @@ class MockCloudCodeServiceWrapper : ICloudCodeServicesWrapper
         IMock<ICloudCodeService> mockCloudCodeService,
         IMock<ICliCloudCodeClient> mockCliCloudCodeClient,
         IMock<ICloudCodeDeploymentHandler> mockCloudCodeDeploymentHandler,
-        IMock<ICliDeploymentOutputHandler> mockCliDeploymentHandler)
+        IMock<ICliDeploymentOutputHandler> mockCliDeploymentHandler,
+        IMock<ICloudCodeModulesLoader> mockCloudCodeModulesLoader
+    )
     {
         EnvironmentProvider = mockEnvironmentProvider.Object;
         CloudCodeScriptsLoader = mockCloudCodeScriptsLoader.Object;
@@ -35,5 +38,6 @@ class MockCloudCodeServiceWrapper : ICloudCodeServicesWrapper
         CliCloudCodeClient = mockCliCloudCodeClient.Object;
         CloudCodeDeploymentHandler = mockCloudCodeDeploymentHandler.Object;
         CliDeploymentOutputHandler = mockCliDeploymentHandler.Object;
+        CloudCodeModulesLoader = mockCloudCodeModulesLoader.Object;
     }
 }

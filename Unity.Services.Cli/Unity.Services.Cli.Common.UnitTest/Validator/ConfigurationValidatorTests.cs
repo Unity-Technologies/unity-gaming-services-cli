@@ -29,6 +29,9 @@ class ConfigurationValidatorTests
             yield return new TestCaseData(Models.Keys.ConfigKeys.EnvironmentName, "a-_b", true, string.Empty);
             yield return new TestCaseData(Models.Keys.ConfigKeys.EnvironmentName, "invalid env", false,
                 ConfigurationValidator.EnvironmentNameInvalidMessage);
+            yield return new TestCaseData(Models.Keys.ConfigKeys.EnvironmentName, "validEnv", false,
+                ConfigurationValidator.EnvironmentNameInvalidMessage);
+
             yield return new TestCaseData(Models.Keys.ConfigKeys.EnvironmentName, "", false,
                 ConfigurationValidator.NullValueMsg);
 

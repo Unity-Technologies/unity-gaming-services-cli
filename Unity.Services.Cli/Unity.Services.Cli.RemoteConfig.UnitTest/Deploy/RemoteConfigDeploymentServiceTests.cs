@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
-using Unity.Services.Cli.Deploy.Input;
-using Unity.Services.Cli.Deploy.Model;
-using Unity.Services.Cli.Deploy.Service;
+using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.RemoteConfig.Deploy;
 using Unity.Services.Cli.RemoteConfig.Exceptions;
 using Unity.Services.Cli.RemoteConfig.Service;
@@ -38,7 +38,8 @@ public class RemoteConfigDeploymentServiceTests
 
     DeployInput m_DefaultInput = new()
     {
-        CloudProjectId = k_ValidProjectId
+        CloudProjectId = k_ValidProjectId,
+        Reconcile = false
     };
 
     static readonly IReadOnlyCollection<DeployContent> k_DeployedContents = new[]
@@ -77,7 +78,11 @@ public class RemoteConfigDeploymentServiceTests
 
         m_MockCliDeploymentOutputHandler.SetupGet(c => c.Contents).Returns(m_Contents);
 
+        m_MockRemoteConfigScriptsLoader.Setup(loader =>
+                loader.LoadScriptsAsync(It.IsAny<IReadOnlyList<string>>(), It.IsAny<ICollection<DeployContent>>()))
+            .Returns(Task.FromResult(new LoadResult(new List<IRemoteConfigFile>(), new List<DeployContent>())));
         m_RemoteConfigDeploymentService = new (k_MockRemoteConfigServicesWrapper.Object);
+
     }
 
     [Test]
@@ -157,7 +162,7 @@ public class RemoteConfigDeploymentServiceTests
 
         m_MockRemoteConfigScriptsLoader.Setup(d =>
                 d.LoadScriptsAsync(It.IsAny<IReadOnlyList<string>>(), It.IsAny<ICollection<DeployContent>>()))
-            .ReturnsAsync(expectedRemoteConfigFiles);
+            .ReturnsAsync(new LoadResult(new List<IRemoteConfigFile>(), new List<DeployContent>()));
 
         await m_RemoteConfigDeploymentService.Deploy(
             m_DefaultInput,

@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using Unity.Services.Cli.Deploy.Model;
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.RemoteConfig.Deploy;
 
 namespace Unity.Services.Cli.RemoteConfig.UnitTest.Deploy;
@@ -45,8 +45,9 @@ public class RemoteConfigScriptsLoaderTests
             k_ValidTempFilePath
         };
         var deployContentList = new List<DeployContent>();
-        var remoteConfigFiles = await m_RemoteConfigScriptsLoader.LoadScriptsAsync(filepaths, deployContentList);
-        Assert.That(remoteConfigFiles, Has.Count.EqualTo(1));
+        var loadResult = await m_RemoteConfigScriptsLoader.LoadScriptsAsync(filepaths, deployContentList);
+        Assert.That(loadResult.Loaded.ToList(), Has.Count.EqualTo(1));
+        Assert.That(loadResult.Failed.ToList(), Has.Count.EqualTo(0));
     }
 
     [Test]

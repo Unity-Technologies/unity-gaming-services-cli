@@ -1,5 +1,5 @@
 using Unity.Services.Cli.CloudCode.Deploy;
-using Unity.Services.Cli.Deploy.Service;
+using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
 
 namespace Unity.Services.Cli.CloudCode.Service;
@@ -19,4 +19,6 @@ interface ICloudCodeServicesWrapper
     ICliDeploymentOutputHandler CliDeploymentOutputHandler { get; }
 
     ICloudCodeScriptsLoader CloudCodeScriptsLoader { get; }
+
+    ICloudCodeModulesLoader CloudCodeModulesLoader { get; }
 }

@@ -1,5 +1,4 @@
-using Unity.Services.Cli.Deploy.Model;
-using Unity.Services.Cli.Deploy.Service;
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Analytics;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Logging;
@@ -7,7 +6,7 @@ using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 
 namespace Unity.Services.Cli.CloudCode.Deploy;
 
-internal class CliCloudCodeDeploymentHandler : CloudCodeDeploymentHandler, ICliDeploymentOutputHandler
+internal class CliCloudCodeDeploymentHandler : CloudCodeDeploymentHandler, IDeploymentHandlerWithOutput
 {
     public ICollection<DeployContent> Contents { get; } = new List<DeployContent>();
 

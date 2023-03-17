@@ -1,7 +1,7 @@
 using System.IO.Abstractions;
 using Moq;
 using NUnit.Framework;
-using Unity.Services.Cli.Deploy.Model;
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.RemoteConfig.Deploy;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Formatting;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Json;
@@ -75,7 +75,7 @@ public class CliRemoteConfigDeploymentHandlerTests
     }
 
     [Test]
-    public void Deploy_DoesNotThrow()
+    public async Task Deploy_DoesNotThrow()
     {
         Assert.DoesNotThrowAsync(async () =>
         {

@@ -7,7 +7,7 @@ public class TelemetrySender
 {
     internal Dictionary<string, string> CommonTags { get; }
     internal Dictionary<string, string> ProductTags { get; }
-    internal ITelemetryApi TelemetryApi { get; }
+    internal ITelemetryApi TelemetryApi { get; private set; }
 
     public TelemetrySender(ITelemetryApi telemetryApi, Dictionary<string, string> commonTags,
         Dictionary<string, string> productTags)
@@ -24,6 +24,12 @@ public class TelemetrySender
         List<Metric>? metrics
     )
     {
+#if !ENABLE_UGS_CLI_TELEMETRY
+        if (TelemetryApi.GetType() == typeof(TelemetryApi.Generated.Api.TelemetryApi))
+        {
+            return;
+        }
+#endif
         TelemetryApi.PostRecordWithHttpInfo(new PostRecordRequest(
                 CommonTags,
                 metricsCommonTags,
