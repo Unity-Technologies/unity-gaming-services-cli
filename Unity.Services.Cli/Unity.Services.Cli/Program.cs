@@ -97,7 +97,7 @@ static class Program
             .UseExceptionHandler(
                 (exception, context) =>
                 {
-                    var diagnostics = new Diagnostics(telemetrySender, systemEnvironmentProvider);
+                    var diagnostics = analyticEventFactory.CreateDiagnosticEvent();
                     var exceptionHelper = new ExceptionHelper(diagnostics, ansiConsole);
                     exceptionHelper.HandleException(exception, logger, context);
                 }
@@ -162,7 +162,7 @@ static class Program
     static void TrySendCommandUsageMetric(IAnalyticEventFactory analyticEventFactory, SymbolResult symbol)
     {
         var command = AnalyticEventUtils.ConvertSymbolResultToString(symbol);
-        var analyticEvent = analyticEventFactory.CreateEvent();
+        var analyticEvent = analyticEventFactory.CreateMetricEvent();
         analyticEvent.AddData("command", command);
         analyticEvent.AddData("time", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
         analyticEvent.Send();

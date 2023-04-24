@@ -2,13 +2,42 @@ using System.Text;
 
 namespace Unity.Services.Cli.Authoring.Model;
 
+/// <summary>
+/// Contain the data summary of a fetch operation.
+/// </summary>
 [Serializable]
 public class FetchResult
 {
-    public  IReadOnlyList<string> Fetched { get; }
+    internal const string EmptyFetchMessage = "No content fetched";
+    internal const string FetchedHeader = "Successfully fetched into the following files";
+    internal const string FailedHeader = "Failed to fetch";
+    internal const string UpdatedHeader = "Updated";
+    internal const string CreatedHeader = "Created";
+    internal const string DeletedHeader = "Deleted";
+
+    /// <summary>
+    /// All local resources modified by the fetch command (created, updated, and deleted).
+    /// </summary>
+    public IReadOnlyList<string> Fetched { get; }
+
+    /// <summary>
+    /// All resources (local or remote) that couldn't be handled by the fetch command.
+    /// </summary>
     public IReadOnlyList<string> Failed { get; }
+
+    /// <summary>
+    /// All local resources updated by the fetch command.
+    /// </summary>
     public IReadOnlyList<string> Updated { get; }
+
+    /// <summary>
+    /// All local resources created by the fetch command.
+    /// </summary>
     public IReadOnlyList<string> Created { get; }
+
+    /// <summary>
+    /// All local resources deleted by the fetch command.
+    /// </summary>
     public IReadOnlyList<string> Deleted { get; }
 
     public FetchResult(
@@ -27,64 +56,50 @@ public class FetchResult
 
     public FetchResult(IReadOnlyList<FetchResult> results)
     {
-        Updated = results.SelectMany( r=> r.Updated).ToList();
-        Created = results.SelectMany( r=> r.Created).ToList();
-        Deleted = results.SelectMany( r=> r.Deleted).ToList();
+        Updated = results.SelectMany(r => r.Updated).ToList();
+        Created = results.SelectMany(r => r.Created).ToList();
+        Deleted = results.SelectMany(r => r.Deleted).ToList();
         Fetched = results.SelectMany(r => r.Fetched).ToList();
-        Failed = results.SelectMany( r=> r.Failed).ToList();
+        Failed = results.SelectMany(r => r.Failed).ToList();
     }
 
     public override string ToString()
     {
         var result = new StringBuilder();
-        AddFetched(result);
-        AddFailed(result);
-
-        BuildResult(result, Updated, "Updated");
-        BuildResult(result, Deleted, "Deleted");
-        BuildResult(result, Created, "Created");
+        AppendFetched(result);
+        AppendResult(result, Failed, FailedHeader);
+        AppendResult(result, Updated, UpdatedHeader);
+        AppendResult(result, Deleted, DeletedHeader);
+        AppendResult(result, Created, CreatedHeader);
 
         return result.ToString();
     }
 
-    private void AddFetched(StringBuilder result)
+    void AppendFetched(StringBuilder builder)
     {
         if (Fetched.Any())
         {
-            var deployedListString = string.Join($"{Environment.NewLine}    ", Fetched);
-            result.Append(
-                $"Successfully fetched into the following files:{Environment.NewLine}    {deployedListString}");
+            AppendResult(builder, Fetched, FetchedHeader);
         }
         else
         {
-            result.Append("No content fetched");
+            builder.AppendLine(EmptyFetchMessage);
         }
     }
 
-    private void AddFailed(StringBuilder result)
+    internal static void AppendResult(StringBuilder builder, IEnumerable<string> results, string resultHeader)
     {
-        if (!Failed.Any())
+        var resultList = results.ToList();
+        if (!resultList.Any())
             return;
 
-        result.AppendLine();
-
-        foreach (var file in Failed)
+        // Add empty entry at first to start at next line.
+        var joinedUpdated = string.Join($"{Environment.NewLine}    ", resultList.Prepend(""));
+        if (builder.Length > 0)
         {
-            result.Append($"{Environment.NewLine}Failed to fetch:");
-            result.Append($"{Environment.NewLine}    '{Path.GetFileName(file)}'");
+            builder.AppendLine();
         }
-    }
 
-    static void BuildResult(StringBuilder strBuilder, IReadOnlyList<string> results, string resultHeader)
-    {
-        if (!results.Any())
-            return;
-
-        strBuilder.Append(Environment.NewLine);
-        strBuilder.Append($"{Environment.NewLine}{resultHeader}:");
-        foreach (var updated in results)
-        {
-            strBuilder.Append($"{Environment.NewLine}    {updated}");
-        }
+        builder.AppendLine($"{resultHeader}:{joinedUpdated}");
     }
 }

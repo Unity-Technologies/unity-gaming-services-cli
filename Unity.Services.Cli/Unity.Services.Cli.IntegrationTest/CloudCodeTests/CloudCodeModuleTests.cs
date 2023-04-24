@@ -1,12 +1,12 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Models;
 using Unity.Services.Cli.Common.Networking;
-using Unity.Services.Cli.IntegrationTest.EnvTests;
 using Unity.Services.Cli.MockServer;
+using Unity.Services.Cli.MockServer.Common;
+using Unity.Services.Cli.MockServer.ServiceMocks;
 
 namespace Unity.Services.Cli.IntegrationTest.CloudCodeTests;
 
@@ -19,33 +19,14 @@ public class CloudCodeModuleTests : UgsCliFixture
     const string k_EnvironmentNameNotSetErrorMessage = "'environment-name' is not set in project configuration."
                                                        + " '" + Keys.EnvironmentKeys.EnvironmentName + "' is not set in system environment variables.";
 
-    readonly MockApi m_MockApi = new(NetworkTargetEndpoints.MockServer);
-
-    [OneTimeSetUp]
-    public void OneTimeSetUp()
-    {
-        m_MockApi.InitServer();
-    }
-
-    [OneTimeTearDown]
-    public void OneTimeTearDown()
-    {
-        m_MockApi.Server?.Dispose();
-    }
-
     [SetUp]
     public async Task SetUp()
     {
         DeleteLocalConfig();
         DeleteLocalCredentials();
 
-        var environmentModels = await IdentityV1MockServerModels.GetModels();
-        m_MockApi.Server?.WithMapping(environmentModels.ToArray());
-
-        var cloudCodeModels = await CloudCodeV1MockServerModels.GetModuleModels(k_ValidModuleName);
-        m_MockApi.Server?.WithMapping(cloudCodeModels.ToArray());
-
-        CloudCodeV1MockServerModels.OverrideListModules(m_MockApi);
+        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
+        await m_MockApi.MockServiceAsync(new CloudCodeV1Mock());
     }
 
     [TearDown]

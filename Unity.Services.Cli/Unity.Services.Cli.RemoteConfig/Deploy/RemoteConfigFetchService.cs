@@ -4,7 +4,6 @@ using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Fetch;
-using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
 
 namespace Unity.Services.Cli.RemoteConfig.Deploy;
 
@@ -62,10 +61,11 @@ class RemoteConfigFetchService : IFetchService
                 input.Reconcile,
                 cancellationToken);
 
+
         return new FetchResult(
-            fetchResult.Updated.Select(kvp => string.Format(m_KeyFileMessageFormat, kvp.Key, NormalizePath(kvp.File)) ).ToList(),
-            fetchResult.Deleted.Select(kvp => string.Format(m_KeyFileMessageFormat, kvp.Key, NormalizePath(kvp.File)) ).ToList(),
-            fetchResult.Created.Select(kvp => string.Format(m_KeyFileMessageFormat, kvp.Key, NormalizePath(kvp.File)) ).ToList(),
+            fetchResult.Updated.Select(kvp => string.Format(m_KeyFileMessageFormat, kvp.Key, NormalizePath(kvp.File.Path)) ).ToList(),
+            fetchResult.Deleted.Select(kvp => string.Format(m_KeyFileMessageFormat, kvp.Key, NormalizePath(kvp.File.Path)) ).ToList(),
+            fetchResult.Created.Select(kvp => string.Format(m_KeyFileMessageFormat, kvp.Key, NormalizePath(kvp.File.Path)) ).ToList(),
             fetchResult.Fetched.Select(f => Path.GetRelativePath(".", f.Path) ).ToList(),
             fetchResult.Failed.Select(f => Path.GetRelativePath(".", f.Path)).ToList());
     }

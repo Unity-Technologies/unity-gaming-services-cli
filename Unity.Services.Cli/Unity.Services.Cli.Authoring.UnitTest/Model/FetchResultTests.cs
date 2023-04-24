@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Text;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Model;
 
@@ -25,16 +25,24 @@ public class FetchResultTests
         "thing4"
     };
 
-    static readonly IReadOnlyList<string> k_Fetched= new[]
+    static readonly IReadOnlyList<string> k_Fetched = new[]
     {
         "thing1"
     };
 
-    static readonly IReadOnlyList<string> k_Failed= new[]
+    static readonly IReadOnlyList<string> k_Failed = new[]
     {
         "thing2"
     };
 
+    static readonly List<TestCaseData> k_AppendResultTestData = new()
+    {
+        new TestCaseData(k_Updated, FetchResult.UpdatedHeader),
+        new TestCaseData(k_Created, FetchResult.CreatedHeader),
+        new TestCaseData(k_Deleted, FetchResult.DeletedHeader),
+        new TestCaseData(k_Failed, FetchResult.FailedHeader),
+        new TestCaseData(k_Fetched, FetchResult.FetchedHeader),
+    };
 
     [Test]
     public void ToStringFormatsFetchedAndFailedResults()
@@ -47,18 +55,19 @@ public class FetchResultTests
             k_Failed);
         var result = fetchResult.ToString();
 
-        Assert.IsTrue(result.Contains($"Successfully fetched into the following files:{System.Environment.NewLine}    {k_Fetched[0]}"));
-        foreach (var fetchedFile in k_Failed)
-        {
-            var expected = $"Failed to fetch:{System.Environment.NewLine}    '{fetchedFile}'";
-            Assert.IsTrue(result.Contains(expected),
-                $"Missing or incorrect log for '{fetchedFile}'") ;
-        }
+        Assert.Multiple(
+            () =>
+            {
+                AssertStringifiedResult(result, k_Updated, FetchResult.UpdatedHeader);
+                AssertStringifiedResult(result, k_Created, FetchResult.CreatedHeader);
+                AssertStringifiedResult(result, k_Deleted, FetchResult.DeletedHeader);
+                AssertStringifiedResult(result, k_Failed, FetchResult.FailedHeader);
+                AssertStringifiedResult(result, k_Fetched, FetchResult.FetchedHeader);
+            });
     }
 
-
     [Test]
-    public void ToStringFormatsNoContentDeployed()
+    public void ToStringFormatsNoContentFetched()
     {
         var fetchResult = new FetchResult(
             Array.Empty<string>(),
@@ -68,7 +77,27 @@ public class FetchResultTests
             Array.Empty<string>());
         var result = fetchResult.ToString();
 
-        Assert.IsFalse(result.Contains($"Successfully fetched the following contents:{System.Environment.NewLine}"));
-        Assert.IsTrue(result.Contains("No content fetched"));
+        Assert.IsFalse(result.Contains(FetchResult.FetchedHeader));
+        Assert.IsTrue(result.Contains(FetchResult.EmptyFetchMessage));
+    }
+
+    [TestCaseSource(nameof(k_AppendResultTestData))]
+    public void AppendResultBuildsResultAsExpected(ICollection<string> results, string header)
+    {
+        var builder = new StringBuilder();
+
+        FetchResult.AppendResult(builder, results, header);
+
+        var stringifiedResult = builder.ToString();
+        Assert.Multiple(() => AssertStringifiedResult(stringifiedResult, results, header));
+    }
+
+    static void AssertStringifiedResult(string stringifiedResult, IEnumerable<string> results, string header)
+    {
+        Assert.That(stringifiedResult, Contains.Substring(header));
+        foreach (var result in results)
+        {
+            Assert.That(stringifiedResult, Contains.Substring($"    {result}"));
+        }
     }
 }

@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
 using NUnit.Framework;
 using Unity.Services.Cli.CloudCode.Input;
+using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
@@ -19,13 +21,16 @@ class CloudCodeInputParserTests
     const string k_ValidFilepath = @".\createhandlertemp.js";
     const string k_ExpectedCode = "Dummy text";
 
-    readonly CloudCodeInputParser m_CloudCodeInputParser = new();
+    private static readonly Mock<ICloudCodeScriptParser> k_MockCloudCodeScriptParser = new();
+
+    readonly CloudCodeInputParser m_CloudCodeInputParser = new(k_MockCloudCodeScriptParser.Object);
 
     [SetUp]
     public void SetUp()
     {
         File.WriteAllText(k_ValidFilepath, k_ExpectedCode);
         Directory.CreateDirectory(k_TempDirectory);
+        k_MockCloudCodeScriptParser.Reset();
     }
 
     [TearDown]
@@ -33,6 +38,13 @@ class CloudCodeInputParserTests
     {
         File.Delete(k_ValidFilepath);
         Directory.Delete(k_TempDirectory);
+        k_MockCloudCodeScriptParser.Reset();
+    }
+
+    [Test]
+    public void GetCloudCodeInputParserSucceed()
+    {
+        Assert.AreSame(k_MockCloudCodeScriptParser.Object, m_CloudCodeInputParser.CloudCodeScriptParser);
     }
 
     [Test]

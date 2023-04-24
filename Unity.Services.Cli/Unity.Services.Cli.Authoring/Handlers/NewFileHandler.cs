@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Templates;
 using Unity.Services.Cli.Common;
+using Unity.Services.Cli.Common.Input;
 
 namespace Unity.Services.Cli.Authoring.Handlers;
 
@@ -14,7 +15,8 @@ public static class NewFileHandler
     {
         Command newFileCommand = new("new-file", $"Create new {serviceName} config file.")
         {
-            NewFileInput.FileArgument
+            NewFileInput.FileArgument,
+            CommonInput.UseForceOption
         };
 
         newFileCommand.SetHandler<NewFileInput, IFile, ILogger, CancellationToken>
@@ -32,7 +34,16 @@ public static class NewFileHandler
     where T : IFileTemplate
     {
         input.File = Path.ChangeExtension(input.File!, template.Extension);
-        await file.WriteAllTextAsync(input.File, template.FileBodyText, cancellationToken);
-        logger.LogInformation("Config file {input.File!} created successfully!", input.File!);
+
+        if (file.Exists(input.File) && !input.UseForce)
+        {
+            logger.LogError($"A file with the name '{input.File}' already exists." +
+                            " Add --force to overwrite the file.");
+        }
+        else
+        {
+            await file.WriteAllTextAsync(input.File, template.FileBodyText, cancellationToken);
+            logger.LogInformation("Config file {input.File!} created successfully!", input.File!);
+        }
     }
 }

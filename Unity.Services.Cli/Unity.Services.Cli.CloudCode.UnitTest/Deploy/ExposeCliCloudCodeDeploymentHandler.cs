@@ -6,7 +6,7 @@ using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 
 namespace Unity.Services.Cli.CloudCode.UnitTest.Deploy;
 
-class ExposeCliCloudCodeDeploymentHandler : CliCloudCodeDeploymentHandler
+class ExposeCliCloudCodeDeploymentHandler : CliCloudCodeDeploymentHandler<ICloudCodeClient>
 {
     public void ExposeUpdateScriptProgress(IScript script, float progress)
     {
@@ -18,7 +18,11 @@ class ExposeCliCloudCodeDeploymentHandler : CliCloudCodeDeploymentHandler
         base.UpdateScriptStatus(script, message, detail);
     }
 
-    public ExposeCliCloudCodeDeploymentHandler(ICloudCodeClient client, IDeploymentAnalytics deploymentAnalytics, IScriptCache scriptCache, ILogger logger, IPreDeployValidator preDeployValidator) : base(client, deploymentAnalytics, scriptCache, logger, preDeployValidator)
-    {
-    }
+    public ExposeCliCloudCodeDeploymentHandler(
+        ICloudCodeClient client,
+        IDeploymentAnalytics deploymentAnalytics,
+        IScriptCache scriptCache,
+        ILogger logger,
+        IPreDeployValidator preDeployValidator)
+        : base(client, deploymentAnalytics, scriptCache, logger, preDeployValidator) { }
 }

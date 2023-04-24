@@ -179,7 +179,8 @@ public static class ContextBinder
         }
         catch (Exception e)
         {
-            var exceptionHelper = new ExceptionHelper(new Diagnostics(new TelemetrySender(new TelemetryApi.Generated.Api.TelemetryApi(), new Dictionary<string, string>(), new Dictionary<string, string>()), new SystemEnvironmentProvider()), AnsiConsole.Create(new AnsiConsoleSettings()));
+            var eventFactory = new AnalyticEventFactory(new SystemEnvironmentProvider());
+            var exceptionHelper = new ExceptionHelper(eventFactory.CreateDiagnosticEvent(), AnsiConsole.Create(new AnsiConsoleSettings()));
             exceptionHelper.HandleException(e, logger, context);
         }
     }
@@ -202,7 +203,8 @@ public static class ContextBinder
         }
         catch (Exception e)
         {
-            var exceptionHelper = new ExceptionHelper(new Diagnostics(new TelemetrySender(new TelemetryApi.Generated.Api.TelemetryApi(), new Dictionary<string, string>(), new Dictionary<string, string>()), new SystemEnvironmentProvider()), AnsiConsole.Create(new AnsiConsoleSettings()));
+            var eventFactory = new AnalyticEventFactory(new SystemEnvironmentProvider());
+            var exceptionHelper = new ExceptionHelper(eventFactory.CreateDiagnosticEvent(), AnsiConsole.Create(new AnsiConsoleSettings()));
             exceptionHelper.HandleException(e, logger, context);
         }
     }

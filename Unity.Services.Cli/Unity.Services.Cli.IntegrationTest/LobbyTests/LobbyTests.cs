@@ -1,14 +1,13 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Networking;
-using Unity.Services.Cli.IntegrationTest.EnvTests;
 using Unity.Services.Cli.MockServer;
+using Unity.Services.Cli.MockServer.Common;
+using Unity.Services.Cli.MockServer.ServiceMocks;
 using Unity.Services.Cli.RemoteConfig.Model;
 using Unity.Services.MpsLobby.LobbyApiV1.Generated.Model;
 
@@ -26,23 +25,12 @@ public class LobbyTests : UgsCliFixture
     const string k_RequiredArgumentMissing = "Required argument missing for command:";
     const string k_FailedToDeserialize = "Failed to deserialize object for Lobby request.";
 
-    readonly MockApi m_MockApi = new(NetworkTargetEndpoints.MockServer);
-    const string k_AuthV1OpenApiUrl = "https://services.docs.unity.com/specs/v1/61757468.yaml";
-
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
     {
-        m_MockApi.InitServer();
         m_MockApi.Server?.AllowPartialMapping();
-
-        var environmentModels = await IdentityV1MockServerModels.GetModels();
-        m_MockApi.Server?.WithMapping(environmentModels.ToArray());
-
-        var authServiceModels = await MappingModelUtils.ParseMappingModelsAsync(k_AuthV1OpenApiUrl, new());
-        m_MockApi.Server?.WithMapping(authServiceModels.ToArray());
-
-        var lobbyServiceModels = await MappingModelUtils.ParseMappingModelsFromGeneratorConfigAsync("lobby-api-v1-generator-config.yaml", new());
-        m_MockApi.Server?.WithMapping(lobbyServiceModels.ToArray());
+        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
+        await m_MockApi.MockServiceAsync(new LobbyApiMock());
     }
 
     [OneTimeTearDown]
@@ -633,7 +621,7 @@ public class LobbyTests : UgsCliFixture
 
     static string GetPlayerDetailsString(string playerId)
     {
-        var player = new Player(id: playerId);
+        var player = new MpsLobby.LobbyApiV1.Generated.Model.Player(id: playerId);
         return HttpUtility.JavaScriptStringEncode(JsonConvert.SerializeObject(player));
     }
 }

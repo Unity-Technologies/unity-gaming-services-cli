@@ -15,7 +15,7 @@ namespace Unity.Services.Cli.RemoteConfig.Service;
 
 public class RemoteConfigService : IRemoteConfigService
 {
-    const string k_ConfigTypeDefaultValue = "settings";
+    internal const string k_ConfigTypeDefaultValue = "settings";
 
     static readonly string k_BaseUrl = $"{EndpointHelper.GetCurrentEndpointFor<RemoteConfigEndpoints>()}/remote-config/v1";
 

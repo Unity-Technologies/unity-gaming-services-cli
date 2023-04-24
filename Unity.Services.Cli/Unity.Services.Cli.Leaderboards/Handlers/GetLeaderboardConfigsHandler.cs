@@ -1,9 +1,11 @@
 using Microsoft.Extensions.Logging;
 using Unity.Services.Cli.Common.Console;
+using Newtonsoft.Json;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Leaderboards.Input;
+using Unity.Services.Cli.Leaderboards.Model;
 using Unity.Services.Cli.Leaderboards.Service;
 using Unity.Services.Gateway.LeaderboardApiV1.Generated.Model;
 
@@ -35,8 +37,7 @@ static class GetLeaderboardConfigsHandler
         var projectId = input.CloudProjectId!;
         var leaderboards = await leaderboardsService.GetLeaderboardsAsync(
             projectId, environmentId, input.Cursor, input.Limit, cancellationToken);
-        var result = leaderboards
-            .Select(l => $"\"{l.Name}\": \"{l.Id}\"");
+        var result = new GetLeaderboardConfigsResponseOutput(leaderboards);
 
         logger.LogResultValue(result);
     }

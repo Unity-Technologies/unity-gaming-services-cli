@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
-using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.Cli.CloudCode.UnitTest.Mock;
 using Unity.Services.Cli.CloudCode.UnitTest.Utils;
@@ -30,12 +30,10 @@ class CloudCodeServiceTests
     const string k_InvalidProjectId = "invalidProject";
     const string k_InvalidEnvironmentId = "foo";
     const string k_NonEmptyCode = "non-empty-code";
-    const string k_NonEmptyParam = "param";
+    static readonly List<ScriptParameter> k_Parameters = new();
 
     readonly Mock<IConfigurationValidator> m_ValidatorObject = new();
     readonly Mock<IServiceAccountAuthenticationService> m_AuthenticationServiceObject = new();
-    readonly Mock<ICloudCodeScriptParser> m_CloudCodeScriptParser = new();
-    readonly Mock<ICloudScriptParametersParser> m_CloudScriptParametersParser = new();
     readonly CloudCodeApiV1AsyncMock m_CloudCodeApiV1AsyncMock = new();
 
     CloudCodeService? m_CloudCodeService;
@@ -49,8 +47,6 @@ class CloudCodeServiceTests
     {
         m_ValidatorObject.Reset();
         m_AuthenticationServiceObject.Reset();
-        m_CloudCodeScriptParser.Reset();
-        m_CloudScriptParametersParser.Reset();
         m_AuthenticationServiceObject.Setup(a => a.GetAccessTokenAsync(CancellationToken.None))
             .Returns(Task.FromResult(k_TestAccessToken));
 
@@ -103,9 +99,7 @@ class CloudCodeServiceTests
         m_CloudCodeService = new CloudCodeService(
             m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Object,
             m_ValidatorObject.Object,
-            m_AuthenticationServiceObject.Object,
-            m_CloudScriptParametersParser.Object,
-            m_CloudCodeScriptParser.Object);
+            m_AuthenticationServiceObject.Object);
     }
 
     [Test]
@@ -517,7 +511,7 @@ class CloudCodeServiceTests
             Times.Once);
     }
 
-     [Test]
+    [Test]
     public void DeleteModuleAsync_InvalidProjectIDThrowConfigValidationException()
     {
         m_ValidatorObject.Setup(
@@ -748,6 +742,7 @@ class CloudCodeServiceTests
                 It.IsAny<ScriptType>(),
                 It.IsAny<Language>(),
                 It.IsAny<string>(),
+                k_Parameters,
                 CancellationToken.None));
     }
 
@@ -766,6 +761,7 @@ class CloudCodeServiceTests
                 It.IsAny<ScriptType>(),
                 It.IsAny<Language>(),
                 code,
+                k_Parameters,
                 CancellationToken.None));
     }
 
@@ -783,11 +779,6 @@ class CloudCodeServiceTests
         var createRequest = new CreateScriptRequest(
             k_TestScriptName, ScriptType.API, scriptParamList, k_NonEmptyCode, Language.JS);
 
-        m_CloudCodeScriptParser.Setup(
-                parser => parser.ParseToScriptParamsJsonAsync(k_NonEmptyCode, CancellationToken.None))
-            .ReturnsAsync(k_NonEmptyParam);
-        m_CloudScriptParametersParser.Setup(parser => parser.ParseToScriptParameters(k_NonEmptyParam))
-            .Returns(scriptParamList);
         Assert.DoesNotThrowAsync(
             () => m_CloudCodeService!.CreateAsync(
                 It.IsAny<string>(),
@@ -796,6 +787,7 @@ class CloudCodeServiceTests
                 ScriptType.API,
                 Language.JS,
                 k_NonEmptyCode,
+                scriptParamList,
                 CancellationToken.None));
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
@@ -816,6 +808,7 @@ class CloudCodeServiceTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
+                k_Parameters,
                 CancellationToken.None));
     }
 
@@ -827,7 +820,7 @@ class CloudCodeServiceTests
 
         Assert.ThrowsAsync<CliException>(
             () => m_CloudCodeService!.UpdateAsync(
-                It.IsAny<string>(), It.IsAny<string>(), scriptName, code, CancellationToken.None));
+                It.IsAny<string>(), It.IsAny<string>(), scriptName, code, k_Parameters, CancellationToken.None));
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             ex => ex.UpdateScriptAsync(
                 It.IsAny<string>(),
@@ -848,18 +841,13 @@ class CloudCodeServiceTests
         {
             new("foo")
         };
-
-        m_CloudCodeScriptParser.Setup(
-                parser => parser.ParseToScriptParamsJsonAsync(k_NonEmptyCode, CancellationToken.None))
-            .ReturnsAsync(k_NonEmptyParam);
-        m_CloudScriptParametersParser.Setup(parser => parser.ParseToScriptParameters(k_NonEmptyParam))
-            .Returns(scriptParamList);
         Assert.DoesNotThrowAsync(
             () => m_CloudCodeService!.UpdateAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 k_TestScriptName,
                 k_NonEmptyCode,
+                scriptParamList,
                 CancellationToken.None));
 
         var scriptRequest = new UpdateScriptRequest(scriptParamList, k_NonEmptyCode);
@@ -875,7 +863,7 @@ class CloudCodeServiceTests
     }
 
     [Test]
-      public void DeployModuleAsync_InvalidEnvironmentOrProjectIdThrowsConfigValidationException()
+    public void UpdateModuleAsync_InvalidEnvironmentOrProjectIdThrowsConfigValidationException()
     {
         m_ValidatorObject.Setup(
                 ex => ex.ThrowExceptionIfConfigInvalid(It.IsAny<string>(), It.IsAny<string>()))
@@ -890,9 +878,43 @@ class CloudCodeServiceTests
                 CancellationToken.None));
     }
 
+    [Test]
+    public void UpdateModuleAsync_EmptyFileThrowsException()
+    {
+        m_ValidatorObject.Setup(
+            ex => ex.ThrowExceptionIfConfigInvalid(It.IsAny<string>(), It.IsAny<string>()));
+
+        Assert.ThrowsAsync<CliException>(
+            () => m_CloudCodeService!.UpdateModuleAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                k_TestModuleName,
+                Stream.Null,
+                CancellationToken.None));
+
+    }
+
+    [Test]
+    public void UpdateModuleAsync_FileTooLargeThrowsException()
+    {
+        m_ValidatorObject.Setup(
+            ex => ex.ThrowExceptionIfConfigInvalid(It.IsAny<string>(), It.IsAny<string>()));
+
+
+        var oversizedStream = new MemoryStream(new byte[1024*1024*11]);
+        Assert.ThrowsAsync<CliException>(
+            () => m_CloudCodeService!.UpdateModuleAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                k_TestModuleName,
+                oversizedStream,
+                CancellationToken.None));
+
+    }
+
     [TestCase("test.java")]
     [TestCase("name-bad")]
-    public void DeployModuleAsync_InvalidModuleNameOrCodeThrowsConfigValidationException(string? moduleName)
+    public void UpdateModuleAsync_InvalidModuleNameOrCodeThrowsConfigValidationException(string? moduleName)
     {
         m_ValidatorObject.Setup(
             ex => ex.ThrowExceptionIfConfigInvalid(It.IsAny<string>(), It.IsAny<string>()));
@@ -907,17 +929,18 @@ class CloudCodeServiceTests
     }
 
     [Test]
-    public void DeployModuleAsync_ValidInputCallsCreatesModule_ThrowsOnUpdate()
+    public void UpdateModuleAsync_ValidInputCallsCreatesModule_ThrowsOnUpdate()
     {
         m_ValidatorObject.Setup(
             ex => ex.ThrowExceptionIfConfigInvalid(It.IsAny<string>(), It.IsAny<string>()));
 
+        var stream = new MemoryStream(new byte[1]);
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Setup(
                 ex => ex.UpdateModuleAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<Stream>(),
+                    stream,
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()))
             .ThrowsAsync(new ApiException((int)HttpStatusCode.NotFound, ""));
@@ -927,57 +950,59 @@ class CloudCodeServiceTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 k_TestModuleName,
-                Stream.Null,
+                stream,
                 CancellationToken.None));
 
         Assert.ThrowsAsync<ApiException>(() => m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Object.UpdateModuleAsync(
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>(), 0, CancellationToken.None));
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), stream, 0, CancellationToken.None));
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             ex => ex.CreateModuleAsync(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Language>(), It.IsAny<Stream>(), 0, CancellationToken.None),
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Language>(), stream, 0, CancellationToken.None),
             Times.Once);
 
     }
 
     [Test]
-    public void DeployModuleAsync_ValidInputCallsUpdatesModule()
+    public void UpdateModuleAsync_ValidInputCallsUpdatesModule()
     {
         m_ValidatorObject.Setup(
             ex => ex.ThrowExceptionIfConfigInvalid(It.IsAny<string>(), It.IsAny<string>()));
 
+        var stream = new MemoryStream(new byte[1]);
         Assert.DoesNotThrowAsync(
             () => m_CloudCodeService!.UpdateModuleAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 k_TestModuleName,
-                Stream.Null,
+                stream,
                 CancellationToken.None));
 
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             ex => ex.UpdateModuleAsync(
-                It.IsAny<string>(), It.IsAny<string>(), k_TestModuleName, Stream.Null, 0, CancellationToken.None),
+                It.IsAny<string>(), It.IsAny<string>(), k_TestModuleName, stream, 0, CancellationToken.None),
             Times.Once);
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             ex => ex.CreateModuleAsync(
-                It.IsAny<string>(), It.IsAny<string>(), "", Language.CS, Stream.Null, 0, CancellationToken.None),
+                It.IsAny<string>(), It.IsAny<string>(), "", Language.CS, stream,0, CancellationToken.None),
             Times.Never);
     }
 
     [Test]
-    public void DeployModuleAsync_ThrowsWhenNon404ApiExceptionInUpdateCall()
+    public void UpdateModuleAsync_ThrowsWhenNon404ApiExceptionInUpdateCall()
     {
         m_ValidatorObject.Setup(
             ex => ex.ThrowExceptionIfConfigInvalid(It.IsAny<string>(), It.IsAny<string>()));
 
+        var stream = new MemoryStream(new byte[1]);
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Setup(
                 ex => ex.UpdateModuleAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<Stream>(),
+                    stream,
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()))
             .ThrowsAsync(new ApiException((int)HttpStatusCode.InternalServerError, ""));
@@ -987,34 +1012,36 @@ class CloudCodeServiceTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 k_TestModuleName,
-                Stream.Null,
+                stream,
                 CancellationToken.None));
 
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             ex => ex.UpdateModuleAsync(
-                It.IsAny<string>(), It.IsAny<string>(), k_TestModuleName, Stream.Null, 0, CancellationToken.None),
+                It.IsAny<string>(), It.IsAny<string>(), k_TestModuleName, stream, 0, CancellationToken.None),
             Times.Once);
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             ex => ex.CreateModuleAsync(
-                It.IsAny<string>(), It.IsAny<string>(), "", Language.CS, Stream.Null, 0, CancellationToken.None),
+                It.IsAny<string>(), It.IsAny<string>(), "", Language.CS, stream, 0, CancellationToken.None),
             Times.Never);
     }
 
     [Test]
-    public void DeployModuleAsync_ThrowsWhenApiExceptionInCreateCall()
+    public void UpdateModuleAsync_ThrowsWhenApiExceptionInCreateCall()
     {
         m_ValidatorObject.Setup(
             ex => ex.ThrowExceptionIfConfigInvalid(It.IsAny<string>(), It.IsAny<string>()));
 
+
+        var stream = new MemoryStream(new byte[1]);
         // Need 404 from update to fall into create block
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Setup(
                 ex => ex.UpdateModuleAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<Stream>(),
+                    stream,
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()))
             .ThrowsAsync(new ApiException((int)HttpStatusCode.NotFound, ""));
@@ -1025,7 +1052,7 @@ class CloudCodeServiceTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<Language>(),
-                    It.IsAny<Stream>(),
+                    stream,
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()))
             .ThrowsAsync(new ApiException((int)HttpStatusCode.InternalServerError, ""));
@@ -1035,18 +1062,18 @@ class CloudCodeServiceTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 k_TestModuleName,
-                Stream.Null,
+                stream,
                 CancellationToken.None));
 
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             ex => ex.UpdateModuleAsync(
-                It.IsAny<string>(), It.IsAny<string>(), k_TestModuleName, Stream.Null, 0, CancellationToken.None),
+                It.IsAny<string>(), It.IsAny<string>(), k_TestModuleName, stream, 0, CancellationToken.None),
             Times.Once);
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             ex => ex.CreateModuleAsync(
-                It.IsAny<string>(), It.IsAny<string>(), k_TestModuleName, It.IsAny<Language>(), It.IsAny<Stream>(), 0, CancellationToken.None),
+                It.IsAny<string>(), It.IsAny<string>(), k_TestModuleName, It.IsAny<Language>(), stream, 0, CancellationToken.None),
             Times.Once);
     }
 

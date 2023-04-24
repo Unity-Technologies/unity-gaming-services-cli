@@ -21,13 +21,13 @@
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Jint" Version="3.0.0-beta-2042" />
-    <PackageReference Include="Unity.Services.CloudCode.Authoring.Editor.Core" Version="0.3.3" />
+    <PackageReference Include="Unity.Services.CloudCode.Authoring.Editor.Core" Version="0.4.0" />
     <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.1.0" />
-    <PackageReference Include="YamlDotNet" Version="13.0.1" />
+    <PackageReference Include="YamlDotNet" Version="13.0.2" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="JavaScripts\script_parameters.js" />
+    <EmbeddedResource Include="JavaScripts\script_template.js" />
   </ItemGroup>
   <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>

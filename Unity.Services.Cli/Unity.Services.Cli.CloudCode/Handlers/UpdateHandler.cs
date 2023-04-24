@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Unity.Services.Cli.CloudCode.Input;
+using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Utils;
@@ -38,9 +39,9 @@ static class UpdateHandler
 
         loadingContext?.Status("Loading script...");
         var code = await cloudCodeInputParser.LoadScriptCodeAsync(input, cancellationToken);
-
+        var parameters = await cloudCodeInputParser.CloudCodeScriptParser.ParseScriptParametersAsync(code, cancellationToken);
         loadingContext?.Status("Uploading script...");
-        await cloudCodeService.UpdateAsync(projectId, environmentId, input.ScriptName, code, CancellationToken.None);
+        await cloudCodeService.UpdateAsync(projectId, environmentId, input.ScriptName, code, parameters, CancellationToken.None);
 
         logger.LogInformation("Script '{scriptName}' updated.", input.ScriptName);
     }

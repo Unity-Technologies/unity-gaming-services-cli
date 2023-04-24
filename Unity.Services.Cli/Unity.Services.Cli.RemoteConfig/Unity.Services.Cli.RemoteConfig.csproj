@@ -20,7 +20,7 @@
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Unity.Services.RemoteConfig.Authoring.Editor.Core" Version="0.3.4-beta.1" />
+    <PackageReference Include="Unity.Services.RemoteConfig.Authoring.Editor.Core" Version="0.4.0" />
   </ItemGroup>
   <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>

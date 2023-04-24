@@ -10,7 +10,7 @@ class CloudCodeModule : IScript
     public ScriptName Name { get; set; }
     public Language? Language { get; set; }
     public string? Path { get; set; }
-    public string Body { get; }
+    public string Body { get; set; }
     public List<CloudCodeParameter> Parameters { get; }
     public string LastPublishedDate { get; set; }
 

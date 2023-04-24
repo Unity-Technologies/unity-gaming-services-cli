@@ -5,7 +5,10 @@ using System.CommandLine.Builder;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using NUnit.Framework;
+using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.CloudCode.Authoring;
 using Unity.Services.Cli.CloudCode.Deploy;
 using Unity.Services.Cli.CloudCode.Input;
 using Unity.Services.Cli.CloudCode.Parameters;
@@ -18,6 +21,7 @@ using Unity.Services.Cli.TestUtils;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Analytics;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Crypto;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
+using Unity.Services.CloudCode.Authoring.Editor.Core.Logging;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Api;
 
 namespace Unity.Services.Cli.CloudCode.UnitTest;
@@ -30,7 +34,11 @@ class CloudCodeModuleTests
     static readonly IEnumerable<TestCaseData> k_CloudCodeCommandTestCases = new[]
     {
         new TestCaseData(k_CloudCodeModule.ListCommand),
-        new TestCaseData(k_CloudCodeModule.DeleteCommand)
+        new TestCaseData(k_CloudCodeModule.DeleteCommand),
+        new TestCaseData(k_CloudCodeModule.UpdateCommand),
+        new TestCaseData(k_CloudCodeModule.GetCommand),
+        new TestCaseData(k_CloudCodeModule.PublishCommand),
+        new TestCaseData(k_CloudCodeModule.NewFileCommand)
     };
 
     [Test]
@@ -38,8 +46,8 @@ class CloudCodeModuleTests
     {
         var commandLineBuilder = new CommandLineBuilder();
         commandLineBuilder.AddModule(k_CloudCodeModule);
-        TestsHelper.AssertContainsCommand(commandLineBuilder.Command, k_CloudCodeModule.ModuleRootCommand.Name,
-            out var resultCommand);
+        TestsHelper.AssertContainsCommand(
+            commandLineBuilder.Command, k_CloudCodeModule.ModuleRootCommand.Name, out var resultCommand);
         Assert.AreEqual(k_CloudCodeModule.ModuleRootCommand, resultCommand);
         Assert.NotNull(k_CloudCodeModule.ListCommand.Handler);
     }
@@ -56,8 +64,8 @@ class CloudCodeModuleTests
     [TestCaseSource(nameof(k_CloudCodeCommandTestCases))]
     public void CommandContainCommands(Command expectedCommand)
     {
-        TestsHelper.AssertContainsCommand(k_CloudCodeModule.ModuleRootCommand, expectedCommand.Name,
-            out var resultCommand);
+        TestsHelper.AssertContainsCommand(
+            k_CloudCodeModule.ModuleRootCommand, expectedCommand.Name, out var resultCommand);
         Assert.AreEqual(expectedCommand, resultCommand);
     }
 
@@ -90,36 +98,135 @@ class CloudCodeModuleTests
     [Test]
     public void UpdateCommandWithInput()
     {
-        Assert.IsTrue(k_CloudCodeModule.CreateCommand.Options.Contains(CommonInput.CloudProjectIdOption));
-        Assert.IsTrue(k_CloudCodeModule.CreateCommand.Options.Contains(CommonInput.EnvironmentNameOption));
-        Assert.IsTrue(k_CloudCodeModule.CreateCommand.Arguments.Contains(CloudCodeInput.ScriptNameArgument));
-        Assert.IsTrue(k_CloudCodeModule.CreateCommand.Arguments.Contains(CloudCodeInput.FilePathArgument));
+        Assert.IsTrue(k_CloudCodeModule.UpdateCommand.Options.Contains(CommonInput.CloudProjectIdOption));
+        Assert.IsTrue(k_CloudCodeModule.UpdateCommand.Options.Contains(CommonInput.EnvironmentNameOption));
+        Assert.IsTrue(k_CloudCodeModule.UpdateCommand.Arguments.Contains(CloudCodeInput.ScriptNameArgument));
+        Assert.IsTrue(k_CloudCodeModule.UpdateCommand.Arguments.Contains(CloudCodeInput.FilePathArgument));
     }
 
-    [TestCase(typeof(IConfigurationValidator))]
+    [Test]
+    public void NewFileCommandWithInput()
+    {
+        Assert.IsTrue(k_CloudCodeModule.NewFileCommand.Arguments.Contains(NewFileInput.FileArgument));
+        Assert.IsTrue(k_CloudCodeModule.NewFileCommand.Options.Contains(CommonInput.UseForceOption));
+    }
+
     [TestCase(typeof(ICloudCodeApiAsync))]
-    [TestCase(typeof(ICloudScriptParametersParser))]
-    [TestCase(typeof(ICloudCodeScriptParser))]
-    [TestCase(typeof(ICloudCodeService))]
-    [TestCase(typeof(ICloudCodeInputParser))]
+    [TestCase(typeof(ICSharpClient))]
+    [TestCase(typeof(IJavaScriptClient))]
     [TestCase(typeof(IDeploymentAnalytics))]
-    [TestCase(typeof(Unity.Services.CloudCode.Authoring.Editor.Core.Logging.ILogger))]
+    [TestCase(typeof(ILogger))]
     [TestCase(typeof(EnvironmentProvider))]
     [TestCase(typeof(ICliEnvironmentProvider))]
     [TestCase(typeof(IEnvironmentProvider))]
     [TestCase(typeof(IHashComputer))]
     [TestCase(typeof(IScriptCache))]
     [TestCase(typeof(IPreDeployValidator))]
-    [TestCase(typeof(CliCloudCodeDeploymentHandler))]
+    [TestCase(typeof(ICloudCodeModulesLoader))]
+    [TestCase(typeof(ICloudCodeScriptsLoader))]
+    [TestCase(typeof(ICloudCodeService))]
+    [TestCase(typeof(ICloudCodeInputParser))]
+    [TestCase(typeof(IConfigurationValidator))]
+    [TestCase(typeof(ICloudScriptParametersParser))]
+    [TestCase(typeof(ICloudCodeScriptParser))]
+    [TestCase(typeof(CliCloudCodeDeploymentHandler<IJavaScriptClient>))]
+    [TestCase(typeof(CliCloudCodeDeploymentHandler<ICSharpClient>))]
     public void CloudCodeModuleRegistersServices(Type serviceType)
     {
-        EndpointHelper.InitializeNetworkTargetEndpoints(new[]
-        {
-            typeof(CloudCodeEndpoints).GetTypeInfo()
-        });
+        EndpointHelper.InitializeNetworkTargetEndpoints(
+            new[]
+            {
+                typeof(CloudCodeEndpoints).GetTypeInfo()
+            });
         var services = new List<ServiceDescriptor>();
         var hostBuilder = TestsHelper.CreateAndSetupMockHostBuilder(services);
         hostBuilder.ConfigureServices(CloudCodeModule.RegisterServices);
         Assert.That(services.FirstOrDefault(c => c.ServiceType == serviceType), Is.Not.Null);
+    }
+
+    [Test]
+    public void CreateJavaScriptDeployServiceCreatesInstanceWithReferencesToProvidedServices()
+    {
+        var scriptParser = new Mock<ICloudCodeScriptParser>();
+        var scriptsLoader = new Mock<ICloudCodeScriptsLoader>();
+        var inputParser = new Mock<ICloudCodeInputParser>();
+        var environmentProvider = new Mock<ICliEnvironmentProvider>();
+        var client = new Mock<IJavaScriptClient>();
+        var deploymentHandlerWithOutput = new CliCloudCodeDeploymentHandler<IJavaScriptClient>(
+            null!, null!, null!, null!, null!);
+        var provider = new Mock<IServiceProvider>();
+        SetupProvider();
+
+        var deployService = CloudCodeModule.CreateJavaScriptDeployService(provider.Object);
+
+        Assert.Multiple(AssertExpectedServicesAreWrapped);
+
+        void SetupProvider()
+        {
+            provider.Setup(x => x.GetService(typeof(ICloudCodeInputParser)))
+                .Returns(inputParser.Object);
+            provider.Setup(x => x.GetService(typeof(ICloudCodeScriptParser)))
+                .Returns(scriptParser.Object);
+            provider.Setup(x => x.GetService(typeof(CliCloudCodeDeploymentHandler<IJavaScriptClient>)))
+                .Returns(deploymentHandlerWithOutput);
+            provider.Setup(x => x.GetService(typeof(ICloudCodeScriptsLoader)))
+                .Returns(scriptsLoader.Object);
+            provider.Setup(x => x.GetService(typeof(ICliEnvironmentProvider)))
+                .Returns(environmentProvider.Object);
+            provider.Setup(x => x.GetService(typeof(IJavaScriptClient)))
+                .Returns(client.Object);
+        }
+
+        void AssertExpectedServicesAreWrapped()
+        {
+            Assert.That(deployService.CloudCodeInputParser, Is.SameAs(inputParser.Object));
+            Assert.That(deployService.CloudCodeScriptParser, Is.SameAs(scriptParser.Object));
+            Assert.That(
+                deployService.CliDeploymentOutputHandler,
+                Is.SameAs(deployService.CloudCodeDeploymentHandler));
+            Assert.That(deployService.CliDeploymentOutputHandler, Is.SameAs(deploymentHandlerWithOutput));
+            Assert.That(deployService.CloudCodeScriptsLoader, Is.SameAs(scriptsLoader.Object));
+            Assert.That(deployService.EnvironmentProvider, Is.SameAs(environmentProvider.Object));
+            Assert.That(deployService.CliCloudCodeClient, Is.SameAs(client.Object));
+        }
+    }
+
+    [Test]
+    public void CreateCSharpDeployServiceCreatesInstanceWithReferencesToProvidedServices()
+    {
+        var environmentProvider = new Mock<ICliEnvironmentProvider>();
+        var csModuleLoader = new Mock<ICloudCodeModulesLoader>();
+        var client = new Mock<ICSharpClient>();
+        var deploymentHandlerWithOutput = new CliCloudCodeDeploymentHandler<ICSharpClient>(
+            client.Object, null!, null!, null!, null!);
+        var provider = new Mock<IServiceProvider>();
+        SetupProvider();
+
+        var deployService = CloudCodeModule.CreateCSharpDeployService(provider.Object);
+
+        Assert.Multiple(AssertExpectedServicesAreWrapped);
+
+        void SetupProvider()
+        {
+            provider.Setup(x => x.GetService(typeof(CliCloudCodeDeploymentHandler<ICSharpClient>)))
+                .Returns(deploymentHandlerWithOutput);
+            provider.Setup(x => x.GetService(typeof(ICloudCodeModulesLoader)))
+                .Returns(csModuleLoader.Object);
+            provider.Setup(x => x.GetService(typeof(ICliEnvironmentProvider)))
+                .Returns(environmentProvider.Object);
+            provider.Setup(x => x.GetService(typeof(ICSharpClient)))
+                .Returns(client.Object);
+        }
+
+        void AssertExpectedServicesAreWrapped()
+        {
+            Assert.That(
+                deployService.CliDeploymentOutputHandler,
+                Is.SameAs(deployService.CloudCodeDeploymentHandler));
+            Assert.That(deployService.CliDeploymentOutputHandler, Is.SameAs(deploymentHandlerWithOutput));
+            Assert.That(deployService.CloudCodeModulesLoader, Is.SameAs(csModuleLoader.Object));
+            Assert.That(deployService.EnvironmentProvider, Is.SameAs(environmentProvider.Object));
+            Assert.That(deployService.CliCloudCodeClient, Is.SameAs(client.Object));
+        }
     }
 }

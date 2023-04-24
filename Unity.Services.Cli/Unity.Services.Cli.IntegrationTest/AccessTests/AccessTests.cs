@@ -1,26 +1,20 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Models;
-using Unity.Services.Cli.IntegrationTest.AccessTests.Mock;
-using Unity.Services.Cli.IntegrationTest.EnvTests;
+using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.MockServer;
+using Unity.Services.Cli.MockServer.Common;
+using Unity.Services.Cli.MockServer.ServiceMocks;
 using Unity.Services.Gateway.AccessApiV1.Generated.Model;
 
 namespace Unity.Services.Cli.IntegrationTest.AccessTests;
 
-public class AccessTests: UgsCliFixture
+public class AccessTests : UgsCliFixture
 {
-    private const string k_PlayerId = "j0oM0dnufzxgtwGqoH0zIpSyWUV7XUgy";
-
-    private readonly AccessApiMock m_AccessApiMock = new(CommonKeys.ValidProjectId, CommonKeys.ValidEnvironmentId, k_PlayerId);
-    const string k_AccessOpenApiUrl
-        = "https://services.docs.unity.com/specs/v1/616363657373.yaml";
 
     private const string k_FilePath = "policy.json";
     const string k_ProjectIdNotSetErrorMessage = "'project-id' is not set in project configuration."
@@ -34,42 +28,22 @@ public class AccessTests: UgsCliFixture
 
     private const string k_RequiredArgumentMissing = "Required argument missing for command";
 
-    [OneTimeSetUp]
-    public void OneTimeSetUp()
-    {
-        m_AccessApiMock.MockApi.InitServer();
-    }
-
-    [OneTimeTearDown]
-    public void OneTimeTearDown()
-    {
-        m_AccessApiMock.MockApi.Server?.Dispose();
-    }
-
     [SetUp]
     public async Task SetUp()
     {
         DeleteLocalConfig();
         DeleteLocalCredentials();
-        m_AccessApiMock.MockApi.Server?.ResetMappings();
+        m_MockApi.Server?.ResetMappings();
 
-        var environmentModels = await IdentityV1MockServerModels.GetModels();
-        m_AccessApiMock.MockApi.Server?.WithMapping(environmentModels.ToArray());
-
-        var accessModels = await MappingModelUtils.ParseMappingModelsAsync(k_AccessOpenApiUrl, new());
-        accessModels = accessModels.Select(
-            m => m.ConfigMappingPathWithKey(CommonKeys.ProjectIdKey, CommonKeys.ValidProjectId)
-                .ConfigMappingPathWithKey(CommonKeys.EnvironmentIdKey, CommonKeys.ValidEnvironmentId)
-                .ConfigMappingPathWithKey("players", k_PlayerId)
-        );
-        m_AccessApiMock.MockApi.Server?.WithMapping(accessModels.ToArray());
+        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
+        await m_MockApi.MockServiceAsync(new AccessApiMock());
 
     }
 
     [TearDown]
     public void TearDown()
     {
-        m_AccessApiMock.MockApi.Server?.ResetMappings();
+        m_MockApi.Server?.ResetMappings();
     }
 
 
@@ -123,7 +97,6 @@ public class AccessTests: UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        m_AccessApiMock.MockGetProjectPolicy();
         await AssertSuccess("access get-project-policy", "\"statements\": []");
     }
 
@@ -133,15 +106,14 @@ public class AccessTests: UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        m_AccessApiMock.MockGetPlayerPolicy();
 
         var playerPolicy = new
         {
-            playerId = k_PlayerId,
+            playerId = AccessApiMock.PlayerId,
             statements = new List<Statement>()
         };
 
-        await AssertSuccess($"access get-player-policy {k_PlayerId}", JsonConvert.SerializeObject(playerPolicy, Formatting.Indented));
+        await AssertSuccess($"access get-player-policy {AccessApiMock.PlayerId}", JsonConvert.SerializeObject(playerPolicy, Formatting.Indented));
     }
 
     // access get-all-player-policies
@@ -150,11 +122,10 @@ public class AccessTests: UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        m_AccessApiMock.MockGetAllPlayerPolicies();
 
         var playerPolicy = new
         {
-            playerId = k_PlayerId,
+            playerId = AccessApiMock.PlayerId,
             statements = new List<Statement>()
         };
 
@@ -170,7 +141,6 @@ public class AccessTests: UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        m_AccessApiMock.MockUpsertProjectPolicy();
         await AssertSuccess($"access upsert-project-policy {Path.Combine(k_TestDirectory, "policy.json")}", $"Policy for project: '{CommonKeys.ValidProjectId}' and environment: '{CommonKeys.ValidEnvironmentId}' has been updated");
     }
 
@@ -180,8 +150,7 @@ public class AccessTests: UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        m_AccessApiMock.MockUpsertPlayerPolicy();
-        await AssertSuccess($"access upsert-player-policy {k_PlayerId} {Path.Combine(k_TestDirectory, "policy.json")}", $"Policy for player: '{k_PlayerId}' has been updated");
+        await AssertSuccess($"access upsert-player-policy {AccessApiMock.PlayerId} {Path.Combine(k_TestDirectory, "policy.json")}", $"Policy for player: '{AccessApiMock.PlayerId}' has been updated");
     }
 
     // access delete-project-policy-statements
@@ -190,7 +159,6 @@ public class AccessTests: UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        m_AccessApiMock.MockDeleteProjectPolicyStatements();
         await AssertSuccess($"access delete-project-policy-statements {Path.Combine(k_TestDirectory, "statements.json")}", $"Given policy statements for project: '{CommonKeys.ValidProjectId}' and environment: '{CommonKeys.ValidEnvironmentId}' has been deleted");
     }
 
@@ -200,8 +168,7 @@ public class AccessTests: UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        m_AccessApiMock.MockDeletePlayerPolicyStatements();
-        await AssertSuccess($"access delete-player-policy-statements {k_PlayerId} {Path.Combine(k_TestDirectory, "statements.json")}", $"Given policy statements for player: '{k_PlayerId}' has been deleted");
+        await AssertSuccess($"access delete-player-policy-statements {AccessApiMock.PlayerId} {Path.Combine(k_TestDirectory, "statements.json")}", $"Given policy statements for player: '{AccessApiMock.PlayerId}' has been deleted");
     }
 
     // helpers
@@ -210,12 +177,12 @@ public class AccessTests: UgsCliFixture
         get
         {
             yield return "access get-project-policy";
-            yield return $"access get-player-policy {k_PlayerId}";
+            yield return $"access get-player-policy {AccessApiMock.PlayerId}";
             yield return "access get-all-player-policies";
             yield return $"access upsert-project-policy {k_FilePath}";
-            yield return $"access upsert-player-policy {k_PlayerId} {k_FilePath}";
+            yield return $"access upsert-player-policy {AccessApiMock.PlayerId} {k_FilePath}";
             yield return $"access delete-project-policy-statements {k_FilePath}";
-            yield return $"access delete-player-policy-statements {k_PlayerId} policy.json";
+            yield return $"access delete-player-policy-statements {AccessApiMock.PlayerId} policy.json";
         }
     }
 

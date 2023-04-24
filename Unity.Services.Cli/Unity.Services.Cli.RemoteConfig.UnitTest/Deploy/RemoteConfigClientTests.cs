@@ -1,6 +1,7 @@
 using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using Spectre.Console.Rendering;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.RemoteConfig.Deploy;
 using Unity.Services.Cli.RemoteConfig.Model;
@@ -40,19 +41,19 @@ class RemoteConfigClientTests
                 ProjectId = k_TestProjectId,
                 Type = RemoteConfigClient.k_ConfigType,
                 UpdatedAt = "2022-11-16T21:38:34Z",
-                Value = new List<RemoteConfigEntry>
+                Value = new List<RemoteConfigEntryDTO>
                 {
-                    new RemoteConfigEntry
+                    new RemoteConfigEntryDTO
                     {
                         key = "color",
-                        type = "string",
-                        value = "black"
+                        value = "black",
+                        type = "string"
                     },
-                    new RemoteConfigEntry
+                    new RemoteConfigEntryDTO
                     {
                         key = "length",
-                        type = "float",
-                        value = 123123
+                        value = 123123f,
+                        type = "float"
                     }
                 }
             }
@@ -105,7 +106,7 @@ class RemoteConfigClientTests
             RemoteConfigClient.k_ConfigType, CancellationToken.None)).ReturnsAsync(rawResponse);
 
         var config = m_ResponseWithConfig.Configs?.FirstOrDefault(c => c.Type == RemoteConfigClient.k_ConfigType);
-        var expectedResult = JsonConvert.SerializeObject(new GetConfigsResult(true, config!.Value));
+        var expectedResult = JsonConvert.SerializeObject(new GetConfigsResult(true, RemoteConfigClient.ToRemoteConfigEntry(config!.Value!)));
         var result = JsonConvert.SerializeObject(await m_RemoteConfigClient!.GetAsync());
         StringAssert.AreEqualIgnoringCase(expectedResult, result);
     }
@@ -128,7 +129,7 @@ class RemoteConfigClientTests
         var kvps = new List<ConfigValue>()
         {
             new ("color", Types.ValueType.String, "black"),
-            new ("length", Types.ValueType.Float, 123123),
+            new ("length", Types.ValueType.Float, 123123.0),
         };
         m_MockRemoteConfigService
             .Setup(rc =>
@@ -139,20 +140,118 @@ class RemoteConfigClientTests
                     kvps,
                     CancellationToken.None))
             .ReturnsAsync(k_ConfigId);
-        await m_RemoteConfigClient!.CreateAsync(m_ResponseWithConfig.Configs!.First().Value!);
+        var configEntriesDto = m_ResponseWithConfig.Configs!.First().Value!;
+        var configEntries = RemoteConfigClient.ToRemoteConfigEntry(configEntriesDto);
+        await m_RemoteConfigClient!.CreateAsync(configEntries);
         Assert.That(m_RemoteConfigClient.ConfigId, Is.EqualTo(k_ConfigId));
+    }
+
+
+    [Test]
+    public async Task GetsIntegerValue()
+    {
+        var servStr = @"{
+            'configs':[ {
+                'projectId':'',
+                'environmentId':'',
+                'type':'settings',
+                'value':[
+                    {'key':'k','type':'int','value':1}
+                ],
+            'id':'',
+            'version':'8',
+            'createdAt':'2022-10-26T17:57:32Z',
+            'updatedAt':'2023-04-20T18:14:22Z'}]
+        }";
+
+        m_MockRemoteConfigService
+            .Setup(rc =>
+                rc.GetAllConfigsFromEnvironmentAsync(
+                    k_TestProjectId,
+                    k_TestEnvironmentId,
+                    RemoteConfigClient.k_ConfigType,
+                    CancellationToken.None))
+            .ReturnsAsync(servStr);
+        var result = await m_RemoteConfigClient!.GetAsync();
+        Assert.That(result.Configs, Has.Count.EqualTo(1));
+        Assert.That(result.Configs[0].Value.GetType(), Is.EqualTo(typeof(int)));
+    }
+
+    [Test]
+    public async Task GetsDoubleValue()
+    {
+        var servStr = @"{
+            'configs':[ {
+                'projectId':'',
+                'environmentId':'',
+                'type':'settings',
+                'value':[
+                    {'key':'k','type':'float','value':1}
+                ],
+            'id':'',
+            'version':'8',
+            'createdAt':'2022-10-26T17:57:32Z',
+            'updatedAt':'2023-04-20T18:14:22Z'}]
+        }";
+
+        m_MockRemoteConfigService
+            .Setup(rc =>
+                rc.GetAllConfigsFromEnvironmentAsync(
+                    k_TestProjectId,
+                    k_TestEnvironmentId,
+                    RemoteConfigClient.k_ConfigType,
+                    CancellationToken.None))
+            .ReturnsAsync(servStr);
+        var result = await m_RemoteConfigClient!.GetAsync();
+        Assert.That(result.Configs, Has.Count.EqualTo(1));
+        Assert.That(result.Configs[0].Value.GetType(), Is.EqualTo(typeof(double)));
     }
 
     [Test]
     public async Task UpdateAsyncSucceed()
     {
-        var kvps = new List<ConfigValue>()
+        var kvps = new List<ConfigValue>
         {
             new ("color", Types.ValueType.String, "black"),
-            new ("length", Types.ValueType.Float, 123123),
+            new ("length", Types.ValueType.Float, 123123.0)
         };
-        await m_RemoteConfigClient!.UpdateAsync(m_ResponseWithConfig.Configs!.First().Value!);
-        m_MockRemoteConfigService.Verify(rc => rc.UpdateConfigAsync(k_TestProjectId, m_RemoteConfigClient.ConfigId, RemoteConfigClient.k_ConfigType,
-            kvps, CancellationToken.None), Times.Once);
+
+        await m_RemoteConfigClient!.UpdateAsync(RemoteConfigClient.ToRemoteConfigEntry(m_ResponseWithConfig.Configs!.First().Value!));
+
+        m_MockRemoteConfigService.Verify(
+            rc => rc.UpdateConfigAsync(
+                k_TestProjectId,
+                m_RemoteConfigClient.ConfigId,
+                RemoteConfigClient.k_ConfigType,
+                It.Is(kvps, new ConfigsEqualityComparer()),
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    class ConfigsEqualityComparer : IEqualityComparer<IEnumerable<ConfigValue>>
+    {
+        public bool Equals(
+            IEnumerable<ConfigValue>? x,
+            IEnumerable<ConfigValue>? y)
+        {
+            return x!
+                .Zip(y!, (l,
+                    r) => l.Key == r.Key && l.Type == r.Type && AreEqual(l.Value, r.Value))
+                .All(b => b);
+        }
+
+        static bool AreEqual(
+            object l,
+            object r)
+        {
+            if (l is double lf && r is double rf)
+                return Math.Abs(lf - rf) < double.Epsilon;
+            return l == r;
+        }
+
+        public int GetHashCode(IEnumerable<ConfigValue> obj)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -14,9 +14,9 @@ using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Common.Networking;
+using Unity.Services.Cli.Common.Process;
 using Unity.Services.Cli.Common.SystemEnvironment;
 using Unity.Services.Cli.Common.Telemetry;
-using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
 using Unity.Services.Cli.Common.Telemetry.AnalyticEvent.AnalyticEventFactory;
 using Unity.Services.Gateway.IdentityApiV1.Generated.Api;
 using IdentityClient = Unity.Services.Gateway.IdentityApiV1.Generated.Client;
@@ -66,7 +66,7 @@ public static class CommonModule
             .GetAssemblies()
             .SelectMany(x => x.DefinedTypes);
         EndpointHelper.InitializeNetworkTargetEndpoints(allDefinedTypesInDomain);
-        IAnsiConsole? usedConsole = silentAnsiConsole ? null : ansiConsole;
+        var usedConsole = silentAnsiConsole ? null : ansiConsole;
         hostBuilder.ConfigureAppConfiguration(ConfigAppConfiguration);
         hostBuilder.ConfigureLogging(logBuilder => ConfigureLogging(parseResult, logBuilder, logger));
         hostBuilder.ConfigureServices(collection => collection.AddSingleton<ILogger>(logger));
@@ -78,6 +78,7 @@ public static class CommonModule
             CreateAndRegisterLoadingIndicatorService(serviceCollection, usedConsole));
         hostBuilder.ConfigureServices(CreateAndRegisterCliPromptService);
         hostBuilder.ConfigureServices(CreateAndRegisterCliAnalyticsSenderService);
+        hostBuilder.ConfigureServices(CreateAndRegisterCliProcessService);
     }
 
     internal static void ConfigAppConfiguration(IConfigurationBuilder config)
@@ -176,10 +177,15 @@ public static class CommonModule
                     .WithDefaultUnityBigQueryExporter()
                     .WithCommonHeader(new Dictionary<string, string>
                     {
-                        ["uuid"]= ""
+                        ["uuid"] = ""
                     })
             ));
         var provider = serviceCollection.BuildServiceProvider();
         provider.InitAnalytics();
+    }
+
+    internal static void CreateAndRegisterCliProcessService(IServiceCollection serviceCollection)
+    {
+        serviceCollection.AddTransient<ICliProcess, CliProcess>();
     }
 }

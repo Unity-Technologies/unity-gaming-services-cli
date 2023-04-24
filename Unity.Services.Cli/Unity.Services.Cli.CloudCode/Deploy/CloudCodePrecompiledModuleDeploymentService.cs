@@ -2,7 +2,7 @@ using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Service;
-using Unity.Services.Cli.CloudCode.Service;
+using Unity.Services.Cli.CloudCode.Authoring;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Client;
@@ -11,24 +11,26 @@ namespace Unity.Services.Cli.CloudCode.Deploy;
 
 class CloudCodePrecompiledModuleDeploymentService : IDeploymentService
 {
-    readonly ICliDeploymentOutputHandler m_CliDeploymentOutputHandler;
-    readonly ICloudCodeModulesLoader m_CloudCodeModulesLoader;
-    readonly ICliEnvironmentProvider m_EnvironmentProvider;
-    readonly ICliCloudCodeClient m_CliCloudCodeClient;
-    readonly ICloudCodeDeploymentHandler m_CloudCodeDeploymentHandler;
+    internal ICliDeploymentOutputHandler CliDeploymentOutputHandler { get; }
+    internal ICloudCodeModulesLoader CloudCodeModulesLoader { get; }
+    internal ICliEnvironmentProvider EnvironmentProvider { get; }
+    internal ICSharpClient CliCloudCodeClient { get; }
+    internal ICloudCodeDeploymentHandler CloudCodeDeploymentHandler { get; }
 
     readonly string m_ServiceType;
     readonly string m_DeployPrecompiledFileExtension;
 
     public CloudCodePrecompiledModuleDeploymentService(
-        ICloudCodeServicesWrapper servicesWrapper
-    )
+        IDeploymentHandlerWithOutput deployHandlerWithOutput,
+        ICloudCodeModulesLoader cloudCodeModulesLoader,
+        ICliEnvironmentProvider environmentProvider,
+        ICSharpClient client)
     {
-        m_CliDeploymentOutputHandler = servicesWrapper.CliDeploymentOutputHandler;
-        m_CloudCodeModulesLoader = servicesWrapper.CloudCodeModulesLoader;
-        m_EnvironmentProvider = servicesWrapper.EnvironmentProvider;
-        m_CliCloudCodeClient = servicesWrapper.CliCloudCodeClient;
-        m_CloudCodeDeploymentHandler = servicesWrapper.CloudCodeDeploymentHandler;
+        CliDeploymentOutputHandler = deployHandlerWithOutput;
+        CloudCodeModulesLoader = cloudCodeModulesLoader;
+        EnvironmentProvider = environmentProvider;
+        CliCloudCodeClient = client;
+        CloudCodeDeploymentHandler = deployHandlerWithOutput;
         m_ServiceType = "Cloud Code";
         m_DeployPrecompiledFileExtension = ".ccm";
     }
@@ -45,17 +47,16 @@ class CloudCodePrecompiledModuleDeploymentService : IDeploymentService
         StatusContext? loadingContext,
         CancellationToken cancellationToken)
     {
-        m_CliCloudCodeClient.Initialize(environmentId, projectId, cancellationToken);
-        m_EnvironmentProvider.Current = environmentId;
+        CliCloudCodeClient.Initialize(environmentId, projectId, cancellationToken);
+        EnvironmentProvider.Current = environmentId;
 
         loadingContext?.Status($"Reading {m_ServiceType} Modules ...");
 
-        var modules = await m_CloudCodeModulesLoader.LoadPrecompiledModulesAsync(
+        var modules = await CloudCodeModulesLoader.LoadPrecompiledModulesAsync(
             filePaths,
             m_ServiceType,
             m_DeployPrecompiledFileExtension,
-            m_CliDeploymentOutputHandler.Contents);
-
+            CliDeploymentOutputHandler.Contents);
 
         loadingContext?.Status($"Deploying {m_ServiceType} Modules...");
 
@@ -65,7 +66,7 @@ class CloudCodePrecompiledModuleDeploymentService : IDeploymentService
 
         try
         {
-            result = await m_CloudCodeDeploymentHandler.DeployAsync(modules, reconcile, dryrun);
+            result = await CloudCodeDeploymentHandler.DeployAsync(modules, reconcile, dryrun);
         }
         catch (ApiException)
         {
@@ -81,7 +82,7 @@ class CloudCodePrecompiledModuleDeploymentService : IDeploymentService
 
         if (result == null || modules == null)
         {
-            return new DeploymentResult(m_CliDeploymentOutputHandler.Contents.ToList());
+            return new DeploymentResult(CliDeploymentOutputHandler.Contents.ToList());
         }
 
         return new DeploymentResult(
@@ -100,7 +101,7 @@ class CloudCodePrecompiledModuleDeploymentService : IDeploymentService
 
         foreach (var module in modules)
         {
-            contents.AddRange(m_CliDeploymentOutputHandler.Contents.Where(deployContent => module.Path == deployContent.Path));
+            contents.AddRange(CliDeploymentOutputHandler.Contents.Where(deployContent => module.Path == deployContent.Path));
         }
 
         return contents;

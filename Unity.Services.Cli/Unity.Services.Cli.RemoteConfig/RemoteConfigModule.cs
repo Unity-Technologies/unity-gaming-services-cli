@@ -68,7 +68,7 @@ public class RemoteConfigModule : ICommandModule
             s.GetRequiredService<IRemoteConfigService>(),
             s.GetRequiredService<IRemoteConfigScriptsLoader>()));
 
-        serviceCollection.AddTransient<IRemoteConfigFetchHandler, RemoteConfigFetchHandler>();
+        serviceCollection.AddTransient<IRemoteConfigFetchHandler, CliRemoteConfigFetchHandler>();
         serviceCollection.AddTransient<IDeploymentService, RemoteConfigDeploymentService>();
         serviceCollection.AddTransient<IFetchService, RemoteConfigFetchService>();
     }

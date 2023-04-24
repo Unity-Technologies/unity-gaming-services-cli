@@ -5,7 +5,7 @@
     <LangVersion>10</LangVersion>
     <AssemblyName>ugs</AssemblyName>
     <VersionPrefix>1.0.0</VersionPrefix>
-    <VersionSuffix>beta.3</VersionSuffix>
+    <VersionSuffix>beta.4</VersionSuffix>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>

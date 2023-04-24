@@ -56,18 +56,18 @@ class RemoteConfigClient : ICliRemoteConfigClient
         ConfigId = string.Empty;
     }
 
-    public Task UpdateAsync(IEnumerable<RemoteConfigEntry> remoteConfigEntries)
+    public Task UpdateAsync(IReadOnlyList<RemoteConfigEntry> remoteConfigEntries)
     {
         var kvps = remoteConfigEntries
-            .Select(re => new ConfigValue(re.key, GetValueFromString(re.type), re.value))
+            .Select(GetConfigValueFromEntry)
             .ToList();
         return m_Service.UpdateConfigAsync(ProjectId, ConfigId, k_ConfigType, kvps, CancellationToken);
     }
 
-    public async Task CreateAsync(IEnumerable<RemoteConfigEntry> remoteConfigEntries)
+    public async Task CreateAsync(IReadOnlyList<RemoteConfigEntry> remoteConfigEntries)
     {
         var kvps = remoteConfigEntries
-            .Select(re => new ConfigValue(re.key, GetValueFromString(re.type), re.value))
+            .Select(GetConfigValueFromEntry)
             .ToList();
 
         string id = await m_Service.CreateConfigAsync(ProjectId, EnvironmentId, k_ConfigType, kvps, CancellationToken);
@@ -89,9 +89,17 @@ class RemoteConfigClient : ICliRemoteConfigClient
             return res;
 
         ConfigId = config.Id!;
-        res = new GetConfigsResult(true, config.Value);
+        res = new GetConfigsResult(true, ToRemoteConfigEntry(config.Value!));
 
         return res;
+    }
+
+    static ConfigValue GetConfigValueFromEntry(RemoteConfigEntry entry)
+    {
+        return new ConfigValue(
+            entry.Key,
+            GetValueFromString(entry.GetEntryConfigType().ToString().ToLower()),
+            entry.Value);
     }
 
     internal static ValueType GetValueFromString(string type)
@@ -102,5 +110,42 @@ class RemoteConfigClient : ICliRemoteConfigClient
         }
 
         return result;
+    }
+
+    public static IReadOnlyList<RemoteConfigEntry> ToRemoteConfigEntry(IReadOnlyList<RemoteConfigEntryDTO> entryDTOs)
+    {
+        return entryDTOs.Select(dto => new RemoteConfigEntry()
+        {
+            File = null,
+            Key = dto.key,
+            Value = ToValue(dto.value, dto.type)
+        }).ToList();
+    }
+
+    static object ToValue(
+        object val,
+        string type)
+    {
+        switch (type)
+        {
+            case "string":
+            case "json":
+            case "bool":
+            case "long":
+                return val;
+            case "int":
+                return (int)(long)val;
+            case "float":
+                if (val is double)
+                    return val;
+                //the second "cast" is a type-conversion not a type-cast
+                if (val is float f)
+                    return (double)f;
+                if (val is int i)
+                    return (double)i;
+                return (double)(long)val;
+        }
+
+        throw new NotSupportedException($"Type '{type}' is not supported, value: '{val}', value type: '{val.GetType().Name}' !");
     }
 }

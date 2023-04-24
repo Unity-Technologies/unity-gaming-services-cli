@@ -1,21 +1,24 @@
 using System.CommandLine.Invocation;
 using System.Net;
+using System.Text;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Unity.Services.Cli.Common.Telemetry;
+using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
 using IdentityApiException = Unity.Services.Gateway.IdentityApiV1.Generated.Client.ApiException;
 using CloudCodeApiException = Unity.Services.Gateway.CloudCodeApiV1.Generated.Client.ApiException;
 using EconomyApiException = Unity.Services.Gateway.EconomyApiV2.Generated.Client.ApiException;
 using LobbyApiException = Unity.Services.MpsLobby.LobbyApiV1.Generated.Client.ApiException;
 using LeaderboardApiException = Unity.Services.Gateway.LeaderboardApiV1.Generated.Client.ApiException;
-using PlayerAdminApiException = Unity.Services.Gateway.PlayerAdminApiV2.Generated.Client.ApiException;
+using PlayerAdminApiException = Unity.Services.Gateway.PlayerAdminApiV3.Generated.Client.ApiException;
 using PlayerAuthException = Unity.Services.Gateway.PlayerAuthApiV1.Generated.Client.ApiException;
+using HostingApiException = Unity.Services.Gateway.GameServerHostingApiV1.Generated.Client.ApiException;
 
 namespace Unity.Services.Cli.Common.Exceptions;
 
 public class ExceptionHelper
 {
-    IDiagnostics Diagnostics { get; }
+    IAnalyticEvent Diagnostics { get; }
     readonly IAnsiConsole m_AnsiConsole;
     internal const string TroubleshootingHelp = "For help troubleshooting this error, visit this page in your browser:";
     internal readonly IReadOnlyDictionary<HttpStatusCode, string> HttpErrorTroubleshootingLinks = new Dictionary<HttpStatusCode, string>
@@ -23,7 +26,7 @@ public class ExceptionHelper
         [HttpStatusCode.Forbidden] = "https://services.docs.unity.com/guides/ugs-cli/latest/general/troubleshooting/unauthorized-error-403"
     };
 
-    public ExceptionHelper(IDiagnostics diagnostics, IAnsiConsole ansiConsole)
+    public ExceptionHelper(IAnalyticEvent diagnostics, IAnsiConsole ansiConsole)
     {
         Diagnostics = diagnostics;
         m_AnsiConsole = ansiConsole;
@@ -73,6 +76,9 @@ public class ExceptionHelper
             case AggregateException aggregateException:
                 HandleAggregateException(aggregateException, logger, context);
                 break;
+            case HostingApiException hostingException:
+                HandleApiException(exception, logger, context, hostingException.ErrorCode);
+                break;
             default:
                 ExecuteUnhandledExceptionFlow(exception, context);
                 break;
@@ -85,7 +91,18 @@ public class ExceptionHelper
         m_AnsiConsole.WriteException(exception);
         try
         {
-            Diagnostics.SendDiagnostic("cli_unhandled_exception", exception.ToString(), context);
+            Diagnostics.AddData(TagKeys.DiagnosticName, "cli_unhandled_exception");
+            Diagnostics.AddData(TagKeys.DiagnosticMessage, exception.ToString());
+
+            var command = new StringBuilder("ugs");
+            foreach (var arg in context.ParseResult.Tokens)
+            {
+                command.Append("_" + arg);
+            }
+            Diagnostics.AddData(TagKeys.Command, command.ToString());
+            Diagnostics.AddData(TagKeys.Timestamp, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+
+            Diagnostics.Send();
         }
         catch
         {

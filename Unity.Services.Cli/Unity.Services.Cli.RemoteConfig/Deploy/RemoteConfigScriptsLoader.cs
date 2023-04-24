@@ -21,7 +21,11 @@ internal class RemoteConfigScriptsLoader : IRemoteConfigScriptsLoader
             {
                 var fileText = await File.ReadAllTextAsync(filePath);
                 var content = JsonConvert.DeserializeObject<RemoteConfigFileContent>(fileText)!;
-                loaded.Add(new RemoteConfigFile(name, filePath, content));
+
+                var file = new RemoteConfigFile(name, filePath);
+                content.ToRemoteConfigEntries(file, new RemoteConfigParser(new ConfigTypeDeriver()));
+
+                loaded.Add(new RemoteConfigFile(name, filePath));
                 deployContents.Add(new DeployContent(name, k_ServiceType, filePath, 0, "Loaded"));
             }
             catch (JsonException ex)

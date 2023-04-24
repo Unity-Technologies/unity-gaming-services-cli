@@ -33,6 +33,8 @@ public class PlayerModuleTests
             Assert.That(k_PlayerModule.CreateCommand!.Handler, Is.Not.Null);
             Assert.That(k_PlayerModule.EnableCommand!.Handler, Is.Not.Null);
             Assert.That(k_PlayerModule.DisableCommand!.Handler, Is.Not.Null);
+            Assert.That(k_PlayerModule.GetCommand!.Handler, Is.Not.Null);
+            Assert.That(k_PlayerModule.ListCommand!.Handler, Is.Not.Null);
         });
     }
 
@@ -48,6 +50,11 @@ public class PlayerModuleTests
             Assert.That(k_PlayerModule.EnableCommand.Arguments, Does.Contain(PlayerInput.PlayerIdArgument));
             Assert.That(k_PlayerModule.DisableCommand!.Options, Does.Contain(CommonInput.CloudProjectIdOption));
             Assert.That(k_PlayerModule.DisableCommand.Arguments, Does.Contain(PlayerInput.PlayerIdArgument));
+            Assert.That(k_PlayerModule.GetCommand!.Options, Does.Contain(CommonInput.CloudProjectIdOption));
+            Assert.That(k_PlayerModule.GetCommand.Arguments, Does.Contain(PlayerInput.PlayerIdArgument));
+            Assert.That(k_PlayerModule.ListCommand!.Options, Does.Contain(CommonInput.CloudProjectIdOption));
+            Assert.That(k_PlayerModule.ListCommand.Options, Does.Contain(PlayerInput.PlayersLimitOption));
+            Assert.That(k_PlayerModule.ListCommand.Options, Does.Contain(PlayerInput.PlayersPageOption));
         });
     }
 

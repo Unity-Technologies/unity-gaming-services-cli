@@ -123,7 +123,7 @@ public class UgsCliTestCase
             {
                 var output = await m_LastProcess.StandardOutput.ReadToEndAsync();
                 throw new AssertionException(
-                    $"{k_CliName}{m_LastProcess.StartInfo.Arguments}{Environment.NewLine}{output}{Environment.NewLine}Expected Exit Code: {exitCode}{Environment.NewLine}But was: {m_LastProcess.ExitCode}");
+                    $"{k_CliName}{m_LastProcess.StartInfo.Arguments}{System.Environment.NewLine}{output}{System.Environment.NewLine}Expected Exit Code: {exitCode}{System.Environment.NewLine}But was: {m_LastProcess.ExitCode}");
             }
         });
         return this;
@@ -148,7 +148,7 @@ public class UgsCliTestCase
             }
             catch (AssertionException)
             {
-                TestContext.Write($"{k_CliName}{m_LastProcess.StartInfo.Arguments}{Environment.NewLine}{output}");
+                TestContext.Write($"{k_CliName}{m_LastProcess.StartInfo.Arguments}{System.Environment.NewLine}{output}");
                 throw;
             }
         });
@@ -191,7 +191,7 @@ public class UgsCliTestCase
             }
             catch (AssertionException)
             {
-                TestContext.Write($"{k_CliName}{m_LastProcess.StartInfo.Arguments}{Environment.NewLine}{error}");
+                TestContext.Write($"{k_CliName}{m_LastProcess.StartInfo.Arguments}{System.Environment.NewLine}{error}");
                 throw;
             }
         });

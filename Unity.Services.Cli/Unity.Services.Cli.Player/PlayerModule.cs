@@ -11,7 +11,7 @@ using Unity.Services.Cli.Player.Handlers;
 using Unity.Services.Cli.Player.Input;
 using Unity.Services.Cli.Player.Networking;
 using Unity.Services.Cli.Player.Service;
-using Unity.Services.Gateway.PlayerAdminApiV2.Generated.Api;
+using Unity.Services.Gateway.PlayerAdminApiV3.Generated.Api;
 using Unity.Services.Gateway.PlayerAuthApiV1.Generated.Api;
 
 namespace Unity.Services.Cli.Player;
@@ -24,10 +24,10 @@ public class PlayerModule : ICommandModule
     public Command? ModuleRootCommand { get; }
     internal Command? DeleteCommand { get; }
     internal Command? CreateCommand { get; }
-
     internal Command? EnableCommand { get; }
-
     internal Command? DisableCommand { get; }
+    internal Command? GetCommand { get; }
+    internal Command? ListCommand { get; }
 
     public PlayerModule()
     {
@@ -58,12 +58,29 @@ public class PlayerModule : ICommandModule
         };
         EnableCommand.SetHandler<PlayerInput, IPlayerService, ILogger, ILoadingIndicator, CancellationToken>(EnableHandler.EnableAsync);
 
+        GetCommand = new Command("get", "Get player account information in Unity Authentication Service")
+        {
+            CommonInput.CloudProjectIdOption,
+            PlayerInput.PlayerIdArgument
+        };
+        GetCommand.SetHandler<PlayerInput, IPlayerService, ILogger, ILoadingIndicator, CancellationToken>(GetHandler.GetAsync);
+
+        ListCommand = new Command("list", "Return a list of the project's players and their information in Unity Authentication Service")
+        {
+            CommonInput.CloudProjectIdOption,
+            PlayerInput.PlayersLimitOption,
+            PlayerInput.PlayersPageOption
+        };
+        ListCommand.SetHandler<PlayerInput, IPlayerService, ILogger, ILoadingIndicator, CancellationToken>(ListHandler.ListAsync);
+
         ModuleRootCommand = new("player", "Manage your player accounts in Unity Authentication Service")
         {
             CreateCommand,
             DeleteCommand,
             DisableCommand,
-            EnableCommand
+            EnableCommand,
+            GetCommand,
+            ListCommand
         };
     }
 
@@ -73,7 +90,7 @@ public class PlayerModule : ICommandModule
     public static void RegisterServices(HostBuilderContext hostBuilderContext, IServiceCollection serviceCollection)
     {
 
-        var playerAdminConfig = new Gateway.PlayerAdminApiV2.Generated.Client.Configuration()
+        var playerAdminConfig = new Gateway.PlayerAdminApiV3.Generated.Client.Configuration()
         {
             BasePath = EndpointHelper.GetCurrentEndpointFor<PlayerAdminEndpoints>()
         };

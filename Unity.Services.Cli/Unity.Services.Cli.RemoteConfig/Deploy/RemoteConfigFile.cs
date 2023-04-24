@@ -4,14 +4,15 @@ namespace Unity.Services.Cli.RemoteConfig.Deploy;
 
 class RemoteConfigFile : IRemoteConfigFile
 {
-    public RemoteConfigFile(string name, string path, RemoteConfigFileContent content)
+    public RemoteConfigFile(string name, string path)
     {
         Name = name;
         Path = path;
-        Content = content;
+        Entries = new List<RemoteConfigEntry>();
     }
 
     public string Name { get; }
     public string Path { get; set; }
-    public RemoteConfigFileContent Content { get; set; }
+
+    public List<RemoteConfigEntry> Entries { get; set; }
 }

@@ -2,12 +2,14 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Net;
+using System.Text;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 using Unity.Services.Cli.Common.Exceptions;
+using Unity.Services.Cli.Common.Telemetry;
 using Unity.Services.Cli.TestUtils;
 using IdentityApiException = Unity.Services.Gateway.IdentityApiV1.Generated.Client.ApiException;
 using CloudCodeApiException = Unity.Services.Gateway.CloudCodeApiV1.Generated.Client.ApiException;
@@ -152,12 +154,39 @@ class ExceptionHelperTests
 
         k_MockHelper.MockDiagnostics.Setup(
                 ex => ex
-                    .SendDiagnostic(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<InvocationContext>()))
+                    .Send())
             .Throws(new Exception());
 
         Assert.DoesNotThrow(
             () => m_ExceptionHelper!.HandleException(
                 exception,
                 k_MockHelper.MockLogger.Object, m_Context!));
+    }
+
+    [Test]
+    public void ExceptionHandler_ExecuteUnhandledExceptionFlowCorrectly()
+    {
+        var exception = new CookieException();
+        Assert.DoesNotThrow(
+            () => m_ExceptionHelper!.HandleException(
+                exception,
+                k_MockHelper.MockLogger.Object, m_Context!));
+
+        k_MockHelper.MockDiagnostics.Verify(ex =>
+            ex.AddData(TagKeys.DiagnosticName, "cli_unhandled_exception"), Times.Once);
+        k_MockHelper.MockDiagnostics.Verify(ex =>
+            ex.AddData(TagKeys.DiagnosticMessage, exception.ToString()), Times.Once);
+
+        var command = new StringBuilder("ugs");
+        foreach (var arg in m_Context!.ParseResult.Tokens)
+        {
+            command.Append("_" + arg);
+        }
+
+        k_MockHelper.MockDiagnostics.Verify(ex =>
+            ex.AddData(TagKeys.Command, command.ToString()), Times.Once);
+
+        k_MockHelper.MockDiagnostics.Verify(ex =>
+            ex.AddData(TagKeys.Timestamp, It.IsAny<long>()), Times.Once);
     }
 }

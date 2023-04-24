@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
+using Unity.Services.Cli.Common.Process;
 
 namespace Unity.Services.Cli.IntegrationTest;
 
@@ -38,26 +40,13 @@ public static class UgsCliBuilder
             pythonPath = await GetWindowsPythonPathAsync();
         }
 
-        var process = new Process
+        var process = new CliProcess();
+        var environmentVariables = GetCliBuildEnvironmentVariables();
+        await process.ExecuteAsync(pythonPath, RootDirectory, new[]
         {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = pythonPath,
-                WorkingDirectory = RootDirectory,
-                Arguments = $"{buildScript} --extra-defines USE_MOCKSERVER_ENDPOINTS"
-            },
-        };
-
-        foreach (var (key, value) in GetCliBuildEnvironmentVariables())
-        {
-            process.StartInfo.EnvironmentVariables[key] = value;
-        }
-
-        var (exitCode, _, error) = await process.GetProcessResultAsync();
-        if (exitCode != 0)
-        {
-            throw new Exception($"{process.StartInfo.FileName} {process.StartInfo.Arguments}: {error}");
-        }
+            buildScript,
+            "--extra-defines USE_MOCKSERVER_ENDPOINTS"
+        }, CancellationToken.None, environmentVariables);
     }
 
     static async Task<string> GetWindowsPythonPathAsync()
@@ -80,7 +69,7 @@ public static class UgsCliBuilder
         return output.Split("\r\n").First();
     }
 
-    static IDictionary<string, string> GetCliBuildEnvironmentVariables()
+    static IReadOnlyDictionary<string, string> GetCliBuildEnvironmentVariables()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {

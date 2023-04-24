@@ -8,7 +8,7 @@ namespace Unity.Services.Cli.Authoring.Service;
 public interface ICliDeploymentOutputHandler
 {
     /// <summary>
-    /// Collection of contents to be delopyed
+    /// Collection of contents to be deployed
     /// </summary>
     ICollection<DeployContent> Contents { get; }
 }

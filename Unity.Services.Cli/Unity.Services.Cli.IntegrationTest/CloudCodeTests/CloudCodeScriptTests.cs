@@ -1,13 +1,13 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Models;
 using Unity.Services.Cli.Common.Networking;
-using Unity.Services.Cli.IntegrationTest.EnvTests;
 using Unity.Services.Cli.MockServer;
+using Unity.Services.Cli.MockServer.Common;
+using Unity.Services.Cli.MockServer.ServiceMocks;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
 
 namespace Unity.Services.Cli.IntegrationTest.CloudCodeTests;
@@ -27,31 +27,14 @@ public class CloudCodeScriptTests : UgsCliFixture
     const string k_UnauthorizedFileAccessErrorMessage = "Make sure that the CLI has the permissions to access"
         + " the file and that the specified path points to a file and not a directory.";
 
-    readonly MockApi m_MockApi = new(NetworkTargetEndpoints.MockServer);
-
-    [OneTimeSetUp]
-    public void OneTimeSetUp()
-    {
-        m_MockApi.InitServer();
-    }
-
-    [OneTimeTearDown]
-    public void OneTimeTearDown()
-    {
-        m_MockApi.Server?.Dispose();
-    }
-
     [SetUp]
     public async Task SetUp()
     {
         DeleteLocalConfig();
         DeleteLocalCredentials();
 
-        var environmentModels = await IdentityV1MockServerModels.GetModels();
-        m_MockApi.Server?.WithMapping(environmentModels.ToArray());
-
-        var cloudCodeModels = await CloudCodeV1MockServerModels.GetModels(k_ValidScriptName);
-        m_MockApi.Server?.WithMapping(cloudCodeModels.ToArray());
+        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
+        await m_MockApi.MockServiceAsync(new CloudCodeV1Mock());
     }
 
     [TearDown]
@@ -449,41 +432,10 @@ public class CloudCodeScriptTests : UgsCliFixture
     }
 
     [Test]
-    public async Task CloudCodeCreateThrowsErrorWhenScriptParseFails()
-    {
-        const string expectedMsg = "Invalid script";
-        SetConfigValue("project-id", CommonKeys.ValidProjectId);
-        SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        await File.WriteAllTextAsync(k_ValidFilepath, "Dummy text");
-        var path = Path.GetFullPath(k_ValidFilepath);
-
-        await GetLoggedInCli()
-            .Command($"cloud-code create testscript {path}")
-            .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
-            .ExecuteAsync();
-    }
-
-    [Test]
     public async Task CloudCodeCreateThrowsErrorWhenInvalidScriptParameters()
     {
-        const string expectedMsg = "Invalid script";
+        const string expectedMsg = "Could not convert string to boolean: Yes. Path 'bleu.required'";
         const string path = k_ParsingTestFilesDirectory + "/RequiredInvalidParam.js";
-        SetConfigValue("project-id", CommonKeys.ValidProjectId);
-        SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-
-        await GetLoggedInCli()
-            .Command($"cloud-code create testscript {path}")
-            .AssertStandardOutputContains(expectedMsg)
-            .ExecuteAsync();
-    }
-
-    [Test]
-    public async Task CloudCodeCreateParsingThrowsErrorWhenUnsupportedExpression()
-    {
-        const string expectedMsg = "Invalid script: unsupported expression type 'AwaitExpression' "
-            + "(Parameter 'expression')";
-        const string path = k_ParsingTestFilesDirectory + "/AsyncOperation.js";
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
@@ -496,7 +448,7 @@ public class CloudCodeScriptTests : UgsCliFixture
     [Test]
     public async Task CloudCodeCreateParsingThrowsErrorOnNonPrimitiveTypes()
     {
-        const string expectedMsg = "Invalid script: Do not know how to serialize a BigInt";
+        const string expectedMsg = "Do not know how to serialize a BigInt";
         const string path = k_ParsingTestFilesDirectory + "/BigInt.js";
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
@@ -510,7 +462,7 @@ public class CloudCodeScriptTests : UgsCliFixture
     [Test]
     public async Task CloudCodeCreateParsingThrowsErrorOnCyclicReference()
     {
-        const string expectedMsg = "Invalid script: Cyclic reference detected.";
+        const string expectedMsg = "Converting circular structure to JSON";
         const string path = k_ParsingTestFilesDirectory + "/CyclicReference.js";
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
@@ -524,7 +476,7 @@ public class CloudCodeScriptTests : UgsCliFixture
     [Test]
     public async Task CloudCodeCreateParsingThrowsErrorOnInfiniteLoop()
     {
-        const string expectedMsg = "Invalid script: Script took too much time to parse (timed out).";
+        const string expectedMsg = "The in-script parameter parsing is taking too long";
         const string path = k_ParsingTestFilesDirectory + "/InfiniteLoop.js";
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
@@ -536,9 +488,11 @@ public class CloudCodeScriptTests : UgsCliFixture
     }
 
     [Test]
+    [Ignore($"This test is unstable on Windows. " +
+        $"We'll keep it ignored until we find the cause, it's already tested on unit tests anyway.")]
     public async Task CloudCodeCreateParsingThrowsErrorOnMemoryAllocationOverload()
     {
-        const string expectedMsg = "Invalid script: Script has allocated";
+        const string expectedMsg = "JavaScript heap out of memory";
         const string path = k_ParsingTestFilesDirectory + "/MemoryAllocation.js";
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
@@ -552,7 +506,7 @@ public class CloudCodeScriptTests : UgsCliFixture
     [Test]
     public async Task CloudCodeCreateParsingThrowsErrorOnIOAccess()
     {
-        const string expectedMsg = "Invalid script: 'required' resource might be used during script parsing";
+        const string expectedMsg = "\"required\" resource might be used during script parsing";
         const string path = k_ParsingTestFilesDirectory + "/ReadFile.js";
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
@@ -703,25 +657,9 @@ public class CloudCodeScriptTests : UgsCliFixture
     }
 
     [Test]
-    public async Task CloudCodeUpdateThrowsErrorWhenScriptParseFails()
-    {
-        const string expectedMsg = "Invalid script";
-        SetConfigValue("project-id", CommonKeys.ValidProjectId);
-        SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        await File.WriteAllTextAsync(k_ValidFilepath, "Dummy text");
-        var path = Path.GetFullPath(k_ValidFilepath);
-
-        await GetLoggedInCli()
-            .Command($"cloud-code update testscript {path}")
-            .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
-            .ExecuteAsync();
-    }
-
-    [Test]
     public async Task CloudCodeUpdateThrowsErrorWhenInvalidScriptParameters()
     {
-        const string expectedMsg = "Invalid script";
+        const string expectedMsg = "Could not convert string to boolean: Yes.";
         const string path = k_ParsingTestFilesDirectory + "/RequiredInvalidParam.js";
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);

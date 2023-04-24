@@ -3,6 +3,7 @@ using Moq;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.RemoteConfig.Deploy;
+using Unity.Services.RemoteConfig.Editor.Authoring.Core.ErrorHandling;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Formatting;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Json;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
@@ -75,13 +76,29 @@ public class CliRemoteConfigDeploymentHandlerTests
     }
 
     [Test]
-    public async Task Deploy_DoesNotThrow()
+    public Task Deploy_DoesNotThrow()
     {
+        m_RemoteConfigValidator.Setup(
+            validator => validator.FilterValidEntries(
+                It.IsAny<IReadOnlyList<IRemoteConfigFile>>(),
+                It.IsAny<IReadOnlyList<RemoteConfigEntry>>(),
+                It.IsAny<ICollection<RemoteConfigDeploymentException>>()))
+            .Returns(Array.Empty<RemoteConfigEntry>());
+
+        m_ConfigMerger.Setup(
+                merger => merger.MergeEntriesToDeploy(
+                    It.IsAny<IReadOnlyList<RemoteConfigEntry>>(),
+                    It.IsAny<IReadOnlyList<RemoteConfigEntry>>(),
+                    It.IsAny<IReadOnlyList<RemoteConfigEntry>>(),
+                    It.IsAny<IReadOnlyList<RemoteConfigEntry>>()))
+            .Returns(Array.Empty<RemoteConfigEntry>());
+
         Assert.DoesNotThrowAsync(async () =>
         {
             await m_DeploymentHandlerForTest!.DeployAsync(
-                Array.Empty<IRemoteConfigFile>(), false);
+                Array.Empty<IRemoteConfigFile>());
         });
+        return Task.CompletedTask;
     }
 
     [Test]
@@ -101,7 +118,7 @@ public class CliRemoteConfigDeploymentHandlerTests
         var expectedStatus = "test-status";
         var expectedDetail = "test-detail";
         var expectedProgress = 0.45f;
-        var file = new RemoteConfigFile(fileName, filePath, new RemoteConfigFileContent());
+        var file = new RemoteConfigFile(fileName, filePath);
         m_DeploymentHandlerForTest.UpdateStatus(
             file,
             expectedStatus,

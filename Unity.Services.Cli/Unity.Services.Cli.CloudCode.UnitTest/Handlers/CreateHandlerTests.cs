@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -7,6 +8,7 @@ using NUnit.Framework;
 using Spectre.Console;
 using Unity.Services.Cli.CloudCode.Handlers;
 using Unity.Services.Cli.CloudCode.Input;
+using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.Cli.CloudCode.UnitTest.Utils;
 using Unity.Services.Cli.Common.Console;
@@ -21,10 +23,11 @@ class CreateHandlerTests
 {
     static readonly string k_ValidScriptType = ScriptType.API.ToString();
     static readonly string k_ValidScriptLanguage = Language.JS.ToString();
-
+    static readonly List<ScriptParameter> k_Parameters = new();
     readonly Mock<IUnityEnvironment> m_MockUnityEnvironment = new();
     readonly Mock<ICloudCodeService> m_MockCloudCode = new();
     readonly Mock<ICloudCodeInputParser> m_MockInputParseService = new();
+    readonly Mock<ICloudCodeScriptParser> m_MockCloudCodeScriptParser = new();
     readonly Mock<ILogger> m_MockLogger = new();
 
     [SetUp]
@@ -34,6 +37,7 @@ class CreateHandlerTests
         m_MockCloudCode.Reset();
         m_MockInputParseService.Reset();
         m_MockLogger.Reset();
+        m_MockCloudCodeScriptParser.Reset();
     }
 
     [Test]
@@ -67,7 +71,10 @@ class CreateHandlerTests
             .Returns(Language.JS);
         m_MockInputParseService.Setup(x => x.LoadScriptCodeAsync(input, CancellationToken.None))
             .ReturnsAsync(TestValues.ValidCode);
-
+        m_MockInputParseService.SetupGet(x => x.CloudCodeScriptParser)
+            .Returns(m_MockCloudCodeScriptParser.Object);
+        m_MockCloudCodeScriptParser.Setup(x => x.ParseScriptParametersAsync(TestValues.ValidCode, CancellationToken.None))
+            .ReturnsAsync(k_Parameters);
         await CreateHandler.CreateAsync(
             input,
             m_MockUnityEnvironment.Object,
@@ -89,6 +96,7 @@ class CreateHandlerTests
                 ScriptType.API,
                 Language.JS,
                 TestValues.ValidCode,
+                k_Parameters,
                 CancellationToken.None),
             Times.Once);
         TestsHelper.VerifyLoggerWasCalled(m_MockLogger, LogLevel.Information, expectedTimes: Times.Once);

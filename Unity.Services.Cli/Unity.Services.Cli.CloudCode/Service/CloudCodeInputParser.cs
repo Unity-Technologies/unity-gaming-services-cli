@@ -1,4 +1,5 @@
 using Unity.Services.Cli.CloudCode.Input;
+using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
 using Language = Unity.Services.Gateway.CloudCodeApiV1.Generated.Model.Language;
@@ -8,6 +9,13 @@ namespace Unity.Services.Cli.CloudCode.Service;
 
 class CloudCodeInputParser : ICloudCodeInputParser
 {
+    public ICloudCodeScriptParser CloudCodeScriptParser { get; }
+
+    public CloudCodeInputParser(ICloudCodeScriptParser cloudCodeScriptParser)
+    {
+        CloudCodeScriptParser = cloudCodeScriptParser;
+    }
+
     public static readonly Dictionary<CloudCodeAuthoringLanguage, string> Extensions = new()
     {
         [CloudCodeAuthoringLanguage.JS] = "js"

@@ -3,6 +3,16 @@ For installing the UGS CLI and getting started, see [Getting Started](https://se
 
 The source code project is for reference only. You may not be able to build it due to lack of access to internal dependencies.
 
+## Installation
+
+### With npm
+Install the CLI with npm by calling `npm install -g ugs` in your command line.
+
+### With GitHub
+Download the executable directly from the [GitHub releases](https://github.com/Unity-Technologies/unity-gaming-services-cli/releases).
+
+On macos and linux, use `chmod +x <path_to_executable>` to mark the file as executable.
+
 ## Documentation
 To see the full list of services and commands available in the UGS CLI, visit the documentation on https://services.docs.unity.com/guides/ugs-cli/latest/general/overview
 

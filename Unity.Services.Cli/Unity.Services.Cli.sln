@@ -30,7 +30,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Lobby.Un
 EndProject
 EndProject
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.MockServer", "Unity.Services.Cli.MockServer\Unity.Services.Cli.MockServer.csproj", "{92DBFB5E-BAD9-4852-9162-DA6B94CE6BF3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Integration.MockServer", "Unity.Services.Cli.Integration.MockServer\Unity.Services.Cli.Integration.MockServer.csproj", "{92DBFB5E-BAD9-4852-9162-DA6B94CE6BF3}"
 EndProject
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Leaderboards", "Unity.Services.Cli.Leaderboards\Unity.Services.Cli.Leaderboards.csproj", "{4C0810A8-3439-4DCD-8325-0E5F4D47DCC2}"
@@ -59,6 +59,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 		..\README.md = ..\README.md
 		..\CHANGELOG.md = ..\CHANGELOG.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Integration.MockServerApp", "Unity.Services.Cli.Integration.MockServerApp\Unity.Services.Cli.Integration.MockServerApp.csproj", "{27BBE31C-43CE-45AA-9DE4-BF3D097DC1A3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -160,5 +162,9 @@ Global
 		{0ED3031A-86AB-4834-8641-8E948B02BB34}.Release|Any CPU.Build.0 = Release|Any CPU
 		{26EE370C-FB17-41C2-8AE8-215515900CC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{26EE370C-FB17-41C2-8AE8-215515900CC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27BBE31C-43CE-45AA-9DE4-BF3D097DC1A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27BBE31C-43CE-45AA-9DE4-BF3D097DC1A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27BBE31C-43CE-45AA-9DE4-BF3D097DC1A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27BBE31C-43CE-45AA-9DE4-BF3D097DC1A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

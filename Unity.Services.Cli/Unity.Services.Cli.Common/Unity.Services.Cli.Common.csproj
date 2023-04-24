@@ -4,6 +4,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Configurations>Debug;Release;Integration</Configurations>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.FeatureManagement" Version="2.5.1" />
@@ -16,10 +18,11 @@
     <PackageReference Include="Unity.Services.Gateway.EconomyApiV2.Generated" Version="2.0.2" />
     <PackageReference Include="Unity.Services.Gateway.IdentityApiV1.Generated" Version="1.0.6" />
     <PackageReference Include="Unity.Services.Gateway.LeaderboardApiV1.Generated" Version="1.0.5-beta" />
-    <PackageReference Include="Unity.Services.Gateway.PlayerAdminApiV2.Generated" Version="1.0.1" />
+    <PackageReference Include="Unity.Services.Gateway.PlayerAdminApiV3.Generated" Version="1.0.1" />
     <PackageReference Include="Unity.Services.Gateway.PlayerAuthApiV1.Generated" Version="1.0.1" />
     <PackageReference Include="Unity.Services.TelemetryApi.Generated" Version="1.0.1" />
     <PackageReference Include="Unity.Services.MpsLobby.LobbyApiV1.Generated" Version="0.11.1" />
+    <PackageReference Include="Unity.Services.Gateway.GameServerHostingApiV1.Generated" Version="0.1.3" />
     <PackageReference Include="UnityAnalytic.Modules.Sender" Version="0.1.0" />
   </ItemGroup>
   <ItemGroup>
@@ -32,5 +35,8 @@
   </ItemGroup>
   <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Integration' ">
+    <DefineConstants>TRACE;USE_MOCKSERVER_ENDPOINTS</DefineConstants>
   </PropertyGroup>
 </Project>

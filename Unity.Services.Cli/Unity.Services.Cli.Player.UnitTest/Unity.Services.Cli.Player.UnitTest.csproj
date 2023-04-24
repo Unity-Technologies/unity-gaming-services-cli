@@ -15,7 +15,7 @@
     <PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
     <PackageReference Include="NUnit.Analyzers" Version="3.5.0" />
     <PackageReference Include="coverlet.collector" Version="3.2.0" />
-    <PackageReference Include="Unity.Services.Gateway.PlayerAdminApiV2.Generated" Version="1.0.1" />
+    <PackageReference Include="Unity.Services.Gateway.PlayerAdminApiV3.Generated" Version="1.0.1" />
     <PackageReference Include="Unity.Services.Gateway.PlayerAuthApiV1.Generated" Version="1.0.1" />
     <ProjectReference Include="..\Unity.Services.Cli.Player\Unity.Services.Cli.Player.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.TestUtils\Unity.Services.Cli.TestUtils.csproj" />

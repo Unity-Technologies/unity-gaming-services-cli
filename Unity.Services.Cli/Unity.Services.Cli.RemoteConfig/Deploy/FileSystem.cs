@@ -18,4 +18,10 @@ class FileSystem : IFileSystem
     {
         return File.WriteAllTextAsync(path, contents, token);
     }
+
+    public Task Delete(string path)
+    {
+        File.Delete(path);
+        return Task.CompletedTask;
+    }
 }

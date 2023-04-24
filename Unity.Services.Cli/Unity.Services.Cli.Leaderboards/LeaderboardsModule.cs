@@ -64,7 +64,7 @@ public class LeaderboardsModule : ICommandModule
             ILogger,
             ILoadingIndicator,
             CancellationToken>(
-            GetLeaderboardConfigHandler.GetLeaderboardConfigAsync);
+            GetLeaderboardHandler.GetLeaderboardConfigAsync);
 
         CreateLeaderboardCommand = new Command("create", "Create a new leaderboard.")
         {

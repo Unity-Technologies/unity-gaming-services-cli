@@ -7,10 +7,10 @@ using Unity.Services.Cli.Common.Models;
 using Unity.Services.Cli.Common.Validator;
 using Unity.Services.Cli.ServiceAccountAuthentication;
 using Unity.Services.Cli.ServiceAccountAuthentication.Token;
-using Unity.Services.Gateway.PlayerAdminApiV2.Generated.Api;
+using Unity.Services.Gateway.PlayerAdminApiV3.Generated.Api;
 using Unity.Services.Gateway.PlayerAuthApiV1.Generated.Api;
 using Unity.Services.Gateway.PlayerAuthApiV1.Generated.Model;
-using PlayerAdminApiException = Unity.Services.Gateway.PlayerAdminApiV2.Generated.Client.ApiException;
+using PlayerAdminApiException = Unity.Services.Gateway.PlayerAdminApiV3.Generated.Client.ApiException;
 
 namespace Unity.Services.Cli.Player.UnitTest.Service;
 
@@ -43,7 +43,7 @@ public class PlayerServiceTests
             .Returns(Task.FromResult(k_TestAccessToken));
 
         m_PlayerAdminApiAsync.Setup(a => a.Configuration)
-            .Returns(new Gateway.PlayerAdminApiV2.Generated.Client.Configuration());
+            .Returns(new Gateway.PlayerAdminApiV3.Generated.Client.Configuration());
 
         m_PlayerAuthApiAsync.Setup(a => a.Configuration)
             .Returns(new Gateway.PlayerAuthApiV1.Generated.Client.Configuration());
@@ -86,7 +86,7 @@ public class PlayerServiceTests
             () => m_PlayerService!.DeleteAsync(k_InvalidProjectId, k_ValidplayerId , CancellationToken.None));
 
         m_PlayerAdminApiAsync.Verify(
-            a => a.DeleteUserAsync(
+            a => a.DeletePlayerAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<int>(),
@@ -97,7 +97,7 @@ public class PlayerServiceTests
     [Test]
     public void DeletePlayer_NotFound()
     {
-        m_PlayerAdminApiAsync.Setup(a => a.DeleteUserAsync(k_ValidProjectId, k_InvalidPlayerId, It.IsAny<int>(), CancellationToken.None))
+        m_PlayerAdminApiAsync.Setup(a => a.DeletePlayerAsync(k_InvalidPlayerId, k_ValidProjectId, It.IsAny<int>(), CancellationToken.None))
             .Throws(new PlayerAdminApiException());
 
         Assert.ThrowsAsync<PlayerAdminApiException>(
@@ -115,7 +115,7 @@ public class PlayerServiceTests
         await m_PlayerService!.DeleteAsync(k_ValidProjectId, k_ValidplayerId, CancellationToken.None);
 
         m_PlayerAdminApiAsync.Verify(
-            a => a.DeleteUserAsync(
+            a => a.DeletePlayerAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<int>(),
@@ -172,7 +172,7 @@ public class PlayerServiceTests
             () => m_PlayerService!.EnableAsync(k_InvalidProjectId, k_ValidplayerId , CancellationToken.None));
 
         m_PlayerAdminApiAsync.Verify(
-            a => a.UserEnableAsync(
+            a => a.PlayerEnableAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<int>(),
@@ -183,7 +183,7 @@ public class PlayerServiceTests
     [Test]
     public void EnablePlayer_NotFound()
     {
-        m_PlayerAdminApiAsync.Setup(a => a.UserEnableAsync(k_InvalidPlayerId, k_ValidProjectId, It.IsAny<int>(), CancellationToken.None))
+        m_PlayerAdminApiAsync.Setup(a => a.PlayerEnableAsync(k_InvalidPlayerId, k_ValidProjectId, It.IsAny<int>(), CancellationToken.None))
             .Throws(new PlayerAdminApiException());
 
         Assert.ThrowsAsync<PlayerAdminApiException>(
@@ -201,7 +201,7 @@ public class PlayerServiceTests
         await m_PlayerService!.EnableAsync(k_ValidProjectId, k_ValidplayerId, CancellationToken.None);
 
         m_PlayerAdminApiAsync.Verify(
-            a => a.UserEnableAsync(
+            a => a.PlayerEnableAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<int>(),
@@ -219,7 +219,7 @@ public class PlayerServiceTests
             () => m_PlayerService!.DisableAsync(k_InvalidProjectId, k_ValidplayerId , CancellationToken.None));
 
         m_PlayerAdminApiAsync.Verify(
-            a => a.UserDisableAsync(
+            a => a.PlayerDisableAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<int>(),
@@ -230,7 +230,7 @@ public class PlayerServiceTests
     [Test]
     public void DisablePlayer_NotFound()
     {
-        m_PlayerAdminApiAsync.Setup(a => a.UserDisableAsync(k_InvalidPlayerId, k_ValidProjectId, It.IsAny<int>(), CancellationToken.None))
+        m_PlayerAdminApiAsync.Setup(a => a.PlayerDisableAsync(k_InvalidPlayerId, k_ValidProjectId, It.IsAny<int>(), CancellationToken.None))
             .Throws(new PlayerAdminApiException());
 
         Assert.ThrowsAsync<PlayerAdminApiException>(
@@ -248,9 +248,95 @@ public class PlayerServiceTests
         await m_PlayerService!.DisableAsync(k_ValidProjectId, k_ValidplayerId, CancellationToken.None);
 
         m_PlayerAdminApiAsync.Verify(
-            a => a.UserDisableAsync(
+            a => a.PlayerDisableAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Test]
+    public void GetPlayer_NoProjectId()
+    {
+        m_ValidatorObject.Setup(v => v.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, k_InvalidProjectId))
+            .Throws(new ConfigValidationException(Keys.ConfigKeys.ProjectId, k_InvalidProjectId, It.IsAny<string>()));
+
+        Assert.ThrowsAsync<ConfigValidationException>(
+            () => m_PlayerService!.GetAsync(k_InvalidProjectId, k_ValidplayerId , CancellationToken.None));
+
+        m_PlayerAdminApiAsync.Verify(
+            a => a.GetPlayerAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Test]
+    public void GetPlayer_NotFound()
+    {
+        m_PlayerAdminApiAsync.Setup(a => a.GetPlayerAsync(k_InvalidPlayerId, k_ValidProjectId, It.IsAny<int>(), CancellationToken.None))
+            .ThrowsAsync(new PlayerAdminApiException());
+
+        Assert.ThrowsAsync<PlayerAdminApiException>(
+            () => m_PlayerService!.GetAsync(k_ValidProjectId, k_InvalidPlayerId , CancellationToken.None));
+    }
+
+    [Test]
+    public async Task GetPlayer_Returns()
+    {
+        string error;
+
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out error))
+            .Returns(true);
+
+        await m_PlayerService!.GetAsync(k_ValidProjectId, k_ValidplayerId, CancellationToken.None);
+
+        m_PlayerAdminApiAsync.Verify(
+            a => a.GetPlayerAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Test]
+    public void ListPlayer_NoProjectId()
+    {
+        m_ValidatorObject.Setup(v => v.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, k_InvalidProjectId))
+            .Throws(new ConfigValidationException(Keys.ConfigKeys.ProjectId, k_InvalidProjectId, It.IsAny<string>()));
+
+        Assert.ThrowsAsync<ConfigValidationException>(
+            () => m_PlayerService!.ListAsync(k_InvalidProjectId, cancellationToken: CancellationToken.None));
+
+        m_PlayerAdminApiAsync.Verify(
+            a => a.ListPlayersAsync(
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Test]
+    public async Task ListPlayer_Returns()
+    {
+        string error;
+
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out error))
+            .Returns(true);
+
+        await m_PlayerService!.ListAsync(k_ValidProjectId, cancellationToken: CancellationToken.None);
+
+        m_PlayerAdminApiAsync.Verify(
+            a => a.ListPlayersAsync(
+                It.IsAny<string>(),
+                null,
+                null,
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);

@@ -1,14 +1,12 @@
-using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
-using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.Common.Validator;
 using Unity.Services.Cli.MockServer;
-using Unity.Services.Gateway.IdentityApiV1.Generated.Model;
+using Unity.Services.Cli.MockServer.Common;
+using Unity.Services.Cli.MockServer.ServiceMocks;
 
 namespace Unity.Services.Cli.IntegrationTest.EnvTests;
 
@@ -19,28 +17,13 @@ public class EnvTests : UgsCliFixture
     const string k_NotLoggedInMessage
         = "You are not logged into any service account. Please login using the 'ugs login' command.";
 
-    readonly MockApi m_MockApi = new(NetworkTargetEndpoints.MockServer);
-
-    [OneTimeSetUp]
-    public void OneTimeSetUp()
-    {
-        m_MockApi.InitServer();
-    }
-
-    [OneTimeTearDown]
-    public void OneTimeTearDown()
-    {
-        m_MockApi.Server?.Dispose();
-    }
-
     [SetUp]
     public async Task SetUp()
     {
         DeleteLocalConfig();
         DeleteLocalCredentials();
 
-        var environmentModels = await IdentityV1MockServerModels.GetModels();
-        m_MockApi.Server?.WithMapping(environmentModels.ToArray());
+        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
     }
 
     // env list tests

@@ -10,6 +10,7 @@ using Unity.Services.Cli.RemoteConfig.Service;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Deployment;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.ErrorHandling;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
+using Unity.Services.RemoteConfig.Editor.Authoring.Core.Results;
 
 namespace Unity.Services.Cli.RemoteConfig.UnitTest.Deploy;
 
@@ -49,8 +50,8 @@ public class RemoteConfigDeploymentServiceTests
 
     static readonly IReadOnlyCollection<DeployContent> k_FailedContents = new[]
     {
-        new DeployContent("invalid1.rc", "Remote Config", "path", 0, "Failed to Load"),
-        new DeployContent("invalid2.rc", "Remote Config", "path", 0, "Failed to Load"),
+        new DeployContent("invalid1.rc", "Remote Config", "path", 0, "Failed to Load", detail: "invalid1"),
+        new DeployContent("invalid2.rc", "Remote Config", "path", 0, "Failed to Load", detail: "invalid2"),
     };
 
     List<DeployContent> m_Contents = k_DeployedContents.Concat(k_FailedContents).ToList();
@@ -83,6 +84,13 @@ public class RemoteConfigDeploymentServiceTests
             .Returns(Task.FromResult(new LoadResult(new List<IRemoteConfigFile>(), new List<DeployContent>())));
         m_RemoteConfigDeploymentService = new (k_MockRemoteConfigServicesWrapper.Object);
 
+        m_MockRemoteConfigDeploymentHandler.Setup(ex => ex
+                .DeployAsync(It.IsAny<IReadOnlyList<IRemoteConfigFile>>(), It.IsAny<bool>(), It.IsAny<bool>()))
+            .Returns(Task.FromResult(new DeployResult(
+                Array.Empty<RemoteConfigEntry>(),
+                Array.Empty<RemoteConfigEntry>(),
+                Array.Empty<RemoteConfigEntry>()
+            )));
     }
 
     [Test]
@@ -179,6 +187,7 @@ public class RemoteConfigDeploymentServiceTests
     [Test]
     public async Task DeployAsync_CallsLogDeploymentResultCorrectly()
     {
+        m_MockRemoteConfigDeploymentHandler.Reset();
         var result = await m_RemoteConfigDeploymentService.Deploy(
             m_DefaultInput,
             k_ValidFilePaths,
@@ -189,6 +198,63 @@ public class RemoteConfigDeploymentServiceTests
 
         Assert.That(result.Deployed, Is.EqualTo(k_DeployedContents));
         Assert.That(result.Failed, Is.EqualTo(k_FailedContents));
+    }
 
+    [Test]
+    public async Task DeployAsync_RemoteEntriesHaveCorrectFilePath()
+    {
+        m_MockRemoteConfigDeploymentHandler.Setup(ex => ex
+                .DeployAsync(It.IsAny<IReadOnlyList<IRemoteConfigFile>>(), It.IsAny<bool>(), It.IsAny<bool>()))
+            .Returns(Task.FromResult(new DeployResult(
+                Array.Empty<RemoteConfigEntry>(),
+                Array.Empty<RemoteConfigEntry>(),
+                new []
+                {
+                    new RemoteConfigEntry()
+                    {
+                        File = null,
+                        Key = "Remote"
+                    }
+                }
+            )));
+
+        var result = await m_RemoteConfigDeploymentService.Deploy(
+            m_DefaultInput,
+            k_ValidFilePaths,
+            k_ValidProjectId,
+            k_ValidEnvironmentId,
+            null!,
+            CancellationToken.None);
+
+        Assert.That(result.Deleted.Any(deployContent=> deployContent.Path == "Remote"));
+    }
+
+    [Test]
+    public async Task DeployAsync_EmptyRemoteFilesAreSkipped()
+    {
+        m_MockRemoteConfigDeploymentHandler.Setup(ex => ex
+                .DeployAsync(It.IsAny<IReadOnlyList<IRemoteConfigFile>>(), It.IsAny<bool>(), It.IsAny<bool>()))
+            .Returns(Task.FromResult(new DeployResult(
+                Array.Empty<RemoteConfigEntry>(),
+                Array.Empty<RemoteConfigEntry>(),
+                Array.Empty<RemoteConfigEntry>(),
+                new[]
+                {
+                    new RemoteConfigFile("", "")
+                    {
+                        Entries = null!
+                    }
+                }
+            )));
+
+        var result = await m_RemoteConfigDeploymentService.Deploy(
+            m_DefaultInput,
+            k_ValidFilePaths,
+            k_ValidProjectId,
+            k_ValidEnvironmentId,
+            null!,
+            CancellationToken.None);
+
+        Assert.That(result.Deployed.Count, Is.EqualTo(0));
     }
 }

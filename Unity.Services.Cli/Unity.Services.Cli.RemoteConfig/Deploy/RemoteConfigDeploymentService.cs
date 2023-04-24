@@ -63,7 +63,7 @@ internal class RemoteConfigDeploymentService : IDeploymentService
 
         if (deploymentResult == null || configFiles == null)
         {
-            return new DeploymentResult(m_DeploymentOutputHandler.Contents.ToList());
+            return new DeploymentResult(m_DeploymentOutputHandler.Contents.GetUniqueDescriptions().ToList());
         }
 
         var failed = ToDeployContents(deploymentResult.Failed).Concat(loadResult.Failed).ToList();
@@ -77,37 +77,34 @@ internal class RemoteConfigDeploymentService : IDeploymentService
     }
 
     IReadOnlyCollection<DeployContent> ToDeployContents(
-        IEnumerable<(string, string)> files,
+        IReadOnlyCollection<RemoteConfigEntry> entries,
         float progress = 0f,
         string status = "",
         string detail = "")
     {
-        var contents = new List<DeployContent>();
-
-        foreach (var file in files)
-        {
-            contents.Add(new DeployContent(file.Item1, "Remote Config", file.Item2, progress, status, detail));
-        }
-
-        return contents;
+        return entries
+            .Select(entry =>
+            {
+                var filePath = entry.File == null ? "Remote" : entry.File.Path;
+                return new DeployContent(entry.Key, "Remote Config", filePath, progress, status, detail);
+            })
+            .ToList();
     }
 
     IReadOnlyCollection<DeployContent> ToDeployContents(
-        IEnumerable<IRemoteConfigFile> files,
+        IReadOnlyList<IRemoteConfigFile> files,
         float progress = 0f,
         string status = "",
         string detail = "")
     {
-        var contents = new List<DeployContent>();
 
-        foreach (var file in files)
-        {
-            foreach (var key in file.Content.entries.Keys)
-            {
-                contents.Add(new DeployContent(key, "Remote Config", file.Path, progress, status, detail));
-            }
-        }
+        var entries = files
+            .Where(file => file.Entries != null)
+            .SelectMany(file => file.Entries)
+            .ToList();
 
-        return contents;
+        return entries
+            .Select(entry => new DeployContent(entry.Key, "Remote Config", entry.File.Path, progress, status, detail))
+            .ToList();
     }
 }

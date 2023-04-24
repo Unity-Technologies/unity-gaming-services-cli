@@ -6,22 +6,23 @@ using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 
 namespace Unity.Services.Cli.CloudCode.Deploy;
 
-internal class CliCloudCodeDeploymentHandler : CloudCodeDeploymentHandler, IDeploymentHandlerWithOutput
+class CliCloudCodeDeploymentHandler<TClient> : CloudCodeDeploymentHandler, IDeploymentHandlerWithOutput
+    where TClient : ICloudCodeClient
 {
     public ICollection<DeployContent> Contents { get; } = new List<DeployContent>();
 
     public CliCloudCodeDeploymentHandler(
-        ICloudCodeClient client,
+        TClient client,
         IDeploymentAnalytics deploymentAnalytics,
         IScriptCache scriptCache,
         ILogger logger,
-        IPreDeployValidator preDeployValidator) :
+        IPreDeployValidator preDeployValidator)
+        :
         base(client, deploymentAnalytics, scriptCache, logger, preDeployValidator)
-    {
-    }
+    { }
 
-    protected override void UpdateScriptStatus(IScript script, string message, string detail,
-        StatusSeverityLevel level = StatusSeverityLevel.Error)
+    protected override void UpdateScriptStatus(
+        IScript script, string message, string detail, StatusSeverityLevel level = StatusSeverityLevel.None)
     {
         var content = Contents.First(c => string.Equals(script.Path, c.Path));
         content.Status = message;
@@ -33,5 +34,4 @@ internal class CliCloudCodeDeploymentHandler : CloudCodeDeploymentHandler, IDepl
         var deployContent = Contents.First(c => string.Equals(script.Path, c.Path.ToString()));
         deployContent.Progress = progress;
     }
-
 }

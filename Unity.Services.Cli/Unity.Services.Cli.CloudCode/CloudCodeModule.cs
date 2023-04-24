@@ -1,6 +1,7 @@
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Unity.Services.Cli.CloudCode.Authoring;
 using Unity.Services.Cli.CloudCode.Deploy;
 using Unity.Services.Cli.CloudCode.Handlers;
 using Unity.Services.Cli.CloudCode.Input;
@@ -16,8 +17,11 @@ using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Analytics;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Crypto;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
+using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Api;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Client;
+using Unity.Services.Cli.Authoring.Handlers;
+using Unity.Services.Cli.CloudCode.Templates;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Unity.Services.Cli.CloudCode;
@@ -30,6 +34,7 @@ public class CloudCodeModule : ICommandModule
     internal Command GetCommand { get; }
     internal Command CreateCommand { get; }
     internal Command UpdateCommand { get; }
+    internal Command NewFileCommand { get; }
     public Command ModuleRootCommand { get; }
 
     public CloudCodeModule()
@@ -130,10 +135,11 @@ public class CloudCodeModule : ICommandModule
             CancellationToken>(
             UpdateHandler.UpdateAsync);
 
+        NewFileCommand = ModuleRootCommand.AddNewFileCommand<CloudCodeTemplate>("Cloud Code");
+
         ModuleRootCommand = new Command(
             "cloud-code",
-            "Manage Cloud-Code scripts."
-        )
+            "Manage Cloud-Code scripts.")
         {
             ListCommand,
             PublishCommand,
@@ -141,6 +147,7 @@ public class CloudCodeModule : ICommandModule
             GetCommand,
             CreateCommand,
             UpdateCommand,
+            NewFileCommand
         };
 
         ModuleRootCommand.AddAlias("cc");
@@ -164,8 +171,8 @@ public class CloudCodeModule : ICommandModule
             ICloudCodeService,
             ILogger,
             ILoadingIndicator,
-            CancellationToken
-        >(GetModuleHandler.GetModuleAsync);
+            CancellationToken>(
+            GetModuleHandler.GetModuleAsync);
 
         var deleteModuleCommand = new Command(
             "delete",
@@ -190,8 +197,7 @@ public class CloudCodeModule : ICommandModule
 
         var modulesHandlerCommand = new Command(
             "modules",
-            "Manage Cloud-Code modules."
-        )
+            "Manage Cloud-Code modules.")
         {
             getModuleCommand,
             listModuleCommand,
@@ -211,77 +217,51 @@ public class CloudCodeModule : ICommandModule
         };
         config.DefaultHeaders.SetXClientIdHeader();
         serviceCollection.AddSingleton<ICloudCodeApiAsync>(new CloudCodeApi(config));
-
-        serviceCollection.AddTransient<IConfigurationValidator, ConfigurationValidator>();
-        serviceCollection.AddTransient<ICloudScriptParametersParser, CloudScriptParametersParser>();
-        serviceCollection.AddTransient<ICloudCodeScriptParser, CloudCodeScriptParser>();
-        serviceCollection.AddTransient<ICloudCodeService, CloudCodeService>();
-        serviceCollection.AddTransient<ICloudCodeInputParser, CloudCodeInputParser>();
-
-
-        serviceCollection.AddSingleton<CloudCodeModuleClient>(s => new CloudCodeModuleClient(
-            s.GetRequiredService<ICloudCodeService>(),
-            s.GetRequiredService<ICloudCodeInputParser>()
-        ));
-        serviceCollection.AddSingleton<CloudCodeScriptClient>(s => new CloudCodeScriptClient(
-            s.GetRequiredService<ICloudCodeService>(),
-            s.GetRequiredService<ICloudCodeInputParser>()
-        ));
-
+        serviceCollection.AddSingleton<ICSharpClient, CloudCodeModuleClient>();
+        serviceCollection.AddSingleton<IJavaScriptClient, CloudCodeScriptClient>();
         serviceCollection.AddSingleton<IDeploymentAnalytics, NoopDeploymentAnalytics>();
-        serviceCollection.AddSingleton<Unity.Services.CloudCode.Authoring.Editor.Core.Logging.ILogger, CloudCodeAuthoringLogger>();
-
+        serviceCollection.AddSingleton<
+            Unity.Services.CloudCode.Authoring.Editor.Core.Logging.ILogger, CloudCodeAuthoringLogger>();
         serviceCollection.AddSingleton<EnvironmentProvider>();
         serviceCollection.AddSingleton<ICliEnvironmentProvider>(s => s.GetRequiredService<EnvironmentProvider>());
         serviceCollection.AddSingleton<IEnvironmentProvider>(s => s.GetRequiredService<EnvironmentProvider>());
-
-        serviceCollection.AddTransient<ICloudCodeScriptsLoader, CloudCodeScriptsLoader>();
-        serviceCollection.AddTransient<ICloudCodeModulesLoader, CloudCodeModulesLoader>();
-
         serviceCollection.AddSingleton<IHashComputer, HashComputer>();
         serviceCollection.AddSingleton<IScriptCache, JsScriptCache>();
         serviceCollection.AddSingleton<IPreDeployValidator, PreDeployValidator>();
+        serviceCollection.AddSingleton<ICloudCodeModulesLoader, CloudCodeModulesLoader>();
+        serviceCollection.AddSingleton<ICloudCodeScriptsLoader, CloudCodeScriptsLoader>();
+        serviceCollection.AddSingleton<ICloudCodeService, CloudCodeService>();
+        serviceCollection.AddSingleton<ICloudCodeInputParser, CloudCodeInputParser>();
+        serviceCollection.AddSingleton<IConfigurationValidator, ConfigurationValidator>();
+        serviceCollection.AddSingleton<ICloudScriptParametersParser, CloudScriptParametersParser>();
+        serviceCollection.AddSingleton<ICloudCodeScriptParser, CloudCodeScriptParser>();
+        serviceCollection.AddSingleton<CliCloudCodeDeploymentHandler<IJavaScriptClient>>();
+        serviceCollection.AddSingleton<CliCloudCodeDeploymentHandler<ICSharpClient>>();
+        serviceCollection.AddSingleton<IJavaScriptFetchHandler, JavaScriptFetchHandler>();
+        serviceCollection.AddSingleton<IEqualityComparer<IScript>, CloudCodeScriptNameComparer>();
 
-        serviceCollection.AddTransient<CliCloudCodeDeploymentHandler>();
+        serviceCollection.AddTransient<IDeploymentService, CloudCodeScriptDeploymentService>(CreateJavaScriptDeployService);
+        serviceCollection.AddTransient<IDeploymentService, CloudCodePrecompiledModuleDeploymentService>(CreateCSharpDeployService);
+        serviceCollection.AddTransient<IFetchService, JavaScriptFetchService>();
+    }
 
-        serviceCollection.AddTransient<IDeploymentService>(
-            s => new CloudCodeScriptDeploymentService(
-                new CloudCodeServicesWrapper(
-                    s.GetRequiredService<ICloudCodeService>(),
-                    s.GetRequiredService<IDeployFileService>(),
-                    s.GetRequiredService<ICloudCodeScriptsLoader>(),
-                    s.GetRequiredService<ICloudCodeInputParser>(),
-                    s.GetRequiredService<CloudCodeScriptClient>(),
-                    new CliCloudCodeDeploymentHandler(
-                        s.GetRequiredService<CloudCodeScriptClient>(),
-                        s.GetRequiredService<IDeploymentAnalytics>(),
-                        s.GetRequiredService<IScriptCache>(),
-                        s.GetRequiredService<Unity.Services.CloudCode.Authoring.Editor.Core.Logging.ILogger>(),
-                        s.GetRequiredService<IPreDeployValidator>()
-                    ),
-                    s.GetRequiredService<ICliEnvironmentProvider>(),
-                    s.GetRequiredService<ICloudCodeModulesLoader>()
-                )
-            ));
+    internal static CloudCodeScriptDeploymentService CreateJavaScriptDeployService(IServiceProvider provider)
+    {
+        return new CloudCodeScriptDeploymentService(
+            provider.GetRequiredService<ICloudCodeInputParser>(),
+            provider.GetRequiredService<ICloudCodeScriptParser>(),
+            provider.GetRequiredService<CliCloudCodeDeploymentHandler<IJavaScriptClient>>(),
+            provider.GetRequiredService<ICloudCodeScriptsLoader>(),
+            provider.GetRequiredService<ICliEnvironmentProvider>(),
+            provider.GetRequiredService<IJavaScriptClient>());
+    }
 
-        serviceCollection.AddTransient<IDeploymentService>(
-            s => new CloudCodePrecompiledModuleDeploymentService(
-                new CloudCodeServicesWrapper(
-                    s.GetRequiredService<ICloudCodeService>(),
-                    s.GetRequiredService<IDeployFileService>(),
-                    s.GetRequiredService<ICloudCodeScriptsLoader>(),
-                    s.GetRequiredService<ICloudCodeInputParser>(),
-                    s.GetRequiredService<CloudCodeModuleClient>(),
-                    new CliCloudCodeDeploymentHandler(
-                        s.GetRequiredService<CloudCodeModuleClient>(),
-                        s.GetRequiredService<IDeploymentAnalytics>(),
-                        s.GetRequiredService<IScriptCache>(),
-                        s.GetRequiredService<Unity.Services.CloudCode.Authoring.Editor.Core.Logging.ILogger>(),
-                        s.GetRequiredService<IPreDeployValidator>()
-                    ),
-                    s.GetRequiredService<ICliEnvironmentProvider>(),
-                    s.GetRequiredService<ICloudCodeModulesLoader>()
-                )
-            ));
+    internal static CloudCodePrecompiledModuleDeploymentService CreateCSharpDeployService(IServiceProvider provider)
+    {
+        return new CloudCodePrecompiledModuleDeploymentService(
+            provider.GetRequiredService<CliCloudCodeDeploymentHandler<ICSharpClient>>(),
+            provider.GetRequiredService<ICloudCodeModulesLoader>(),
+            provider.GetRequiredService<ICliEnvironmentProvider>(),
+            provider.GetRequiredService<ICSharpClient>());
     }
 }

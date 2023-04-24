@@ -9,5 +9,5 @@ async function demo() {
 demo();
 
 module.exports.params = {
-    sides: "NUMBER"
+    asyncOp: "NUMERIC"
 };

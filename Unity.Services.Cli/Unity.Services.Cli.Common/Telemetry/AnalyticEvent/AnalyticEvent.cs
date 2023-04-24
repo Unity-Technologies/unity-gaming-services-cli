@@ -5,17 +5,11 @@ namespace Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
 
 public class AnalyticEvent : AnalyticEventBase, IAnalyticEvent
 {
-#if ENABLE_UGS_CLI_TELEMETRY
-    const string k_MetricsName = "ugs.cli.metric.v3";
-#else
-    const string k_MetricsName = "ugs.cli.metric.v3.stg";
-#endif
-
     readonly ISystemEnvironmentProvider m_SystemEnvironmentProvider;
 
     bool IsDisabled => TelemetryConfigurationProvider.IsTelemetryDisabled(m_SystemEnvironmentProvider);
 
-    public AnalyticEvent(ISystemEnvironmentProvider environmentProvider) : base(k_MetricsName)
+    public AnalyticEvent(ISystemEnvironmentProvider environmentProvider, string taxonomyName) : base(taxonomyName)
     {
         m_SystemEnvironmentProvider = environmentProvider;
         AddData(TagKeys.CicdPlatform, TelemetryConfigurationProvider.GetCicdPlatform(environmentProvider!));

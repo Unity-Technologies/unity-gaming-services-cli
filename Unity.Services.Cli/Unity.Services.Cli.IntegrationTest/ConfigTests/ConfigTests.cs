@@ -22,7 +22,7 @@ public class ConfigTests : UgsCliFixture
     [TearDown]
     public void TearDown()
     {
-        Environment.SetEnvironmentVariable(Keys.EnvironmentKeys.EnvironmentName, null);
+        System.Environment.SetEnvironmentVariable(Keys.EnvironmentKeys.EnvironmentName, null);
     }
 
     [Test]
@@ -113,7 +113,7 @@ public class ConfigTests : UgsCliFixture
     [Test]
     public async Task ConfigGetUnsetConfigValueFetchesFromEnvironment()
     {
-        Environment.SetEnvironmentVariable(Keys.EnvironmentKeys.EnvironmentName, "test-value");
+        System.Environment.SetEnvironmentVariable(Keys.EnvironmentKeys.EnvironmentName, "test-value");
         string expected = "test-value";
 
         await new UgsCliTestCase()
@@ -125,7 +125,7 @@ public class ConfigTests : UgsCliFixture
 
     void AssertConfigValue(string key, string? value)
     {
-        var content = File.ReadAllText(ConfigurationFile!);
+        var content = File.ReadAllText(ConfigurationFile);
         var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(content);
         CollectionAssert.Contains(json, new KeyValuePair<string, string?>(key, value));
     }

@@ -18,10 +18,10 @@ static class FetchHandler
         FetchInput input,
         ILogger logger,
         ILoadingIndicator loadingIndicator,
-        CancellationToken cancellationToken
-        )
+        CancellationToken cancellationToken)
     {
-        await loadingIndicator.StartLoadingAsync($"Fetching files...",
+        await loadingIndicator.StartLoadingAsync(
+            $"Fetching files...",
             context => FetchAsync(
                 host,
                 input,
@@ -50,33 +50,52 @@ static class FetchHandler
         try
         {
             fetchAll = Task.WhenAll(
-                services.Select(m => m.FetchAsync(
-                    input,
-                    loadingContext,
-                    cancellationToken)));
+                services.Select(
+                    m => m.FetchAsync(
+                        input,
+                        loadingContext,
+                        cancellationToken)));
             fetchResult = await fetchAll;
         }
-        catch { /* will use fetchAll to find all errors */ }
+        catch
+        {
+            // will use fetchAll to find all errors
+        }
 
         var totalResult = new FetchResult(fetchResult);
-
         logger.LogResultValue(totalResult);
 
         if (fetchAll!.IsFaulted)
         {
-            var exception = fetchAll.Exception;
-            if (exception != null
-                && exception.InnerExceptions.Count == 1
-                && exception.InnerException is CliException cliException)
-            {
-                throw new CliException(cliException.Message, cliException, cliException.ExitCode);
-            }
-            throw new CliException("Failed to fetch due to an unexpected error", fetchAll.Exception!, ExitCode.UnhandledError);
+            HandleFailedFetch();
         }
 
         if (totalResult.Failed.Any())
         {
-            throw new CliException($"One or more files failed to be fetched", ExitCode.HandledError);
+            throw new CliException("One or more files failed to be fetched", ExitCode.HandledError);
+        }
+
+        void HandleFailedFetch()
+        {
+            var exception = fetchAll.Exception!;
+            if (exception.InnerExceptions.Count == 1)
+            {
+                var innerException = exception.InnerException!;
+                var exitCode = innerException is CliException cliException
+                    ? cliException.ExitCode
+                    : ExitCode.UnhandledError;
+                throw new CliException(innerException.Message, innerException, exitCode);
+            }
+
+            var errorMessage = "Failed to fetch due to the following errors:"
+                + string.Join($"{Environment.NewLine}    - ", exception.InnerExceptions.Select(x => x.Message));
+            var cliExceptions = exception.InnerExceptions.OfType<CliException>().ToList();
+            if (cliExceptions.Count == exception.InnerExceptions.Count)
+            {
+                throw new CliException(errorMessage, fetchAll.Exception!, cliExceptions.Max(x => x.ExitCode));
+            }
+
+            throw new CliException(errorMessage, exception, ExitCode.UnhandledError);
         }
     }
 }

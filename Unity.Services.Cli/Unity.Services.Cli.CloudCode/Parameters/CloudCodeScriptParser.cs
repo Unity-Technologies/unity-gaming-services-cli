@@ -1,59 +1,128 @@
+using System.IO.Abstractions;
 using System.Reflection;
-using Jint;
-using Jint.Native;
-using Jint.Runtime;
 using Unity.Services.Cli.CloudCode.Exceptions;
+using Unity.Services.Cli.Common.Process;
+using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
+using Unity.Services.Cli.Common.Utils;
+using Unity.Services.Cli.Common.Telemetry;
 
 namespace Unity.Services.Cli.CloudCode.Parameters;
 
 internal class CloudCodeScriptParser : ICloudCodeScriptParser
 {
-    const string k_EmbeddedParameterScript = "Unity.Services.Cli.CloudCode.JavaScripts.script_parameters.js";
-    const string k_TimeoutExceptionMessage = "Script took too much time to parse (timed out).";
-    const int k_TimeoutInSeconds = 5;
-    const int k_MemoryLimitInByte = 256000000;
+    const int k_ParsingTimeLimitInMillisecond = 5000;
+    const int k_MemorySizeLimitInMB = 256;
+    const string k_ParameterScriptFileName = "script_parameters";
+    static readonly string k_CliVersion = TelemetryConfigurationProvider.GetCliVersion();
+    const string k_ParameterScriptExtension = ".js";
+    const string k_EmbeddedParameterScript = $"Unity.Services.Cli.CloudCode.JavaScripts.{k_ParameterScriptFileName + k_ParameterScriptExtension}";
+    static readonly Version k_MinimumVersion = new(14, 0, 0);
 
-    public async Task<string?> ParseToScriptParamsJsonAsync(string script, CancellationToken token)
+    internal static readonly string CloudCodePath = Path
+        .Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
+        "UnityServices", "CloudCode");
+
+    static readonly string k_ParameterScriptFile = Path
+        .Combine(CloudCodePath, k_ParameterScriptFileName + "_" + k_CliVersion + k_ParameterScriptExtension);
+
+    readonly ICliProcess m_CliProcess;
+    readonly ICloudScriptParametersParser m_CloudScriptParametersParser;
+    readonly IFile m_File;
+
+    public CloudCodeScriptParser(ICliProcess cliProcess, ICloudScriptParametersParser parametersParser, IFile file)
     {
-        var parameterParseScript = await ReadResourceFileAsync(k_EmbeddedParameterScript);
-        var param = InvokeParameterParser(parameterParseScript, script, token);
-        var paramString = param.ToString();
-        return paramString.Equals("null") ? null : paramString;
+        m_CliProcess = cliProcess;
+        m_CloudScriptParametersParser = parametersParser;
+        m_File = file;
     }
 
-    static JsValue InvokeParameterParser(string parameterParseScript, string cloudCodeScript, CancellationToken token)
+    async Task CreateScriptParameterParserAsync(CancellationToken token)
     {
-        using var engine = new Engine(options =>
+        if (!m_File.Exists(k_ParameterScriptFile))
         {
-            options.LimitMemory(k_MemoryLimitInByte);
-            options.TimeoutInterval(TimeSpan.FromSeconds(k_TimeoutInSeconds));
-            options.CancellationToken(token);
-        });
+            var parameterParseScript = await ResourceFileHelper
+                .ReadResourceFileAsync(Assembly.GetExecutingAssembly(), k_EmbeddedParameterScript);
+            await m_File.WriteAllTextAsync(k_ParameterScriptFile, parameterParseScript, token);
+        }
+    }
 
-        var paramParser = engine.Execute(parameterParseScript).GetValue("scriptParameters");
+    public async Task<IReadOnlyList<ScriptParameter>> ParseScriptParametersAsync(string scriptCode, CancellationToken cancellationToken)
+    {
+        var parameterInJson = await ParseToScriptParamsJsonAsync(scriptCode, cancellationToken);
+        var parameters = new List<ScriptParameter>();
+        if (parameterInJson is not null)
+        {
+            parameters = m_CloudScriptParametersParser.ParseToScriptParameters(parameterInJson);
+        }
+
+        return parameters;
+    }
+
+    internal async Task<string?> ParseToScriptParamsJsonAsync(string scriptCode, CancellationToken token)
+    {
+        Directory.CreateDirectory(CloudCodePath);
+
+        if (!await CheckNodeInstalledAsync(token))
+        {
+            var requirementMessage =
+                $"CLI Cloud Code service require Node.js with version > {k_MinimumVersion}. "
+                + $"Please install Node.js and config it's executable path in PATH environment variable. ";
+            throw new ScriptEvaluationException(requirementMessage);
+        }
+
+        await CreateScriptParameterParserAsync(token);
+
         try
         {
-            return engine.Invoke(paramParser, cloudCodeScript);
+            var parseTimeoutTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+            parseTimeoutTokenSource.CancelAfter(k_ParsingTimeLimitInMillisecond);
+            var paramString = await m_CliProcess.ExecuteAsync("node", Directory.GetCurrentDirectory(), new[]
+            {
+                $"--max-old-space-size={k_MemorySizeLimitInMB}",
+                k_ParameterScriptFile
+            }, parseTimeoutTokenSource.Token, writeToStandardInput: WriteToProcessStandardInput);
+            paramString = paramString.Replace(System.Environment.NewLine, "");
+            return string.IsNullOrEmpty(paramString) ? null : paramString;
         }
-        catch (TimeoutException)
+        catch (OperationCanceledException)
         {
-            throw new ScriptEvaluationException(k_TimeoutExceptionMessage);
+            throw new ScriptEvaluationException(
+                $"The in-script parameter parsing is taking too long:{System.Environment.NewLine}{scriptCode}.");
         }
-        catch (JintException ex)
+        catch (ProcessException ex)
         {
             throw new ScriptEvaluationException(ex);
         }
-        catch (ArgumentOutOfRangeException ex)
+
+        void WriteToProcessStandardInput(StreamWriter writer)
         {
-            throw new ScriptEvaluationException(ex);
+            const int chunkSize = 1000;
+            for (var index = 0; index < scriptCode.Length; index += chunkSize)
+            {
+                var subString = scriptCode.Substring(index, Math.Min(chunkSize, scriptCode.Length - index));
+                writer.Write(subString);
+            }
         }
     }
 
-    static async Task<string> ReadResourceFileAsync(string filename)
+    internal async Task<bool> CheckNodeInstalledAsync(CancellationToken token)
     {
-        var assembly = Assembly.GetExecutingAssembly();
-        await using var stream = assembly.GetManifestResourceStream(filename);
-        using var reader = new StreamReader(stream!);
-        return await reader.ReadToEndAsync();
+        try
+        {
+            var nodeVersionString = await m_CliProcess.ExecuteAsync("node", Directory.GetCurrentDirectory(), new[]
+            {
+                "-v"
+            }, token);
+            if (Version.TryParse(nodeVersionString.Replace("v", ""), out var version) && version.CompareTo(k_MinimumVersion) >= 0)
+            {
+                return true;
+            }
+        }
+        catch (ProcessException)
+        {
+            return false;
+        }
+
+        return false;
     }
 }

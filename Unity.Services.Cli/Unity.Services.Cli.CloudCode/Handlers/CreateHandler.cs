@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Unity.Services.Cli.CloudCode.Input;
+using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Utils;
@@ -41,11 +42,13 @@ static class CreateHandler
         var scriptType = cloudCodeInputParser.ParseScriptType(input);
         var scriptLanguage = cloudCodeInputParser.ParseLanguage(input);
         var code = await cloudCodeInputParser.LoadScriptCodeAsync(input, cancellationToken);
-
+        var parameters = await cloudCodeInputParser.CloudCodeScriptParser.ParseScriptParametersAsync(code, cancellationToken);
         loadingContext?.Status("Uploading script...");
 
         await cloudCodeService.CreateAsync(
-            projectId, environmentId, input.ScriptName, scriptType, scriptLanguage, code, CancellationToken.None);
+            projectId, environmentId,
+            input.ScriptName, scriptType, scriptLanguage,
+            code, parameters, cancellationToken);
 
         logger.LogInformation("Script '{scriptName}' created.", input.ScriptName);
     }

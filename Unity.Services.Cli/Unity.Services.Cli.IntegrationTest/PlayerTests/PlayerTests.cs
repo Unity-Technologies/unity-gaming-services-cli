@@ -1,24 +1,24 @@
-using System.Linq;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.MockServer;
+using Unity.Services.Gateway.PlayerAdminApiV3.Generated.Model;
+using Unity.Services.Cli.MockServer.Common;
+using Unity.Services.Cli.MockServer.ServiceMocks;
+using Unity.Services.Cli.Player.Model;
 
 namespace Unity.Services.Cli.IntegrationTest.PlayerTests;
 
 public class PlayerTests : UgsCliFixture
 {
-    private const string k_AdminApiUrl = "https://services.docs.unity.com/specs/v1/706c617965722d617574682d61646d696e.yaml";
-    const string k_PlayerAuthApiUrl = "https://services.docs.unity.com/specs/v1/706c617965722d61757468.yaml";
-
-    private const string k_PlayerId = "player-id";
-    MockApi m_MockApi = new(NetworkTargetEndpoints.MockServer);
 
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
-        m_MockApi.InitServer();
         m_MockApi.Server?.AllowPartialMapping();
     }
 
@@ -27,20 +27,7 @@ public class PlayerTests : UgsCliFixture
     {
         DeleteLocalConfig();
         DeleteLocalCredentials();
-
-        var playerAuthenticationAdminServiceModels = await MappingModelUtils.ParseMappingModelsAsync(k_AdminApiUrl, new ());
-        playerAuthenticationAdminServiceModels = playerAuthenticationAdminServiceModels.Select(m => m.ConfigMappingPathWithKey(CommonKeys.ProjectIdKey, CommonKeys.ValidProjectId));
-        m_MockApi.Server?.WithMapping(playerAuthenticationAdminServiceModels.ToArray());
-
-        var playerAuthenticationServiceModels = await MappingModelUtils.ParseMappingModelsAsync(k_PlayerAuthApiUrl, new ());
-        playerAuthenticationServiceModels = playerAuthenticationServiceModels.Select(m => m.ConfigMappingPathWithKey(CommonKeys.ProjectIdKey, CommonKeys.ValidProjectId));
-        m_MockApi.Server?.WithMapping(playerAuthenticationServiceModels.ToArray());
-    }
-
-    [OneTimeTearDown]
-    public void OneTimeTearDown()
-    {
-        m_MockApi.Server?.Dispose();
+        await m_MockApi.MockServiceAsync(new PlayerApiMock());
     }
 
     [Test]
@@ -84,7 +71,7 @@ public class PlayerTests : UgsCliFixture
         var expectedMsg = "You are not logged into any service account. Please login using the 'ugs login' command.";
 
         await new UgsCliTestCase()
-            .Command($"player delete {k_PlayerId}")
+            .Command($"player delete {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardOutputContains(expectedMsg)
             .ExecuteAsync();
@@ -96,7 +83,7 @@ public class PlayerTests : UgsCliFixture
         var expectedMsg = "Your project-id is not valid. The value cannot be null or empty.";
 
         await GetLoggedInCli()
-            .Command($"player delete {k_PlayerId}")
+            .Command($"player delete {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardOutputContains(expectedMsg)
             .ExecuteAsync();
@@ -120,7 +107,7 @@ public class PlayerTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
 
         await GetLoggedInCli()
-            .Command($"player delete {k_PlayerId}")
+            .Command($"player delete {PlayerApiMock.PlayerId}")
             .AssertNoErrors()
             .ExecuteAsync();
     }
@@ -131,7 +118,7 @@ public class PlayerTests : UgsCliFixture
         var expectedMsg = "You are not logged into any service account. Please login using the 'ugs login' command.";
 
         await new UgsCliTestCase()
-            .Command($"player disable {k_PlayerId}")
+            .Command($"player disable {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardOutputContains(expectedMsg)
             .ExecuteAsync();
@@ -143,7 +130,7 @@ public class PlayerTests : UgsCliFixture
         var expectedMsg = "Your project-id is not valid. The value cannot be null or empty.";
 
         await GetLoggedInCli()
-            .Command($"player disable {k_PlayerId}")
+            .Command($"player disable {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardOutputContains(expectedMsg)
             .ExecuteAsync();
@@ -167,7 +154,7 @@ public class PlayerTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
 
         await GetLoggedInCli()
-            .Command($"player disable {k_PlayerId}")
+            .Command($"player disable {PlayerApiMock.PlayerId}")
             .AssertNoErrors()
             .ExecuteAsync();
     }
@@ -178,7 +165,7 @@ public class PlayerTests : UgsCliFixture
         var expectedMsg = "You are not logged into any service account. Please login using the 'ugs login' command.";
 
         await new UgsCliTestCase()
-            .Command($"player enable {k_PlayerId}")
+            .Command($"player enable {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardOutputContains(expectedMsg)
             .ExecuteAsync();
@@ -190,7 +177,7 @@ public class PlayerTests : UgsCliFixture
         var expectedMsg = "Your project-id is not valid. The value cannot be null or empty.";
 
         await GetLoggedInCli()
-            .Command($"player enable {k_PlayerId}")
+            .Command($"player enable {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardOutputContains(expectedMsg)
             .ExecuteAsync();
@@ -214,8 +201,129 @@ public class PlayerTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
 
         await GetLoggedInCli()
-            .Command($"player disable {k_PlayerId}")
+            .Command($"player disable {PlayerApiMock.PlayerId}")
             .AssertNoErrors()
+            .ExecuteAsync();
+    }
+
+    [Test]
+    public async Task GetPlayer_Throws_NotAuthenticated()
+    {
+        var expectedMsg = "You are not logged into any service account. Please login using the 'ugs login' command.";
+
+        await new UgsCliTestCase()
+            .Command($"player get {PlayerApiMock.PlayerId}")
+            .AssertExitCode(ExitCode.HandledError)
+            .AssertStandardOutputContains(expectedMsg)
+            .ExecuteAsync();
+    }
+
+    [Test]
+    public async Task GetPlayer_Throws_NoProjectId()
+    {
+        var expectedMsg = "Your project-id is not valid. The value cannot be null or empty.";
+
+        await GetLoggedInCli()
+            .Command($"player get {PlayerApiMock.PlayerId}")
+            .AssertExitCode(ExitCode.HandledError)
+            .AssertStandardOutputContains(expectedMsg)
+            .ExecuteAsync();
+    }
+
+    [Test]
+    public async Task GetPlayer_Throws_NoPlayedId()
+    {
+        var expectedMsg = "Required argument missing for command: 'get'.";
+
+        await GetLoggedInCli()
+            .Command("player get")
+            .AssertExitCode(ExitCode.HandledError)
+            .AssertStandardErrorContains(expectedMsg)
+            .ExecuteAsync();
+    }
+
+    [Test]
+    public async Task GetPlayer_Succeeds()
+    {
+        SetConfigValue("project-id", CommonKeys.ValidProjectId);
+
+        await GetLoggedInCli()
+            .Command($"player get {PlayerApiMock.PlayerId}")
+            .AssertNoErrors()
+            .ExecuteAsync();
+    }
+
+    [Test]
+    public async Task GetPlayer_SucceedsReturnsJson()
+    {
+        SetConfigValue("project-id", CommonKeys.ValidProjectId);
+
+        var logResult = new
+        {
+            Result = new PlayerAuthPlayerProjectResponse(),
+            Messages = Array.Empty<string>()
+        };
+
+        await GetLoggedInCli()
+            .Command($"player get {PlayerApiMock.PlayerId} -j")
+            .AssertNoErrors()
+            .AssertStandardOutputContains(JsonConvert.SerializeObject(logResult, Formatting.Indented))
+            .ExecuteAsync();
+    }
+
+    [Test]
+    public async Task ListPlayer_Throws_NotAuthenticated()
+    {
+        var expectedMsg = "You are not logged into any service account. Please login using the 'ugs login' command.";
+
+        await new UgsCliTestCase()
+            .Command($"player list")
+            .AssertExitCode(ExitCode.HandledError)
+            .AssertStandardOutputContains(expectedMsg)
+            .ExecuteAsync();
+    }
+
+    [Test]
+    public async Task ListPlayer_Throws_NoProjectId()
+    {
+        var expectedMsg = "Your project-id is not valid. The value cannot be null or empty.";
+
+        await GetLoggedInCli()
+            .Command($"player list")
+            .AssertExitCode(ExitCode.HandledError)
+            .AssertStandardOutputContains(expectedMsg)
+            .ExecuteAsync();
+    }
+
+    [Test]
+    public async Task ListPlayer_Succeeds()
+    {
+        SetConfigValue("project-id", CommonKeys.ValidProjectId);
+
+        var result = new PlayerListResponseResult(PlayerApiMock.GetPlayerListMock());
+
+        await GetLoggedInCli()
+            .Command($"player list")
+            .AssertNoErrors()
+            .AssertStandardOutputContains(result.ToString())
+            .ExecuteAsync();
+    }
+
+    [Test]
+    public async Task ListPlayer_SucceedsReturnsJson()
+    {
+        SetConfigValue("project-id", CommonKeys.ValidProjectId);
+
+        var logResult = new
+        {
+            Result = new PlayerListResponseResult(PlayerApiMock.GetPlayerListMock()),
+            Messages = Array.Empty<string>()
+        };
+
+        await GetLoggedInCli()
+            .Command($"player list -j")
+            .AssertNoErrors()
+            .AssertStandardOutputContains(JsonConvert.SerializeObject(logResult, Formatting.Indented))
             .ExecuteAsync();
     }
 }

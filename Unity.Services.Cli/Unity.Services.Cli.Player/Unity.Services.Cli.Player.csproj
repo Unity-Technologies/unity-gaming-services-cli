@@ -20,7 +20,7 @@
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Unity.Services.Gateway.PlayerAdminApiV2.Generated" Version="1.0.1" />
+    <PackageReference Include="Unity.Services.Gateway.PlayerAdminApiV3.Generated" Version="1.0.1" />
     <PackageReference Include="Unity.Services.Gateway.PlayerAuthApiV1.Generated" Version="1.0.1" />
   </ItemGroup>
   <PropertyGroup>

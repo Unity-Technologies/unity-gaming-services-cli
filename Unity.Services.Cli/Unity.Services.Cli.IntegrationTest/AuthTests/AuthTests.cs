@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using Unity.Services.Cli.MockServer.Common;
 
 namespace Unity.Services.Cli.IntegrationTest.AuthTests;
 
@@ -135,13 +136,13 @@ public class AuthTests : UgsCliFixture
 
     static void LoginWithEnvironment()
     {
-        Environment.SetEnvironmentVariable("UGS_CLI_SERVICE_KEY_ID", CommonKeys.ValidServiceAccKeyId);
-        Environment.SetEnvironmentVariable("UGS_CLI_SERVICE_SECRET_KEY", CommonKeys.ValidServiceAccSecretKey);
+        System.Environment.SetEnvironmentVariable("UGS_CLI_SERVICE_KEY_ID", CommonKeys.ValidServiceAccKeyId);
+        System.Environment.SetEnvironmentVariable("UGS_CLI_SERVICE_SECRET_KEY", CommonKeys.ValidServiceAccSecretKey);
     }
 
     static void LogoutFromEnvironment()
     {
-        Environment.SetEnvironmentVariable("UGS_CLI_SERVICE_KEY_ID", null);
-        Environment.SetEnvironmentVariable("UGS_CLI_SERVICE_SECRET_KEY", null);
+        System.Environment.SetEnvironmentVariable("UGS_CLI_SERVICE_KEY_ID", null);
+        System.Environment.SetEnvironmentVariable("UGS_CLI_SERVICE_SECRET_KEY", null);
     }
 }

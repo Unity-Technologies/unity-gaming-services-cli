@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Models;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.MockServer;
-using Unity.Services.Gateway.LeaderboardApiV1.Generated.Model;
+using Unity.Services.Cli.MockServer.Common;
 
 namespace Unity.Services.Cli.IntegrationTest.LeaderboardTests;
 
@@ -18,19 +16,6 @@ public class LeaderboardSetupFailureTests : UgsCliFixture
                                            + " Please login using the 'ugs login' command.";
     const string k_EnvironmentNameNotSetErrorMessage = "'environment-name' is not set in project configuration."
                                                        + " '" + Keys.EnvironmentKeys.EnvironmentName + "' is not set in system environment variables.";
-    readonly MockApi m_MockApi = new(NetworkTargetEndpoints.MockServer);
-
-    [OneTimeSetUp]
-    public void OneTimeSetUp()
-    {
-        m_MockApi.InitServer();
-    }
-
-    [OneTimeTearDown]
-    public void OneTimeTearDown()
-    {
-        m_MockApi.Server?.Dispose();
-    }
 
     [SetUp]
     public void SetUp()

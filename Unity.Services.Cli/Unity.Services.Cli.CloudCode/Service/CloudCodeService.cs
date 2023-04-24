@@ -1,11 +1,5 @@
-using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Net;
 using System.Text.RegularExpressions;
-using System.Web;
-using Newtonsoft.Json;
-using Spectre.Console;
-using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Models;
 using Unity.Services.Cli.Common.Validator;
@@ -21,21 +15,18 @@ namespace Unity.Services.Cli.CloudCode.Service;
 class CloudCodeService : ICloudCodeService
 {
     readonly IServiceAccountAuthenticationService m_AuthenticationService;
-    readonly ICloudCodeApiAsync m_CloudCodeAsyncAPI;
+    readonly ICloudCodeApiAsync m_CloudCodeAsyncApi;
     readonly IConfigurationValidator m_ConfigValidator;
-    readonly ICloudScriptParametersParser m_CloudScriptParametersParser;
-    readonly ICloudCodeScriptParser m_CloudCodeScriptParser;
 
     internal const int k_ListLimit = 100;
+    internal const int k_MaxFileSizeLimitInMB = 10;
 
     public CloudCodeService(ICloudCodeApiAsync cloudCodeAsyncApi, IConfigurationValidator validator,
-        IServiceAccountAuthenticationService authenticationService, ICloudScriptParametersParser cloudScriptParametersParser, ICloudCodeScriptParser cloudCodeScriptParser)
+        IServiceAccountAuthenticationService authenticationService)
     {
-        m_CloudCodeAsyncAPI = cloudCodeAsyncApi;
+        m_CloudCodeAsyncApi = cloudCodeAsyncApi;
         m_ConfigValidator = validator;
         m_AuthenticationService = authenticationService;
-        m_CloudScriptParametersParser = cloudScriptParametersParser;
-        m_CloudCodeScriptParser = cloudCodeScriptParser;
     }
 
     /// <inheritdoc cref="ICloudCodeService.ListAsync" />
@@ -52,7 +43,8 @@ class CloudCodeService : ICloudCodeService
 
         do
         {
-            var response = await m_CloudCodeAsyncAPI.ListScriptsAsync(projectId, environmentId, k_ListLimit, afterScript?.Name, cancellationToken: cancellationToken);
+            var response = await m_CloudCodeAsyncApi.ListScriptsAsync(projectId, environmentId, k_ListLimit,
+                afterScript?.Name, cancellationToken: cancellationToken);
             var responseList = response.Results.ToList();
             resultsCount = responseList.Count;
             if (resultsCount < k_ListLimit)
@@ -63,8 +55,7 @@ class CloudCodeService : ICloudCodeService
 
             afterScript = responseList[^1];
             results.AddRange(responseList.SkipLast(1));
-        }
-        while (resultsCount == k_ListLimit);
+        } while (resultsCount == k_ListLimit);
 
         return results;
     }
@@ -78,7 +69,7 @@ class CloudCodeService : ICloudCodeService
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentId, environmentId);
 
-        await m_CloudCodeAsyncAPI
+        await m_CloudCodeAsyncApi
             .DeleteScriptWithHttpInfoAsync(projectId, environmentId, scriptName, cancellationToken: cancellationToken);
     }
 
@@ -94,13 +85,15 @@ class CloudCodeService : ICloudCodeService
         {
             _Version = version
         };
-        var response = await m_CloudCodeAsyncAPI.PublishScriptAsync(projectId, environmentId, scriptName, payload, cancellationToken: cancellationToken);
+        var response = await m_CloudCodeAsyncApi.PublishScriptAsync(projectId, environmentId, scriptName, payload,
+            cancellationToken: cancellationToken);
         return response;
     }
 
 
     /// <inheritdoc cref="ICloudCodeService.GetAsync" />
-    public async Task<GetScriptResponse> GetAsync(string projectId, string environmentId, string? scriptName, CancellationToken cancellationToken = default)
+    public async Task<GetScriptResponse> GetAsync(string projectId, string environmentId, string? scriptName,
+        CancellationToken cancellationToken = default)
     {
         await AuthorizeService(cancellationToken);
 
@@ -108,12 +101,14 @@ class CloudCodeService : ICloudCodeService
 
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentId, environmentId);
-        return await m_CloudCodeAsyncAPI.GetScriptAsync(projectId, environmentId, scriptName, cancellationToken: cancellationToken);
+        return await m_CloudCodeAsyncApi.GetScriptAsync(projectId, environmentId, scriptName,
+            cancellationToken: cancellationToken);
     }
 
     /// <inheritdoc cref="ICloudCodeService.CreateAsync" />
     public async Task CreateAsync(string projectId, string environmentId, string? scriptName,
-        ScriptType scriptType, Language scriptLanguage, string? code, CancellationToken cancellationToken)
+        ScriptType scriptType, Language scriptLanguage, string? code, IReadOnlyList<ScriptParameter> scriptParameters,
+        CancellationToken cancellationToken)
     {
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentId, environmentId);
@@ -128,21 +123,22 @@ class CloudCodeService : ICloudCodeService
 
         await AuthorizeService(cancellationToken);
 
-        CreateScriptRequest createScriptRequest = new CreateScriptRequest
+        var createScriptRequest = new CreateScriptRequest
         (
             scriptName,
             scriptType,
-            await GetScriptParameters(code, cancellationToken),
+            scriptParameters.ToList(),
             code,
             scriptLanguage
         );
 
-        await m_CloudCodeAsyncAPI.CreateScriptAsync(projectId, environmentId, createScriptRequest, cancellationToken: cancellationToken);
+        await m_CloudCodeAsyncApi.CreateScriptAsync(projectId, environmentId, createScriptRequest,
+            cancellationToken: cancellationToken);
     }
 
     /// <inheritdoc cref="ICloudCodeService.UpdateAsync" />
     public async Task UpdateAsync(string projectId, string environmentId, string? scriptName, string? code,
-        CancellationToken cancellationToken)
+        IReadOnlyList<ScriptParameter> scriptParameters, CancellationToken cancellationToken)
     {
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentId, environmentId);
@@ -157,13 +153,13 @@ class CloudCodeService : ICloudCodeService
 
         await AuthorizeService(cancellationToken);
 
-        UpdateScriptRequest updateScriptRequest = new UpdateScriptRequest
+        var updateScriptRequest = new UpdateScriptRequest
         (
-            await GetScriptParameters(code, cancellationToken),
+            scriptParameters.ToList(),
             code
         );
 
-        await m_CloudCodeAsyncAPI.UpdateScriptAsync(projectId, environmentId, scriptName, updateScriptRequest,
+        await m_CloudCodeAsyncApi.UpdateScriptAsync(projectId, environmentId, scriptName, updateScriptRequest,
             cancellationToken: cancellationToken);
     }
 
@@ -175,12 +171,13 @@ class CloudCodeService : ICloudCodeService
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentId, environmentId);
 
         ThrowIfModuleNameInvalid(moduleName);
+        ThrowIfFileInvalid(moduleStream);
 
         await AuthorizeService(cancellationToken);
 
         try
         {
-            await m_CloudCodeAsyncAPI.UpdateModuleAsync(
+            await m_CloudCodeAsyncApi.UpdateModuleAsync(
                 projectId,
                 environmentId,
                 moduleName,
@@ -192,7 +189,7 @@ class CloudCodeService : ICloudCodeService
         {
             moduleStream.Seek(0, SeekOrigin.Begin);
 
-            await m_CloudCodeAsyncAPI.CreateModuleAsync(
+            await m_CloudCodeAsyncApi.CreateModuleAsync(
                 projectId,
                 environmentId,
                 moduleName,
@@ -212,7 +209,7 @@ class CloudCodeService : ICloudCodeService
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentId, environmentId);
 
-        return await m_CloudCodeAsyncAPI.GetModuleAsync(projectId, environmentId, moduleName, cancellationToken: cancellationToken);
+        return await m_CloudCodeAsyncApi.GetModuleAsync(projectId, environmentId, moduleName, cancellationToken: cancellationToken);
     }
 
     /// <inheritdoc cref="ICloudCodeService.DeleteModuleAsync" />
@@ -226,7 +223,7 @@ class CloudCodeService : ICloudCodeService
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentId, environmentId);
 
-        await m_CloudCodeAsyncAPI.DeleteModuleAsync(projectId, environmentId, moduleName, 0, cancellationToken: cancellationToken);
+        await m_CloudCodeAsyncApi.DeleteModuleAsync(projectId, environmentId, moduleName, cancellationToken: cancellationToken);
     }
 
     public async Task<IEnumerable<ListModulesResponseResultsInner>> ListModulesAsync(string projectId, string environmentId,
@@ -240,7 +237,7 @@ class CloudCodeService : ICloudCodeService
         var pageToken = "";
         do
         {
-            var response = await m_CloudCodeAsyncAPI.ListModulesAsync(projectId, environmentId, after: pageToken, cancellationToken: cancellationToken);
+            var response = await m_CloudCodeAsyncApi.ListModulesAsync(projectId, environmentId, after: pageToken, cancellationToken: cancellationToken);
             results.AddRange(response.Results.ToList());
 
             pageToken = response.NextPageToken;
@@ -250,22 +247,10 @@ class CloudCodeService : ICloudCodeService
         return results;
     }
 
-    public async Task<List<ScriptParameter>> GetScriptParameters(string code, CancellationToken cancellationToken)
-    {
-        var parameterInJson = await m_CloudCodeScriptParser.ParseToScriptParamsJsonAsync(code, cancellationToken);
-        var parameters = new List<ScriptParameter>();
-        if (parameterInJson is not null)
-        {
-            parameters = m_CloudScriptParametersParser.ParseToScriptParameters(parameterInJson);
-        }
-
-        return parameters;
-    }
-
     internal async Task AuthorizeService(CancellationToken cancellationToken = default)
     {
         var token = await m_AuthenticationService.GetAccessTokenAsync(cancellationToken);
-        m_CloudCodeAsyncAPI.Configuration.DefaultHeaders.SetAccessTokenHeader(token);
+        m_CloudCodeAsyncApi.Configuration.DefaultHeaders.SetAccessTokenHeader(token);
     }
 
     static void ThrowIfScriptNameInvalid(string? scriptName)
@@ -273,7 +258,7 @@ class CloudCodeService : ICloudCodeService
         if (!RegexWithTimeout(scriptName, "^[a-zA-Z0-9-_]+$"))
         {
             throw new CliException($"{scriptName} is not a valid script name. A valid script name must" +
-                " only contain letters, numbers, underscores and dashes.", ExitCode.HandledError);
+                                   " only contain letters, numbers, underscores and dashes.", ExitCode.HandledError);
         }
     }
 
@@ -282,7 +267,7 @@ class CloudCodeService : ICloudCodeService
         if (!RegexWithTimeout(moduleName, "^[a-zA-Z0-9_]+$"))
         {
             throw new CliException($"{moduleName} is not a valid module name. A valid module name must" +
-                " only contain letters, numbers and underscores.", ExitCode.HandledError);
+                                   " only contain letters, numbers and underscores.", ExitCode.HandledError);
         }
     }
 
@@ -301,5 +286,20 @@ class CloudCodeService : ICloudCodeService
             return false;
         }
         return true;
+    }
+
+    static void ThrowIfFileInvalid(Stream stream)
+    {
+        if (stream == null || stream.Length == 0)
+        {
+            throw new CliException("Module could not be updated because the file provided is null or empty.",
+                ExitCode.HandledError);
+        }
+
+        if (stream.Length > 1024 * 1024 * k_MaxFileSizeLimitInMB)
+        {
+            throw new CliException($"Module could not be updated because the file provided is over the size limit of {k_MaxFileSizeLimitInMB}MB.",
+                ExitCode.HandledError);
+        }
     }
 }

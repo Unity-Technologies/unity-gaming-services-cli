@@ -1,10 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using NUnit.Framework;
-using Unity.Services.Cli.Common.Validator;
+using Unity.Services.Cli.Common.Networking;
+using Unity.Services.Cli.MockServer;
+using Unity.Services.Cli.MockServer.Common;
 
 namespace Unity.Services.Cli.IntegrationTest;
 
@@ -26,13 +25,27 @@ public abstract class UgsCliFixture
     /// <summary>
     /// Returns the path to the configuration file used by the config module
     /// </summary>
-    protected string? ConfigurationFile { get; private set; }
+    protected string ConfigurationFile => m_IntegrationConfig.ConfigurationFile;
 
     /// <summary>
     /// Returns the path to the configuration file used by the auth module
     /// </summary>
-    protected string? CredentialsFile { get; private set; }
+    protected string CredentialsFile => m_IntegrationConfig.CredentialsFile;
 
+    protected readonly MockApi m_MockApi = new (NetworkTargetEndpoints.MockServer);
+
+    readonly IntegrationConfig m_IntegrationConfig = new ();
+
+    [OneTimeTearDown]
+    public void DisposeMockServer()
+    {
+        m_MockApi.Server?.Dispose();
+    }
+    [OneTimeTearDown]
+    public void DisposeIntegrationConfig()
+    {
+        m_IntegrationConfig.Dispose();
+    }
 
     [OneTimeSetUp]
     public async Task BuildCliIfNeeded()
@@ -45,67 +58,12 @@ public abstract class UgsCliFixture
         }
     }
 
-    [OneTimeSetUp]
-    public void SetupLocalConfigFiles()
+    protected void SetConfigValue(string key, string value)
     {
-        var configDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UnityServices");
-        Directory.CreateDirectory(configDir);
-
-        ConfigurationFile = Path.Combine(configDir, "Config.json");
-        CredentialsFile = Path.Combine(configDir, "credentials");
-
-        BackUpFile(ConfigurationFile);
-        BackUpFile(CredentialsFile);
+        m_IntegrationConfig.SetConfigValue(key, value);
     }
 
-    [OneTimeTearDown]
-    public void RestoreLocalConfigFiles()
-    {
-        RestoreFile(ConfigurationFile!);
-        RestoreFile(CredentialsFile!);
-    }
-
-    void BackUpFile(string originalPath)
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(originalPath)!);
-
-        if (File.Exists(originalPath))
-        {
-            File.Move(originalPath, GetBackUpConfigFile(originalPath), true);
-        }
-    }
-
-    void RestoreFile(string originalPath)
-    {
-        if (File.Exists(originalPath))
-        {
-            File.Delete(originalPath);
-        }
-
-        var backUpPath = GetBackUpConfigFile(originalPath);
-        if (File.Exists(backUpPath))
-        {
-            File.Move(backUpPath, originalPath, true);
-        }
-    }
-
-    public void SetConfigValue(string key, string value)
-    {
-        var validator = new ConfigurationValidator();
-        validator.ThrowExceptionIfConfigInvalid(key, value);
-
-        var config = new Dictionary<string, string>();
-        if (File.Exists(ConfigurationFile))
-        {
-            var content = File.ReadAllText(ConfigurationFile);
-            config = JsonConvert.DeserializeObject<Dictionary<string, string>>(content) ?? config;
-        }
-
-        config[key] = value;
-        File.WriteAllText(ConfigurationFile!, JsonConvert.SerializeObject(config, Formatting.Indented));
-    }
-
-    public void DeleteLocalConfig()
+    protected void DeleteLocalConfig()
     {
         if (File.Exists(ConfigurationFile))
         {
@@ -113,7 +71,7 @@ public abstract class UgsCliFixture
         }
     }
 
-    public void DeleteLocalCredentials()
+    protected void DeleteLocalCredentials()
     {
         if (File.Exists(CredentialsFile))
         {
@@ -121,13 +79,11 @@ public abstract class UgsCliFixture
         }
     }
 
-    public void SetupProjectAndEnvironment()
+    protected void SetupProjectAndEnvironment()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
     }
-
-    string GetBackUpConfigFile(string original) => original + $".{GetType()}.back";
 
     protected static UgsCliTestCase GetLoggedInCli()
     {

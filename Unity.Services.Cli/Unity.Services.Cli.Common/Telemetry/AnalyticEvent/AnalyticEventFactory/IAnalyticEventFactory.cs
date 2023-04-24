@@ -6,5 +6,6 @@ public interface IAnalyticEventFactory
 {
     string ProjectId { get; set; }
 
-    IAnalyticEvent CreateEvent();
+    IAnalyticEvent CreateMetricEvent();
+    IAnalyticEvent CreateDiagnosticEvent();
 }

@@ -12,5 +12,5 @@ class Config
     public string? Version { get; set; }
     public string? CreatedAt { get; set; }
     public string? UpdatedAt { get; set; }
-    public List<RemoteConfigEntry>? Value { get; set; }
+    public List<RemoteConfigEntryDTO>? Value { get; set; }
 }

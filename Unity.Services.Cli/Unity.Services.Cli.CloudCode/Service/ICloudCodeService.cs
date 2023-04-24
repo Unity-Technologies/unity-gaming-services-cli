@@ -1,4 +1,3 @@
-using Unity.Services.Cli.Common;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
 using Language = Unity.Services.Gateway.CloudCodeApiV1.Generated.Model.Language;
 
@@ -59,10 +58,12 @@ public interface ICloudCodeService
     /// <param name="scriptType">type of script to create</param>
     /// <param name="scriptLanguage">scripting language of script to create</param>
     /// <param name="code">code to upload to the script</param>
+    /// <param name="scriptParameters">script parameters to upload</param>
     /// <param name="cancellationToken">token to cancel the task</param>
     /// <returns></returns>
-    public Task CreateAsync(string projectId, string environmentId, string? scriptName, ScriptType scriptType,
-        Language scriptLanguage, string? code, CancellationToken cancellationToken);
+    public Task CreateAsync(string projectId, string environmentId, string? scriptName,
+        ScriptType scriptType, Language scriptLanguage, string? code,
+        IReadOnlyList<ScriptParameter> scriptParameters, CancellationToken cancellationToken);
 
     /// <summary>
     /// Update an already existing Cloud Code script
@@ -71,10 +72,11 @@ public interface ICloudCodeService
     /// <param name="environmentId">unique id of a unity environment</param>
     /// <param name="scriptName">name of script to update</param>
     /// <param name="code">new code to upload to the script</param>
+    /// <param name="scriptParameters">script parameters to upload</param>
     /// <param name="cancellationToken">token to cancel the task</param>
     /// <returns></returns>
     public Task UpdateAsync(string projectId, string environmentId, string? scriptName, string? code,
-        CancellationToken cancellationToken);
+        IReadOnlyList<ScriptParameter> scriptParameters, CancellationToken cancellationToken);
 
     /// <summary>
     /// Update a Cloud Code module
@@ -109,7 +111,7 @@ public interface ICloudCodeService
     public Task DeleteModuleAsync(string projectId, string environmentId, string? moduleName,
         CancellationToken cancellationToken = default);
 
-    // <summary>
+    /// <summary>
     /// List a projects Cloud Code Modules
     /// </summary>
     /// <param name="projectId">unique id of a unity project</param>
@@ -118,6 +120,4 @@ public interface ICloudCodeService
     /// <returns></returns>
     public Task<IEnumerable<ListModulesResponseResultsInner>> ListModulesAsync(string projectId, string environmentId,
         CancellationToken cancellationToken = default);
-
-    public Task<List<ScriptParameter>> GetScriptParameters(string code, CancellationToken cancellationToken);
 }

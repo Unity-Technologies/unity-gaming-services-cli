@@ -2,6 +2,8 @@ using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Service;
+using Unity.Services.Cli.CloudCode.Authoring;
+using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
@@ -11,65 +13,67 @@ namespace Unity.Services.Cli.CloudCode.Deploy;
 
 class CloudCodeScriptDeploymentService : IDeploymentService
 {
-    readonly ICloudCodeInputParser m_CloudCodeInputParser;
-    readonly ICloudCodeService m_CloudCodeService;
-    readonly ICliDeploymentOutputHandler m_CliDeploymentOutputHandler;
-    readonly ICloudCodeScriptsLoader m_CloudCodeScriptsLoader;
-    readonly ICliEnvironmentProvider m_EnvironmentProvider;
-    readonly ICliCloudCodeClient m_CliCloudCodeClient;
-    readonly ICloudCodeDeploymentHandler m_CloudCodeDeploymentHandler;
-    string m_ServiceType;
+    internal ICloudCodeInputParser CloudCodeInputParser { get; }
+    internal ICloudCodeScriptParser CloudCodeScriptParser { get; }
+    internal ICliDeploymentOutputHandler CliDeploymentOutputHandler { get; }
+    internal ICloudCodeScriptsLoader CloudCodeScriptsLoader { get; }
+    internal ICliEnvironmentProvider EnvironmentProvider { get; }
+    internal IJavaScriptClient CliCloudCodeClient { get; }
+    internal ICloudCodeDeploymentHandler CloudCodeDeploymentHandler { get; }
+
+    readonly string m_ServiceType;
 
     public CloudCodeScriptDeploymentService(
-        ICloudCodeServicesWrapper servicesWrapper
-    )
+        ICloudCodeInputParser cloudCodeInputParser,
+        ICloudCodeScriptParser cloudCodeScriptParser,
+        IDeploymentHandlerWithOutput deployHandlerWithOutput,
+        ICloudCodeScriptsLoader cloudCodeScriptsLoader,
+        ICliEnvironmentProvider cliEnvironmentProvider,
+        IJavaScriptClient cliCloudCodeClient)
     {
-        m_CloudCodeInputParser = servicesWrapper.CloudCodeInputParser;
-        m_CloudCodeService = servicesWrapper.CloudCodeService;
-        m_CliDeploymentOutputHandler = servicesWrapper.CliDeploymentOutputHandler;
-        m_CloudCodeScriptsLoader = servicesWrapper.CloudCodeScriptsLoader;
-        m_EnvironmentProvider = servicesWrapper.EnvironmentProvider;
-        m_CliCloudCodeClient = servicesWrapper.CliCloudCodeClient;
-        m_CloudCodeDeploymentHandler = servicesWrapper.CloudCodeDeploymentHandler;
+        CloudCodeInputParser = cloudCodeInputParser;
+        CloudCodeScriptParser = cloudCodeScriptParser;
+        CliDeploymentOutputHandler = deployHandlerWithOutput;
+        CloudCodeScriptsLoader = cloudCodeScriptsLoader;
+        EnvironmentProvider = cliEnvironmentProvider;
+        CliCloudCodeClient = cliCloudCodeClient;
+        CloudCodeDeploymentHandler = deployHandlerWithOutput;
 
-        m_ServiceType = "Cloud Code";
-        DeployFileExtension = ".js";
+        m_ServiceType = Constants.ServiceType;
+        DeployFileExtension = Constants.JavaScriptFileExtension;
     }
 
     string IDeploymentService.ServiceType => m_ServiceType;
     public string DeployFileExtension { get; }
 
     public async Task<DeploymentResult> Deploy(
-        DeployInput input,
+        DeployInput deployInput,
         IReadOnlyList<string> filePaths,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,
         CancellationToken cancellationToken)
     {
-        m_CliCloudCodeClient.Initialize(environmentId, projectId, cancellationToken);
-        m_EnvironmentProvider.Current = environmentId;
+        CliCloudCodeClient.Initialize(environmentId, projectId, cancellationToken);
+        EnvironmentProvider.Current = environmentId;
 
         loadingContext?.Status($"Reading {m_ServiceType} Scripts...");
 
-        var scriptList = await m_CloudCodeScriptsLoader.LoadScriptsAsync(
+        var loadResult = await CloudCodeScriptsLoader.LoadScriptsAsync(
             filePaths,
             m_ServiceType,
             DeployFileExtension,
-            m_CloudCodeInputParser,
-            m_CloudCodeService,
-            m_CliDeploymentOutputHandler.Contents,
+            CloudCodeInputParser,
+            CloudCodeScriptParser,
+            CliDeploymentOutputHandler.Contents,
             cancellationToken);
 
         loadingContext?.Status($"Deploying {m_ServiceType} Scripts...");
 
-        var dryrun = input.DryRun;
-        var reconcile = input.Reconcile;
         DeployResult result = null!;
-
         try
         {
-            result = await m_CloudCodeDeploymentHandler.DeployAsync(scriptList, reconcile, dryrun);
+            result = await CloudCodeDeploymentHandler.DeployAsync(loadResult.LoadedScripts, deployInput.Reconcile, deployInput.DryRun);
         }
         catch (ApiException)
         {
@@ -83,9 +87,9 @@ class CloudCodeScriptDeploymentService : IDeploymentService
             result = ex.Result;
         }
 
-        if (result == null || scriptList == null)
+        if (result == null)
         {
-            return new DeploymentResult(m_CliDeploymentOutputHandler.Contents.ToList());
+            return new DeploymentResult(CliDeploymentOutputHandler.Contents.ToList());
         }
 
         return new DeploymentResult(
@@ -93,8 +97,8 @@ class CloudCodeScriptDeploymentService : IDeploymentService
             ToDeployContents(result.Updated),
             ToDeleteContents(result.Deleted),
             ToDeployContents(result.Deployed),
-            ToDeployContents(result.Failed),
-            dryrun
+            ToDeployContents(result.Failed).Concat(loadResult.FailedContents).ToList(),
+            deployInput.DryRun
         );
     }
 
@@ -104,7 +108,7 @@ class CloudCodeScriptDeploymentService : IDeploymentService
 
         foreach (var script in scripts)
         {
-            contents.AddRange(m_CliDeploymentOutputHandler.Contents.Where(deployContent => script.Path == deployContent.Path));
+            contents.AddRange(CliDeploymentOutputHandler.Contents.Where(deployContent => script.Path == deployContent.Path));
         }
 
         return contents;

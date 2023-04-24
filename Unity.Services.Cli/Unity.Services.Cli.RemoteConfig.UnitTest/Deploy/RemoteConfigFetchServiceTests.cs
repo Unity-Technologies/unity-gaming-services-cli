@@ -77,14 +77,42 @@ public class RemoteConfigFetchServiceTests
         m_RemoteConfigFiles = new List<IRemoteConfigFile>(k_ValidFilePaths.Count);
         foreach (var filePath in k_ValidFilePaths)
         {
-            var rcFile = new RemoteConfigFile(filePath, filePath, new RemoteConfigFileContent());
+            var rcFile = new RemoteConfigFile(filePath, filePath);
             m_RemoteConfigFiles.Add(rcFile);
         }
 
+        var created = new List<RemoteConfigEntry>()
+        {
+            new RemoteConfigEntry()
+            {
+                File = new RemoteConfigFile("created file", "created_file"),
+                Key = "created key",
+                Value = null
+            }
+        };
+        var updated = new List<RemoteConfigEntry>()
+        {
+            new RemoteConfigEntry()
+            {
+                File = new RemoteConfigFile("updated file", "updated_file"),
+                Key = "updated key",
+                Value = null
+            }
+        };
+        var deleted = new List<RemoteConfigEntry>()
+        {
+            new RemoteConfigEntry()
+            {
+                File = new RemoteConfigFile("deleted file", "deleted_file"),
+                Key = "deleted key",
+                Value = null
+            }
+        };
+
         m_Result = new FetchResult(
-            Array.Empty<(string,string)>(),
-            new [] {("updated key", "updated file")},
-            new [] {("deleted key", "deleted file")},
+            created,
+            updated,
+            deleted,
             m_RemoteConfigFiles,
             Array.Empty<IRemoteConfigFile>()
         );
@@ -115,7 +143,7 @@ public class RemoteConfigFetchServiceTests
         {
             Assert.That(res.Result.Deleted, Has.Count.EqualTo(1));
             Assert.That(res.Result.Updated, Has.Count.EqualTo(1));
-            Assert.That(res.Result.Created, Is.Empty);
+            Assert.That(res.Result.Created, Has.Count.EqualTo(1));
         });
     }
 
@@ -130,18 +158,23 @@ public class RemoteConfigFetchServiceTests
         var deletedKeyStr = string.Format(
             m_RemoteConfigDeploymentService.m_KeyFileMessageFormat,
             m_Result.Deleted[0].Key,
-            m_Result.Deleted[0].File);
+            m_Result.Deleted[0].File.Path);
 
         var updatedKeyStr = string.Format(
             m_RemoteConfigDeploymentService.m_KeyFileMessageFormat,
             m_Result.Updated[0].Key,
-            m_Result.Updated[0].File);
+            m_Result.Updated[0].File.Path);
 
+        var createddKeyStr = string.Format(
+            m_RemoteConfigDeploymentService.m_KeyFileMessageFormat,
+            m_Result.Created[0].Key,
+            m_Result.Created[0].File.Path);
 
         Assert.Multiple(() =>
         {
             Assert.That(res.Result.Deleted[0], Is.EqualTo(deletedKeyStr));
             Assert.That(res.Result.Updated[0], Is.EqualTo(updatedKeyStr));
+            Assert.That(res.Result.Created[0], Is.EqualTo(createddKeyStr));
         });
     }
 }
