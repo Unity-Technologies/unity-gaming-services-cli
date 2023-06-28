@@ -5,8 +5,8 @@ using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.CloudCode.Deploy;
 using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.CloudCode.Service;
+using Unity.Services.Cli.CloudCode.Utils;
 using Unity.Services.Cli.Common.Utils;
-using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 
 namespace Unity.Services.Cli.CloudCode.Authoring;
 
@@ -44,9 +44,10 @@ class JavaScriptFetchService : IFetchService
         m_FetchHandler = fetchHandler;
     }
 
-    public string ServiceType => Constants.ServiceType;
+    public string ServiceType => CloudCodeConstants.ServiceType;
+    public string ServiceName => CloudCodeConstants.ServiceName;
 
-    string IFetchService.FileExtension => Constants.JavaScriptFileExtension;
+    string IFetchService.FileExtension => CloudCodeConstants.JavaScriptFileExtension;
 
     public async Task<FetchResult> FetchAsync(
         FetchInput input, StatusContext? loadingContext, CancellationToken cancellationToken)
@@ -76,16 +77,15 @@ class JavaScriptFetchService : IFetchService
             {
                 input.Path
             },
-            Constants.JavaScriptFileExtension);
-        var contents = new List<DeployContent>();
+            CloudCodeConstants.JavaScriptFileExtension);
+
         var loadResult = await m_ScriptsLoader
             .LoadScriptsAsync(
                 files,
                 ServiceType,
-                Constants.JavaScriptFileExtension,
+                CloudCodeConstants.JavaScriptFileExtension,
                 m_InputParser,
                 m_ScriptParser,
-                contents,
                 cancellationToken);
         return loadResult;
     }

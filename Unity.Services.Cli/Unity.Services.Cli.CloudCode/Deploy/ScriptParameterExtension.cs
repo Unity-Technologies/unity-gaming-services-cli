@@ -3,7 +3,7 @@ using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
 
 namespace Unity.Services.Cli.CloudCode.Deploy;
 
-internal static class ScriptParameterExtension
+static class ScriptParameterExtension
 {
     public static CloudCodeParameter ToCloudCodeParameter(this ScriptParameter scriptParameter)
     {

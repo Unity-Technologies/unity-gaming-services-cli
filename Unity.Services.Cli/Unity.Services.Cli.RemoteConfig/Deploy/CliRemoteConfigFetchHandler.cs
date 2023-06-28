@@ -2,7 +2,7 @@ using Unity.Services.RemoteConfig.Editor.Authoring.Core.Fetch;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.IO;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Json;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
-using Unity.Services.RemoteConfig.Editor.Authoring.Core.Networking;
+using Unity.Services.RemoteConfig.Editor.Authoring.Core.Service;
 
 namespace Unity.Services.Cli.RemoteConfig.Deploy;
 

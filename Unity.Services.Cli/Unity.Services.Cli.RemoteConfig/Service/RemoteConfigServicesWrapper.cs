@@ -10,24 +10,16 @@ class RemoteConfigServicesWrapper : IRemoteConfigServicesWrapper
     public ICliRemoteConfigClient RemoteConfigClient { get; }
     public IRemoteConfigService RemoteConfigService { get; }
 
-    public IDeployFileService DeployFileService { get; }
-
-    public ICliDeploymentOutputHandler DeploymentOutputHandler { get; }
-
     public IRemoteConfigScriptsLoader RemoteConfigScriptsLoader { get; }
 
     public RemoteConfigServicesWrapper(
         IRemoteConfigDeploymentHandler deploymentHandler,
         ICliRemoteConfigClient remoteConfigClient,
-        ICliDeploymentOutputHandler deploymentOutputHandler,
-        IDeployFileService deployFileService,
         IRemoteConfigService remoteConfigService,
         IRemoteConfigScriptsLoader remoteConfigScriptsLoader)
     {
         DeploymentHandler = deploymentHandler;
         RemoteConfigClient = remoteConfigClient;
-        DeploymentOutputHandler = deploymentOutputHandler;
-        DeployFileService = deployFileService;
         RemoteConfigService = remoteConfigService;
         RemoteConfigScriptsLoader = remoteConfigScriptsLoader;
     }

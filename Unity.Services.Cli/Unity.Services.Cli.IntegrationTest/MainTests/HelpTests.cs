@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
+using Unity.Services.Cli.IntegrationTest.Common;
 
 namespace Unity.Services.Cli.IntegrationTest;
 

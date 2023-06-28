@@ -1,14 +1,13 @@
 using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
-using Spectre.Console.Rendering;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.RemoteConfig.Deploy;
 using Unity.Services.Cli.RemoteConfig.Model;
 using Unity.Services.Cli.RemoteConfig.Service;
 using Unity.Services.Cli.RemoteConfig.Types;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
-using Unity.Services.RemoteConfig.Editor.Authoring.Core.Networking;
+using Unity.Services.RemoteConfig.Editor.Authoring.Core.Service;
 
 namespace Unity.Services.Cli.RemoteConfig.UnitTest.Deploy;
 
@@ -21,7 +20,7 @@ class RemoteConfigClientTests
 
     static readonly Array k_ValueTypeCases = Enum.GetValues(typeof(Types.ValueType));
 
-    readonly Mock<IRemoteConfigService> m_MockRemoteConfigService = new ();
+    readonly Mock<IRemoteConfigService> m_MockRemoteConfigService = new();
     readonly GetResponse m_ResponseWithConfig = new();
 
     RemoteConfigClient? m_RemoteConfigClient;
@@ -159,7 +158,7 @@ class RemoteConfigClientTests
                     {'key':'k','type':'int','value':1}
                 ],
             'id':'',
-            'version':'8',
+            'version':'',
             'createdAt':'2022-10-26T17:57:32Z',
             'updatedAt':'2023-04-20T18:14:22Z'}]
         }";
@@ -189,7 +188,7 @@ class RemoteConfigClientTests
                     {'key':'k','type':'float','value':1}
                 ],
             'id':'',
-            'version':'8',
+            'version':'',
             'createdAt':'2022-10-26T17:57:32Z',
             'updatedAt':'2023-04-20T18:14:22Z'}]
         }";
@@ -206,6 +205,38 @@ class RemoteConfigClientTests
         Assert.That(result.Configs, Has.Count.EqualTo(1));
         Assert.That(result.Configs[0].Value.GetType(), Is.EqualTo(typeof(double)));
     }
+
+
+    [Test]
+    public async Task GetsInnerJsonValue()
+    {
+        var servStr = @"{
+            'configs':[ {
+                'projectId':'',
+                'environmentId':'',
+                'type':'settings',
+                'value':[
+                {'key':'k','type':'json','value':{ 'a':'b' }}
+                ],
+                'id':'',
+                'version':'',
+                'createdAt':'2022-10-26T17:57:32Z',
+                'updatedAt':'2023-04-20T18:14:22Z'}]
+        }";
+
+        m_MockRemoteConfigService
+            .Setup(rc =>
+                rc.GetAllConfigsFromEnvironmentAsync(
+                    k_TestProjectId,
+                    k_TestEnvironmentId,
+                    RemoteConfigClient.k_ConfigType,
+                    CancellationToken.None))
+            .ReturnsAsync(servStr);
+        var result = await m_RemoteConfigClient!.GetAsync();
+        Assert.That(result.Configs, Has.Count.EqualTo(1));
+        Assert.That(result.Configs[0].Value.GetType(), Is.EqualTo(typeof(Newtonsoft.Json.Linq.JObject)));
+    }
+
 
     [Test]
     public async Task UpdateAsyncSucceed()

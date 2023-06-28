@@ -24,12 +24,12 @@ public class DeployModule : ICommandModule
     {
         ModuleRootCommand = new Command(
             "deploy",
-            $"Deploy configuration files of supported services to the backend.{Environment.NewLine}"
-            + "Services currently supported are: remote-config, cloud-code.")
+            $"Deploy configuration files of supported services to the backend.")
         {
             DeployInput.PathsArgument,
             DeployInput.ReconcileOption,
             DeployInput.DryRunOption,
+            DeployInput.ServiceOptions,
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption
         };

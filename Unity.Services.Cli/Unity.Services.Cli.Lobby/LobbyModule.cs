@@ -2,11 +2,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.CommandLine;
+using Unity.Services.Cli.Authoring.Compression;
+using Unity.Services.Cli.Authoring.Export.Input;
+using Unity.Services.Cli.Authoring.Import.Input;
 using Unity.Services.Cli.Common;
+using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Common.Validator;
 using Unity.Services.Cli.Lobby.Handlers;
+using Unity.Services.Cli.Lobby.Handlers.ImportExport;
 using Unity.Services.Cli.Lobby.Input;
 using Unity.Services.Cli.Lobby.Service;
 using Unity.Services.Cli.RemoteConfig.Service;
@@ -186,11 +191,42 @@ public class LobbyModule : ICommandModule
             configUpdateCommand,
         };
 
+        var importCommand = new Command("import", "Import lobby configuration into an environment.")
+        {
+            ImportInput.InputDirectoryArgument,
+            ImportInput.FileNameArgument,
+            CommonInput.CloudProjectIdOption,
+            CommonInput.EnvironmentNameOption,
+            ImportInput.DryRunOption,
+            ImportInput.ReconcileOption,
+        };
+        importCommand.SetHandler<
+            ImportInput,
+            LobbyImporter,
+            ILoadingIndicator,
+            CancellationToken>(
+            ImportHandler.ImportAsync);
+
+        var exportCommand = new Command("export", "Export lobby configuration from an environment.")
+        {
+            ExportInput.OutputDirectoryArgument,
+            ExportInput.FileNameArgument,
+            CommonInput.CloudProjectIdOption,
+            CommonInput.EnvironmentNameOption,
+            ExportInput.DryRunOption,
+        };
+        exportCommand.SetHandler<
+            ExportInput,
+            LobbyExporter,
+            ILoadingIndicator,
+            CancellationToken>(ExportHandler.ExportAsync);
+
+
+
         /* Root Command */
         ModuleRootCommand = new("lobby", "Interact with the Lobby service.")
         {
             bulkUpdateLobbyCommand,
-            configCommand,
             createLobbyCommand,
             deleteLobbyCommand,
             getHostedLobbiesCommand,
@@ -204,6 +240,9 @@ public class LobbyModule : ICommandModule
             reconnectCommand,
             requestTokenCommand,
             updateLobbyCommand,
+            configCommand,
+            importCommand,
+            exportCommand,
         };
     }
 
@@ -216,5 +255,7 @@ public class LobbyModule : ICommandModule
         var authenticationService = serviceProvider.GetRequiredService<IServiceAccountAuthenticationService>();
         var validator = new ConfigurationValidator();
         serviceCollection.AddSingleton<ILobbyService>(new LobbyService(validator, authenticationService, null, null));
+        serviceCollection.AddTransient<LobbyImporter, LobbyImporter>();
+        serviceCollection.AddTransient<LobbyExporter, LobbyExporter>();
     }
 }

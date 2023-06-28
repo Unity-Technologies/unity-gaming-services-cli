@@ -73,7 +73,7 @@ public class LeaderboardsService : ILeaderboardsService
         await AuthorizeServiceAsync(cancellationToken);
         ValidateProjectIdAndEnvironmentId(projectId, environmentId);
 
-        var updateRequest = DeserializeBody<LeaderboardConfig>(body);
+        var updateRequest = DeserializeBody<LeaderboardPatchConfig>(body);
         var response = await m_LeaderboardsApiAsync.UpdateLeaderboardConfigWithHttpInfoAsync(
             Guid.Parse(projectId),
             Guid.Parse(environmentId),

@@ -10,11 +10,11 @@ using Unity.Services.Cli.TestUtils;
 
 namespace Unity.Services.Cli.Lobby.UnitTest.Handlers
 {
-    internal class GetJoinedLobbiesHandlerTests
+    class GetJoinedLobbiesHandlerTests
     {
         Mock<ILogger> m_MockLogger = new();
         Mock<ILobbyService> m_MockLobby = new();
-        private Mock<IUnityEnvironment> m_MockUnityEnvironment = new();
+        Mock<IUnityEnvironment> m_MockUnityEnvironment = new();
 
         [SetUp]
         public void SetUp()

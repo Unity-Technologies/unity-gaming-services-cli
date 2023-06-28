@@ -11,11 +11,11 @@ using Unity.Services.Cli.TestUtils;
 
 namespace Unity.Services.Cli.Lobby.UnitTest.Handlers
 {
-    internal class ConfigGetHandlerTests
+    class ConfigGetHandlerTests
     {
         Mock<ILogger> m_MockLogger = new();
         Mock<IRemoteConfigService> m_MockRemoteConfig = new();
-        private Mock<IUnityEnvironment> m_MockUnityEnvironment = new();
+        Mock<IUnityEnvironment> m_MockUnityEnvironment = new();
 
         [SetUp]
         public void SetUp()

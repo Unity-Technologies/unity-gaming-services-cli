@@ -2,6 +2,8 @@ using System.Net;
 using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Cli.MockServer.ServiceMocks.RemoteConfig;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
+using Unity.Services.Gateway.EconomyApiV2.Generated.Model;
+
 using WireMock.Admin.Mappings;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
@@ -42,9 +44,9 @@ public class CloudCodeFetchMock : IServiceApiMock
         };
     public async Task<IReadOnlyList<MappingModel>> CreateMappingModels()
     {
-        var script1Models= await GetScriptModels("remoteScript1");
-        var script2Models= await GetScriptModels("remoteScript2");
-        var script3Models= await GetScriptModels("remoteScript3");
+        var script1Models = await GetScriptModels("remoteScript1");
+        var script2Models = await GetScriptModels("remoteScript2");
+        var script3Models = await GetScriptModels("remoteScript3");
         return script1Models.Concat(script2Models).Concat(script3Models).ToArray();
     }
 
@@ -52,21 +54,43 @@ public class CloudCodeFetchMock : IServiceApiMock
     {
         MockListScript(mockServer);
         MockListRemoteConfigEmpty(mockServer);
+        MockListEconomyResourceEmpty(mockServer);
     }
 
-    void MockListRemoteConfigEmpty(WireMockServer mockServer)
+    static void MockListEconomyResourceEmpty(WireMockServer mockServer)
+    {
+        var publishedResourcesResponse = new GetPublishedResourcesResponse(new List<GetResourcesResponseResultsInner>());
+        mockServer.Given(Request.Create().WithPath($"*/economy/v2/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/configs/published/resources").UsingGet())
+            .RespondWith(Response.Create().WithHeaders(new Dictionary<string, string>
+            {
+                {
+                    "Content-Type", "application/json"
+                }
+            }).WithBodyAsJson(publishedResourcesResponse).WithStatusCode(HttpStatusCode.OK));
+
+        var resourcesResponse = new GetResourcesResponse(new List<GetResourcesResponseResultsInner>());
+        mockServer.Given(Request.Create().WithPath($"*/economy/v2/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/configs/draft/resources").UsingGet())
+            .RespondWith(Response.Create().WithHeaders(new Dictionary<string, string>
+            {
+                {
+                    "Content-Type", "application/json"
+                }
+            }).WithBodyAsJson(resourcesResponse).WithStatusCode(HttpStatusCode.OK));
+    }
+
+    static void MockListRemoteConfigEmpty(WireMockServer mockServer)
     {
         mockServer.Given(Request.Create().WithPath($"*/remote-config/v1/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/configs").UsingGet())
             .RespondWith(Response.Create()
-                .WithHeaders(new Dictionary<string, string> {{"Content-Type","application/json"}})
+                .WithHeaders(new Dictionary<string, string> { { "Content-Type", "application/json" } })
                 .WithBodyAsJson(new GetResponse
                 {
-                    Configs = new List<Config> ()
+                    Configs = new List<Config>()
                 })
                 .WithStatusCode(HttpStatusCode.OK));
     }
 
-    void MockListScript(WireMockServer mockServer)
+    static void MockListScript(WireMockServer mockServer)
     {
         var response = new ListScriptsResponse(
             RemoteScripts,
@@ -82,7 +106,7 @@ public class CloudCodeFetchMock : IServiceApiMock
             }).WithBodyAsJson(response).WithStatusCode(HttpStatusCode.OK));
     }
 
-    async Task<IEnumerable<MappingModel>> GetScriptModels(string validScriptName)
+    static async Task<IEnumerable<MappingModel>> GetScriptModels(string validScriptName)
     {
         var models = await MappingModelUtils.ParseMappingModelsFromGeneratorConfigAsync(k_CloudCodeV1Config, new());
         return models.Select(

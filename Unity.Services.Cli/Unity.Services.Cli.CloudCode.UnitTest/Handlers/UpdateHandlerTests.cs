@@ -8,6 +8,7 @@ using NUnit.Framework;
 using Spectre.Console;
 using Unity.Services.Cli.CloudCode.Handlers;
 using Unity.Services.Cli.CloudCode.Input;
+using Unity.Services.Cli.CloudCode.Model;
 using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.Cli.CloudCode.UnitTest.Utils;
@@ -65,7 +66,7 @@ class UpdateHandlerTests
         m_MockInputParseService.Setup(x => x.LoadScriptCodeAsync(input, CancellationToken.None))
             .ReturnsAsync(TestValues.ValidCode);
         m_MockCloudCodeScriptParser.Setup(x => x.ParseScriptParametersAsync(TestValues.ValidCode, CancellationToken.None))
-            .ReturnsAsync(k_Parameters);
+            .ReturnsAsync(new ParseScriptParametersResult(false, k_Parameters));
         m_MockInputParseService.SetupGet(x => x.CloudCodeScriptParser)
             .Returns(m_MockCloudCodeScriptParser.Object);
 

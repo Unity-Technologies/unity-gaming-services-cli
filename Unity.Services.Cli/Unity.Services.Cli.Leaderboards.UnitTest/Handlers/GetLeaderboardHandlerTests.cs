@@ -43,7 +43,7 @@ class GetLeaderboardHandlerTests
                     updateType: UpdateType.Aggregate,
                     bucketSize: Decimal.One,
                     resetConfig: new ResetConfig(),
-                    tieringConfig: new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>()),
+                    tieringConfig: new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
                     updated: DateTime.Today,
                     created: DateTime.Now,
                     lastReset: DateTime.Today,

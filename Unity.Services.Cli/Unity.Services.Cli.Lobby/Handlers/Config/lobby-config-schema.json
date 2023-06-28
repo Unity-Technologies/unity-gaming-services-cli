@@ -1,0 +1,45 @@
+{
+  "title": "Lobby Project Config",
+  "$id": "resource:/lobby",
+  "description": "The schema for a Lobby project's configuration.",
+  "type": "object",
+  "properties": {
+    "activeLifespanSeconds": {
+      "type": "integer",
+      "minimum": 10,
+      "maximum": 3600,
+      "description":
+        "The minimum amount of time, in seconds, that must pass before a lobby is considered inactive."
+    },
+    "disconnectRemovalTimeSeconds": {
+      "type": "integer",
+      "minimum": 10,
+      "maximum": 3600,
+      "description":
+        "The minimum amount of time, in seconds, that must pass before a disconnected player is removed from the lobby."
+    },
+    "playerSlots": {
+      "type": "object",
+      "properties": {
+        "minimum": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "maximum": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "required": ["minimum", "maximum"],
+      "description": "The minimum and maximum allowed values for a lobby's \"MaxPlayers\" property."
+    },
+    "socialProfilesEnabled": {
+      "type": "boolean",
+      "description": "Whether or not to inject profiles from Social Profile data in lobby responses.",
+      "default": false
+    }
+  },
+  "required": ["activeLifespanSeconds", "disconnectRemovalTimeSeconds", "playerSlots"]
+}

@@ -8,6 +8,7 @@ using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Common.Models;
 using Unity.Services.Cli.Common.Validator;
+using Unity.Services.Cli.IntegrationTest.Common;
 
 namespace Unity.Services.Cli.IntegrationTest.ConfigTests;
 
@@ -30,7 +31,6 @@ public class ConfigTests : UgsCliFixture
     {
         await new UgsCliTestCase()
             .Command("config set environment-name test-123")
-            .AssertNoErrors()
             .WaitForExit(() => AssertConfigValue("environment-name", "test-123"))
             .ExecuteAsync();
     }
@@ -50,15 +50,11 @@ public class ConfigTests : UgsCliFixture
     [Test]
     public async Task ConfigGetJsonReturnsJson()
     {
-        var expected = JsonConvert.SerializeObject(new
-        {
-            Result = "some-value",
-            Messages = Array.Empty<string>()
-        }, Formatting.Indented);
+        var expected = JsonConvert.SerializeObject( "some-value");
         await new UgsCliTestCase()
             .Command("config set environment-name some-value")
             .Command("config get environment-name -j")
-            .AssertNoErrors()
+            .AssertStandardErrorContains(string.Empty)
             .AssertStandardOutputContains(expected)
             .ExecuteAsync();
     }
@@ -71,7 +67,7 @@ public class ConfigTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command("config set environment-name test@")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedError)
+            .AssertStandardErrorContains(expectedError)
             .ExecuteAsync();
     }
 
@@ -81,7 +77,7 @@ public class ConfigTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command("config set project-id 1")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains("Your project-id is not valid. Valid input should have characters 0-9, a-f, A-F and follow the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX.")
+            .AssertStandardErrorContains("Your project-id is not valid. Valid input should have characters 0-9, a-f, A-F and follow the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX.")
             .ExecuteAsync();
     }
 
@@ -105,7 +101,7 @@ public class ConfigTests : UgsCliFixture
 
         await new UgsCliTestCase()
             .Command("config get project-id")
-            .AssertStandardOutput(output => StringAssert.Contains(expectedError, output))
+            .AssertStandardError(output => StringAssert.Contains(expectedError, output))
             .AssertExitCode(ExitCode.HandledError)
             .ExecuteAsync();
     }
@@ -138,8 +134,7 @@ public class ConfigTests : UgsCliFixture
 
         await new UgsCliTestCase()
             .Command($"config delete -k {Keys.ConfigKeys.EnvironmentName} -f")
-            .AssertNoErrors()
-            .AssertStandardOutputContains(expectedError)
+            .AssertStandardErrorContains(expectedError)
             .WaitForExit(() => AssertConfigValue(Keys.ConfigKeys.EnvironmentName, null))
             .ExecuteAsync();
     }
@@ -152,8 +147,7 @@ public class ConfigTests : UgsCliFixture
 
         await new UgsCliTestCase()
             .Command("config delete -a -f")
-            .AssertNoErrors()
-            .AssertStandardOutputContains(expectedError)
+            .AssertStandardErrorContains(expectedError)
             .WaitForExit(() => AssertConfigValue(Keys.ConfigKeys.EnvironmentName, null))
             .ExecuteAsync();
     }
@@ -166,7 +160,7 @@ public class ConfigTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command("config delete -k invalid-key -f")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedError)
+            .AssertStandardErrorContains(expectedError)
             .ExecuteAsync();
     }
 
@@ -179,7 +173,7 @@ public class ConfigTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command($"config delete -k {Keys.ConfigKeys.EnvironmentName} -a -f")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedError)
+            .AssertStandardErrorContains(expectedError)
             .ExecuteAsync();
     }
 
@@ -193,7 +187,7 @@ public class ConfigTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command("config delete")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedError)
+            .AssertStandardErrorContains(expectedError)
             .ExecuteAsync();
     }
 
@@ -205,7 +199,7 @@ public class ConfigTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command($"config delete -k {Keys.ConfigKeys.EnvironmentName}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedError)
+            .AssertStandardErrorContains(expectedError)
             .ExecuteAsync();
     }
 }

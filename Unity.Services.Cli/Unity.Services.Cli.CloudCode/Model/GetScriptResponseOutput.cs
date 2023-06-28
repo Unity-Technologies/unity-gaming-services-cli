@@ -4,7 +4,7 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace Unity.Services.Cli.CloudCode.Model;
 
-internal class GetScriptResponseOutput
+class GetScriptResponseOutput
 {
     public string Name { get; }
     public Language Language { get; }

@@ -64,9 +64,7 @@ public class CloudCodeModuleLoaderTests
 
         var actual = await cloudCodeModulesLoader.LoadPrecompiledModulesAsync(
             k_ValidZipPaths,
-            "Cloud Code Modules",
-            ".zip",
-            m_Contents);
+            "Cloud Code Modules");
 
         CompareScripts(expected, actual);
     }

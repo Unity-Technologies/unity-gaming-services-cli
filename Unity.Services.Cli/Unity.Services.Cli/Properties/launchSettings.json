@@ -3,7 +3,8 @@
   "profiles": {
     "Unity.Services.Cli": {
       "commandName": "Project",
-      "workingDirectory": "$(SolutionDir)/../"
+      "workingDirectory": "$(SolutionDir)/../",
+      "commandLineArgs": "cloud-code modules import Unity.Services.Cli/Unity.Services.Cli.CloudCode.UnitTest/ModuleTestCases test.ccmzip"
     },
     "Unity.Services.Cli.PrintTree": {
       "commandName": "Project",

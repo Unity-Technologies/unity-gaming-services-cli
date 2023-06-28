@@ -7,11 +7,10 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Common.Exceptions;
-using Unity.Services.Cli.Common.Networking;
-using Unity.Services.Cli.MockServer;
 using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Cli.MockServer.ServiceMocks;
 using Unity.Services.Cli.MockServer.ServiceMocks.RemoteConfig;
+using Unity.Services.DeploymentApi.Editor;
 
 namespace Unity.Services.Cli.IntegrationTest.Authoring.Deploy.RemoteConfig;
 
@@ -24,19 +23,21 @@ public class RemoteConfigDeployTests : UgsCliFixture
         new AuthoringTestCase(
             "{ \"entries\" : { \"color\" : \"Red\" } }",
             "color.rc",
-            "Remote Config",
+            "RemoteConfig File",
             100,
             "Deployed",
             "Deployed Successfully",
-            k_TestDirectory),
+            k_TestDirectory,
+            SeverityLevel.Success),
         new AuthoringTestCase(
             "{ \"entries\" : { \"Ready\" : \"True\" } }",
             "ready.rc",
-            "Remote Config",
+            "RemoteConfig File",
             100,
             "Deployed",
             "Deployed Successfully",
-            k_TestDirectory),
+            k_TestDirectory,
+            SeverityLevel.Success)
     };
 
     readonly IReadOnlyList<AuthoringTestCase> m_ReconcileTestCases = new[]
@@ -44,19 +45,21 @@ public class RemoteConfigDeployTests : UgsCliFixture
         new AuthoringTestCase(
             "{ \"entries\" : { \"color\" : \"Red\" } }",
             "color.rc",
-            "Remote Config",
+            "RemoteConfig File",
             100,
             "Deployed",
             "Deployed Successfully",
-            k_TestDirectory),
+            k_TestDirectory,
+            SeverityLevel.Success),
         new AuthoringTestCase(
             "{ \"entries\" : { \"Ready\" : \"True\" } }",
             "ready.rc",
-            "Remote Config",
+            "RemoteConfig File",
             100,
             "Deployed",
             "Deployed Successfully",
-            k_TestDirectory),
+            k_TestDirectory,
+            SeverityLevel.Success),
     };
 
     readonly IReadOnlyList<AuthoringTestCase> m_DryRunDeployedTestCases = new[]
@@ -64,7 +67,7 @@ public class RemoteConfigDeployTests : UgsCliFixture
         new AuthoringTestCase(
             "{ \"entries\" : { \"color\" : \"Red\" } }",
             "dry_color.rc",
-            "Remote Config",
+            "RemoteConfig Entry",
             0,
             "",
             "",
@@ -72,7 +75,7 @@ public class RemoteConfigDeployTests : UgsCliFixture
         new AuthoringTestCase(
             "{ \"entries\" : { \"Ready\" : \"True\" } }",
             "dry_ready.rc",
-            "Remote Config",
+            "RemoteConfig Entry",
             0,
             "",
             "",
@@ -84,11 +87,12 @@ public class RemoteConfigDeployTests : UgsCliFixture
         new AuthoringTestCase(
             "{ \"entries\" : { \"Ready : \"True\" } }",
             "invalid1.rc",
-            "Remote Config",
+            "RemoteConfig File",
             0,
             "Failed To Read",
             "Invalid character after parsing property name. Expected ':' but got: T. Path 'entries', line 1, position 26.",
-            k_TestDirectory)
+            k_TestDirectory,
+            SeverityLevel.Error)
     };
 
     List<DeployContent> m_DeployedContents = new();
@@ -164,7 +168,7 @@ public class RemoteConfigDeployTests : UgsCliFixture
         var deployedConfigFileString = string.Join(Environment.NewLine + "    ", m_DeployedTestCases.Select(GetConfigFileString));
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory}")
-            .AssertStandardOutputContains($"Deployed:{Environment.NewLine}    {deployedConfigFileString}")
+            .AssertStandardOutputContains($"Successfully deployed the following files:{Environment.NewLine}    {deployedConfigFileString}")
             .AssertNoErrors()
             .ExecuteAsync();
     }
@@ -176,7 +180,7 @@ public class RemoteConfigDeployTests : UgsCliFixture
         var deployedConfigFileString = string.Join(Environment.NewLine + "    ", m_DeployedTestCases.Select(GetConfigFileString));
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory} -p {CommonKeys.ValidProjectId} -e {CommonKeys.ValidEnvironmentName}")
-            .AssertStandardOutputContains($"Deployed:{Environment.NewLine}    {deployedConfigFileString}")
+            .AssertStandardOutputContains($"Successfully deployed the following files:{Environment.NewLine}    {deployedConfigFileString}")
             .AssertNoErrors()
             .ExecuteAsync();
     }
@@ -205,11 +209,11 @@ public class RemoteConfigDeployTests : UgsCliFixture
             .Command($"deploy {k_TestDirectory}")
             .AssertStandardOutput(output =>
             {
-                StringAssert.Contains($"Deployed:{Environment.NewLine}    {deployedConfigFileString}", output);
+                StringAssert.Contains($"Successfully deployed the following files:{Environment.NewLine}    {deployedConfigFileString}", output);
                 foreach (var failedTestCase in m_FailedTestCases)
                 {
                     StringAssert.Contains($"Failed to deploy:{Environment.NewLine}    " +
-                        $"'{failedTestCase.ConfigFileName}' - Status: {failedTestCase.DeployedContent.Status}", output);
+                        $"'{failedTestCase.ConfigFilePath}' - Status: {failedTestCase.DeployedContent.Status.Message}", output);
                 }
             })
             .AssertExitCode(ExitCode.HandledError)
@@ -224,12 +228,20 @@ public class RemoteConfigDeployTests : UgsCliFixture
 
         await CreateDeployTestFilesAsync(m_DeployedTestCases, m_DeployedContents);
         await CreateDeployTestFilesAsync(m_FailedTestCases, m_FailedContents);
-        var logResult = new JsonDeployLogResult(CreateResult
-        (m_DeployedContents,
+
+        var createdEntries = m_DeployedTestCases
+            .SelectMany(tc => RemoteConfigFileContent.RemoteConfigToDeployContents(
+                tc ,
+                new DeploymentStatus(Statuses.Created, string.Empty)))
+            .ToList();
+
+        var logResult = DeployTestsFixture.CreateResult(
+            createdEntries,
             Array.Empty<DeployContent>(),
             Array.Empty<DeployContent>(),
-            m_DeployedContents,
-            m_FailedContents));
+            m_DeployedTestCases.Select(d => d.DeployedContent).ToList(),
+            m_FailedTestCases.Select(d => d.DeployedContent).ToList());
+
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory} -j")
             .AssertStandardOutputContains(JsonConvert.SerializeObject(logResult, Formatting.Indented))
@@ -244,14 +256,22 @@ public class RemoteConfigDeployTests : UgsCliFixture
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
         await CreateDeployTestFilesAsync(m_DryRunDeployedTestCases, m_DryRunContents);
 
-        var logResult = new JsonDeployLogResult(new DeploymentResult(
-            m_DryRunContents,
+        var dc = m_DryRunDeployedTestCases
+            .SelectMany(tc => RemoteConfigFileContent.RemoteConfigToDeployContents(
+                tc,
+                new DeploymentStatus(Statuses.Created, string.Empty),
+                100f))
+            .ToList();
+
+        var logResult = new DeploymentResult(
             Array.Empty<DeployContent>(),
             Array.Empty<DeployContent>(),
+            dc,
             Array.Empty<DeployContent>(),
             Array.Empty<DeployContent>(),
-            true));
+            true);
         var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
+
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory} -j --dry-run")
             .AssertStandardOutputContains(resultString)
@@ -266,18 +286,23 @@ public class RemoteConfigDeployTests : UgsCliFixture
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
         await CreateDeployTestFilesAsync(m_ReconcileTestCases, m_DeployedContents);
 
-        var logResult = new JsonDeployLogResult(CreateResult(
-            m_DeployedContents,
+        var createdEntries = m_ReconcileTestCases
+            .SelectMany(tc => RemoteConfigFileContent.RemoteConfigToDeployContents(tc, new DeploymentStatus(Statuses.Created, string.Empty)))
+            .ToList();
+
+        var logResult = DeployTestsFixture.CreateResult(
+            createdEntries,
             Array.Empty<DeployContent>(),
             new[]
             {
-                new DeployContent("test", "Remote Config", "Remote")
+                new DeployContent("test", "RemoteConfig Entry", "Remote", 100, "Deleted")
             },
-            m_DeployedContents,
-            Array.Empty<DeployContent>()));
+            m_ReconcileTestCases.Select(tc => tc.DeployedContent).ToList(),
+            Array.Empty<DeployContent>());
+
         var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
         await GetLoggedInCli()
-            .Command($"deploy {k_TestDirectory} -j --reconcile")
+            .Command($"deploy {k_TestDirectory} -j --reconcile -s remote-config")
             .AssertStandardOutputContains(resultString)
             .AssertNoErrors()
             .ExecuteAsync();
@@ -290,12 +315,17 @@ public class RemoteConfigDeployTests : UgsCliFixture
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
         await CreateDeployTestFilesAsync(m_ReconcileTestCases, m_DeployedContents);
 
-        var logResult = new JsonDeployLogResult(CreateResult(
-            m_DeployedContents,
+        var createdEntries = m_ReconcileTestCases
+            .SelectMany(tc => RemoteConfigFileContent.RemoteConfigToDeployContents(tc, new DeploymentStatus(Statuses.Created, string.Empty)))
+            .ToList();
+
+        var logResult = DeployTestsFixture.CreateResult(
+            createdEntries,
             Array.Empty<DeployContent>(),
             Array.Empty<DeployContent>(),
-            m_DeployedContents,
-            Array.Empty<DeployContent>()));
+            m_ReconcileTestCases.Select(tc => tc.DeployedContent).ToList(),
+            Array.Empty<DeployContent>());
+
         var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory} -j")
@@ -304,39 +334,11 @@ public class RemoteConfigDeployTests : UgsCliFixture
             .ExecuteAsync();
     }
 
-    private static DeploymentResult CreateResult(
-        IReadOnlyCollection<DeployContent> created,
-        IReadOnlyCollection<DeployContent> updated,
-        IReadOnlyCollection<DeployContent> deleted,
-        IReadOnlyCollection<DeployContent> deployed,
-        IReadOnlyCollection<DeployContent> failed,
-        bool dryRun = false)
-    {
-        var createdCopy = new List<DeployContent>();
-
-        foreach (var createdOriginal in created)
-        {
-            var progress = 0f;
-            var status = string.Empty;
-            var detail = string.Empty;
-
-            createdCopy.Add(new DeployContent(
-                createdOriginal.Name,
-                createdOriginal.Type,
-                createdOriginal.Path,
-                progress,
-                status,
-                detail));
-        }
-
-        return new DeploymentResult(createdCopy, updated, deleted, deployed, failed, dryRun);
-    }
-
-    string GetConfigFileString(AuthoringTestCase testCase)
+    static string GetConfigFileString(AuthoringTestCase testCase)
     {
         if (testCase.DeployedContent.Type != "Remote Config")
         {
-            return testCase.ConfigFileName;
+            return $"'{testCase.ConfigFilePath}'";
         }
 
         var configFileString = string.Empty;

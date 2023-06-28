@@ -7,5 +7,5 @@ interface IRemoteConfigScriptsLoader
 {
     Task<LoadResult> LoadScriptsAsync(
         IReadOnlyList<string> filePaths,
-        ICollection<DeployContent> deployContents);
+        CancellationToken token);
 }

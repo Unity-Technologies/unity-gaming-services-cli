@@ -6,17 +6,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
+using Unity.Services.Cli.Common.Networking;
 
-namespace Unity.Services.Cli.IntegrationTest;
+namespace Unity.Services.Cli.IntegrationTest.Common;
 
 /// <summary>
 /// A fluent API class to enable integration tests
 /// </summary>
-public class UgsCliTestCase
+public partial class UgsCliTestCase
 {
     IDictionary<string, string>? m_EnvironmentVariables;
-    Process? m_LastProcess;
-    readonly IDictionary<Process, bool> m_ProcessStartState = new Dictionary<Process, bool>();
+
+    IProcess? m_LastProcess;
+
+    readonly IDictionary<IProcess, bool> m_ProcessStartState = new Dictionary<IProcess, bool>();
     readonly List<Func<CancellationToken, Task>> m_Tasks = new();
     const string k_CliName = "ugs ";
 
@@ -24,6 +27,7 @@ public class UgsCliTestCase
     /// Adds a command to be executed to the queue.
     /// </summary>
     /// <param name="arguments">the arguments passed to the `ugs` cli</param>
+    /// <param name="debugLocally">Run Test in the same process for debugging purposes only</param>
     /// <returns>Instance of the test case</returns>
     /// <remarks>
     /// Note that the command name (`ugs`) is omitted. Only pass the arguments.
@@ -31,36 +35,63 @@ public class UgsCliTestCase
     /// </remarks>
     public UgsCliTestCase Command(string arguments)
     {
+        var processStartInfo = GetProcessStartInfo(arguments);
+        var process = new Process
+        {
+            StartInfo = processStartInfo,
+            EnableRaisingEvents = true,
+        };
+        var wrapper = new ExternalProcess(process);
+        return Command(wrapper);
+    }
+
+    public UgsCliTestCase DebugCommand(string arguments)
+    {
+        NetworkTargetEndpoints.UseMockEndpoints = true;
+        var processStartInfo = GetProcessStartInfo(arguments);
+        var process = new LocalProcess(processStartInfo);
+        return Command(process);
+    }
+
+    UgsCliTestCase Command(IProcess process)
+    {
+        m_Tasks.Add(
+            async cancellationToken =>
+            {
+                m_ProcessStartState[process] = false;
+                if (m_LastProcess != null)
+                {
+                    EnsureProcessStarted();
+                    await m_LastProcess!.WaitForExitAsync(cancellationToken);
+                }
+
+                m_LastProcess = process;
+            });
+
+        return this;
+    }
+
+    static ProcessStartInfo GetProcessStartInfo(string arguments)
+    {
         if (arguments.StartsWith(k_CliName))
         {
-            throw new ArgumentException($"{nameof(arguments)} should not start with `ugs`.\n" +
-                "only pass the arguments, without the command name `ugs`", nameof(arguments));
+            throw new ArgumentException(
+                $"{nameof(arguments)} should not start with `ugs`.\n" +
+                "only pass the arguments, without the command name `ugs`",
+                nameof(arguments));
         }
-        m_Tasks.Add(async cancellationToken =>
+
+        var processStartInfo = new ProcessStartInfo
         {
-            var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = UgsCliBuilder.CliPath,
-                    Arguments = arguments,
-                    WorkingDirectory = UgsCliBuilder.RootDirectory,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    RedirectStandardInput = true,
-                    UseShellExecute = false,
-                },
-                EnableRaisingEvents = true,
-            };
-            m_ProcessStartState[process] = false;
-            if (m_LastProcess != null)
-            {
-                EnsureProcessStarted();
-                await m_LastProcess!.WaitForExitAsync(cancellationToken);
-            }
-            m_LastProcess = process;
-        });
-        return this;
+            FileName = UgsCliBuilder.CliPath,
+            Arguments = arguments,
+            WorkingDirectory = UgsCliBuilder.RootDirectory,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            RedirectStandardInput = true,
+            UseShellExecute = false,
+        };
+        return processStartInfo;
     }
 
     /// <summary>
@@ -167,7 +198,7 @@ public class UgsCliTestCase
             EnsureProcessStarted();
             await m_LastProcess!.WaitForExitAsync(cancellationToken);
             var output = await m_LastProcess.StandardOutput.ReadToEndAsync();
-            StringAssert.Contains(expectedOutput, output);
+            StringAssert.Contains(expectedOutput, output, "stdout is not as expected");
         });
         return this;
     }
@@ -210,7 +241,7 @@ public class UgsCliTestCase
             EnsureProcessStarted();
             await m_LastProcess!.WaitForExitAsync(cancellationToken);
             var output = await m_LastProcess.StandardError.ReadToEndAsync();
-            StringAssert.Contains(expectedError, output);
+            StringAssert.Contains(expectedError, output, "stderr is not as expected");
         });
         return this;
     }
@@ -256,7 +287,14 @@ public class UgsCliTestCase
 
         if (m_LastProcess != null && m_ProcessStartState[m_LastProcess] && !m_LastProcess.HasExited)
         {
-            await m_LastProcess!.WaitForExitAsync(cancellationToken);
+            try
+            {
+                await m_LastProcess!.WaitForExitAsync(cancellationToken);
+            }
+            finally
+            {
+                m_LastProcess!.Dispose();
+            }
         }
     }
 

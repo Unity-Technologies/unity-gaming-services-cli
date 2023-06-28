@@ -5,7 +5,7 @@ using Unity.Services.Cli.RemoteConfig.Model;
 using Unity.Services.Cli.RemoteConfig.Service;
 using Unity.Services.Cli.RemoteConfig.Types;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
-using Unity.Services.RemoteConfig.Editor.Authoring.Core.Networking;
+using Unity.Services.RemoteConfig.Editor.Authoring.Core.Service;
 using ValueType = Unity.Services.Cli.RemoteConfig.Types.ValueType;
 
 namespace Unity.Services.Cli.RemoteConfig.Deploy;
@@ -21,7 +21,7 @@ class RemoteConfigClient : ICliRemoteConfigClient
 
     readonly IRemoteConfigService m_Service;
 
-    static readonly JsonSerializerSettings k_JsonSerializerSettings = new ()
+    static readonly JsonSerializerSettings k_JsonSerializerSettings = new()
     {
         ContractResolver = new CamelCasePropertyNamesContractResolver()
     };
@@ -118,34 +118,7 @@ class RemoteConfigClient : ICliRemoteConfigClient
         {
             File = null,
             Key = dto.key,
-            Value = ToValue(dto.value, dto.type)
+            Value = RemoteConfigEntryDTO.ToValue(dto.value, dto.type)
         }).ToList();
-    }
-
-    static object ToValue(
-        object val,
-        string type)
-    {
-        switch (type)
-        {
-            case "string":
-            case "json":
-            case "bool":
-            case "long":
-                return val;
-            case "int":
-                return (int)(long)val;
-            case "float":
-                if (val is double)
-                    return val;
-                //the second "cast" is a type-conversion not a type-cast
-                if (val is float f)
-                    return (double)f;
-                if (val is int i)
-                    return (double)i;
-                return (double)(long)val;
-        }
-
-        throw new NotSupportedException($"Type '{type}' is not supported, value: '{val}', value type: '{val.GetType().Name}' !");
     }
 }

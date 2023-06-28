@@ -7,10 +7,10 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <DefineConstants>TRACE;</DefineConstants>
+    <DefineConstants>TRACE;FEATURE_LEADERBOARDS_IMPORT_EXPORT</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DefineConstants>TRACE;</DefineConstants>
+    <DefineConstants>TRACE;FEATURE_LEADERBOARDS_IMPORT_EXPORT</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
@@ -26,7 +26,7 @@
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Unity.Services.Gateway.LeaderboardApiV1.Generated" Version="1.0.5-beta" />
-    <PackageReference Include="YamlDotNet" Version="13.0.2" />
+    <PackageReference Include="Unity.Services.Gateway.LeaderboardApiV1.Generated" Version="1.0.7-beta" />
+    <PackageReference Include="YamlDotNet" Version="13.1.0" />
   </ItemGroup>
 </Project>

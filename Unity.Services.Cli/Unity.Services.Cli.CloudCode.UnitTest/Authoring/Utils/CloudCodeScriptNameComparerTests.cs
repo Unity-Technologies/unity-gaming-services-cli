@@ -47,7 +47,7 @@ class CloudCodeScriptNameComparerTests
     {
         var script = new Mock<IScript>();
         var name = new ScriptName("foo.js");
-        script.Setup(x => x.Name)
+        script.SetupGet(x => x.Name)
             .Returns(name);
 
         var hashCode = m_Comparer.GetHashCode(script.Object);

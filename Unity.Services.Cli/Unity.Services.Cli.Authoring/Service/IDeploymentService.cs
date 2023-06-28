@@ -7,6 +7,7 @@ namespace Unity.Services.Cli.Authoring.Service;
 public interface IDeploymentService
 {
     string ServiceType { get; }
+    string ServiceName { get; }
     public string DeployFileExtension { get; }
 
     Task<DeploymentResult> Deploy(

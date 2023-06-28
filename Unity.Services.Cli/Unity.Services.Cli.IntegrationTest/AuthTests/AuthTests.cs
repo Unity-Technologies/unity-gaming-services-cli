@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using Unity.Services.Cli.IntegrationTest.Common;
 using Unity.Services.Cli.MockServer.Common;
 
 namespace Unity.Services.Cli.IntegrationTest.AuthTests;
@@ -29,7 +30,6 @@ public class AuthTests : UgsCliFixture
     public async Task AuthLoginWithCredentialsSavesToken()
     {
         await GetLoggedInCli()
-            .AssertNoErrors()
             .WaitForExit(() => AssertToken(CommonKeys.ValidAccessToken))
             .ExecuteAsync();
     }
@@ -55,9 +55,8 @@ public class AuthTests : UgsCliFixture
     {
         await GetLoggedInCli()
             .Command("logout")
-            .AssertNoErrors()
             .WaitForExit(AssertTokenNotSaved)
-            .AssertStandardOutputContains("Service Account key cleared from local configuration.")
+            .AssertStandardErrorContains("Service Account key cleared from local configuration.")
             .ExecuteAsync();
     }
 
@@ -67,9 +66,8 @@ public class AuthTests : UgsCliFixture
         LoginWithEnvironment();
         await GetLoggedInCli()
             .Command("logout")
-            .AssertNoErrors()
             .WaitForExit(AssertTokenNotSaved)
-            .AssertStandardOutput(output =>
+            .AssertStandardError(output =>
                 {
                     StringAssert.Contains("Service Account key cleared from local configuration.", output);
                     StringAssert.Contains("Because UGS_CLI_SERVICE_KEY_ID and" +
@@ -85,8 +83,7 @@ public class AuthTests : UgsCliFixture
     {
         await new UgsCliTestCase()
             .Command("status")
-            .AssertNoErrors()
-            .AssertStandardOutputContains("No Service Account key stored.")
+            .AssertStandardErrorContains("No Service Account key stored.")
             .ExecuteAsync();
     }
 
@@ -95,8 +92,7 @@ public class AuthTests : UgsCliFixture
     {
         await GetLoggedInCli()
             .Command("status")
-            .AssertNoErrors()
-            .AssertStandardOutputContains("Using Service Account key from local configuration.")
+            .AssertStandardErrorContains("Using Service Account key from local configuration.")
             .ExecuteAsync();
     }
 
@@ -106,8 +102,7 @@ public class AuthTests : UgsCliFixture
         LoginWithEnvironment();
         await GetLoggedInCli()
             .Command("status")
-            .AssertNoErrors()
-            .AssertStandardOutputContains("Using Service Account key from local configuration.")
+            .AssertStandardErrorContains("Using Service Account key from local configuration.")
             .ExecuteAsync();
     }
 
@@ -117,8 +112,7 @@ public class AuthTests : UgsCliFixture
         LoginWithEnvironment();
         await new UgsCliTestCase()
             .Command("status")
-            .AssertNoErrors()
-            .AssertStandardOutputContains("Using Service Account key from system environment variables.")
+            .AssertStandardErrorContains("Using Service Account key from system environment variables.")
             .ExecuteAsync();
     }
 

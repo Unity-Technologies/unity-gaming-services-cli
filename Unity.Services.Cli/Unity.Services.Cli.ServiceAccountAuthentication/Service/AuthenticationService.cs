@@ -7,7 +7,7 @@ namespace Unity.Services.Cli.ServiceAccountAuthentication;
 class AuthenticationService : IServiceAccountAuthenticationService
 {
     readonly IPersister<string> m_Persister;
-    private readonly ISystemEnvironmentProvider m_SystemEnvironmentProvider;
+    readonly ISystemEnvironmentProvider m_SystemEnvironmentProvider;
 
     public AuthenticationService(IPersister<string> persister, ISystemEnvironmentProvider environmentProvider)
     {

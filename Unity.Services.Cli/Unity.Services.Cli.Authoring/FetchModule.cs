@@ -17,19 +17,17 @@ namespace Unity.Services.Cli.Authoring;
 /// </summary>
 public class FetchModule : ICommandModule
 {
-    readonly string[] m_SupportedServices = { "remote-confg" };
     public Command? ModuleRootCommand { get; }
 
     public FetchModule()
     {
-        var servicesStr = string.Join(", ", m_SupportedServices);
         ModuleRootCommand = new Command(
             "fetch",
-            $"Fetch configuration files of supported services from the backend.{Environment.NewLine}"
-            + $"Services currently supported are: {servicesStr}.")
+            $"Fetch configuration files of supported services from the backend.")
         {
             FetchInput.PathArgument,
             FetchInput.ReconcileOption,
+            FetchInput.ServiceOptions,
             FetchInput.DryRunOption,
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption

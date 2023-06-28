@@ -25,17 +25,17 @@ public class CloudCodeFetchTests : UgsCliFixture
         new AuthoringTestCase(
             "module.exports = () => {}\n module.exports.params = { sides: 'NUMERIC'};",
             "remoteScript1.js",
-            "Cloud Code",
+            "Cloud Code Scripts",
             100,
-            "Up to date",
+            "Updated",
             "",
             k_TestDirectory),
         new AuthoringTestCase(
             "module.exports = () => {}\n module.exports.params = { sides: 'NUMERIC'};",
             "remoteScript2.js",
-            "Cloud Code",
+            "Cloud Code Scripts",
             100,
-            "Up to date",
+            "Updated",
             "",
             k_TestDirectory),
     };
@@ -45,17 +45,17 @@ public class CloudCodeFetchTests : UgsCliFixture
         new AuthoringTestCase(
             "module.exports = () => {}\n module.exports.params = { sides: 'NUMERIC'};",
             "remoteScript4.js",
-            "Cloud Code",
+            "Cloud Code Scripts",
             100,
-            "Up to date",
+            "Deleted",
             "",
             k_TestDirectory),
         new AuthoringTestCase(
             "module.exports = () => {}\n module.exports.params = { sides: 'NUMERIC'};",
             "remoteScript5.js",
-            "Cloud Code",
+            "Cloud Code Scripts",
             100,
-            "Up to date",
+            "Deleted",
             "",
             k_TestDirectory),
     };
@@ -65,16 +65,16 @@ public class CloudCodeFetchTests : UgsCliFixture
         new AuthoringTestCase(
             "module.exports = () => {}\n module.exports.params = { sides: 'NUMERIC'};",
             "remoteScript3.js",
-            "Cloud Code",
+            "Cloud Code Scripts",
             100,
-            "Up to date",
+            "Created",
             "",
             k_TestDirectory)
     };
 
     static readonly IReadOnlyList<AuthoringTestCase> k_FetchedTestCases = new List<AuthoringTestCase>(k_UpdatedTestCases.Concat(k_DeletedTestCases));
 
-    static readonly IReadOnlyList<AuthoringTestCase> k_FetchedReconcileTestCases = new List<AuthoringTestCase>(k_CreatedTestCases.Concat(k_FetchedTestCases));
+    static readonly IReadOnlyList<AuthoringTestCase> k_FetchedReconcileTestCases = new List<AuthoringTestCase>(k_FetchedTestCases.Concat(k_CreatedTestCases));
 
     [SetUp]
     public void CleanUpTestConfiguration()
@@ -133,25 +133,22 @@ public class CloudCodeFetchTests : UgsCliFixture
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
         await CreateDeployTestFilesAsync(k_FetchedTestCases, m_FetchedContents);
         var fetchedPaths = k_FetchedTestCases
-            .Select(t => t.ConfigFileName)
+            .Select(t => t.DeployedContent)
             .ToArray();
         var deletedPaths = k_DeletedTestCases
-            .Select(t => t.ConfigFileName)
+            .Select(t => t.DeployedContent)
             .ToArray();
         var updatedPaths = k_UpdatedTestCases
-            .Select(t => t.ConfigFileName)
+            .Select(t => t.DeployedContent)
             .ToArray();
-        var logResult = new
-        {
-            Result = new FetchResult(
-                updatedPaths,
-                deletedPaths,
-                Array.Empty<string>(),
-                fetchedPaths,
-                Array.Empty<string>()),
-            Messages = Array.Empty<string>()
-        };
-        var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
+        var res = new FetchResult(
+            updatedPaths,
+            deletedPaths,
+            Array.Empty<DeployContent>(),
+            fetchedPaths,
+            Array.Empty<DeployContent>(),
+            !string.IsNullOrEmpty(dryRunOption) );
+        var resultString = JsonConvert.SerializeObject(res, Formatting.Indented);
         await GetLoggedInCli()
             .Command($"fetch {k_TestDirectory} {dryRunOption} -j")
             .AssertStandardOutputContains(resultString)
@@ -167,29 +164,28 @@ public class CloudCodeFetchTests : UgsCliFixture
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
         await CreateDeployTestFilesAsync(k_FetchedTestCases, m_FetchedContents);
         var fetchedPaths = k_FetchedReconcileTestCases
-            .Select(t => t.ConfigFileName)
+            .Select(t => t.DeployedContent)
             .ToArray();
         var deletedPaths = k_DeletedTestCases
-            .Select(t => t.ConfigFileName)
+            .Select(t => t.DeployedContent)
             .ToArray();
         var updatedPaths = k_UpdatedTestCases
-            .Select(t => t.ConfigFileName)
+            .Select(t => t.DeployedContent)
             .ToArray();
-        var createdPaths = k_CreatedTestCases.Select(t => t.ConfigFileName).ToArray();
+        var createdPaths = k_CreatedTestCases
+            .Select(t => t.DeployedContent)
+            .ToArray();
 
-        var logResult = new
-        {
-            Result = new FetchResult(
-                updatedPaths,
-                deletedPaths,
-                createdPaths,
-                fetchedPaths,
-                Array.Empty<string>()),
-            Messages = Array.Empty<string>()
-        };
+        var logResult = new FetchResult(
+            updatedPaths,
+            deletedPaths,
+            createdPaths,
+            fetchedPaths,
+            Array.Empty<DeployContent>(),
+            !string.IsNullOrEmpty(dryRunOption));
         var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
         await GetLoggedInCli()
-            .Command($"fetch {k_TestDirectory} --reconcile {dryRunOption} -j")
+            .Command($"fetch {k_TestDirectory} --reconcile -s cloud-code-scripts {dryRunOption} -j ")
             .AssertStandardOutputContains(resultString)
             .AssertNoErrors()
             .ExecuteAsync();

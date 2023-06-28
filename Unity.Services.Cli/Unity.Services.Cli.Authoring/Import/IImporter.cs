@@ -4,5 +4,5 @@ namespace Unity.Services.Cli.Authoring.Import;
 
 public interface IImporter
 {
-    Task ImportAsync(ImportInput input, CancellationToken cancellationToken);
+    Task ImportAsync(ImportInput input, CancellationToken cancellationToken, int maxParallelTaskLimit = 10);
 }

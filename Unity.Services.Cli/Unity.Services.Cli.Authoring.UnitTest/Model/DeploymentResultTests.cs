@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.DeploymentApi.Editor;
 
 namespace Unity.Services.Cli.Authoring.UnitTest.Model;
 
@@ -10,15 +11,15 @@ public class DeploymentResultTests
 {
     DeploymentResult? m_DeploymentResult;
 
-    static readonly IReadOnlyCollection<DeployContent> k_DeployedContents = new[]
+    static readonly IReadOnlyList<DeployContent> k_DeployedContents = new[]
     {
         new DeployContent("script.js", "Cloud Code", "path", 100, "Published"),
     };
 
-    static readonly IReadOnlyCollection<DeployContent> k_FailedContents = new[]
+    static readonly IReadOnlyList<DeployContent> k_FailedContents = new[]
     {
-        new DeployContent("invalid1.rc", "Remote Config", "path", 0, "Failed to Load"),
-        new DeployContent("invalid2.js", "Cloud Code", "path", 0, "Failed to Load"),
+        new DeployContent("invalid1.rc", "Remote Config", "path", 0, "Failed to Load", level: SeverityLevel.Error),
+        new DeployContent("invalid2.js", "Cloud Code", "path", 0, "Failed to Load", level: SeverityLevel.Error),
     };
 
     [Test]
@@ -32,12 +33,11 @@ public class DeploymentResultTests
             k_FailedContents);
         var result = m_DeploymentResult.ToString();
 
-        Assert.IsTrue(result.Contains($"Deployed:{System.Environment.NewLine}    {k_DeployedContents.First().Name}"));
+        StringAssert.Contains($"Successfully deployed the following files:{System.Environment.NewLine}    '{k_DeployedContents.First().Path}'", result);
+        StringAssert.Contains($"Failed to deploy:{System.Environment.NewLine}", result);
         foreach (var content in k_FailedContents)
         {
-            StringAssert.Contains($"Failed to deploy:{System.Environment.NewLine}"+
-                                  $"    '{content.Name}' - Status: {content.Status}{System.Environment.NewLine}"+
-                                  $"    {content.Detail}", result);
+            StringAssert.Contains($"    '{content.Path}' - Status: {content.Status.Message} - {content.Detail}", result);
         }
     }
 

@@ -10,10 +10,6 @@ interface IRemoteConfigServicesWrapper
 
     ICliRemoteConfigClient RemoteConfigClient { get; }
 
-    IDeployFileService DeployFileService { get; }
-
-    ICliDeploymentOutputHandler DeploymentOutputHandler { get; }
-
     IRemoteConfigScriptsLoader RemoteConfigScriptsLoader { get; }
 
 }

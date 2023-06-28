@@ -22,8 +22,8 @@ class UpdateLeaderboardHandlerTests
     readonly Mock<IUnityEnvironment> m_MockUnityEnvironment = new();
     readonly Mock<ILeaderboardsService> m_MockLeaderboard = new();
     readonly Mock<ILogger> m_MockLogger = new();
-    private const string leaderboardId = "lb1";
-    private string leaderboardPath = null!;
+    const string leaderboardId = "lb1";
+    string leaderboardPath = null!;
 
     [SetUp]
     public void SetUp()

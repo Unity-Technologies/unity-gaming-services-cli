@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using NUnit.Framework;
 using Unity.Services.Cli.CloudCode.Model;
@@ -43,7 +44,7 @@ class OutputScriptTests
         Assert.AreEqual(m_GetScriptResponse.ActiveScript.Code, outputScript.ActiveScript.Code);
         Assert.AreEqual(m_GetScriptResponse.ActiveScript.Params, outputScript.ActiveScript.Params);
         Assert.AreEqual(m_GetScriptResponse.ActiveScript._Version, outputScript.ActiveScript.Version);
-        Assert.AreEqual(m_GetScriptResponse.ActiveScript.DatePublished, outputScript.ActiveScript.DatePublished);
+        Assert.AreEqual(m_GetScriptResponse.ActiveScript.DatePublished.ToString("s", CultureInfo.InvariantCulture), outputScript.ActiveScript.DatePublished);
         Assert.AreEqual(m_GetScriptResponse.Versions, outputScript.Versions);
     }
 
@@ -81,7 +82,7 @@ class OutputScriptTests
             "versions: []",
             "activeScript:",
             "  version: 0",
-            "  datePublished: 0001-01-01T00:00:00.0000000",
+            "  datePublished: 0001-01-01T00:00:00",
             "  params: []",
             $"  code: ''{System.Environment.NewLine}"
         };

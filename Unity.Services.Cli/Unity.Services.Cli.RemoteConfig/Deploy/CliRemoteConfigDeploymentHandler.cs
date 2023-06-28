@@ -1,17 +1,15 @@
-using Unity.Services.Cli.Authoring.Model;
-using Unity.Services.Cli.Authoring.Service;
+using Unity.Services.DeploymentApi.Editor;
+using Unity.Services.RemoteConfig.Editor.Authoring.Core.Deployment;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Formatting;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.IO;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Json;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
-using Unity.Services.RemoteConfig.Editor.Authoring.Core.Networking;
+using Unity.Services.RemoteConfig.Editor.Authoring.Core.Service;
 
 namespace Unity.Services.Cli.RemoteConfig.Deploy;
 
-class CliRemoteConfigDeploymentHandler : RemoteConfigDeploymentHandler, ICliDeploymentOutputHandler
+class CliRemoteConfigDeploymentHandler : RemoteConfigDeploymentHandler
 {
-    public ICollection<DeployContent> Contents { get; } = new List<DeployContent>();
-
     public CliRemoteConfigDeploymentHandler(
         IRemoteConfigClient remoteConfigClient,
         IRemoteConfigParser remoteConfigParser,
@@ -24,17 +22,19 @@ class CliRemoteConfigDeploymentHandler : RemoteConfigDeploymentHandler, ICliDepl
     {
     }
 
-    protected override void UpdateStatus(IRemoteConfigFile remoteConfigFile, string status, string detail,
-        StatusSeverityLevel severityLevel)
+    protected override void UpdateStatus(
+        IRemoteConfigFile remoteConfigFile,
+        string status,
+        string detail,
+        SeverityLevel severityLevel)
     {
-        var content = Contents.First(c => string.Equals(remoteConfigFile.Path, c.Path));
-        content.Status = status;
-        content.Detail = detail;
+        var file = (RemoteConfigFile)remoteConfigFile;
+        file.Status = new DeploymentStatus(status, detail, severityLevel);
     }
 
     protected override void UpdateProgress(IRemoteConfigFile remoteConfigFile, float progress)
     {
-        var deployContent = Contents.First(c => string.Equals(c.Path, remoteConfigFile.Path));
-        deployContent.Progress = progress;
+        var file = (RemoteConfigFile)remoteConfigFile;
+        file.Progress = progress;
     }
 }

@@ -5,7 +5,7 @@
     <LangVersion>10</LangVersion>
     <AssemblyName>ugs</AssemblyName>
     <VersionPrefix>1.0.0</VersionPrefix>
-    <VersionSuffix>beta.4</VersionSuffix>
+    <VersionSuffix>beta.5</VersionSuffix>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -18,13 +18,15 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Polly" Version="7.2.3" />
+    <PackageReference Include="Polly.Extensions.Http" Version="3.0.0" />
     <PackageReference Include="System.CommandLine.Hosting" Version="0.4.0-alpha.22272.1" />
     <ProjectReference Include="..\Unity.Services.Cli.Player\Unity.Services.Cli.Player.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Access\Unity.Services.Cli.Access.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.CloudCode\Unity.Services.Cli.CloudCode.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Common\Unity.Services.Cli.Common.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Authoring\Unity.Services.Cli.Authoring.csproj" />
-    <ProjectReference Include="..\Unity.Services.Cli.Environment\Unity.Services.Cli.Environment.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.Environment\Unity.Services.Cli.Environment.csproj" PrivateAssets="All" />
     <ProjectReference Include="..\Unity.Services.Cli.Leaderboards\Unity.Services.Cli.Leaderboards.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.RemoteConfig\Unity.Services.Cli.RemoteConfig.csproj" />
@@ -37,7 +39,7 @@
   </ItemGroup>
   <PropertyGroup>
     <DebugType>full</DebugType>
-    <DefineConstants>TRACE;FEATURE_LEADERBOARDS;</DefineConstants>
+    <DefineConstants>TRACE;FEATURE_LEADERBOARDS;FEATURE_LEADERBOARDS_IMPORT_EXPORT;</DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>

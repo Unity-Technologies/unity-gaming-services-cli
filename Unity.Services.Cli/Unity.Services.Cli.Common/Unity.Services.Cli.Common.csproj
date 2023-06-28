@@ -14,7 +14,7 @@
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageReference Include="System.CommandLine.Hosting" Version="0.4.0-alpha.22272.1" />
     <PackageReference Include="Unity.Services.Gateway.AccessApiV1.Generated" Version="1.0.1" />
-    <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.1.0" />
+    <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.2.0" />
     <PackageReference Include="Unity.Services.Gateway.EconomyApiV2.Generated" Version="2.0.2" />
     <PackageReference Include="Unity.Services.Gateway.IdentityApiV1.Generated" Version="1.0.6" />
     <PackageReference Include="Unity.Services.Gateway.LeaderboardApiV1.Generated" Version="1.0.5-beta" />
@@ -22,7 +22,7 @@
     <PackageReference Include="Unity.Services.Gateway.PlayerAuthApiV1.Generated" Version="1.0.1" />
     <PackageReference Include="Unity.Services.TelemetryApi.Generated" Version="1.0.1" />
     <PackageReference Include="Unity.Services.MpsLobby.LobbyApiV1.Generated" Version="0.11.1" />
-    <PackageReference Include="Unity.Services.Gateway.GameServerHostingApiV1.Generated" Version="0.1.3" />
+    <PackageReference Include="Unity.Services.Gateway.GameServerHostingApiV1.Generated" Version="0.3.0" />
     <PackageReference Include="UnityAnalytic.Modules.Sender" Version="0.1.0" />
   </ItemGroup>
   <ItemGroup>
@@ -32,6 +32,11 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
       <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
     </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Unity.Services.ModuleTemplate.Authoring.Core\Batching\Batching.cs">
+      <Link>Batching\Batching.cs</Link>
+    </Compile>
   </ItemGroup>
   <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>

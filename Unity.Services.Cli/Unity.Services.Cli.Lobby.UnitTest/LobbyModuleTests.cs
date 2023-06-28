@@ -3,6 +3,8 @@ using System.CommandLine.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
+using Unity.Services.Cli.Authoring.Export.Input;
+using Unity.Services.Cli.Authoring.Import.Input;
 using Unity.Services.Cli.Common;
 using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Lobby.Input;
@@ -49,18 +51,6 @@ class LobbyModuleTests
         new CommandTestCase("bulk-update",
             new List<Argument>() { CommonLobbyInput.LobbyIdArgument, RequiredBodyInput.RequestBodyArgument },
             new List<Option>(ServiceIdOptionList)),
-        new CommandTestCase("config",
-            new List<Argument>(),
-            new List<Option>(),
-            new List<CommandTestCase>() {
-                new CommandTestCase("get",
-                    new List<Argument>(),
-                    new List<Option>(){ CommonInput.CloudProjectIdOption, CommonInput.EnvironmentNameOption }),
-                new CommandTestCase("update",
-                    new List<Argument>() { LobbyConfigUpdateInput.ConfigIdArgument, RequiredBodyInput.RequestBodyArgument },
-                    new List<Option>(){ CommonInput.CloudProjectIdOption }),
-            }
-        ),
         new CommandTestCase("create",
             new List<Argument>() { RequiredBodyInput.RequestBodyArgument },
             new List<Option>(ServiceIdOptionList) { CommonLobbyInput.PlayerIdOption }),
@@ -108,6 +98,24 @@ class LobbyModuleTests
         new CommandTestCase("update",
             new List<Argument>() { CommonLobbyInput.LobbyIdArgument, RequiredBodyInput.RequestBodyArgument },
             new List<Option>(ServiceIdOptionList) { CommonLobbyInput.PlayerIdOption }),
+        new CommandTestCase("config",
+            new List<Argument>(),
+            new List<Option>(),
+            new List<CommandTestCase>() {
+                new CommandTestCase("get",
+                    new List<Argument>(),
+                    new List<Option>(){ CommonInput.CloudProjectIdOption, CommonInput.EnvironmentNameOption }),
+                new CommandTestCase("update",
+                    new List<Argument>() { LobbyConfigUpdateInput.ConfigIdArgument, RequiredBodyInput.RequestBodyArgument },
+                    new List<Option>(){ CommonInput.CloudProjectIdOption }),
+            }
+        ),
+        new CommandTestCase("import",
+            new List<Argument>() { ImportInput.InputDirectoryArgument, ImportInput.FileNameArgument },
+            new List<Option>() { CommonInput.CloudProjectIdOption, CommonInput.EnvironmentNameOption, ImportInput.DryRunOption, ImportInput.ReconcileOption }),
+        new CommandTestCase("export",
+            new List<Argument>() { ExportInput.OutputDirectoryArgument, ExportInput.FileNameArgument },
+            new List<Option>() { CommonInput.CloudProjectIdOption, CommonInput.EnvironmentNameOption, ImportInput.DryRunOption }),
     };
 
     [Test]
@@ -150,11 +158,11 @@ class LobbyModuleTests
         var hostBuilder = TestsHelper.CreateAndSetupMockHostBuilder(services);
         hostBuilder.ConfigureServices(LobbyModule.RegisterServices);
 
-        Assert.AreEqual(2, services.Count);
+        Assert.AreEqual(4, services.Count);
         TestsHelper.AssertHasServiceSingleton<ILobbyService, LobbyService>(services);
     }
 
-    private void VerifyCommand(Command parentCommand, CommandTestCase testCase)
+    static void VerifyCommand(Command parentCommand, CommandTestCase testCase)
     {
         TestsHelper.AssertContainsCommand(parentCommand, testCase.Name, out var command);
         CollectionAssert.AreEqual(testCase.Arguments, command.Arguments, $"Expected Arguments do not match for \"{parentCommand.Name} {testCase.Name}\"");

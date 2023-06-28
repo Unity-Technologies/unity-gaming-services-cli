@@ -33,12 +33,13 @@ class CloudCodeModuleTests
 
     static readonly IEnumerable<TestCaseData> k_CloudCodeCommandTestCases = new[]
     {
-        new TestCaseData(k_CloudCodeModule.ListCommand),
-        new TestCaseData(k_CloudCodeModule.DeleteCommand),
-        new TestCaseData(k_CloudCodeModule.UpdateCommand),
-        new TestCaseData(k_CloudCodeModule.GetCommand),
-        new TestCaseData(k_CloudCodeModule.PublishCommand),
-        new TestCaseData(k_CloudCodeModule.NewFileCommand)
+        new TestCaseData(k_CloudCodeModule.ModuleRootCommand, k_CloudCodeModule.ScriptsCommand),
+        new TestCaseData(k_CloudCodeModule.ScriptsCommand, k_CloudCodeModule.ListCommand),
+        new TestCaseData(k_CloudCodeModule.ScriptsCommand, k_CloudCodeModule.DeleteCommand),
+        new TestCaseData(k_CloudCodeModule.ScriptsCommand, k_CloudCodeModule.UpdateCommand),
+        new TestCaseData(k_CloudCodeModule.ScriptsCommand, k_CloudCodeModule.GetCommand),
+        new TestCaseData(k_CloudCodeModule.ScriptsCommand, k_CloudCodeModule.PublishCommand),
+        new TestCaseData(k_CloudCodeModule.ScriptsCommand, k_CloudCodeModule.NewFileCommand)
     };
 
     [Test]
@@ -61,12 +62,21 @@ class CloudCodeModuleTests
         Assert.IsTrue(k_CloudCodeModule.ModuleRootCommand.Aliases.Contains("cc"));
     }
 
+    [Test]
+    public void ScriptCommandsContainsAlias()
+    {
+        var commandLineBuilder = new CommandLineBuilder();
+        commandLineBuilder.AddModule(k_CloudCodeModule);
+
+        Assert.IsTrue(k_CloudCodeModule.ScriptsCommand.Aliases.Contains("s"));
+    }
+
     [TestCaseSource(nameof(k_CloudCodeCommandTestCases))]
-    public void CommandContainCommands(Command expectedCommand)
+    public void CommandContainsCommands(Command parentCommand, Command childCommand)
     {
         TestsHelper.AssertContainsCommand(
-            k_CloudCodeModule.ModuleRootCommand, expectedCommand.Name, out var resultCommand);
-        Assert.AreEqual(expectedCommand, resultCommand);
+            parentCommand, childCommand.Name, out var resultCommand);
+        Assert.AreEqual(childCommand, resultCommand);
     }
 
     [Test]
@@ -152,7 +162,7 @@ class CloudCodeModuleTests
         var inputParser = new Mock<ICloudCodeInputParser>();
         var environmentProvider = new Mock<ICliEnvironmentProvider>();
         var client = new Mock<IJavaScriptClient>();
-        var deploymentHandlerWithOutput = new CliCloudCodeDeploymentHandler<IJavaScriptClient>(
+        var deploymentHandler = new CliCloudCodeDeploymentHandler<IJavaScriptClient>(
             null!, null!, null!, null!, null!);
         var provider = new Mock<IServiceProvider>();
         SetupProvider();
@@ -168,7 +178,7 @@ class CloudCodeModuleTests
             provider.Setup(x => x.GetService(typeof(ICloudCodeScriptParser)))
                 .Returns(scriptParser.Object);
             provider.Setup(x => x.GetService(typeof(CliCloudCodeDeploymentHandler<IJavaScriptClient>)))
-                .Returns(deploymentHandlerWithOutput);
+                .Returns(deploymentHandler);
             provider.Setup(x => x.GetService(typeof(ICloudCodeScriptsLoader)))
                 .Returns(scriptsLoader.Object);
             provider.Setup(x => x.GetService(typeof(ICliEnvironmentProvider)))
@@ -181,10 +191,6 @@ class CloudCodeModuleTests
         {
             Assert.That(deployService.CloudCodeInputParser, Is.SameAs(inputParser.Object));
             Assert.That(deployService.CloudCodeScriptParser, Is.SameAs(scriptParser.Object));
-            Assert.That(
-                deployService.CliDeploymentOutputHandler,
-                Is.SameAs(deployService.CloudCodeDeploymentHandler));
-            Assert.That(deployService.CliDeploymentOutputHandler, Is.SameAs(deploymentHandlerWithOutput));
             Assert.That(deployService.CloudCodeScriptsLoader, Is.SameAs(scriptsLoader.Object));
             Assert.That(deployService.EnvironmentProvider, Is.SameAs(environmentProvider.Object));
             Assert.That(deployService.CliCloudCodeClient, Is.SameAs(client.Object));
@@ -220,10 +226,6 @@ class CloudCodeModuleTests
 
         void AssertExpectedServicesAreWrapped()
         {
-            Assert.That(
-                deployService.CliDeploymentOutputHandler,
-                Is.SameAs(deployService.CloudCodeDeploymentHandler));
-            Assert.That(deployService.CliDeploymentOutputHandler, Is.SameAs(deploymentHandlerWithOutput));
             Assert.That(deployService.CloudCodeModulesLoader, Is.SameAs(csModuleLoader.Object));
             Assert.That(deployService.EnvironmentProvider, Is.SameAs(environmentProvider.Object));
             Assert.That(deployService.CliCloudCodeClient, Is.SameAs(client.Object));

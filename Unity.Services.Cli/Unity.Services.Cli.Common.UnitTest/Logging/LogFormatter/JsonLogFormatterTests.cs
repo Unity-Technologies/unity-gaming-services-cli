@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Logging;
 
@@ -18,7 +19,7 @@ public class JsonLogFormatterTests
             "result1",
             "result2"
         },
-        "test output"
+        "test result"
     };
 
     [SetUp]
@@ -27,7 +28,7 @@ public class JsonLogFormatterTests
         m_LogMessageTestHelper = new LogMessageTestHelper();
 
         m_Cache = new LogCache();
-        m_Formatter = new JsonLogFormatter();
+        m_Formatter = new JsonLogFormatter(System.Console.Out, System.Console.Error);
     }
 
     [TearDown]
@@ -43,8 +44,9 @@ public class JsonLogFormatterTests
         m_Cache!.AddResult(result);
         m_Formatter!.WriteLog(m_Cache);
         var resultLogMessage = m_LogMessageTestHelper!.LogMessage;
-        var expectedLog = LogMessageTestHelper.GetJsonLogMessage(null, result);
-        Assert.AreEqual(expectedLog, resultLogMessage);
+        Assert.AreEqual(
+            JsonConvert.SerializeObject(result, Formatting.Indented) + System.Environment.NewLine,
+            resultLogMessage);
     }
 
     [TestCase(LogLevel.Information)]
@@ -61,10 +63,12 @@ public class JsonLogFormatterTests
         };
         m_Cache!.AddMessage("TestMessage", level, "TestName");
         m_Formatter!.WriteLog(m_Cache);
+
         var resultLogMessage = m_LogMessageTestHelper!.LogMessage;
         List<LogMessage> messages = new List<LogMessage>();
         messages.Add(msgInfo);
-        var expectedLog = LogMessageTestHelper.GetJsonLogMessage(messages, null);
+        var expectedLog = LogMessageTestHelper.GetJsonLogFormatted(null, messages);
+
         Assert.AreEqual(expectedLog, resultLogMessage);
     }
 }

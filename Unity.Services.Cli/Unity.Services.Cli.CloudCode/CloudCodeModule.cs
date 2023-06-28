@@ -1,6 +1,8 @@
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Unity.Services.Cli.Authoring.Compression;
+using Unity.Services.Cli.Authoring.Export.Input;
 using Unity.Services.Cli.CloudCode.Authoring;
 using Unity.Services.Cli.CloudCode.Deploy;
 using Unity.Services.Cli.CloudCode.Handlers;
@@ -21,13 +23,19 @@ using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Api;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Client;
 using Unity.Services.Cli.Authoring.Handlers;
+using Unity.Services.Cli.CloudCode.Handlers.ImportExport.Scripts;
+using Unity.Services.Cli.Authoring.Import.Input;
+using Unity.Services.Cli.CloudCode.Handlers.ImportExport.Modules;
 using Unity.Services.Cli.CloudCode.Templates;
+using Unity.Services.Cli.CloudCode.Utils;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Unity.Services.Cli.CloudCode;
 
 public class CloudCodeModule : ICommandModule
 {
+    internal Command ExportScriptsCommand { get; }
+    internal Command ImportScriptsCommand { get; }
     internal Command ListCommand { get; }
     internal Command DeleteCommand { get; }
     internal Command PublishCommand { get; }
@@ -35,10 +43,39 @@ public class CloudCodeModule : ICommandModule
     internal Command CreateCommand { get; }
     internal Command UpdateCommand { get; }
     internal Command NewFileCommand { get; }
+    internal Command ScriptsCommand { get; }
     public Command ModuleRootCommand { get; }
 
     public CloudCodeModule()
     {
+        ExportScriptsCommand = new Command("export", "Export Cloud Code scripts.")
+        {
+            CommonInput.CloudProjectIdOption,
+            CommonInput.EnvironmentNameOption,
+            ExportInput.OutputDirectoryArgument,
+            ExportInput.DryRunOption,
+            ExportInput.FileNameArgument
+        };
+        ExportScriptsCommand.SetHandler<
+            ExportInput,
+            CloudCodeScriptsExporter,
+            ILoadingIndicator,
+            CancellationToken>(ScriptExportHandler.ExportAsync);
+        ImportScriptsCommand = new Command("import", "Import Cloude Code scripts.")
+        {
+            CommonInput.CloudProjectIdOption,
+            CommonInput.EnvironmentNameOption,
+            ImportInput.InputDirectoryArgument,
+            ImportInput.DryRunOption,
+            ImportInput.ReconcileOption,
+            ImportInput.FileNameArgument
+        };
+        ImportScriptsCommand.SetHandler<
+            ImportInput,
+            CloudCodeScriptsImporter,
+            ILoadingIndicator,
+            CancellationToken>(
+            ImportHandler.ImportAsync);
         ListCommand = new Command("list", "List Cloud-Code scripts.")
         {
             CommonInput.CloudProjectIdOption,
@@ -135,10 +172,10 @@ public class CloudCodeModule : ICommandModule
             CancellationToken>(
             UpdateHandler.UpdateAsync);
 
-        NewFileCommand = ModuleRootCommand.AddNewFileCommand<CloudCodeTemplate>("Cloud Code");
+        NewFileCommand = ModuleRootCommand.AddNewFileCommand<CloudCodeTemplate>(CloudCodeConstants.ServiceType);
 
-        ModuleRootCommand = new Command(
-            "cloud-code",
+        ScriptsCommand = new Command(
+            "scripts",
             "Manage Cloud-Code scripts.")
         {
             ListCommand,
@@ -147,7 +184,18 @@ public class CloudCodeModule : ICommandModule
             GetCommand,
             CreateCommand,
             UpdateCommand,
-            NewFileCommand
+            NewFileCommand,
+            ExportScriptsCommand,
+            ImportScriptsCommand
+        };
+
+        ScriptsCommand.AddAlias("s");
+
+        ModuleRootCommand = new Command(
+            "cloud-code",
+            "Manage Cloud-Code scripts and modules.")
+        {
+            ScriptsCommand
         };
 
         ModuleRootCommand.AddAlias("cc");
@@ -195,13 +243,45 @@ public class CloudCodeModule : ICommandModule
         listModuleCommand.SetHandler<CommonInput, IUnityEnvironment, ICloudCodeService, ILogger, ILoadingIndicator,
             CancellationToken>(ListModulesHandler.ListModulesAsync);
 
+        var exportModulesCommand = new Command("export", "Export Cloud Code modules.")
+        {
+            CommonInput.CloudProjectIdOption,
+            CommonInput.EnvironmentNameOption,
+            ExportInput.OutputDirectoryArgument,
+            ExportInput.DryRunOption,
+            ExportInput.FileNameArgument
+        };
+        exportModulesCommand.SetHandler<
+            ExportInput,
+            CloudCodeModulesExporter,
+            ILoadingIndicator,
+            CancellationToken>(ModuleExportHandler.ExportAsync);
+
+        var importModulesCommand = new Command("import", "Import Cloud Code modules.")
+        {
+            CommonInput.CloudProjectIdOption,
+            CommonInput.EnvironmentNameOption,
+            ImportInput.InputDirectoryArgument,
+            ImportInput.DryRunOption,
+            ImportInput.ReconcileOption,
+            ImportInput.FileNameArgument
+        };
+        importModulesCommand.SetHandler<
+            ImportInput,
+            CloudCodeModulesImporter,
+            ILoadingIndicator,
+            CancellationToken>(
+            ModulesImportHandler.ImportAsync);
+
         var modulesHandlerCommand = new Command(
             "modules",
             "Manage Cloud-Code modules.")
         {
             getModuleCommand,
             listModuleCommand,
-            deleteModuleCommand
+            deleteModuleCommand,
+            exportModulesCommand,
+            importModulesCommand
         };
 
         modulesHandlerCommand.AddAlias("m");
@@ -229,6 +309,8 @@ public class CloudCodeModule : ICommandModule
         serviceCollection.AddSingleton<IScriptCache, JsScriptCache>();
         serviceCollection.AddSingleton<IPreDeployValidator, PreDeployValidator>();
         serviceCollection.AddSingleton<ICloudCodeModulesLoader, CloudCodeModulesLoader>();
+        serviceCollection.AddSingleton<HttpClient>();
+        serviceCollection.AddSingleton<ICloudCodeModulesDownloader, CloudCodeModulesDownloader>();
         serviceCollection.AddSingleton<ICloudCodeScriptsLoader, CloudCodeScriptsLoader>();
         serviceCollection.AddSingleton<ICloudCodeService, CloudCodeService>();
         serviceCollection.AddSingleton<ICloudCodeInputParser, CloudCodeInputParser>();
@@ -243,6 +325,13 @@ public class CloudCodeModule : ICommandModule
         serviceCollection.AddTransient<IDeploymentService, CloudCodeScriptDeploymentService>(CreateJavaScriptDeployService);
         serviceCollection.AddTransient<IDeploymentService, CloudCodePrecompiledModuleDeploymentService>(CreateCSharpDeployService);
         serviceCollection.AddTransient<IFetchService, JavaScriptFetchService>();
+
+        serviceCollection.AddTransient<CloudCodeScriptsExporter, CloudCodeScriptsExporter>();
+        serviceCollection.AddTransient<CloudCodeScriptsImporter, CloudCodeScriptsImporter>();
+        serviceCollection.AddTransient<CloudCodeModulesExporter, CloudCodeModulesExporter>();
+        serviceCollection.AddTransient<CloudCodeModulesImporter, CloudCodeModulesImporter>();
+
+        serviceCollection.AddTransient<IZipArchiver, ZipArchiver>();
     }
 
     internal static CloudCodeScriptDeploymentService CreateJavaScriptDeployService(IServiceProvider provider)

@@ -32,20 +32,29 @@ public class ExceptionHelper
         m_AnsiConsole = ansiConsole;
     }
 
-    public void HandleException(Exception exception, ILogger logger, InvocationContext context)
+    public int HandleException(Exception exception, ILogger logger, InvocationContext context, int depth = 0)
     {
         var cancellationToken = context.GetCancellationToken();
         if (cancellationToken.IsCancellationRequested)
         {
             context.ExitCode = ExitCode.Cancelled;
-            return;
+            return ExitCode.Cancelled;
         }
+
+        var exitCode = ExitCode.HandledError;
 
         switch (exception)
         {
             case CliException cliException:
-                logger.LogError(cliException.Message);
-                context.ExitCode = cliException.ExitCode;
+                if (cliException.ExitCode == ExitCode.HandledError)
+                {
+                    logger.LogError(cliException.Message);
+                }
+                else if (cliException.ExitCode == ExitCode.UnhandledError)
+                {
+                    ExecuteUnhandledExceptionFlow(exception, context, depth);
+                    exitCode = ExitCode.UnhandledError;
+                }
                 break;
             case DeploymentFailureException deploymentFailureException:
                 // We don't log this exception because the deployment content already
@@ -53,42 +62,63 @@ public class ExceptionHelper
                 context.ExitCode = deploymentFailureException.ExitCode;
                 break;
             case IdentityApiException identityApiException:
-                HandleApiException(exception, logger, context, identityApiException.ErrorCode);
+                HandleApiException(exception, logger, identityApiException.ErrorCode);
                 break;
             case CloudCodeApiException cloudCodeApiException:
-                HandleApiException(exception, logger, context, cloudCodeApiException.ErrorCode);
+                HandleApiException(exception, logger, cloudCodeApiException.ErrorCode);
                 break;
             case EconomyApiException economyApiException:
-                HandleApiException(exception, logger, context, economyApiException.ErrorCode);
+                HandleApiException(exception, logger, economyApiException.ErrorCode);
                 break;
             case LobbyApiException lobbyApiException:
-                HandleApiException(exception, logger, context, lobbyApiException.ErrorCode);
+                HandleApiException(exception, logger, lobbyApiException.ErrorCode);
                 break;
             case LeaderboardApiException leaderboardApiException:
-                HandleApiException(exception, logger, context, leaderboardApiException.ErrorCode);
+                HandleApiException(exception, logger, leaderboardApiException.ErrorCode);
                 break;
             case PlayerAdminApiException playerAdminApiException:
-                HandleApiException(exception, logger, context, playerAdminApiException.ErrorCode);
+                HandleApiException(exception, logger, playerAdminApiException.ErrorCode);
                 break;
             case PlayerAuthException playerAuthApiException:
-                HandleApiException(exception, logger, context, playerAuthApiException.ErrorCode);
+                HandleApiException(exception, logger, playerAuthApiException.ErrorCode);
                 break;
             case AggregateException aggregateException:
-                HandleAggregateException(aggregateException, logger, context);
+                foreach (var ex in aggregateException.InnerExceptions)
+                {
+                    var aggregateExitCode = HandleException(ex, logger, context, depth + 1);
+                    if (aggregateExitCode > exitCode)
+                    {
+                        exitCode = aggregateExitCode;
+                    }
+                }
+
+                if (depth == 0 && exitCode != ExitCode.HandledError)
+                {
+                    m_AnsiConsole.WriteException(exception);
+                }
+
+                context.ExitCode = exitCode;
                 break;
             case HostingApiException hostingException:
-                HandleApiException(exception, logger, context, hostingException.ErrorCode);
+                HandleApiException(exception, logger, hostingException.ErrorCode);
                 break;
             default:
-                ExecuteUnhandledExceptionFlow(exception, context);
+                ExecuteUnhandledExceptionFlow(exception, context, depth);
+                exitCode = ExitCode.UnhandledError;
                 break;
         }
+
+        context.ExitCode = exitCode;
+        return exitCode;
     }
 
-    void ExecuteUnhandledExceptionFlow(Exception exception, InvocationContext context)
+    void ExecuteUnhandledExceptionFlow(Exception exception, InvocationContext context, int depth)
     {
-        context.ExitCode = ExitCode.UnhandledError;
-        m_AnsiConsole.WriteException(exception);
+        if (depth == 0)
+        {
+            m_AnsiConsole.WriteException(exception);
+        }
+
         try
         {
             Diagnostics.AddData(TagKeys.DiagnosticName, "cli_unhandled_exception");
@@ -110,34 +140,7 @@ public class ExceptionHelper
         }
     }
 
-    void HandleAggregateException(AggregateException aggregateException, ILogger logger, InvocationContext context)
-    {
-        // Check for CLI Exceptions in the aggregated exceptions
-        var cliExceptions =
-            aggregateException.InnerExceptions.Where(e => e is CliException);
-
-        // Log any CLI Exception found
-        foreach (var e in cliExceptions)
-        {
-            logger.LogError(e.Message);
-        }
-
-        // Sets handled error in case no unhandled error is found
-        if (cliExceptions.Any())
-        {
-            context.ExitCode = ExitCode.HandledError;
-        }
-        var unhandledExceptions =
-            aggregateException.InnerExceptions.Where(e => e is not CliException);
-
-        // Sets default flow in case any exception is unhandled
-        if (unhandledExceptions.Any())
-        {
-            ExecuteUnhandledExceptionFlow(aggregateException, context);
-        }
-    }
-
-    void HandleApiException(Exception exception, ILogger logger, InvocationContext context, int errorCode)
+    void HandleApiException(Exception exception, ILogger logger, int errorCode)
     {
         bool isErrorCodeRelatedToHttpStatus = Enum.IsDefined(typeof(HttpStatusCode), errorCode);
         HttpStatusCode? statusCode = isErrorCodeRelatedToHttpStatus ? (HttpStatusCode?)errorCode : null;
@@ -153,6 +156,5 @@ public class ExceptionHelper
             : string.Join(Environment.NewLine, exception.Message, TroubleshootingHelp, troubleShootingLink);
 
         logger.LogError(fullExceptionMessage);
-        context.ExitCode = ExitCode.HandledError;
     }
 }

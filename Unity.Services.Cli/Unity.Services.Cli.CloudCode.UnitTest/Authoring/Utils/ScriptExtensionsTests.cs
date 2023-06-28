@@ -20,7 +20,6 @@ class ScriptExtensionsTests
         var builder = new StringBuilder();
         var expectedBody = script.Body
             + System.Environment.NewLine
-            + System.Environment.NewLine
             + $"module.exports.params = {TestValues.ValidParametersToJavaScript};"
             + $"{System.Environment.NewLine}";
 

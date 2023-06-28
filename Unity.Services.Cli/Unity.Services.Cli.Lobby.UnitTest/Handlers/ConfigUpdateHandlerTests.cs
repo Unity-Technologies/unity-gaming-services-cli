@@ -9,7 +9,7 @@ using Unity.Services.Cli.TestUtils;
 
 namespace Unity.Services.Cli.Lobby.UnitTest.Handlers
 {
-    internal class ConfigUpdateHandlerTests
+    class ConfigUpdateHandlerTests
     {
         Mock<ILogger> m_MockLogger = new();
         Mock<IRemoteConfigService> m_MockRemoteConfig = new();

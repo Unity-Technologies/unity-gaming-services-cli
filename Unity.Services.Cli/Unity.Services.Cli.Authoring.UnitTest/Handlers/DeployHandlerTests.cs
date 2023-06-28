@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -18,6 +14,7 @@ using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.TestUtils;
+using Unity.Services.DeploymentApi.Editor;
 
 namespace Unity.Services.Cli.Authoring.UnitTest.Handlers;
 
@@ -36,9 +33,11 @@ public class DeployHandlerTests
     public class TestDeploymentService : IDeploymentService
     {
         string m_ServiceType = "Test";
+        string m_ServiceName = "test";
         string m_DeployFileExtension = ".test";
 
         string IDeploymentService.ServiceType => m_ServiceType;
+        string IDeploymentService.ServiceName => m_ServiceName;
 
         string IDeploymentService.DeployFileExtension => m_DeployFileExtension;
 
@@ -58,9 +57,11 @@ public class DeployHandlerTests
     public class TestDeploymentFailureService : IDeploymentService
     {
         string m_ServiceType = "Test";
+        string m_ServiceName = "test";
         string m_DeployFileExtension = ".test";
 
         string IDeploymentService.ServiceType => m_ServiceType;
+        string IDeploymentService.ServiceName => m_ServiceName;
 
         string IDeploymentService.DeployFileExtension => m_DeployFileExtension;
 
@@ -86,9 +87,11 @@ public class DeployHandlerTests
     public class TestDeploymentUnhandledExceptionService : IDeploymentService
     {
         string m_ServiceType = "Test";
+        string m_ServiceName = "test";
         string m_DeployFileExtension = ".test";
 
         string IDeploymentService.ServiceType => m_ServiceType;
+        string IDeploymentService.ServiceName => m_ServiceName;
 
         string IDeploymentService.DeployFileExtension => m_DeployFileExtension;
 
@@ -109,8 +112,30 @@ public class DeployHandlerTests
         m_Logger.Reset();
         m_UnityEnvironment.Reset();
         m_DeployFileService.Reset();
+
+        m_DeploymentService.Setup(s => s.ServiceName)
+            .Returns("mock_test");
+
+        m_DeploymentService.Setup(
+                s => s.Deploy(
+                    It.IsAny<DeployInput>(),
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<StatusContext?>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns(
+                Task.FromResult(
+                    new DeploymentResult(
+                        Array.Empty<IDeploymentItem>(),
+                        Array.Empty<IDeploymentItem>(),
+                        Array.Empty<IDeploymentItem>(),
+                        Array.Empty<IDeploymentItem>(),
+                        Array.Empty<IDeploymentItem>())));
+
         var collection = m_Bridge.CreateBuilder(new ServiceCollection());
         collection.AddScoped<IDeploymentService, TestDeploymentService>();
+        collection.AddScoped<IDeploymentService>((_) => m_DeploymentService.Object);
         var provider = m_Bridge.CreateServiceProvider(collection);
 
         m_Host.Setup(x => x.Services)
@@ -197,5 +222,128 @@ public class DeployHandlerTests
                 m_UnityEnvironment.Object,
                 m_Logger.Object, (StatusContext)null!, CancellationToken.None);
         });
+
+    }
+
+    [Test]
+    public async Task DeployAsync_ReconcileWillNotExecutedWithNoServiceFlag()
+    {
+        var input = new DeployInput()
+        {
+            Reconcile = true
+        };
+
+        await DeployHandler.DeployAsync(
+            m_Host.Object,
+            input,
+            m_DeployFileService.Object,
+            m_UnityEnvironment.Object,
+            m_Logger.Object,
+            (StatusContext)null!,
+            CancellationToken.None);
+
+        m_DeploymentService.Verify(
+            s => s.Deploy(
+                It.IsAny<DeployInput>(),
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<StatusContext?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Test]
+    public async Task DeployAsync_ReconcileExecuteWithServiceFlag()
+    {
+        var input = new DeployInput()
+        {
+            Reconcile = true,
+            Services = new[]
+            {
+                "mock_test"
+            }
+        };
+
+        await DeployHandler.DeployAsync(
+            m_Host.Object,
+            input,
+            m_DeployFileService.Object,
+            m_UnityEnvironment.Object,
+            m_Logger.Object,
+            (StatusContext)null!,
+            CancellationToken.None);
+
+        m_DeploymentService.Verify(
+            s => s.Deploy(
+                It.IsAny<DeployInput>(),
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<StatusContext?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task DeployAsync_ExecuteWithCorrectServiceFlag()
+    {
+        var input = new DeployInput()
+        {
+            Services = new[]
+            {
+                "mock_test"
+            }
+        };
+
+        await DeployHandler.DeployAsync(
+            m_Host.Object,
+            input,
+            m_DeployFileService.Object,
+            m_UnityEnvironment.Object,
+            m_Logger.Object,
+            (StatusContext)null!,
+            CancellationToken.None);
+
+        m_DeploymentService.Verify(
+            s => s.Deploy(
+                It.IsAny<DeployInput>(),
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<StatusContext?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task DeployAsync_NotExecuteWithIncorrectServiceFlag()
+    {
+        var input = new DeployInput()
+        {
+            Services = new[]
+            {
+                "non-test"
+            }
+        };
+
+        await DeployHandler.DeployAsync(
+            m_Host.Object,
+            input,
+            m_DeployFileService.Object,
+            m_UnityEnvironment.Object,
+            m_Logger.Object,
+            (StatusContext)null!,
+            CancellationToken.None);
+
+        m_DeploymentService.Verify(
+            s => s.Deploy(
+                It.IsAny<DeployInput>(),
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<StatusContext?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 }

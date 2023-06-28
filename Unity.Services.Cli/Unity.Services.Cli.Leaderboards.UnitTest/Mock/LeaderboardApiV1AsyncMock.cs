@@ -46,7 +46,7 @@ class LeaderboardApiV1AsyncMock
                     It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
                     It.IsAny<string>(),
-                    It.IsAny<LeaderboardConfig>(),
+                    It.IsAny<LeaderboardPatchConfig>(),
                     It.IsAny<int>(),
                     CancellationToken.None))
             .ReturnsAsync(new ApiResponse<object>(statusCode: HttpStatusCode.NoContent, data: null!));

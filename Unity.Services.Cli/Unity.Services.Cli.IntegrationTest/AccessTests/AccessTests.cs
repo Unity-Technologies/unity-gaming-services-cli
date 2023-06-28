@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Connections;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Models;
 using Unity.Services.Cli.Common.Networking;
+using Unity.Services.Cli.IntegrationTest.Common;
 using Unity.Services.Cli.MockServer;
 using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Cli.MockServer.ServiceMocks;
@@ -15,8 +17,7 @@ namespace Unity.Services.Cli.IntegrationTest.AccessTests;
 
 public class AccessTests : UgsCliFixture
 {
-
-    private const string k_FilePath = "policy.json";
+    const string k_FilePath = "policy.json";
     const string k_ProjectIdNotSetErrorMessage = "'project-id' is not set in project configuration."
                                                  + " '" + Keys.EnvironmentKeys.ProjectId + "' is not set in system environment variables.";
     const string k_LoggedOutErrorMessage = "You are not logged into any service account."
@@ -26,7 +27,7 @@ public class AccessTests : UgsCliFixture
 
     readonly string k_TestDirectory = Path.GetFullPath(Path.Combine(UgsCliBuilder.RootDirectory, "Unity.Services.Cli/Unity.Services.Cli.IntegrationTest/AccessTests/Data/"));
 
-    private const string k_RequiredArgumentMissing = "Required argument missing for command";
+    const string k_RequiredArgumentMissing = "Required argument missing for command";
 
     [SetUp]
     public async Task SetUp()
@@ -63,7 +64,7 @@ public class AccessTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command(command)
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(k_LoggedOutErrorMessage)
+            .AssertStandardErrorContains(k_LoggedOutErrorMessage)
             .ExecuteAsync();
     }
 
@@ -97,7 +98,7 @@ public class AccessTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        await AssertSuccess("access get-project-policy", "\"statements\": []");
+        await AssertSuccess("access get-project-policy", expectedStdOut: "\"statements\": []");
     }
 
     // access get-player-policy
@@ -113,7 +114,7 @@ public class AccessTests : UgsCliFixture
             statements = new List<Statement>()
         };
 
-        await AssertSuccess($"access get-player-policy {AccessApiMock.PlayerId}", JsonConvert.SerializeObject(playerPolicy, Formatting.Indented));
+        await AssertSuccess($"access get-player-policy {AccessApiMock.PlayerId}", expectedStdOut: JsonConvert.SerializeObject(playerPolicy, Formatting.Indented));
     }
 
     // access get-all-player-policies
@@ -132,7 +133,7 @@ public class AccessTests : UgsCliFixture
         List<object> obj = new List<object>();
         obj.Add(playerPolicy);
 
-        await AssertSuccess("access get-all-player-policies", JsonConvert.SerializeObject(obj, Formatting.Indented));
+        await AssertSuccess("access get-all-player-policies", expectedStdOut: JsonConvert.SerializeObject(obj, Formatting.Indented));
     }
 
     // access upsert-project-policy
@@ -185,22 +186,29 @@ public class AccessTests : UgsCliFixture
             yield return $"access delete-player-policy-statements {AccessApiMock.PlayerId} policy.json";
         }
     }
-
-    private static async Task AssertSuccess(string command, string expectedMessage)
+    
+    static async Task AssertSuccess(string command, string? expectedStdErr = null, string? expectedStdOut = null)
     {
-        await GetLoggedInCli()
-            .Command(command)
-            .AssertNoErrors()
-            .AssertStandardOutputContains(expectedMessage)
-            .ExecuteAsync();
+        var test = GetLoggedInCli()
+            .Command(command);
+        if (expectedStdErr != null)
+        {
+            test = test.AssertStandardErrorContains(expectedStdErr);
+        }
+
+        if (expectedStdOut != null)
+        {
+            test = test.AssertStandardOutputContains(expectedStdOut);
+        }
+        await test.ExecuteAsync();
     }
 
-    private static async Task AssertException(string command, string expectedMessage)
+    static async Task AssertException(string command, string expectedMessage)
     {
         await GetLoggedInCli()
             .Command(command)
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMessage)
+            .AssertStandardErrorContains(expectedMessage)
             .ExecuteAsync();
     }
 }

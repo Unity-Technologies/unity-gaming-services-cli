@@ -13,6 +13,7 @@ using Unity.Services.Cli.CloudCode.Deploy;
 using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.Cli.CloudCode.UnitTest.Utils;
+using Unity.Services.Cli.CloudCode.Utils;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 
@@ -68,11 +69,11 @@ class JavaScriptFetchServiceTests
         m_UnityEnvironment.Setup(x => x.FetchIdentifierAsync())
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         var expectedResult = new FetchResult(
-            Array.Empty<string>(),
-            Array.Empty<string>(),
-            Array.Empty<string>(),
-            Array.Empty<string>(),
-            Array.Empty<string>());
+            Array.Empty<DeployContent>(),
+            Array.Empty<DeployContent>(),
+            Array.Empty<DeployContent>(),
+            Array.Empty<DeployContent>(),
+            Array.Empty<DeployContent>());
         m_FetchHandler.Setup(
                 x => x.FetchAsync(input.Path, scripts, input.DryRun, input.Reconcile, CancellationToken.None))
             .ReturnsAsync(expectedResult);
@@ -102,18 +103,17 @@ class JavaScriptFetchServiceTests
         m_DeployFileService.Setup(
                 x => x.ListFilesToDeploy(
                     It.IsAny<IReadOnlyList<string>>(),
-                    Constants.JavaScriptFileExtension))
+                    CloudCodeConstants.JavaScriptFileExtension))
             .Returns(files);
         m_ScriptsLoader.Setup(
                 x => x.LoadScriptsAsync(
                     files,
-                    Constants.ServiceType,
-                    Constants.JavaScriptFileExtension,
+                    CloudCodeConstants.ServiceType,
+                    CloudCodeConstants.JavaScriptFileExtension,
                     m_InputParser.Object,
                     m_ScriptParser.Object,
-                    It.IsAny<ICollection<DeployContent>>(),
                     CancellationToken.None))
-            .ReturnsAsync(new CloudCodeScriptLoadResult(scripts, new List<DeployContent>()));
+            .ReturnsAsync(new CloudCodeScriptLoadResult(scripts, new List<IScript>()));
     }
 
     [Test]

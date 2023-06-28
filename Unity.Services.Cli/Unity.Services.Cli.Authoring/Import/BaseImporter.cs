@@ -2,8 +2,11 @@ using Microsoft.Extensions.Logging;
 using Unity.Services.Cli.Authoring.Compression;
 using Unity.Services.Cli.Authoring.Import.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
+using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.Common.Utils;
+using Unity.Services.ModuleTemplate.Authoring.Core.Batching;
 
 namespace Unity.Services.Cli.Authoring.Import;
 /// <summary>
@@ -13,76 +16,78 @@ namespace Unity.Services.Cli.Authoring.Import;
 public abstract class BaseImporter<T> : IImporter
 {
     readonly IUnityEnvironment m_UnityEnvironment;
-    readonly IZipArchiver<T> m_ZipArchiver;
-    protected readonly ILogger Logger;
+    protected readonly IZipArchiver m_ZipArchiver;
+    protected readonly ILogger m_Logger;
 
     /// <summary>
     /// Path where the data to be imported exists
     /// </summary>
-    protected abstract string ArchivePath { get; }
+    protected abstract string FileName { get; }
 
     /// <summary>
     /// A path relative to the root of the archive, indicating the name of the entry to be imported
     /// </summary>
     protected abstract string EntryName { get; }
 
-    /// <summary>
-    /// Archive extension.
-    /// </summary>
-    protected abstract string Extension { get; }
-
-    protected ImportInput ImportInput { get; set; } = null!;
+    protected string? m_ArchivePath;
 
     protected BaseImporter(
-        IZipArchiver<T> zipArchiver,
+        IZipArchiver zipArchiver,
         IUnityEnvironment unityEnvironment,
         ILogger logger)
     {
         m_ZipArchiver = zipArchiver;
         m_UnityEnvironment = unityEnvironment;
-        Logger = logger;
+        m_Logger = logger;
     }
 
-    public async Task ImportAsync(ImportInput input, CancellationToken cancellationToken)
+    /// <summary>
+    /// Import configs in parallel tasks
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="cancellationToken"></param>
+    /// <param name="maxParallelTaskLimit">Limit max parallel tasks to reduce 429 too many requests issue, various among services, work together with retry-after header handling, ex RetryAfterSleepDuration in LeaderboardsModule.cs</param>
+    /// <exception cref="CliException"></exception>
+    public async Task ImportAsync(ImportInput input, CancellationToken cancellationToken, int maxParallelTaskLimit = 10)
     {
-        ImportInput = input;
         var environmentId = await m_UnityEnvironment.FetchIdentifierAsync();
-        var projectId = ImportInput!.CloudProjectId!;
-        var archivePath = ArchivePath;
-        var extension = Extension;
+        var projectId = input!.CloudProjectId!;
+        var fileName = ImportExportUtils.ResolveFileName(input.FileName, FileName);
 
-        if (!string.IsNullOrEmpty(ImportInput.FileName))
+        m_ArchivePath = Path.Join(input.InputDirectory, fileName);
+        var localConfigs = await m_ZipArchiver.UnzipAsync<T>(m_ArchivePath, EntryName, cancellationToken);
+        var remoteConfigs = await ListConfigsAsync(projectId, environmentId, cancellationToken);
+
+        var state = CreateState(localConfigs, remoteConfigs);
+
+        if (!input.DryRun)
         {
-            var fileName = Path.GetFileNameWithoutExtension(ImportInput.FileName);
-            var fileExtension = Path.GetExtension(ImportInput.FileName);
-            extension = string.IsNullOrEmpty(fileExtension) ? Extension : fileExtension;
-
-            archivePath = Path.Join(Path.GetDirectoryName(ArchivePath), fileName);
-        }
-
-        var configs = m_ZipArchiver.Unzip(archivePath, EntryName, extension);
-
-        if (ImportInput.DryRun)
-        {
-            var dryRunResult = OnDryRun(configs);
-            Logger.LogResultValue(dryRunResult);
-            return;
-        }
-
-        var configsOnRemote = await ListConfigsAsync(projectId, environmentId, cancellationToken);
-
-        if (ImportInput.Reconcile)
-        {
-            await DeleteNonMatchingConfigsAsync(
+            await ImportConfigsAsync(
                 projectId,
                 environmentId,
-                configs,
-                configsOnRemote,
-                cancellationToken
-            );
+                input.Reconcile,
+                state,
+                maxParallelTaskLimit,
+                cancellationToken);
         }
 
-        await CreateOrUpdateConfigsAsync(projectId, environmentId, configs,  configsOnRemote, cancellationToken);
+        var items = state.CreatedItems().Concat(state.UpdatedItems());
+        if (input.Reconcile)
+        {
+            items = items.Concat(state.DeletedItems());
+        }
+
+        m_Logger.LogResultValue(new ImportExportResult(items.ToList())
+        {
+            Header = input.DryRun ? "The following items will be imported:" : "The following items were imported:",
+            DryRun = input.DryRun
+        });
+
+        var importExceptions = state.ImportExceptions();
+        if (importExceptions != null)
+        {
+            throw importExceptions;
+        }
     }
 
     /// <summary>
@@ -112,26 +117,13 @@ public abstract class BaseImporter<T> : IImporter
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Method to check is config present
-    /// </summary>
-    /// <param name="config"></param>
-    /// <param name="configsOnRemote"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    protected abstract bool IsConfigPresent(
-        T config,
-        IEnumerable<T> configsOnRemote,
-        CancellationToken cancellationToken);
-
-    /// <summary>
     /// Method to create config async
     /// </summary>
     /// <param name="projectId">Project Id</param>
     /// <param name="environmentId">Environment Id</param>
     /// <param name="config">Config to check</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Return result of creating config</returns>
-    protected abstract Task<bool> TryCreateConfigAsync(
+    protected abstract Task CreateConfigAsync(
         string projectId,
         string environmentId,
         T config,
@@ -144,102 +136,91 @@ public abstract class BaseImporter<T> : IImporter
     /// <param name="environmentId">Environment Id</param>
     /// <param name="config">Config to check</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Return result of updating config</returns>
-    protected abstract Task<bool> TryUpdateConfigAsync(
+    protected abstract Task UpdateConfigAsync(
         string projectId,
         string environmentId,
         T config,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Method to perform dry run
+    /// Wrap value as ImportExportEntry
     /// </summary>
-    /// <param name="configs">Configs to perform operation</param>
-    /// <returns>Result of DryRun operation</returns>
-    protected abstract DryRunResult<T> OnDryRun(IEnumerable<T> configs);
+    /// <param name="value">value to wrap</param>
+    /// <returns></returns>
+    protected abstract ImportExportEntry<T> ToImportExportEntry(T value);
 
-    /// <summary>
-    /// Method will detect what configs need to be deleted from remote
-    /// </summary>
-    /// <param name="localConfigs">Local Configs</param>
-    /// <param name="remoteConfigs">Remote Configs</param>
-    /// <returns>Configs need to be deleted</returns>
-    protected abstract IEnumerable<T> GetConfigsToDelete(IEnumerable<T> localConfigs, IEnumerable<T> remoteConfigs);
-
-    /// <summary>
-    /// Method to log import information
-    /// </summary>
-    /// <param name="importResult">Results of import</param>
-    protected abstract void LogImportResult(ImportResult<T> importResult);
-
-    async Task DeleteNonMatchingConfigsAsync(
+    protected virtual async Task ImportConfigsAsync(
         string projectId,
         string environmentId,
-        IEnumerable<T> configs,
-        IEnumerable<T> configsOnRemote,
+        bool reconcile,
+        ImportState<T> state,
+        int maxParallelTaskLimit,
         CancellationToken cancellationToken)
     {
-        var deleteTasks = new List<Task>();
-        var configsToDelete = GetNonMatchingConfigsAsync(projectId, environmentId, configs, configsOnRemote, cancellationToken);
+        var createEntryDelegates = CreateDelegatesFromImportExportEntries(
+            projectId, environmentId, state.ToCreate, CreateConfigAsync, cancellationToken);
 
-        foreach (var configToDelete in configsToDelete)
+        var updateEntryDelegates = CreateDelegatesFromImportExportEntries(
+            projectId, environmentId, state.ToUpdate, UpdateConfigAsync, cancellationToken);
+
+        List<Func<Task>> deleteEntryDelegates = new List<Func<Task>>();
+
+        if (reconcile)
         {
-            deleteTasks.Add(DeleteConfigAsync(projectId, environmentId, configToDelete, cancellationToken));
+            deleteEntryDelegates = CreateDelegatesFromImportExportEntries(
+                projectId, environmentId, state.ToDelete, DeleteConfigAsync, cancellationToken);
         }
 
-        await Task.WhenAll(deleteTasks);
+        var delegates = createEntryDelegates
+            .Concat(updateEntryDelegates)
+            .Concat(deleteEntryDelegates);
+
+        await Batching.ExecuteInBatchesAsync(
+            delegates,
+            cancellationToken,
+            maxParallelTaskLimit);
     }
 
-    async Task CreateOrUpdateConfigsAsync(
+    static List<Func<Task>> CreateDelegatesFromImportExportEntries(
         string projectId,
         string environmentId,
-        IEnumerable<T> localConfigs,
-        IEnumerable<T> configsOnRemote,
+        IReadOnlyCollection<ImportExportEntry<T>> entries,
+        Func<string, string, T, CancellationToken, Task> action,
         CancellationToken cancellationToken)
     {
-        var taskToConfig = new Dictionary<Task<bool>, T>();
-        foreach (var config in localConfigs)
+        List<Func<Task>> delegates = new List<Func<Task>>();
+
+        foreach (var entry in entries)
         {
-            taskToConfig.Add(TryCreateOrUpdateConfigAsync(
-                projectId,
-                environmentId,
-                config,
-                configsOnRemote,
-                cancellationToken), config);
+            delegates.Add(async () =>
+            {
+                try
+                {
+                    await action(
+                        projectId,
+                        environmentId,
+                        entry.Value,
+                        cancellationToken);
+                }
+                catch (Exception e)
+                {
+                    entry.Fail(e);
+                }
+            });
         }
 
-        await Task.WhenAll(taskToConfig.Keys);
-
-        var failedTasks = taskToConfig.Keys.Where(t => !t.Result);
-        var successfulTasks = taskToConfig.Keys.Where(t => t.Result);
-        var failed = failedTasks.Select(failedTask => taskToConfig[failedTask]).ToList();
-        var imported = successfulTasks.Select(successfulTask => taskToConfig[successfulTask]).ToList();
-
-        LogImportResult(new ImportResult<T>(imported, failed));
+        return delegates;
     }
 
-    async Task<bool> TryCreateOrUpdateConfigAsync(
-        string projectId,
-        string environmentId,
-        T config,
-        IEnumerable<T> configsOnRemote,
-        CancellationToken cancellationToken)
+    protected virtual ImportState<T> CreateState(IEnumerable<T> localConfigs, IEnumerable<T> remoteConfigs)
     {
-        if (IsConfigPresent(config, configsOnRemote, cancellationToken))
-        {
-            return await TryUpdateConfigAsync(projectId, environmentId, config, cancellationToken);
-        }
+        var localEntries = localConfigs.Select(ToImportExportEntry).ToList();
+        var remoteEntries = remoteConfigs.Select(ToImportExportEntry).ToList();
 
-        return await TryCreateConfigAsync(projectId, environmentId, config, cancellationToken);
-    }
+        var toCreate = localEntries.Except(remoteEntries).ToList();
+        var toUpdate = localEntries.Intersect(remoteEntries).ToList();
+        var toDelete = remoteEntries.Except(localEntries).ToList();
 
-    IEnumerable<T> GetNonMatchingConfigsAsync(
-        string projectId,
-        string environmentId,
-        IEnumerable<T> configs,
-        IEnumerable<T> configsOnRemote,
-        CancellationToken cancellationToken)
-    {
-        return GetConfigsToDelete(configs, configsOnRemote);
+        return new ImportState<T>(toCreate, toUpdate, toDelete);
     }
 }

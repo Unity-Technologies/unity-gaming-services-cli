@@ -5,7 +5,7 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace Unity.Services.Cli.CloudCode.Model;
 
-internal class GetModuleResponseOutput
+class GetModuleResponseOutput
 {
     public string Name { get; }
     public Language Language { get; }
@@ -16,8 +16,8 @@ internal class GetModuleResponseOutput
     {
         Name = response.Name;
         Language = response.Language;
-        DateModified = TruncateDate(response.DateModified);
-        DateCreated = TruncateDate(response.DateCreated);
+        DateModified = response.DateModified.ToString("s", CultureInfo.InvariantCulture);
+        DateCreated = response.DateCreated.ToString("s", CultureInfo.InvariantCulture);
     }
 
     public override string ToString()
@@ -27,10 +27,5 @@ internal class GetModuleResponseOutput
             .DisableAliases()
             .Build();
         return serializer.Serialize(this);
-    }
-
-    static String TruncateDate(DateTime dateTime)
-    {
-        return dateTime.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFK", CultureInfo.InvariantCulture);
     }
 }

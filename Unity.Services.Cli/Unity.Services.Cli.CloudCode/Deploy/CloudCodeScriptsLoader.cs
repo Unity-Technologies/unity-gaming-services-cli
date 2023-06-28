@@ -1,12 +1,13 @@
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.CloudCode.Exceptions;
 using Unity.Services.Cli.CloudCode.Service;
-using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
+using Unity.Services.DeploymentApi.Editor;
 
 namespace Unity.Services.Cli.CloudCode.Deploy;
 
-internal class CloudCodeScriptsLoader : ICloudCodeScriptsLoader
+class CloudCodeScriptsLoader : ICloudCodeScriptsLoader
 {
     public async Task<CloudCodeScriptLoadResult> LoadScriptsAsync(
         IReadOnlyCollection<string> paths,
@@ -14,43 +15,51 @@ internal class CloudCodeScriptsLoader : ICloudCodeScriptsLoader
         string extension,
         ICloudCodeInputParser cloudCodeInputParser,
         ICloudCodeScriptParser cloudCodeScriptParser,
-        ICollection<DeployContent> deployContents,
         CancellationToken cancellationToken)
     {
-        var scriptList = new List<IScript>();
-        var failedContents = new List<DeployContent>();
+        var succeedScripts = new List<IScript>();
+        var filedScripts = new List<IScript>();
+
         foreach (var path in paths)
         {
+            var script = new CloudCodeScript(
+                ScriptName.FromPath(path).ToString(),
+                path,
+                0,
+                new DeploymentStatus(Statuses.Loading));
+
             try
             {
-                var script = await LoadCloudCodeScriptFromFilePathAsync(
-                    path, cloudCodeInputParser, cloudCodeScriptParser, cancellationToken);
-                scriptList.Add(script);
-                deployContents.Add(new DeployContent(
-                    ScriptName.FromPath(path).ToString(), serviceType, path, 0, "Loaded"));
+                await LoadCloudCodeScriptAsync(
+                        script,
+                        cloudCodeInputParser,
+                        cloudCodeScriptParser,
+                        cancellationToken);
+                script.Status = new DeploymentStatus(Statuses.Loaded, string.Empty);
+
+                succeedScripts.Add(script);
             }
             catch (ScriptEvaluationException ex)
             {
-                failedContents.Add(new DeployContent(
-                    ScriptName.FromPath(path).ToString(),
-                    serviceType, path, 0, "Failed To Read", ex.Message));
+                script.Status = new DeploymentStatus(Statuses.FailedToRead, ex.Message, SeverityLevel.Error);
+
+                filedScripts.Add(script);
             }
         }
 
-        return new CloudCodeScriptLoadResult(scriptList, failedContents);
+        return new CloudCodeScriptLoadResult(succeedScripts, filedScripts);
     }
 
-    internal static async Task<CloudCodeScript> LoadCloudCodeScriptFromFilePathAsync(
-        string filePath,
+    static async Task LoadCloudCodeScriptAsync(
+        CloudCodeScript script,
         ICloudCodeInputParser cloudCodeInputParser,
         ICloudCodeScriptParser cloudCodeScriptParser,
         CancellationToken cancellationToken)
     {
-        var code = await cloudCodeInputParser.LoadScriptCodeAsync(filePath, cancellationToken);
-        var scriptParameters = await cloudCodeScriptParser.ParseScriptParametersAsync(code, cancellationToken);
-        var cloudCodeParameters = new List<CloudCodeParameter>();
-        cloudCodeParameters.AddRange(scriptParameters.Select(p => p.ToCloudCodeParameter()));
-        return new CloudCodeScript(
-            ScriptName.FromPath(filePath), Language.JS, filePath, code, cloudCodeParameters, "");
+        var code = await cloudCodeInputParser.LoadScriptCodeAsync(script.Path, cancellationToken);
+        var parametersParsingResult = await cloudCodeScriptParser.ParseScriptParametersAsync(code, cancellationToken);
+
+        script.Body = code;
+        script.Parameters.AddRange(parametersParsingResult.Parameters.Select(p => p.ToCloudCodeParameter()));
     }
 }

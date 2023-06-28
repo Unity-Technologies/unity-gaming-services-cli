@@ -59,14 +59,88 @@ class ExceptionHelperTests
     }
 
     [Test]
-    public void HandleCliException()
+    public void HandleHandledCliException()
     {
-        var expectedExitCode = -5;
+        var expectedExitCode = ExitCode.HandledError;
+        var errorMessage = "my error";
         Assert.DoesNotThrow(
             () => m_ExceptionHelper!.HandleException(
-                new CliException(expectedExitCode),
+                new CliException(errorMessage, ExitCode.HandledError),
                 k_MockHelper.MockLogger.Object, m_Context!));
-        TestsHelper.VerifyLoggerWasCalled(k_MockHelper.MockLogger, LogLevel.Error);
+        TestsHelper.VerifyLoggerWasCalled(k_MockHelper.MockLogger, LogLevel.Error, null, Times.Once, errorMessage);
+        k_MockAnsiConsole.Verify(ex => ex.Write(It.IsAny<IRenderable>()), Times.Never);
+        Assert.AreEqual(expectedExitCode, m_Context!.ExitCode);
+    }
+
+    [Test]
+    public void HandleUnhandledCliException()
+    {
+        var expectedExitCode = ExitCode.UnhandledError;
+        var exception = new Exception();
+        Assert.DoesNotThrow(
+            () => m_ExceptionHelper!.HandleException(
+                exception,
+                k_MockHelper.MockLogger.Object, m_Context!));
+        TestsHelper.VerifyLoggerWasCalled(k_MockHelper.MockLogger, LogLevel.Error, null, Times.Never);
+        k_MockAnsiConsole.Verify(ex => ex.Write(It.IsAny<IRenderable>()), Times.Once);
+        Assert.AreEqual(expectedExitCode, m_Context!.ExitCode);
+    }
+
+    [Test]
+    public void HandleAggregateExceptionWithOnlyHandledExceptions()
+    {
+        var expectedExitCode = ExitCode.HandledError;
+        var exception = new CliException(ExitCode.HandledError);
+
+        var exceptions = new List<Exception>
+        {
+            exception,
+            exception
+        };
+
+        Assert.DoesNotThrow(
+            () => m_ExceptionHelper!.HandleException(
+                new AggregateException(exceptions),
+                k_MockHelper.MockLogger.Object, m_Context!));
+
+        k_MockHelper.MockLogger.Verify(x => x.Log(
+            LogLevel.Error,
+            It.IsAny<EventId>(),
+            It.IsAny<It.IsAnyType>(),
+            It.IsAny<Exception>(),
+            It.Is<Func<It.IsAnyType, Exception?, string>>((o, t) => true)),
+            Times.Exactly(exceptions.Count));
+
+        k_MockAnsiConsole.Verify(ex => ex.Write(It.IsAny<IRenderable>()), Times.Never);
+        Assert.AreEqual(expectedExitCode, m_Context!.ExitCode);
+    }
+
+    [Test]
+    public void HandleAggregateExceptionWithHandledAndUnhandledExceptions()
+    {
+        var expectedExitCode = ExitCode.UnhandledError;
+
+        var exceptions = new List<Exception>
+        {
+            new CliException(ExitCode.HandledError),
+            new (),
+            new ()
+        };
+
+        Assert.DoesNotThrow(
+            () => m_ExceptionHelper!.HandleException(
+                new AggregateException(exceptions),
+                k_MockHelper.MockLogger.Object, m_Context!));
+
+        k_MockHelper.MockLogger.Verify(x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception?, string>>((o, t) => true)),
+            Times.Exactly(1));
+
+        k_MockAnsiConsole.Verify(ex => ex.Write(It.IsAny<IRenderable>()), Times.Once);
         Assert.AreEqual(expectedExitCode, m_Context!.ExitCode);
     }
 
@@ -79,42 +153,6 @@ class ExceptionHelperTests
                 new CookieException(),
                 k_MockHelper.MockLogger.Object, m_Context!));
         k_MockAnsiConsole.Verify(ex => ex.Write(It.IsAny<IRenderable>()));
-        Assert.AreEqual(expectedExitCode, m_Context!.ExitCode);
-    }
-
-    [Test]
-    public void HandleAggregateExceptionWithUnhandled()
-    {
-        var exceptions = new List<Exception>()
-        {
-            new CookieException(),
-            new CliException("test", 1)
-        };
-        // var aggregateException = new
-        var expectedExitCode = ExitCode.UnhandledError;
-        Assert.DoesNotThrow(
-            () => m_ExceptionHelper!.HandleException(
-                new AggregateException(exceptions),
-                k_MockHelper.MockLogger.Object, m_Context!));
-        k_MockAnsiConsole.Verify(ex => ex.Write(It.IsAny<IRenderable>()));
-        Assert.AreEqual(expectedExitCode, m_Context!.ExitCode);
-    }
-
-    [Test]
-    public void HandleAggregateExceptionWithoutUnhandled()
-    {
-        var exceptions = new List<Exception>()
-        {
-            new MissingConfigurationException("test", 1),
-            new CliException("test2", 1)
-        };
-        // var aggregateException = new
-        var expectedExitCode = ExitCode.HandledError;
-        Assert.DoesNotThrow(
-            () => m_ExceptionHelper!.HandleException(
-                new AggregateException(exceptions),
-                k_MockHelper.MockLogger.Object, m_Context!));
-        k_MockAnsiConsole.Verify(ex => ex.Write(It.IsAny<IRenderable>()), Times.Never);
         Assert.AreEqual(expectedExitCode, m_Context!.ExitCode);
     }
 

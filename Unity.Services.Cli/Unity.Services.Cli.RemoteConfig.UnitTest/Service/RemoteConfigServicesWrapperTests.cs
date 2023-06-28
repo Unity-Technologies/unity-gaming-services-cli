@@ -25,8 +25,6 @@ public class RemoteConfigServicesWrapperTests
         m_RemoteConfigServicesWrapper = new RemoteConfigServicesWrapper(
             m_DeploymentHandler.Object,
             m_RemoteConfigClient.Object,
-            m_DeploymentOutputHandler.Object,
-            m_DeployFileService.Object,
             m_RemoteConfigService.Object,
             m_RemoteConfigScriptsLoader.Object);
 
@@ -34,8 +32,6 @@ public class RemoteConfigServicesWrapperTests
         {
             Assert.That(m_RemoteConfigServicesWrapper.DeploymentHandler, Is.EqualTo(m_DeploymentHandler.Object));
             Assert.That(m_RemoteConfigServicesWrapper.RemoteConfigClient, Is.EqualTo(m_RemoteConfigClient.Object));
-            Assert.That(m_RemoteConfigServicesWrapper.DeploymentOutputHandler, Is.EqualTo(m_DeploymentOutputHandler.Object));
-            Assert.That(m_RemoteConfigServicesWrapper.DeployFileService, Is.EqualTo(m_DeployFileService.Object));
             Assert.That(m_RemoteConfigServicesWrapper.RemoteConfigService, Is.EqualTo(m_RemoteConfigService.Object));
             Assert.That(m_RemoteConfigServicesWrapper.RemoteConfigScriptsLoader, Is.EqualTo(m_RemoteConfigScriptsLoader.Object));
         });

@@ -39,63 +39,89 @@ static class FetchHandler
     {
         var services = host.Services.GetServices<IFetchService>().ToList();
 
-        if (string.IsNullOrEmpty(input.Path))
+        var supportedServicesStr = string.Join(", ", services.Select(s => s.ServiceType));
+        var supportedServiceNamesStr = string.Join(", ", services.Select(s => s.ServiceName));
+
+        bool areAllServicesSupported = !AreAllServicesSupported(input, services, out var unsupportedServicesStr);
+        if (string.IsNullOrEmpty(input.Path) || areAllServicesSupported)
         {
-            var supportedServicesStr = string.Join(", ", services.Select(s => s.ServiceType));
-            logger.LogInformation("Currently supported services are: {supportedServicesStr}", supportedServicesStr);
+            if (areAllServicesSupported)
+            {
+                logger.LogError($"These service options were not recognized: {unsupportedServicesStr}.");
+            }
+
+            logger.LogInformation($"Currently supported services are: {supportedServicesStr}." +
+                $"{Environment.NewLine}    You can filter your service(s) with the --services option: " +
+                $"{supportedServiceNamesStr}");
+        }
+
+        if (input.Reconcile && input.Services.Count == 0)
+        {
+            logger.LogError(
+                "Reconcile is a destructive operation. Specify your service(s) with the --services option: {SupportedServiceNamesStr}",
+                supportedServiceNamesStr);
+            return;
         }
 
         var fetchResult = Array.Empty<FetchResult>();
-        Task<FetchResult[]>? fetchAll = null;
+
+        var fetchServices = services
+            .Where(s => CheckService(input, s))
+            .ToArray();
+
+        var tasks = fetchServices
+            .Select(
+                m => m.FetchAsync(
+                    input,
+                    loadingContext,
+                    cancellationToken))
+            .ToArray();
+
         try
         {
-            fetchAll = Task.WhenAll(
-                services.Select(
-                    m => m.FetchAsync(
-                        input,
-                        loadingContext,
-                        cancellationToken)));
-            fetchResult = await fetchAll;
+            fetchResult = await Task.WhenAll(tasks);
         }
         catch
         {
-            // will use fetchAll to find all errors
+            // do nothing
+            // this allows us to capture all the exceptions
+            // and handle them below
         }
 
-        var totalResult = new FetchResult(fetchResult);
+        var totalResult = new FetchResult(fetchResult, input.DryRun);
         logger.LogResultValue(totalResult);
 
-        if (fetchAll!.IsFaulted)
+        // Get Exceptions from faulted deployments
+        var exceptions = tasks
+            .Where(t => t.IsFaulted)
+            .Select(t => t.Exception!.InnerException)
+            .ToList();
+
+        if (exceptions.Any())
         {
-            HandleFailedFetch();
+            throw new AggregateException(exceptions!);
         }
 
         if (totalResult.Failed.Any())
         {
-            throw new CliException("One or more files failed to be fetched", ExitCode.HandledError);
+            throw new DeploymentFailureException();
         }
+    }
 
-        void HandleFailedFetch()
-        {
-            var exception = fetchAll.Exception!;
-            if (exception.InnerExceptions.Count == 1)
-            {
-                var innerException = exception.InnerException!;
-                var exitCode = innerException is CliException cliException
-                    ? cliException.ExitCode
-                    : ExitCode.UnhandledError;
-                throw new CliException(innerException.Message, innerException, exitCode);
-            }
+    static bool CheckService(FetchInput input, IFetchService service)
+    {
+        if (!input.Reconcile && input.Services.Count == 0)
+            return true;
 
-            var errorMessage = "Failed to fetch due to the following errors:"
-                + string.Join($"{Environment.NewLine}    - ", exception.InnerExceptions.Select(x => x.Message));
-            var cliExceptions = exception.InnerExceptions.OfType<CliException>().ToList();
-            if (cliExceptions.Count == exception.InnerExceptions.Count)
-            {
-                throw new CliException(errorMessage, fetchAll.Exception!, cliExceptions.Max(x => x.ExitCode));
-            }
+        return input.Services.Contains(service.ServiceName);
+    }
 
-            throw new CliException(errorMessage, exception, ExitCode.UnhandledError);
-        }
+    static bool AreAllServicesSupported(FetchInput input, IReadOnlyList<IFetchService> services, out string unsupportedServices)
+    {
+        var serviceNames = services.Select(s => s.ServiceName);
+
+        unsupportedServices = string.Join(", ", input.Services.Except(serviceNames));
+
+        return string.IsNullOrEmpty(unsupportedServices);
     }
 }

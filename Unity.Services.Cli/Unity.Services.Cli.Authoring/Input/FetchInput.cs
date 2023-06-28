@@ -15,20 +15,34 @@ public class FetchInput : CommonInput
     [InputBinding(nameof(PathArgument))]
     public string Path { get; set; } = string.Empty;
 
-    public static readonly Option<bool> ReconcileOption = new(new[]
-    {
-        "--reconcile"
-    }, "Content that is not updated will be created at the root.");
+    public static readonly Option<bool> ReconcileOption = new(
+        new[]
+        {
+            "--reconcile"
+        },
+        "Content that is not updated will be created at the root.");
 
     [InputBinding(nameof(ReconcileOption))]
     public bool Reconcile { get; set; } = false;
 
-    public static readonly Option<bool> DryRunOption = new(new[]
-    {
-        "--dry-run"
-    }, "Perform a trial run with no changes made.");
+    public static readonly Option<ICollection<string>> ServiceOptions = new(
+        new[]
+        {
+            "--services",
+            "-s"
+        },
+        "The name(s) of the service(s) to perform the command on.");
+
+    [InputBinding(nameof(ServiceOptions))]
+    public IReadOnlyList<string> Services { get; set; } = new List<string>();
+
+    public static readonly Option<bool> DryRunOption = new(
+        new[]
+        {
+            "--dry-run"
+        },
+        "Perform a trial run with no changes made.");
 
     [InputBinding(nameof(DryRunOption))]
     public bool DryRun { get; set; } = false;
-
 }

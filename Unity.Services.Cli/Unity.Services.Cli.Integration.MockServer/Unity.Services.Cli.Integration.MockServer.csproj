@@ -9,7 +9,8 @@
     <SonarQubeExclude>true</SonarQubeExclude>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.1.0" />
+    <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.2.0" />
+    <PackageReference Include="Unity.Services.Gateway.LeaderboardApiV1.Generated" Version="1.0.7-beta" />
     <PackageReference Include="WireMock.Net" Version="1.5.21" />
     <PackageReference Include="WireMock.Net.OpenApiParser" Version="1.5.18" />
   </ItemGroup>

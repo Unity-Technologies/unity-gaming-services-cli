@@ -1,14 +1,14 @@
-using System.IO.Abstractions;
 using Moq;
 using NUnit.Framework;
-using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.RemoteConfig.Deploy;
+using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.ErrorHandling;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Formatting;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Json;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
-using Unity.Services.RemoteConfig.Editor.Authoring.Core.Networking;
+using Unity.Services.RemoteConfig.Editor.Authoring.Core.Service;
 using IFileSystem = Unity.Services.RemoteConfig.Editor.Authoring.Core.IO.IFileSystem;
+using RemoteConfigFile = Unity.Services.Cli.RemoteConfig.Deploy.RemoteConfigFile;
 
 namespace Unity.Services.Cli.RemoteConfig.UnitTest.Deploy;
 
@@ -25,11 +25,11 @@ public class CliRemoteConfigDeploymentHandlerTests
 
     class DeploymentHandlerForTest : CliRemoteConfigDeploymentHandler
     {
-        public new  void UpdateStatus(
+        public new void UpdateStatus(
             IRemoteConfigFile remoteConfigFile,
             string status,
             string detail,
-            StatusSeverityLevel severityLevel)
+            SeverityLevel severityLevel)
         {
             base.UpdateStatus(remoteConfigFile, status, detail, severityLevel);
         }
@@ -102,35 +102,55 @@ public class CliRemoteConfigDeploymentHandlerTests
     }
 
     [Test]
-    public void UpdateStatus_UpdatesContentCorrectly()
+    public void Deploy_StatusMappingWorks()
     {
-        var fileName = "fileName";
-        var filePath = "filePath";
+        var handler = m_DeploymentHandlerForTest!;
+        var rcFile = new RemoteConfigFile("rc.rc", "rc.rc")
+        {
+            Entries = new List<RemoteConfigEntry>()
+            {
+                new (){ Key = "float", Value = 1.0 },
+                new() { Key = "string", Value = "string" },
+            }
+        };
 
-        m_DeploymentHandlerForTest!.Contents.Add(new DeployContent(
-            fileName,
-            "Remote Config",
-            filePath,
-            0,
-            "initialStatus"
-            )
-        );
-        var expectedStatus = "test-status";
-        var expectedDetail = "test-detail";
-        var expectedProgress = 0.45f;
-        var file = new RemoteConfigFile(fileName, filePath);
-        m_DeploymentHandlerForTest.UpdateStatus(
-            file,
-            expectedStatus,
-            expectedDetail,
-            StatusSeverityLevel.Info
-            );
-        m_DeploymentHandlerForTest.UpdateProgress(file, expectedProgress);
+        handler.UpdateStatus(rcFile, "Test", string.Empty, SeverityLevel.Error);
+        Assert.That(rcFile.Status.MessageSeverity, Is.EqualTo(SeverityLevel.Error));
 
+        handler.UpdateStatus(rcFile, "Test", string.Empty, SeverityLevel.Info);
+        Assert.That(rcFile.Status.MessageSeverity, Is.EqualTo(SeverityLevel.Info));
 
-        var content = m_DeploymentHandlerForTest.Contents.First();
-        Assert.That(content.Status, Is.EqualTo(expectedStatus));
-        Assert.That(content.Progress, Is.EqualTo(expectedProgress));
-        Assert.That(content.Detail, Is.EqualTo(expectedDetail));
+        handler.UpdateStatus(rcFile, "Test", string.Empty, SeverityLevel.None);
+        Assert.That(rcFile.Status.MessageSeverity, Is.EqualTo(SeverityLevel.None));
+
+        handler.UpdateStatus(rcFile, "Test", string.Empty, SeverityLevel.Info);
+        Assert.That(rcFile.Status.MessageSeverity, Is.EqualTo(SeverityLevel.Info));
+
+        handler.UpdateStatus(rcFile, "Test", string.Empty, SeverityLevel.Success);
+        Assert.That(rcFile.Status.MessageSeverity, Is.EqualTo(SeverityLevel.Success));
+
+        handler.UpdateStatus(rcFile, "Test", string.Empty, SeverityLevel.Warning);
+        Assert.That(rcFile.Status.MessageSeverity, Is.EqualTo(SeverityLevel.Warning));
+    }
+
+    [Test]
+    public void Deploy_ProgressUpdateWorks()
+    {
+        var handler = m_DeploymentHandlerForTest!;
+        var rcFile = new RemoteConfigFile("rc.rc", "rc.rc")
+        {
+            Entries = new List<RemoteConfigEntry>()
+            {
+                new (){ Key = "float", Value = 1.0 },
+                new() { Key = "string", Value = "string" },
+            }
+        };
+
+        Assert.That(rcFile.Progress, Is.EqualTo(0));
+
+        var newProgress = 42f;
+        handler.UpdateProgress(rcFile, newProgress);
+
+        Assert.That(rcFile.Progress, Is.EqualTo(newProgress));
     }
 }

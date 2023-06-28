@@ -5,12 +5,46 @@ All notable changes to UGS CLI will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+# [1.0.0-beta.5] - 2023-06-28
+
+### Added
+- Added Batching to import and deploy to help prevent "Too Many Requests" error.
+- Cloud Code Modules now supports `import` and `export` commands.
+- Cloud Code Scripts now supports `import` and `export` commands.
+- Lobby now supports `import` and `export` commands.
+- Leaderboard now supports `import` and `export` commands.
+- Remote Config now supports `import` and `export` commands.
+- Alpine build now added to the release.
+- New option `--services` to deploy and fetch commands. This option perform commands only to specified services.
+  * **[Breaking Change]** This option is mandatory when using the `--reconcile` flag.
+
+### Changed
+- **[Breaking Change]** CloudCode `list` command for Modules and Scripts is more descriptive.
+- Using standardized output for all Import/Export implementations.
+- Plain text Deploy/Fetch Output now prints full path.
+  * This is to disambiguate output regarding files with same name, but different path.
+- **[Breaking Change]** Messages are directed to StdErr and Output into Stdout.
+  * This allows to pipe individual parts such as `ugs cmd 1>output 2>logs.txt`.
+  * In both json and regular formats.
+- **[Breaking Change]** Cloud Code create, delete, get, list, new-file, publish and update commands are now under a parent command `scripts` and can be called with `cloud-code scripts <command>`.
+
+### Fixed
+- CloudCode files that failed to read now reported properly in the output.
+- CloudCode deleted files properly reported in the Deploy output.
+- RemoteConfig Entries properly reported in the Deploy output.
+- RemoteConfig Fetch properly bubbles issues in loading files.
+- **[Breaking Change]** Deploy and Fetch output have been modified to match each other.
+  * Status have been updated to reflect what is happening in the editor.
+- An issue where fetching a file from Cloud Code that had no parameters would keep appending `module.exports.parameters = {}`.
+- Using Cloud Code fetch and deploy multiple times does not keep appending new lines anymore.
+- Improved error handling to provide more detail on certain unhandled exceptions.
+- Cloud Code script with invalid parameters will fail to fetch and show in the "failed" result section.
+
 ## [1.0.0-beta.4] - 2023-04-24
 
 ### Added
 
 - npm distribution. Install the CLI by running `npm install -g ugs`.
-- new-file command for economy
 - `ugs fetch` now supports cloud code scripts.
 - Get player command in Player Module. Run `ugs player get -h` to show usage.
 - List player command in Player Module. Run `ugs player list -h` to show usage.
@@ -21,6 +55,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - **[Breaking Change]** Replace Jint with Node.js for cloud code javascript parameter parsing. User will need to install Node.js with
   version > 14.0.0 to parse cloud code javascript.
 - Updated Diagnostics to use UnityAnalyticSender instead of TelemetrySender
+- Add support for `import` and `export` commands to the Lobby module.
 
 ### Fixed
 

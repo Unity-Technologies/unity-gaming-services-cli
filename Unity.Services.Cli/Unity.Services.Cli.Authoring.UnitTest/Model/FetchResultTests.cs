@@ -35,61 +35,48 @@ public class FetchResultTests
         "thing2"
     };
 
+    static readonly FetchResult k_FetchResultDummy = new FetchResult(Array.Empty<FetchResult>());
+
     static readonly List<TestCaseData> k_AppendResultTestData = new()
     {
-        new TestCaseData(k_Updated, FetchResult.UpdatedHeader),
-        new TestCaseData(k_Created, FetchResult.CreatedHeader),
-        new TestCaseData(k_Deleted, FetchResult.DeletedHeader),
-        new TestCaseData(k_Failed, FetchResult.FailedHeader),
-        new TestCaseData(k_Fetched, FetchResult.FetchedHeader),
+        new TestCaseData(StringsToDeployContent(k_Updated), AuthorResult.UpdatedHeader),
+        new TestCaseData(StringsToDeployContent(k_Created), AuthorResult.CreatedHeader),
+        new TestCaseData(StringsToDeployContent(k_Deleted), AuthorResult.DeletedHeader),
+        new TestCaseData(StringsToDeployContent(k_Failed), k_FetchResultDummy.AuthoredHeader),
+        new TestCaseData(StringsToDeployContent(k_Fetched), k_FetchResultDummy.FailedHeader),
     };
 
     [Test]
     public void ToStringFormatsFetchedAndFailedResults()
     {
         var fetchResult = new FetchResult(
-            k_Updated,
-            k_Deleted,
-            k_Created,
-            k_Fetched,
-            k_Failed);
+            StringsToDeployContent(k_Updated),
+            StringsToDeployContent(k_Deleted),
+            StringsToDeployContent(k_Created),
+            StringsToDeployContent(k_Fetched),
+            StringsToDeployContent(k_Failed),
+            true);
         var result = fetchResult.ToString();
 
         Assert.Multiple(
             () =>
             {
-                AssertStringifiedResult(result, k_Updated, FetchResult.UpdatedHeader);
-                AssertStringifiedResult(result, k_Created, FetchResult.CreatedHeader);
-                AssertStringifiedResult(result, k_Deleted, FetchResult.DeletedHeader);
-                AssertStringifiedResult(result, k_Failed, FetchResult.FailedHeader);
-                AssertStringifiedResult(result, k_Fetched, FetchResult.FetchedHeader);
+                AssertStringifiedResult(result, k_Updated, AuthorResult.DryUpdatedHeader);
+                AssertStringifiedResult(result, k_Created, AuthorResult.DryCreatedHeader);
+                AssertStringifiedResult(result, k_Deleted, AuthorResult.DryDeletedHeader);
+                AssertStringifiedResult(result, k_Failed, k_FetchResultDummy.DryFailedHeader);
+                AssertStringifiedResult(result, k_Fetched, k_FetchResultDummy.DryAuthoredHeader);
             });
     }
 
     [Test]
     public void ToStringFormatsNoContentFetched()
     {
-        var fetchResult = new FetchResult(
-            Array.Empty<string>(),
-            Array.Empty<string>(),
-            Array.Empty<string>(),
-            Array.Empty<string>(),
-            Array.Empty<string>());
+        var fetchResult = new FetchResult(Array.Empty<FetchResult>());
         var result = fetchResult.ToString();
 
-        Assert.IsFalse(result.Contains(FetchResult.FetchedHeader));
-        Assert.IsTrue(result.Contains(FetchResult.EmptyFetchMessage));
-    }
-
-    [TestCaseSource(nameof(k_AppendResultTestData))]
-    public void AppendResultBuildsResultAsExpected(ICollection<string> results, string header)
-    {
-        var builder = new StringBuilder();
-
-        FetchResult.AppendResult(builder, results, header);
-
-        var stringifiedResult = builder.ToString();
-        Assert.Multiple(() => AssertStringifiedResult(stringifiedResult, results, header));
+        Assert.IsFalse(result.Contains(fetchResult.AuthoredHeader));
+        Assert.IsTrue(result.Contains(fetchResult.NoActionMessage));
     }
 
     static void AssertStringifiedResult(string stringifiedResult, IEnumerable<string> results, string header)
@@ -97,7 +84,12 @@ public class FetchResultTests
         Assert.That(stringifiedResult, Contains.Substring(header));
         foreach (var result in results)
         {
-            Assert.That(stringifiedResult, Contains.Substring($"    {result}"));
+            Assert.That(stringifiedResult, Contains.Substring($"    '{result}'"));
         }
+    }
+
+    static IReadOnlyList<DeployContent> StringsToDeployContent(IEnumerable<string> strs)
+    {
+        return strs.Select(s => new DeployContent(s, string.Empty, s)).ToList();
     }
 }

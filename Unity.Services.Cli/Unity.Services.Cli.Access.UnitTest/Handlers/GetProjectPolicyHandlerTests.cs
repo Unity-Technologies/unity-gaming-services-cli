@@ -17,9 +17,9 @@ namespace Unity.Services.Cli.Access.UnitTest.Handlers;
 [TestFixture]
 public class GetProjectPolicyHandlerTests
 {
-    private readonly Mock<IAccessService> m_MockAccessService = new();
-    private readonly Mock<ILogger> m_MockLogger = new();
-    private readonly Mock<IUnityEnvironment> m_MockUnityEnvironment = new();
+    readonly Mock<IAccessService> m_MockAccessService = new();
+    readonly Mock<ILogger> m_MockLogger = new();
+    readonly Mock<IUnityEnvironment> m_MockUnityEnvironment = new();
 
     [SetUp]
     public void SetUp()
@@ -36,7 +36,7 @@ public class GetProjectPolicyHandlerTests
         await GetProjectPolicyHandler.GetProjectPolicyAsync(null!, null!, null!, null!,
             mockLoadingIndicator.Object, CancellationToken.None);
         mockLoadingIndicator.Verify(ex => ex
-            .StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?,Task>>()), Times.Once);
+            .StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?, Task>>()), Times.Once);
     }
 
     [Test]

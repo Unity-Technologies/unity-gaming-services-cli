@@ -10,13 +10,11 @@ namespace Unity.Services.Cli.Lobby.Handlers
 {
     static class ConfigGetHandler
     {
-        private const string k_LobbyConfigType = "lobby";
-
-        private const string k_EnvironmentNotFoundMsg = $"The value of option '{Keys.ConfigKeys.EnvironmentName}' fed as " +
-                                                        "direct input, found in configuration or fetched from " +
-                                                        "environment variables does not correspond to an environment " +
-                                                        "that exists. Command will proceed without a specific " +
-                                                        $"{Keys.ConfigKeys.EnvironmentName}.";
+        const string k_EnvironmentNotFoundMsg = $"The value of option '{Keys.ConfigKeys.EnvironmentName}' fed as " +
+                                                "direct input, found in configuration or fetched from " +
+                                                "environment variables does not correspond to an environment " +
+                                                "that exists. Command will proceed without a specific " +
+                                                $"{Keys.ConfigKeys.EnvironmentName}.";
 
         /// <param name="input">
         /// Lobby input automatically parsed. So developer does not need to retrieve from ParseResult.
@@ -53,10 +51,10 @@ namespace Unity.Services.Cli.Lobby.Handlers
                 logger.LogWarning(k_EnvironmentNotFoundMsg);
             }
 
-            var result = await service.GetAllConfigsFromEnvironmentAsync(
+            string result = await service.GetAllConfigsFromEnvironmentAsync(
                 projectId,
                 environmentId,
-                k_LobbyConfigType,
+                LobbyConstants.ConfigType,
                 cancellationToken);
             logger.LogResultValue(result);
         }

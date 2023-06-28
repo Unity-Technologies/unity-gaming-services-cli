@@ -12,11 +12,11 @@ namespace Unity.Services.Cli.Player.UnitTest.Handlers;
 
 public class ListHandlerTests
 {
-    private readonly Mock<IPlayerService>? m_MockPlayerService = new();
-    private readonly Mock<ILogger>? m_MockLogger = new();
-    private const string k_ProjectId = "abcd1234-ab12-cd34-ef56-abcdef123456";
-    private const int k_Limit = 99;
-    private const string k_Page = "69y4J1gwcT45g23";
+    readonly Mock<IPlayerService>? m_MockPlayerService = new();
+    readonly Mock<ILogger>? m_MockLogger = new();
+    const string k_ProjectId = "abcd1234-ab12-cd34-ef56-abcdef123456";
+    const int k_Limit = 99;
+    const string k_Page = "69y4J1gwcT45g23";
 
     [SetUp]
     public void SetUp()
@@ -30,10 +30,10 @@ public class ListHandlerTests
     {
         Mock<ILoadingIndicator> mockLoadingIndicator = new Mock<ILoadingIndicator>();
 
-        await ListHandler.ListAsync(null!,  null!, null!, mockLoadingIndicator.Object, CancellationToken.None);
+        await ListHandler.ListAsync(null!, null!, null!, mockLoadingIndicator.Object, CancellationToken.None);
 
         mockLoadingIndicator.Verify(ex => ex
-            .StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?,Task>>()), Times.Once);
+            .StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?, Task>>()), Times.Once);
     }
 
     [Test]
@@ -45,7 +45,7 @@ public class ListHandlerTests
             CloudProjectId = k_ProjectId,
         };
 
-        m_MockPlayerService?.Setup(x => x.ListAsync(k_ProjectId, k_Limit,null,
+        m_MockPlayerService?.Setup(x => x.ListAsync(k_ProjectId, k_Limit, null,
             CancellationToken.None));
 
         await ListHandler.ListAsync(
@@ -69,7 +69,7 @@ public class ListHandlerTests
             CloudProjectId = k_ProjectId,
         };
 
-        m_MockPlayerService?.Setup(x => x.ListAsync(k_ProjectId, k_Limit,k_Page,
+        m_MockPlayerService?.Setup(x => x.ListAsync(k_ProjectId, k_Limit, k_Page,
             CancellationToken.None));
 
         await ListHandler.ListAsync(
@@ -79,7 +79,7 @@ public class ListHandlerTests
             CancellationToken.None
         );
 
-        m_MockPlayerService.Verify(s => s.ListAsync(k_ProjectId,k_Limit,k_Page, CancellationToken.None), Times.Once);
+        m_MockPlayerService.Verify(s => s.ListAsync(k_ProjectId, k_Limit, k_Page, CancellationToken.None), Times.Once);
         TestsHelper.VerifyLoggerWasCalled(m_MockLogger, LogLevel.Critical, null, Times.Once);
     }
 }

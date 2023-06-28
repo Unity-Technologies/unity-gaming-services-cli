@@ -180,8 +180,8 @@ class LeaderboardsServiceTests
                     "{\"id\": \"lb1\", \"name\": \"lb_name_1\", \"sortOrder\": \"asc\", \"updateType\": \"aggregate\", \"bucketSize\": 10}",
                     CancellationToken.None));
 
-        var config = new LeaderboardConfig(name: "lb_name_1", sortOrder: SortOrder.Asc,
-            updateType: UpdateType.Aggregate, bucketSize: 10);
+        var config = new LeaderboardPatchConfig(name: "lb_name_1", sortOrder: SortOrder.Asc,
+            updateType: UpdateType.Aggregate);
 
         m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             ex => ex.UpdateLeaderboardConfigWithHttpInfoAsync(

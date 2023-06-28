@@ -1,3 +1,7 @@
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("Unity.Services.Cli.IntegrationTest")]
+
 namespace Unity.Services.Cli.Common.Networking;
 
 /// <summary>
@@ -5,6 +9,7 @@ namespace Unity.Services.Cli.Common.Networking;
 /// </summary>
 public abstract class NetworkTargetEndpoints
 {
+    internal static bool UseMockEndpoints { get; set; }
     /// <summary>
     /// URL to use when targeting production.
     /// </summary>
@@ -30,6 +35,8 @@ public abstract class NetworkTargetEndpoints
 #elif USE_MOCKSERVER_ENDPOINTS
             return MockServer;
 #else
+            if (UseMockEndpoints)
+                return MockServer;
             return Prod;
 #endif
         }

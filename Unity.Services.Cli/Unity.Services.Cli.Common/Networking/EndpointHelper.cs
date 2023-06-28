@@ -7,22 +7,6 @@ namespace Unity.Services.Cli.Common.Networking;
 /// </summary>
 public static class EndpointHelper
 {
-    /// <summary>
-    /// The network environment currently targeted by the CLI.
-    /// </summary>
-    public static CliNetworkEnvironment CurrentNetworkEnvironment
-    {
-        get
-        {
-#if USE_STAGING_ENDPOINTS
-            return CliNetworkEnvironment.Staging;
-#elif USE_MOCKSERVER_ENDPOINTS
-            return CliNetworkEnvironment.MockServer;
-#else
-            return CliNetworkEnvironment.Production;
-#endif
-        }
-    }
 
     static readonly Dictionary<Type, NetworkTargetEndpoints> k_NetworkTargetEndpoints = new();
 

@@ -8,7 +8,7 @@ using Unity.Services.Cli.Common.Utils;
 
 namespace Unity.Services.Cli.Access.Handlers;
 
-internal static class GetPlayerPolicyHandler
+static class GetPlayerPolicyHandler
 {
     public static async Task GetPlayerPolicyAsync(AccessInput input, IUnityEnvironment environment, IAccessService accessService,
         ILogger logger, ILoadingIndicator loadingIndicator, CancellationToken cancellationToken)

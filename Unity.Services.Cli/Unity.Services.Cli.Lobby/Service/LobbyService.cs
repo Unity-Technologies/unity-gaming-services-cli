@@ -18,23 +18,23 @@ class LobbyService : ILobbyService
     /// <summary>
     /// The config validator used to validate project and environment IDs.
     /// </summary>
-    private readonly IConfigurationValidator m_ConfigValidator;
+    readonly IConfigurationValidator m_ConfigValidator;
 
     /// <summary>
     /// The authentication service used to load the user's token.
     /// </summary>
-    private readonly IServiceAccountAuthenticationService m_AuthenticationService;
+    readonly IServiceAccountAuthenticationService m_AuthenticationService;
 
     /// <summary>
     /// The service account token received from the token exchange API.
     /// </summary>
-    private string? m_serviceToken;
+    string? m_serviceToken;
 
     /// <summary>
     /// The auto-generated Lobby client used for making Lobby API requests.
     /// </summary>
-    private ILobbyApiAsync? m_LobbyApi;
-    private ILobbyApiAsync LobbyClient
+    ILobbyApiAsync? m_LobbyApi;
+    ILobbyApiAsync LobbyClient
     {
         get
         {
@@ -55,8 +55,8 @@ class LobbyService : ILobbyService
     /// <summary>
     /// The auto-generated Auth client used for making requests to the token-exchange endpoint.
     /// </summary>
-    private IAuthApiAsync? m_AuthApi;
-    private IAuthApiAsync AuthClient
+    IAuthApiAsync? m_AuthApi;
+    IAuthApiAsync AuthClient
     {
         get
         {
@@ -352,7 +352,7 @@ class LobbyService : ILobbyService
     /// <param name="projectId">The project ID being used for the Lobby request.</param>
     /// <param name="environmentId">The environment ID being used for the Lobby request.</param>
     /// <param name="serviceId">The service ID being used for the Lobby request.</param>
-    private void ValidateRequestIds(string? projectId, string? environmentId, string? serviceId)
+    void ValidateRequestIds(string? projectId, string? environmentId, string? serviceId)
     {
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId ?? "");
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentId, environmentId ?? "");
@@ -368,7 +368,7 @@ class LobbyService : ILobbyService
     /// <param name="projectId">The project ID to use in the token exchange.</param>
     /// <param name="environmentId">The environment ID to use in the token exchange.</param>
     /// <param name="cancellationToken">Token used to cancel the task.</param>
-    private async Task SetServiceAccountToken(string projectId, string environmentId, CancellationToken cancellationToken)
+    async Task SetServiceAccountToken(string projectId, string environmentId, CancellationToken cancellationToken)
     {
         if (AuthClient.Configuration is null)
         {
@@ -391,7 +391,7 @@ class LobbyService : ILobbyService
     /// Helper function to get the user's current authentication token.
     /// </summary>
     /// <param name="cancellationToken">Token used to cancel the task.</param>
-    private async Task<string> GetToken(CancellationToken cancellationToken)
+    async Task<string> GetToken(CancellationToken cancellationToken)
     {
         try
         {
@@ -406,7 +406,7 @@ class LobbyService : ILobbyService
     /// <summary>
     /// Helper function to wrap JSON deserialization in order to throw a <see cref="CliException"/> for errors.
     /// </summary>
-    private static T? DeserializeOrThrow<T>(string value)
+    static T? DeserializeOrThrow<T>(string value)
     {
         try
         {

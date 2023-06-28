@@ -32,6 +32,7 @@ class RemoteConfigModuleTests
 
         Assert.That(services.FirstOrDefault(c => c.ServiceType == serviceType), Is.Not.Null);
     }
+
     [Test]
     public void RemoteConfigModule_HasNewFileCommand()
     {
@@ -42,5 +43,30 @@ class RemoteConfigModuleTests
 
         TestsHelper.AssertContainsCommand(module.ModuleRootCommand!, newFileCommand.Name, out var resultCommand);
         Assert.That(resultCommand, Is.EqualTo(newFileCommand));
+    }
+
+    [Test]
+    public void RemoteConfigModule_HasImportCommand()
+    {
+        var importCommand = new Command("import", "import environment")
+            .AddNewFileCommand<RemoteConfigTemplate>("Remote Config");
+
+        var module = new RemoteConfigModule();
+
+        TestsHelper.AssertContainsCommand(module.ModuleRootCommand!, importCommand.Name, out var resultCommand);
+        Assert.That(resultCommand, Is.EqualTo(importCommand));
+    }
+
+
+    [Test]
+    public void RemoteConfigModule_HasExportCommand()
+    {
+        var exportCommand = new Command("export", "export environment")
+            .AddNewFileCommand<RemoteConfigTemplate>("Remote Config");
+
+        var module = new RemoteConfigModule();
+
+        TestsHelper.AssertContainsCommand(module.ModuleRootCommand!, exportCommand.Name, out var resultCommand);
+        Assert.That(resultCommand, Is.EqualTo(exportCommand));
     }
 }

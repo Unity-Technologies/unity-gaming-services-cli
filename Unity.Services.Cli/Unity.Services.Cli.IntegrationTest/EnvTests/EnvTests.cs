@@ -4,6 +4,7 @@ using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.Common.Validator;
+using Unity.Services.Cli.IntegrationTest.Common;
 using Unity.Services.Cli.MockServer;
 using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Cli.MockServer.ServiceMocks;
@@ -36,7 +37,7 @@ public class EnvTests : UgsCliFixture
         await GetLoggedInCli()
             .Command("env list")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutput(output => Assert.IsTrue(output.Contains(expectedMsg)))
+            .AssertStandardError(output => Assert.IsTrue(output.Contains(expectedMsg)))
             .ExecuteAsync();
     }
 
@@ -47,7 +48,7 @@ public class EnvTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command("env list")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(k_NotLoggedInMessage)
+            .AssertStandardErrorContains(k_NotLoggedInMessage)
             .ExecuteAsync();
     }
 
@@ -60,7 +61,6 @@ public class EnvTests : UgsCliFixture
         await GetLoggedInCli()
             .Command("env list")
             .AssertStandardOutputContains(expectedReturn)
-            .AssertNoErrors()
             .ExecuteAsync();
     }
 
@@ -89,7 +89,7 @@ public class EnvTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command("env add 1")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
@@ -100,7 +100,7 @@ public class EnvTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command($"env add test1")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(k_NotLoggedInMessage)
+            .AssertStandardErrorContains(k_NotLoggedInMessage)
             .ExecuteAsync();
     }
 
@@ -111,7 +111,7 @@ public class EnvTests : UgsCliFixture
         await GetLoggedInCli()
             .Command("env add test@")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(k_InvalidEnvNameMsg)
+            .AssertStandardErrorContains(k_InvalidEnvNameMsg)
             .ExecuteAsync();
     }
 
@@ -123,7 +123,7 @@ public class EnvTests : UgsCliFixture
 
         await GetLoggedInCli()
             .Command("env add test-env-123")
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .AssertNoErrors()
             .ExecuteAsync();
     }
@@ -138,7 +138,7 @@ public class EnvTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command("env delete test-env-123")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
@@ -149,7 +149,7 @@ public class EnvTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command("env delete test-env-123")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(k_NotLoggedInMessage)
+            .AssertStandardErrorContains(k_NotLoggedInMessage)
             .ExecuteAsync();
     }
 
@@ -160,7 +160,7 @@ public class EnvTests : UgsCliFixture
         await GetLoggedInCli()
             .Command("env delete test@")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(k_InvalidEnvNameMsg)
+            .AssertStandardErrorContains(k_InvalidEnvNameMsg)
             .ExecuteAsync();
     }
 
@@ -172,7 +172,7 @@ public class EnvTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         await GetLoggedInCli()
             .Command($"env delete \"{CommonKeys.ValidEnvironmentName}\"")
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .AssertNoErrors()
             .ExecuteAsync();
     }
@@ -184,7 +184,7 @@ public class EnvTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command("env use test@")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(k_InvalidEnvNameMsg)
+            .AssertStandardErrorContains(k_InvalidEnvNameMsg)
             .ExecuteAsync();
     }
 
@@ -193,7 +193,6 @@ public class EnvTests : UgsCliFixture
     {
         await new UgsCliTestCase()
             .Command("env use 123")
-            .AssertNoErrors()
             .ExecuteAsync();
     }
 }

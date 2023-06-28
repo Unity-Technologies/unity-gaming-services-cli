@@ -5,10 +5,10 @@ namespace Unity.Services.Cli.RemoteConfig.Deploy;
 
 class LoadResult
 {
-    public IEnumerable<IRemoteConfigFile> Loaded { get; }
-    public IEnumerable<DeployContent> Failed { get; }
+    public IReadOnlyList<RemoteConfigFile> Loaded { get; }
+    public IReadOnlyList<RemoteConfigFile> Failed { get; }
 
-    public LoadResult(IEnumerable<IRemoteConfigFile> loaded, IEnumerable<DeployContent> failed)
+    public LoadResult(IReadOnlyList<RemoteConfigFile> loaded, IReadOnlyList<RemoteConfigFile> failed)
     {
         Loaded = loaded;
         Failed = failed;

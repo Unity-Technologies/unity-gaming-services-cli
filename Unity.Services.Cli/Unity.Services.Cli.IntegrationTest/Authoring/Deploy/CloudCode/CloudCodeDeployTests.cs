@@ -8,6 +8,8 @@ using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Cli.MockServer.ServiceMocks;
+using Unity.Services.DeploymentApi.Editor;
+using Unity.Services.Cli.MockServer.ServiceMocks.CloudCode;
 
 namespace Unity.Services.Cli.IntegrationTest.Authoring.Deploy.CloudCode;
 
@@ -20,22 +22,24 @@ public class CloudCodeDeployTests : UgsCliFixture
         new AuthoringTestCase(
             "module.exports = () => {}\n module.exports.params = { sides: 'NUMERIC'};",
             $"{CloudCodeV1Mock.ValidScriptName}.js",
-            "Cloud Code",
+            "Cloud Code Scripts",
             100,
             "Up to date",
             "",
-            k_TestDirectory),
+            k_TestDirectory,
+            SeverityLevel.Success)
     };
     readonly IReadOnlyList<AuthoringTestCase> m_ReconcileTestCases = new[]
     {
         new AuthoringTestCase(
             "module.exports = () => {}\n module.exports.params = { sides: 'NUMERIC'};",
             $"{CloudCodeV1Mock.ValidScriptName}.js",
-            "Cloud Code",
+            "Cloud Code Scripts",
             100,
             "Up to date",
             "",
-            k_TestDirectory)
+            k_TestDirectory,
+            SeverityLevel.Success)
     };
 
     readonly IReadOnlyList<AuthoringTestCase> m_DryRunDeployedTestCases = new[]
@@ -43,7 +47,7 @@ public class CloudCodeDeployTests : UgsCliFixture
         new AuthoringTestCase(
             "module.exports = () => {}\n module.exports.params = { sides: 'NUMERIC'};",
             "dry_script.js",
-            "Cloud Code",
+            "Cloud Code Scripts",
             0,
             "Loaded",
             "",
@@ -92,10 +96,10 @@ public class CloudCodeDeployTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
         await CreateDeployTestFilesAsync(m_DeployedTestCases, m_DeployedContents);
-        var deployedConfigFileString = string.Join(Environment.NewLine + "    ", m_DeployedTestCases.Select(a=>a.ConfigFileName));
+        var deployedConfigFileString = string.Join(Environment.NewLine + "    ", m_DeployedTestCases.Select(a => $"'{a.ConfigFilePath}'"));
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory}")
-            .AssertStandardOutputContains($"Deployed:{Environment.NewLine}    {deployedConfigFileString}")
+            .AssertStandardOutputContains($"Successfully deployed the following files:{Environment.NewLine}    {deployedConfigFileString}")
             .AssertNoErrors()
             .ExecuteAsync();
     }
@@ -106,12 +110,12 @@ public class CloudCodeDeployTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
         await CreateDeployTestFilesAsync(m_DeployedTestCases, m_DeployedContents);
-        var logResult = new JsonDeployLogResult(CreateResult(
+        var logResult = DeployTestsFixture.CreateResult(
             m_DeployedContents,
             Array.Empty<DeployContent>(),
             Array.Empty<DeployContent>(),
             m_DeployedContents,
-            Array.Empty<DeployContent>()));
+            Array.Empty<DeployContent>());
         var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory} -j")
@@ -127,13 +131,13 @@ public class CloudCodeDeployTests : UgsCliFixture
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
         await CreateDeployTestFilesAsync(m_DryRunDeployedTestCases, m_DryRunContents);
 
-        var logResult = new JsonDeployLogResult(new DeploymentResult(
+        var logResult = new DeploymentResult(
+            Array.Empty<DeployContent>(),
+            Array.Empty<DeployContent>(),
             m_DryRunContents,
             Array.Empty<DeployContent>(),
             Array.Empty<DeployContent>(),
-            Array.Empty<DeployContent>(),
-            Array.Empty<DeployContent>(),
-            true));
+            true);
         var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory} -j --dry-run")
@@ -149,22 +153,24 @@ public class CloudCodeDeployTests : UgsCliFixture
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
         await CreateDeployTestFilesAsync(m_ReconcileTestCases, m_DeployedContents);
 
-        var logResult = new JsonDeployLogResult(CreateResult(
+        var deletedStatus = new DeploymentStatus("Deployed", "Deleted remotely", SeverityLevel.Success);
+
+        var logResult = DeployTestsFixture.CreateResult(
             m_DeployedContents,
             Array.Empty<DeployContent>(),
             new[]
             {
-                new DeployContent("example-string.js", "JS", ""),
-                new DeployContent("example-string.js", "JS", ""),
-                new DeployContent("example-string.js", "JS", ""),
-                new DeployContent("ExistingModule.ccm", "JS", ""),
-                new DeployContent("AnotherExistingModule.ccm", "JS", ""),
+                new DeployContent("example-string.js", "Cloud Code Scripts", "", 100, deletedStatus),
+                new DeployContent("example-string.js", "Cloud Code Scripts", "",100, deletedStatus),
+                new DeployContent("example-string.js", "Cloud Code Scripts", "", 100, deletedStatus),
+                new DeployContent("ExistingModule.ccm", "JS", "", 100, deletedStatus),
+                new DeployContent("AnotherExistingModule.ccm", "JS", "", 100, deletedStatus),
             },
             m_DeployedContents,
-            Array.Empty<DeployContent>()));
+            Array.Empty<DeployContent>());
         var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
         await GetLoggedInCli()
-            .Command($"deploy {k_TestDirectory} -j --reconcile")
+            .Command($"deploy {k_TestDirectory} -j --reconcile -s cloud-code-scripts -s cloud-code-modules")
             .AssertStandardOutputContains(resultString)
             .AssertNoErrors()
             .ExecuteAsync();
@@ -177,12 +183,12 @@ public class CloudCodeDeployTests : UgsCliFixture
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
         await CreateDeployTestFilesAsync(m_ReconcileTestCases, m_DeployedContents);
 
-        var logResult = new JsonDeployLogResult(CreateResult(
+        var logResult = DeployTestsFixture.CreateResult(
             m_DeployedContents,
             Array.Empty<DeployContent>(),
             Array.Empty<DeployContent>(),
             m_DeployedContents,
-            Array.Empty<DeployContent>()));
+            Array.Empty<DeployContent>());
         var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory} -j")
@@ -199,33 +205,5 @@ public class CloudCodeDeployTests : UgsCliFixture
 
             contents.Add(testCase.DeployedContent);
         }
-    }
-
-    static DeploymentResult CreateResult(
-        IReadOnlyCollection<DeployContent> created,
-        IReadOnlyCollection<DeployContent> updated,
-        IReadOnlyCollection<DeployContent> deleted,
-        IReadOnlyCollection<DeployContent> deployed,
-        IReadOnlyCollection<DeployContent> failed,
-        bool dryRun = false)
-    {
-        var createdCopy = new List<DeployContent>();
-
-        foreach (var createdOriginal in created)
-        {
-            var progress = createdOriginal.Progress;
-            var status = createdOriginal.Status;
-            var detail = createdOriginal.Detail;
-
-            createdCopy.Add(new DeployContent(
-                createdOriginal.Name,
-                createdOriginal.Type,
-                createdOriginal.Path,
-                progress,
-                status,
-                detail));
-        }
-
-        return new DeploymentResult(createdCopy, updated, deleted, deployed, failed, dryRun);
     }
 }

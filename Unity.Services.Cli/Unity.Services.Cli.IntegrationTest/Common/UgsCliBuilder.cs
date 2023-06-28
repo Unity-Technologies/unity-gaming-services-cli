@@ -77,7 +77,7 @@ public static class UgsCliBuilder
             {
                 ["SKIP_MACOS_BUILD"] = "1",
                 ["SKIP_WINDOWS_BUILD"] = "1",
-                ["SKIP_ALPINE_LINUX_BUILD"] = "1",
+                ["SKIP_LINUX_MUSL_BUILD"] = "1",
             };
         }
 
@@ -87,7 +87,7 @@ public static class UgsCliBuilder
             {
                 ["SKIP_LINUX_BUILD"] = "1",
                 ["SKIP_WINDOWS_BUILD"] = "1",
-                ["SKIP_ALPINE_LINUX_BUILD"] = "1",
+                ["SKIP_LINUX_MUSL_BUILD"] = "1",
             };
         }
 
@@ -97,7 +97,7 @@ public static class UgsCliBuilder
             {
                 ["SKIP_LINUX_BUILD"] = "1",
                 ["SKIP_MACOS_BUILD"] = "1",
-                ["SKIP_ALPINE_LINUX_BUILD"] = "1",
+                ["SKIP_LINUX_MUSL_BUILD"] = "1",
             };
         }
 

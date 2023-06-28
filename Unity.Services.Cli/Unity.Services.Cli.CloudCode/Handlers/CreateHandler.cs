@@ -42,13 +42,14 @@ static class CreateHandler
         var scriptType = cloudCodeInputParser.ParseScriptType(input);
         var scriptLanguage = cloudCodeInputParser.ParseLanguage(input);
         var code = await cloudCodeInputParser.LoadScriptCodeAsync(input, cancellationToken);
-        var parameters = await cloudCodeInputParser.CloudCodeScriptParser.ParseScriptParametersAsync(code, cancellationToken);
+        var parametersParsingResult = await cloudCodeInputParser.CloudCodeScriptParser
+            .ParseScriptParametersAsync(code, cancellationToken);
         loadingContext?.Status("Uploading script...");
 
         await cloudCodeService.CreateAsync(
             projectId, environmentId,
             input.ScriptName, scriptType, scriptLanguage,
-            code, parameters, cancellationToken);
+            code, parametersParsingResult.Parameters, cancellationToken);
 
         logger.LogInformation("Script '{scriptName}' created.", input.ScriptName);
     }

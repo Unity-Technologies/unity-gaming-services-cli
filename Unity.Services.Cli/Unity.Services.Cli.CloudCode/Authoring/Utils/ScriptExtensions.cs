@@ -10,7 +10,6 @@ static class ScriptExtensions
         var javaScriptParams = script.Parameters.ToJavaScript();
         builder.Clear()
             .AppendLine(script.Body)
-            .AppendLine()
             .AppendLine($"module.exports.params = {javaScriptParams};");
         script.Body = builder.ToString();
     }

@@ -40,6 +40,7 @@ class GetModuleHandlerTests
                     "foo",
                     Language.CS,
                     null,
+                    "url",
                     dateTime,
                     dateTime));
     }
@@ -87,6 +88,7 @@ class GetModuleHandlerTests
             cloudCodeInput.ModuleName,
             Language.CS,
             null,
+            "url",
             dateTime,
             dateTime));
 

@@ -15,7 +15,7 @@ namespace Unity.Services.Cli.Access.UnitTest;
 [TestFixture]
 public class AccessModuleTests
 {
-    private readonly AccessModule k_AccessModule = new();
+    readonly AccessModule k_AccessModule = new();
 
     [Test]
     public void BuildCommands_CreateCommands()

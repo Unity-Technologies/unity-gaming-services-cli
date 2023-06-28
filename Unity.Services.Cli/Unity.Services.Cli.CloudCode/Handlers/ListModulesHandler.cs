@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Unity.Services.Cli.CloudCode.Model;
 using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Exceptions;
@@ -37,7 +38,9 @@ static class ListModulesHandler
         var modules = await cloudCodeService
             .ListModulesAsync(projectId, environmentId, cancellationToken);
 
-        var result = modules.Select(m => m.Name);
+        var result = modules
+            .Select(m => new CloudListModuleResult(m.Name, m.DateModified))
+            .ToList();
 
         logger.LogResultValue(result);
     }

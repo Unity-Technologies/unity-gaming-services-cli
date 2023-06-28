@@ -6,7 +6,7 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace Unity.Services.Cli.Leaderboards.Model;
 
-internal class GetLeaderboardConfigsResponseOutput
+class GetLeaderboardConfigsResponseOutput
 {
     public List<LeaderboardConfigInner> Leaderboards;
     public GetLeaderboardConfigsResponseOutput(IEnumerable<UpdatedLeaderboardConfig> leaderboards)
@@ -22,7 +22,7 @@ internal class GetLeaderboardConfigsResponseOutput
 
 }
 
-internal class LeaderboardConfigInner
+class LeaderboardConfigInner
 {
     public string Id { get; set; }
     public string Name { get; set; }

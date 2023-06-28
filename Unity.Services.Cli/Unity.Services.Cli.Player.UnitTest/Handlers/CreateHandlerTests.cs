@@ -13,10 +13,10 @@ namespace Unity.Services.Cli.Player.UnitTest.Handlers;
 
 public class CreateHandlerTests
 {
-    private readonly Mock<IPlayerService>? m_MockPlayerService = new();
-    private readonly Mock<ILogger>? m_MockLogger = new();
-    private const string k_PlayerId = "player-id";
-    private const string k_ProjectId = "abcd1234-ab12-cd34-ef56-abcdef123456";
+    readonly Mock<IPlayerService>? m_MockPlayerService = new();
+    readonly Mock<ILogger>? m_MockLogger = new();
+    const string k_PlayerId = "player-id";
+    const string k_ProjectId = "abcd1234-ab12-cd34-ef56-abcdef123456";
 
     [SetUp]
     public void SetUp()
@@ -30,10 +30,10 @@ public class CreateHandlerTests
     {
         Mock<ILoadingIndicator> mockLoadingIndicator = new Mock<ILoadingIndicator>();
 
-        await CreateHandler.CreateAsync(null!,  null!, null!, mockLoadingIndicator.Object, CancellationToken.None);
+        await CreateHandler.CreateAsync(null!, null!, null!, mockLoadingIndicator.Object, CancellationToken.None);
 
         mockLoadingIndicator.Verify(ex => ex
-            .StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?,Task>>()), Times.Once);
+            .StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?, Task>>()), Times.Once);
     }
 
     [Test]
@@ -54,7 +54,7 @@ public class CreateHandlerTests
             CancellationToken.None
         );
 
-        m_MockPlayerService.Verify(s => s.CreateAsync(k_ProjectId,CancellationToken.None), Times.Once);
+        m_MockPlayerService.Verify(s => s.CreateAsync(k_ProjectId, CancellationToken.None), Times.Once);
         TestsHelper.VerifyLoggerWasCalled(m_MockLogger, LogLevel.Information, null, Times.Once, $"Player '{k_PlayerId}' created.");
     }
 }

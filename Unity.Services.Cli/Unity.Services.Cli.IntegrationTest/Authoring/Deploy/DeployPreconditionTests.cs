@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Networking;
+using Unity.Services.Cli.IntegrationTest.Common;
 using Unity.Services.Cli.MockServer;
 using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Cli.MockServer.ServiceMocks;
@@ -32,7 +33,7 @@ public class DeployPreconditionTests : UgsCliFixture
 
         await GetLoggedInCli()
             .Command($"deploy {invalidDirectory}")
-            .AssertStandardOutputContains(expectedOutput)
+            .AssertStandardErrorContains(expectedOutput)
             .AssertExitCode(ExitCode.HandledError)
             .ExecuteAsync();
     }
@@ -43,7 +44,7 @@ public class DeployPreconditionTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         await GetLoggedInCli()
             .Command($"deploy .")
-            .AssertStandardOutputContains($"[Error]: {Environment.NewLine}    'environment-name' is not set")
+            .AssertStandardErrorContains($"[Error]: {Environment.NewLine}    'environment-name' is not set")
             .AssertExitCode(ExitCode.HandledError)
             .ExecuteAsync();
     }
@@ -54,7 +55,7 @@ public class DeployPreconditionTests : UgsCliFixture
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
         await GetLoggedInCli()
             .Command($"deploy .")
-            .AssertStandardOutputContains($"[Error]: {Environment.NewLine}    'project-id' is not set")
+            .AssertStandardErrorContains($"[Error]: {Environment.NewLine}    'project-id' is not set")
             .AssertExitCode(ExitCode.HandledError)
             .ExecuteAsync();
     }
@@ -67,7 +68,7 @@ public class DeployPreconditionTests : UgsCliFixture
 
         await new UgsCliTestCase()
             .Command($"deploy .")
-            .AssertStandardOutputContains($"[Error]: {Environment.NewLine}    You are not logged into any service account. Please login using the 'ugs login' command.")
+            .AssertStandardErrorContains($"[Error]: {Environment.NewLine}    You are not logged into any service account. Please login using the 'ugs login' command.")
             .AssertExitCode(ExitCode.HandledError)
             .ExecuteAsync();
     }

@@ -2,6 +2,7 @@ using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.MockServer;
 using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Cli.MockServer.ServiceMocks;
+using Unity.Services.Cli.MockServer.ServiceMocks.CloudCode;
 
 namespace Unity.Services.Cli.Integration.MockServerApp;
 

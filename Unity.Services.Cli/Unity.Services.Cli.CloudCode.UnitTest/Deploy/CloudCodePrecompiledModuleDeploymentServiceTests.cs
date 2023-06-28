@@ -4,17 +4,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
-using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.CloudCode.Authoring;
 using Unity.Services.Cli.CloudCode.Deploy;
 using Unity.Services.Cli.CloudCode.Input;
-using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.Cli.CloudCode.UnitTest.Utils;
+using Unity.Services.Cli.CloudCode.Utils;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
+using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Client;
 using AuthoringLanguage = Unity.Services.CloudCode.Authoring.Editor.Core.Model.Language;
+using CloudCodeModuleScript = Unity.Services.Cli.CloudCode.Deploy.CloudCodeModule;
 
 namespace Unity.Services.Cli.CloudCode.UnitTest.Deploy;
 
@@ -31,17 +32,29 @@ public class CloudCodePrecompiledModuleDeploymentServiceTests
     readonly Mock<ICliEnvironmentProvider> m_MockEnvironmentProvider = new();
     readonly Mock<ICloudCodeInputParser> m_MockCloudCodeInputParser = new();
     readonly Mock<ICloudCodeService> m_MockCloudCodeService = new();
-    readonly Mock<IDeploymentHandlerWithOutput> m_DeploymentHandlerWithOutput = new();
+    readonly Mock<ICloudCodeDeploymentHandler> m_DeploymentHandler = new();
     readonly Mock<ICloudCodeModulesLoader> m_MockCloudCodeModulesLoader = new();
-    static readonly IReadOnlyCollection<DeployContent> k_DeployedContents = new[]
+    static readonly IReadOnlyList<CloudCodeModuleScript> k_DeployedContents = new[]
     {
-        new DeployContent("module.ccm", "Cloud Code", "path", 100, "Published"),
+        new CloudCodeModuleScript(
+            "module.ccm",
+            "path",
+            100,
+            DeploymentStatus.UpToDate)
     };
 
-    static readonly IReadOnlyCollection<DeployContent> k_FailedContents = new[]
+    static readonly IReadOnlyList<CloudCodeModuleScript> k_FailedContents = new[]
     {
-        new DeployContent("invalid1.ccm", "Cloud Code", "path", 0, "Failed to Load"),
-        new DeployContent("invalid2.ccm", "Cloud Code", "path", 0, "Failed to Load"),
+        new CloudCodeModuleScript(
+            "invalid1.ccm",
+            "path",
+            0,
+            DeploymentStatus.Empty),
+        new CloudCodeModuleScript(
+            "invalid2.ccm",
+            "path",
+            0,
+            DeploymentStatus.Empty)
     };
 
     readonly List<ScriptInfo> m_RemoteContents = new()
@@ -49,7 +62,7 @@ public class CloudCodePrecompiledModuleDeploymentServiceTests
         new ScriptInfo("ToDelete", ".ccm")
     };
 
-    readonly List<DeployContent> m_Contents = k_DeployedContents.Concat(k_FailedContents).ToList();
+    readonly List<CloudCodeModuleScript> m_Contents = k_DeployedContents.Concat(k_FailedContents).ToList();
 
     CloudCodePrecompiledModuleDeploymentService? m_DeploymentService;
 
@@ -61,13 +74,24 @@ public class CloudCodePrecompiledModuleDeploymentServiceTests
         m_MockCloudCodeInputParser.Reset();
         m_MockCloudCodeService.Reset();
         m_MockCloudCodeModulesLoader.Reset();
-        m_DeploymentHandlerWithOutput.Reset();
+        m_DeploymentHandler.Reset();
 
-        m_DeploymentHandlerWithOutput.SetupGet(c => c.Contents)
-            .Returns(m_Contents);
+        m_DeploymentHandler.Setup(
+                c => c.DeployAsync(
+                    It.IsAny<IEnumerable<IScript>>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<bool>()))
+            .Returns(
+                Task.FromResult(
+                    new DeployResult(
+                        new List<IScript>(),
+                        new List<IScript>(),
+                        new List<IScript>(),
+                        k_DeployedContents,
+                        k_FailedContents)));
 
         m_DeploymentService = new CloudCodePrecompiledModuleDeploymentService(
-            m_DeploymentHandlerWithOutput.Object,
+            m_DeploymentHandler.Object,
             m_MockCloudCodeModulesLoader.Object,
             m_MockEnvironmentProvider.Object,
             m_MockCloudCodeClient.Object);
@@ -75,10 +99,8 @@ public class CloudCodePrecompiledModuleDeploymentServiceTests
         m_MockCloudCodeModulesLoader.Setup(
                 c => c.LoadPrecompiledModulesAsync(
                     k_ValidFilePaths,
-                    "Cloud Code Modules",
-                    ".ccm",
-                    m_Contents))
-            .ReturnsAsync(new List<IScript>());
+                    CloudCodeConstants.ServiceTypeModules))
+            .ReturnsAsync(k_DeployedContents.OfType<IScript>().ToList());
     }
 
     [Test]
@@ -99,9 +121,7 @@ public class CloudCodePrecompiledModuleDeploymentServiceTests
         m_MockCloudCodeModulesLoader.Setup(
                 c => c.LoadPrecompiledModulesAsync(
                     k_ValidFilePaths,
-                    "Cloud Code",
-                    ".ccm",
-                    m_Contents))
+                    It.IsAny<string>()))
             .ReturnsAsync(
                 new List<IScript>
                 {
@@ -123,7 +143,7 @@ public class CloudCodePrecompiledModuleDeploymentServiceTests
                 CancellationToken.None),
             Times.Once);
         m_MockEnvironmentProvider.VerifySet(x => { x.Current = TestValues.ValidEnvironmentId; }, Times.Once);
-        m_DeploymentHandlerWithOutput.Verify(x => x.DeployAsync(It.IsAny<List<IScript>>(), false, false), Times.Once);
+        m_DeploymentHandler.Verify(x => x.DeployAsync(It.IsAny<List<IScript>>(), false, false), Times.Once);
         Assert.AreEqual(k_DeployedContents, result.Deployed);
         Assert.AreEqual(k_FailedContents, result.Failed);
     }
@@ -137,13 +157,13 @@ public class CloudCodePrecompiledModuleDeploymentServiceTests
             CloudProjectId = TestValues.ValidProjectId,
         };
 
-        List<IScript> testModules = new List<IScript>
+        var testModules = new []
         {
-            new Unity.Services.Cli.CloudCode.Deploy.CloudCodeModule(
+            new CloudCodeModuleScript(
                 new ScriptName("module.ccm"),
                 Language.JS,
                 "modules"),
-            new Unity.Services.Cli.CloudCode.Deploy.CloudCodeModule(
+            new CloudCodeModuleScript(
                 new ScriptName("module2.ccm"),
                 Language.JS,
                 "modules")
@@ -153,12 +173,10 @@ public class CloudCodePrecompiledModuleDeploymentServiceTests
         m_MockCloudCodeModulesLoader.Setup(
                 c => c.LoadPrecompiledModulesAsync(
                     k_ValidFilePaths,
-                    "Cloud Code",
-                    ".ccm",
-                    m_Contents))
-            .ReturnsAsync(testModules);
+                    CloudCodeConstants.ServiceType))
+            .ReturnsAsync(testModules.OfType<IScript>().ToList());
 
-        m_DeploymentHandlerWithOutput.Setup(
+        m_DeploymentHandler.Setup(
                 ex => ex.DeployAsync(It.IsAny<IEnumerable<IScript>>(), true, false))
             .Returns(
                 Task.FromResult(
@@ -190,7 +208,7 @@ public class CloudCodePrecompiledModuleDeploymentServiceTests
             CloudProjectId = TestValues.ValidProjectId
         };
 
-        m_DeploymentHandlerWithOutput.Setup(
+        m_DeploymentHandler.Setup(
                 ex => ex.DeployAsync(It.IsAny<IEnumerable<IScript>>(), false, false))
             .ThrowsAsync(new ApiException());
 

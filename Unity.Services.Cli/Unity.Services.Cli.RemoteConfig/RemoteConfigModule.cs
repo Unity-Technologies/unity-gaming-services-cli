@@ -1,3 +1,4 @@
+using Unity.Services.Cli.Authoring.Compression;
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -10,12 +11,16 @@ using Unity.Services.Cli.Authoring.Handlers;
 using Unity.Services.Cli.RemoteConfig.Service;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Fetch;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Formatting;
-using Unity.Services.RemoteConfig.Editor.Authoring.Core.IO;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Json;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
-using Unity.Services.RemoteConfig.Editor.Authoring.Core.Networking;
 using FileSystem = Unity.Services.Cli.RemoteConfig.Deploy.FileSystem;
 using IFileSystem = Unity.Services.RemoteConfig.Editor.Authoring.Core.IO.IFileSystem;
+using Unity.Services.Cli.Common.Input;
+using Unity.Services.Cli.Authoring.Export.Input;
+using Unity.Services.Cli.Authoring.Import.Input;
+using Unity.Services.Cli.RemoteConfig.Handlers.ExportImport;
+using Unity.Services.Cli.Common.Console;
+using Unity.Services.RemoteConfig.Editor.Authoring.Core.Service;
 
 namespace Unity.Services.Cli.RemoteConfig;
 
@@ -25,18 +30,47 @@ namespace Unity.Services.Cli.RemoteConfig;
 public class RemoteConfigModule : ICommandModule
 {
     public Command? ModuleRootCommand { get; }
+    internal Command ExportCommand { get; }
+    internal Command ImportCommand { get; }
 
     public RemoteConfigModule()
     {
+        ExportCommand = new Command(
+            name: "export",
+            description: "Export Environment in a file")
+        {
+            CommonInput.EnvironmentNameOption,
+            CommonInput.CloudProjectIdOption,
+            ExportInput.OutputDirectoryArgument,
+            DryRunInput.DryRunOption,
+            ExportInput.FileNameArgument
+        };
+        ExportCommand.SetHandler<ExportInput, RemoteConfigExporter, ILoadingIndicator, CancellationToken>(ExportHandler.ExportAsync);
+
+        ImportCommand = new Command(
+            name: "import",
+            description: "Import Environment from a file")
+        {
+            CommonInput.EnvironmentNameOption,
+            CommonInput.CloudProjectIdOption,
+            ImportInput.InputDirectoryArgument,
+            DryRunInput.DryRunOption,
+            ImportInput.FileNameArgument
+        };
+        ImportCommand.SetHandler<ImportInput, RemoteConfigImporter, ILoadingIndicator, CancellationToken>(ImportHandler.ImportAsync);
+
         ModuleRootCommand = new Command(
             name: "remote-config",
             description: "Manage RemoteConfig.")
         {
-            ModuleRootCommand.AddNewFileCommand<RemoteConfigTemplate>("Remote Config")
+            ModuleRootCommand.AddNewFileCommand<RemoteConfigTemplate>("Remote Config"),
+            ExportCommand,
+            ImportCommand
         };
 
         ModuleRootCommand.AddAlias("rc");
     }
+
 
     /// <summary>
     /// Register service to UGS CLI host builder
@@ -63,13 +97,15 @@ public class RemoteConfigModule : ICommandModule
             s => new RemoteConfigServicesWrapper(
             s.GetRequiredService<CliRemoteConfigDeploymentHandler>(),
             s.GetRequiredService<ICliRemoteConfigClient>(),
-            s.GetRequiredService<CliRemoteConfigDeploymentHandler>(),
-            s.GetRequiredService<IDeployFileService>(),
             s.GetRequiredService<IRemoteConfigService>(),
             s.GetRequiredService<IRemoteConfigScriptsLoader>()));
 
         serviceCollection.AddTransient<IRemoteConfigFetchHandler, CliRemoteConfigFetchHandler>();
         serviceCollection.AddTransient<IDeploymentService, RemoteConfigDeploymentService>();
         serviceCollection.AddTransient<IFetchService, RemoteConfigFetchService>();
+        serviceCollection.AddTransient<RemoteConfigExporter, RemoteConfigExporter>();
+        serviceCollection.AddTransient<RemoteConfigImporter, RemoteConfigImporter>();
+        serviceCollection.AddTransient<IZipArchiver, ZipArchiver>();
+        serviceCollection.AddTransient<System.IO.Abstractions.IFileSystem, System.IO.Abstractions.FileSystem>();
     }
 }

@@ -69,7 +69,7 @@ class DeleteHandlerTests
     }
 
     [Test]
-    public void DeleteAsync_CallsConfigurationAndLogsAllKeysDeleted()
+    public async Task DeleteAsync_CallsConfigurationAndLogsAllKeysDeleted()
     {
         ConfigurationInput input = new ConfigurationInput
         {
@@ -77,7 +77,7 @@ class DeleteHandlerTests
             UseForce = true
         };
 
-        DeleteHandler.DeleteAsync(input, mockHelper.MockConfiguration.Object,
+        await DeleteHandler.DeleteAsync(input, mockHelper.MockConfiguration.Object,
             mockHelper.MockLogger.Object, m_MockSystemEnvironmentProvider.Object, CancellationToken.None);
 
         TestsHelper.VerifyLoggerWasCalled(mockHelper.MockLogger, LogLevel.Information, null, null,
@@ -88,7 +88,7 @@ class DeleteHandlerTests
     }
 
     [Test]
-    public void DeleteAsync_CallsConfigurationAndLogsSpecifiedKeysDeleted()
+    public async Task DeleteAsync_CallsConfigurationAndLogsSpecifiedKeysDeleted()
     {
         ConfigurationInput input = new ConfigurationInput
         {
@@ -96,7 +96,7 @@ class DeleteHandlerTests
             UseForce = true
         };
 
-        DeleteHandler.DeleteAsync(input, mockHelper.MockConfiguration.Object,
+        await DeleteHandler.DeleteAsync(input, mockHelper.MockConfiguration.Object,
             mockHelper.MockLogger.Object, m_MockSystemEnvironmentProvider.Object, CancellationToken.None);
 
         TestsHelper.VerifyLoggerWasCalled(mockHelper.MockLogger, LogLevel.Information, null, null,
@@ -107,7 +107,7 @@ class DeleteHandlerTests
     }
 
     [Test]
-    public void DeleteAsync_ChecksEnvironmentVariablesAndLogsWarningWhenValueStillSetInEnvironmentVariables()
+    public async Task DeleteAsync_ChecksEnvironmentVariablesAndLogsWarningWhenValueStillSetInEnvironmentVariables()
     {
         ConfigurationInput input = new ConfigurationInput
         {
@@ -119,7 +119,7 @@ class DeleteHandlerTests
         m_MockSystemEnvironmentProvider.Setup(ex => ex
             .GetSystemEnvironmentVariable(It.IsAny<string>(), out errorMsg)).Returns("value");
 
-        DeleteHandler.DeleteAsync(input, mockHelper.MockConfiguration.Object,
+        await DeleteHandler.DeleteAsync(input, mockHelper.MockConfiguration.Object,
             mockHelper.MockLogger.Object, m_MockSystemEnvironmentProvider.Object, CancellationToken.None);
 
         m_MockSystemEnvironmentProvider.Verify(ex => ex

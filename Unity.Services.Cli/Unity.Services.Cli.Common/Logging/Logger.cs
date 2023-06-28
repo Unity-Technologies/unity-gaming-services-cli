@@ -25,6 +25,9 @@ public class Logger : ILogger
         (m_Name, Configuration) = (name, logConfiguration);
     }
 
+    public StreamWriter? StdOut { get; init; }
+    public StreamWriter? StdErr { get; init; }
+
     void ILogger.Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
         Func<TState, Exception?, string> formatter)
     {
@@ -43,14 +46,16 @@ public class Logger : ILogger
         }
     }
 
-    static bool IsResultEvent(EventId eventId)
+    protected static bool IsResultEvent(EventId eventId)
     {
         return eventId.Id == LoggerExtension.ResultEventId.Id && eventId.Name == LoggerExtension.ResultEventId.Name;
     }
 
     public void Write()
     {
-        ILogFormatter formatter = Configuration.IsJson ? new JsonLogFormatter() : new LogFormatter(Configuration);
+        ILogFormatter formatter = Configuration.IsJson
+            ? new JsonLogFormatter(StdOut ?? System.Console.Out, StdErr ?? System.Console.Error)
+            : new LogFormatter(Configuration, StdOut ?? System.Console.Out, StdErr ?? System.Console.Error);
         WriteLog(formatter);
     }
 

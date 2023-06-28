@@ -22,7 +22,7 @@
     <PackageReference Include="Unity.Services.Gateway.AccessApiV1.Generated" Version="1.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="YamlDotNet" Version="13.0.2" />
+    <PackageReference Include="YamlDotNet" Version="13.1.0" />
   </ItemGroup>
   <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>

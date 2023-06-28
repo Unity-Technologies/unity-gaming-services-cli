@@ -21,7 +21,7 @@ class CloudCodeInputParserTests
     const string k_ValidFilepath = @".\createhandlertemp.js";
     const string k_ExpectedCode = "Dummy text";
 
-    private static readonly Mock<ICloudCodeScriptParser> k_MockCloudCodeScriptParser = new();
+    static readonly Mock<ICloudCodeScriptParser> k_MockCloudCodeScriptParser = new();
 
     readonly CloudCodeInputParser m_CloudCodeInputParser = new(k_MockCloudCodeScriptParser.Object);
 

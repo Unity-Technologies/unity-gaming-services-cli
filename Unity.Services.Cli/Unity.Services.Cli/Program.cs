@@ -4,11 +4,14 @@ using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Help;
 using System.CommandLine.Hosting;
+using System.CommandLine.IO;
 using System.CommandLine.Parsing;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Unity.Services.Cli.CloudCode;
 using Unity.Services.Cli.Lobby;
@@ -33,11 +36,15 @@ using Unity.Services.Cli.Access;
 
 namespace Unity.Services.Cli;
 
-static class Program
+public static partial class Program
 {
-    static async Task<int> Main(string[] args)
+    public static async Task<int> Main(string[] args)
     {
-        var logger = new Logger();
+        return await InternalMain(args, new Logger());
+    }
+
+    public static async Task<int> InternalMain(string[] args, Logger logger)
+    {
         var services = new ServiceTypesBridge();
         var ansiConsole = AnsiConsole.Create(new AnsiConsoleSettings());
         TelemetrySender telemetrySender = null;
@@ -45,11 +52,16 @@ static class Program
         IAnalyticEventFactory analyticEventFactory = new AnalyticEventFactory(systemEnvironmentProvider);
 
         var parser = BuildCommandLine()
-            .UseHost(_ => Host.CreateDefaultBuilder(),
+            .UseHost(
+                _ => Host.CreateDefaultBuilder(),
                 host =>
                 {
                     host.UseServiceProviderFactory(_ => services);
-                    CommonModule.ConfigureCommonServices(host, logger, ansiConsole, analyticEventFactory);
+                    CommonModule.ConfigureCommonServices(
+                        host,
+                        logger,
+                        ansiConsole,
+                        analyticEventFactory);
                     telemetrySender = CommonModule.CreateTelemetrySender(systemEnvironmentProvider);
 
                     host.ConfigureServices(ConfigurationModule.RegisterServices);
@@ -68,26 +80,31 @@ static class Program
                         .AddSingleton<ISystemEnvironmentProvider>(systemEnvironmentProvider));
                 })
             .UseVersionOption()
-            .UseHelp(ctx =>
-            {
-                ctx.HelpBuilder.CustomizeLayout(_ =>
+            .UseHelp(
+                ctx =>
                 {
-                    List<HelpSectionDelegate> helpSectionDelegates = HelpBuilder.Default.GetLayout().ToList();
+                    ctx.HelpBuilder.CustomizeLayout(
+                        _ =>
+                        {
+                            List<HelpSectionDelegate> helpSectionDelegates = HelpBuilder.Default.GetLayout().ToList();
 
-                    helpSectionDelegates.Insert(1, _ => ansiConsole
-                        .Markup($"Project Role Requirements:{System.Environment.NewLine}  You may need " +
-                                $"permissions to use this module or command.{System.Environment.NewLine}  " +
-                                "Visit https://services.docs.unity.com/guides/ugs-cli/latest/general/" +
-                                "troubleshooting/project-roles for required project roles." +
-                                $"{System.Environment.NewLine}"));
+                            helpSectionDelegates.Insert(
+                                1,
+                                _ => ansiConsole
+                                    .Markup(
+                                        $"Project Role Requirements:{System.Environment.NewLine}  You may need " +
+                                        $"permissions to use this module or command.{System.Environment.NewLine}  " +
+                                        "Visit https://services.docs.unity.com/guides/ugs-cli/latest/general/" +
+                                        "troubleshooting/project-roles for required project roles." +
+                                        $"{System.Environment.NewLine}"));
 
-                    // Replace built-in subcommand help section by custom subcommand help section
-                    helpSectionDelegates.Remove(HelpBuilder.Default.SubcommandsSection());
-                    helpSectionDelegates.Add(SubcommandsSectionDelegate(ctx, ansiConsole));
+                            // Replace built-in subcommand help section by custom subcommand help section
+                            helpSectionDelegates.Remove(HelpBuilder.Default.SubcommandsSection());
+                            helpSectionDelegates.Add(SubcommandsSectionDelegate(ctx, ansiConsole));
 
-                    return helpSectionDelegates.AsEnumerable();
-                });
-            })
+                            return helpSectionDelegates.AsEnumerable();
+                        });
+                })
             .UseEnvironmentVariableDirective()
             .UseParseDirective()
             .UseSuggestDirective()
@@ -123,13 +140,15 @@ static class Program
             .AddModule(new RemoteConfigModule())
             .Build();
 
-        return await parser.InvokeAsync(args)
-            .ContinueWith(commandTask =>
-            {
-                logger.Write();
-                TrySendCommandUsageMetric(analyticEventFactory, parser.Parse(args).CommandResult);
-                return commandTask.Result;
-            });
+        return await parser
+            .InvokeAsync(args, console: new LoggerConsole(logger.StdOut, logger.StdErr))
+            .ContinueWith(
+                commandTask =>
+                {
+                    logger.Write();
+                    TrySendCommandUsageMetric(analyticEventFactory, parser.Parse(args).CommandResult);
+                    return commandTask.Result;
+                });
     }
 
     static CommandLineBuilder BuildCommandLine()

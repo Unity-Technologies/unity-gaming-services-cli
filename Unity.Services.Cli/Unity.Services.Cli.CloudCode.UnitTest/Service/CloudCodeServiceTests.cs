@@ -25,7 +25,7 @@ namespace Unity.Services.Cli.CloudCode.UnitTest.Service;
 class CloudCodeServiceTests
 {
     const string k_TestScriptName = "test-script";
-    private const string k_TestModuleName = "test_module";
+    const string k_TestModuleName = "test_module";
     const string k_TestAccessToken = "test-token";
     const string k_InvalidProjectId = "invalidProject";
     const string k_InvalidEnvironmentId = "foo";
@@ -67,6 +67,7 @@ class CloudCodeServiceTests
                 k_TestModuleName,
                 Language.CS,
                 null,
+                "url",
                 DateTime.Now,
                 DateTime.Now)
         };
@@ -90,6 +91,7 @@ class CloudCodeServiceTests
             "bar",
             Language.CS,
             null,
+            "url",
             DateTime.Now,
             DateTime.Now);
 

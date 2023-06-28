@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Networking;
+using Unity.Services.Cli.IntegrationTest.Common;
 using Unity.Services.Cli.MockServer;
 using Unity.Services.Gateway.PlayerAdminApiV3.Generated.Model;
 using Unity.Services.Cli.MockServer.Common;
@@ -38,7 +39,7 @@ public class PlayerTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command("player create")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
@@ -50,7 +51,7 @@ public class PlayerTests : UgsCliFixture
         await GetLoggedInCli()
             .Command("player create")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
@@ -61,7 +62,6 @@ public class PlayerTests : UgsCliFixture
 
         await GetLoggedInCli()
             .Command("player create")
-            .AssertNoErrors()
             .ExecuteAsync();
     }
 
@@ -73,7 +73,7 @@ public class PlayerTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command($"player delete {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
@@ -85,7 +85,7 @@ public class PlayerTests : UgsCliFixture
         await GetLoggedInCli()
             .Command($"player delete {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
@@ -108,7 +108,6 @@ public class PlayerTests : UgsCliFixture
 
         await GetLoggedInCli()
             .Command($"player delete {PlayerApiMock.PlayerId}")
-            .AssertNoErrors()
             .ExecuteAsync();
     }
 
@@ -120,7 +119,7 @@ public class PlayerTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command($"player disable {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
@@ -132,7 +131,7 @@ public class PlayerTests : UgsCliFixture
         await GetLoggedInCli()
             .Command($"player disable {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
@@ -155,7 +154,6 @@ public class PlayerTests : UgsCliFixture
 
         await GetLoggedInCli()
             .Command($"player disable {PlayerApiMock.PlayerId}")
-            .AssertNoErrors()
             .ExecuteAsync();
     }
 
@@ -167,7 +165,7 @@ public class PlayerTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command($"player enable {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
@@ -179,7 +177,7 @@ public class PlayerTests : UgsCliFixture
         await GetLoggedInCli()
             .Command($"player enable {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
@@ -202,7 +200,6 @@ public class PlayerTests : UgsCliFixture
 
         await GetLoggedInCli()
             .Command($"player disable {PlayerApiMock.PlayerId}")
-            .AssertNoErrors()
             .ExecuteAsync();
     }
 
@@ -214,7 +211,7 @@ public class PlayerTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command($"player get {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
@@ -226,7 +223,7 @@ public class PlayerTests : UgsCliFixture
         await GetLoggedInCli()
             .Command($"player get {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
@@ -258,16 +255,9 @@ public class PlayerTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
 
-        var logResult = new
-        {
-            Result = new PlayerAuthPlayerProjectResponse(),
-            Messages = Array.Empty<string>()
-        };
-
         await GetLoggedInCli()
             .Command($"player get {PlayerApiMock.PlayerId} -j")
-            .AssertNoErrors()
-            .AssertStandardOutputContains(JsonConvert.SerializeObject(logResult, Formatting.Indented))
+            .AssertStandardOutputContains(JsonConvert.SerializeObject(new PlayerAuthPlayerProjectResponse(), Formatting.Indented))
             .ExecuteAsync();
     }
 
@@ -279,7 +269,7 @@ public class PlayerTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command($"player list")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
@@ -291,7 +281,7 @@ public class PlayerTests : UgsCliFixture
         await GetLoggedInCli()
             .Command($"player list")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
@@ -314,16 +304,9 @@ public class PlayerTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
 
-        var logResult = new
-        {
-            Result = new PlayerListResponseResult(PlayerApiMock.GetPlayerListMock()),
-            Messages = Array.Empty<string>()
-        };
-
         await GetLoggedInCli()
             .Command($"player list -j")
-            .AssertNoErrors()
-            .AssertStandardOutputContains(JsonConvert.SerializeObject(logResult, Formatting.Indented))
+            .AssertStandardOutputContains(JsonConvert.SerializeObject(new PlayerListResponseResult(PlayerApiMock.GetPlayerListMock()), Formatting.Indented))
             .ExecuteAsync();
     }
 }

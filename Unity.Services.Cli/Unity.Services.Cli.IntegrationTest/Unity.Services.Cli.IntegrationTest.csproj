@@ -6,18 +6,18 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <DefineConstants>TRACE;</DefineConstants>
+    <DefineConstants>TRACE;FEATURE_LEADERBOARDS_IMPORT_EXPORT</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DefineConstants>TRACE;</DefineConstants>
+    <DefineConstants>TRACE;FEATURE_LEADERBOARDS_IMPORT_EXPORT</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
     <PackageReference Include="coverlet.collector" Version="3.2.0" />
-    <PackageReference Include="Unity.Services.Gateway.LeaderboardApiV1.Generated" Version="1.0.5-beta" />
-    <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.1.0" />
+    <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.2.0" />
+    <PackageReference Include="Unity.Services.Gateway.LeaderboardApiV1.Generated" Version="1.0.7-beta" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Unity.Services.Cli.Common\Unity.Services.Cli.Common.csproj" />
@@ -25,5 +25,6 @@
     <ProjectReference Include="..\Unity.Services.Cli.Integration.MockServer\Unity.Services.Cli.Integration.MockServer.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Player\Unity.Services.Cli.Player.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.RemoteConfig\Unity.Services.Cli.RemoteConfig.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli\Unity.Services.Cli.csproj" />
   </ItemGroup>
 </Project>

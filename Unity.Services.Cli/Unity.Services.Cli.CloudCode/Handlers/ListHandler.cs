@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Unity.Services.Cli.CloudCode.Model;
 using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Input;
@@ -34,7 +35,9 @@ static class ListHandler
         var scripts = await cloudCodeService.ListAsync(
             projectId, environmentId, cancellationToken);
 
-        var result = scripts.Select(s => s.Name);
+        var result = scripts
+            .Select(s => new CloudListScriptResult(s.Name, s.LastPublishedDate) )
+            .ToList();
 
         logger.LogResultValue(result);
     }

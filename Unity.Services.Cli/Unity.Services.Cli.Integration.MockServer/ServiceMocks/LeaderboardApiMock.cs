@@ -10,8 +10,9 @@ namespace Unity.Services.Cli.MockServer.ServiceMocks;
 
 public class LeaderboardApiMock : IServiceApiMock
 {
-    const string k_LeaderboardPath = "/leaderboards/v1beta1";
+    const string k_LeaderboardPath = "/leaderboards/v1";
     static readonly string k_Leaderboard1VersionId = "v10";
+
     public static readonly UpdatedLeaderboardConfig Leaderboard1 = new(
         "lb1",
         "leaderboard 1",
@@ -29,6 +30,106 @@ public class LeaderboardApiMock : IServiceApiMock
         UpdateType.Aggregate,
         10,
         new ResetConfig(new DateTime(2023, 1, 1), "@1d", true)
+    );
+    public static readonly UpdatedLeaderboardConfig Leaderboard3 = new(
+        "lb3",
+        "leaderboard 3",
+        SortOrder.Asc,
+        UpdateType.Aggregate,
+        10,
+        new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        versions: new List<LeaderboardVersion>()
+    );
+    public static readonly UpdatedLeaderboardConfig Leaderboard4 = new(
+        "lb4",
+        "leaderboard 4",
+        SortOrder.Asc,
+        UpdateType.Aggregate,
+        10,
+        new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        versions: new List<LeaderboardVersion>()
+    );
+    public static readonly UpdatedLeaderboardConfig Leaderboard5 = new(
+        "lb5",
+        "leaderboard 5",
+        SortOrder.Asc,
+        UpdateType.Aggregate,
+        10,
+        new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        versions: new List<LeaderboardVersion>()
+    );
+    public static readonly UpdatedLeaderboardConfig Leaderboard6 = new(
+        "lb6",
+        "leaderboard 6",
+        SortOrder.Asc,
+        UpdateType.Aggregate,
+        10,
+        new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        versions: new List<LeaderboardVersion>()
+    );
+    public static readonly UpdatedLeaderboardConfig Leaderboard7 = new(
+        "lb7",
+        "leaderboard 7",
+        SortOrder.Asc,
+        UpdateType.Aggregate,
+        10,
+        new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        versions: new List<LeaderboardVersion>()
+    );
+    public static readonly UpdatedLeaderboardConfig Leaderboard8 = new(
+        "lb8",
+        "leaderboard 8",
+        SortOrder.Asc,
+        UpdateType.Aggregate,
+        10,
+        new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        versions: new List<LeaderboardVersion>()
+    );
+    public static readonly UpdatedLeaderboardConfig Leaderboard9 = new(
+        "lb9",
+        "leaderboard 9",
+        SortOrder.Asc,
+        UpdateType.Aggregate,
+        10,
+        new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        versions: new List<LeaderboardVersion>()
+    );
+    public static readonly UpdatedLeaderboardConfig Leaderboard10 = new(
+        "lb10",
+        "leaderboard 10",
+        SortOrder.Asc,
+        UpdateType.Aggregate,
+        10,
+        new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        versions: new List<LeaderboardVersion>()
+    );
+    public static readonly UpdatedLeaderboardConfig Leaderboard11 = new(
+        "lb11",
+        "leaderboard 11",
+        SortOrder.Asc,
+        UpdateType.Aggregate,
+        10,
+        new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        versions: new List<LeaderboardVersion>()
+    );
+    public static readonly UpdatedLeaderboardConfig Leaderboard12 = new(
+        "lb12",
+        "leaderboard 12",
+        SortOrder.Asc,
+        UpdateType.Aggregate,
+        10,
+        new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        versions: new List<LeaderboardVersion>()
     );
 
     readonly string BaseUrl;

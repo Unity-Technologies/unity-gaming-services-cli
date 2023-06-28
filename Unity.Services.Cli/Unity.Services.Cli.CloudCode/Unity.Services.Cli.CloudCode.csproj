@@ -22,12 +22,20 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Unity.Services.CloudCode.Authoring.Editor.Core" Version="0.4.0" />
-    <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.1.0" />
-    <PackageReference Include="YamlDotNet" Version="13.0.2" />
+    <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.2.0" />
+    <PackageReference Include="YamlDotNet" Version="13.1.0" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="JavaScripts\script_parameters.js" />
     <EmbeddedResource Include="JavaScripts\script_template.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated">
+      <HintPath>..\..\..\..\.nuget\packages\unity.services.gateway.cloudcodeapiv1.generated\1.1.1\lib\netstandard2.0\Unity.Services.Gateway.CloudCodeApiV1.Generated.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Handlers\ImportExport\Modules\" />
   </ItemGroup>
   <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>

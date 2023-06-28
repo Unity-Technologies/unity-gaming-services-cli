@@ -6,7 +6,7 @@ using Unity.Services.Cli.Common.Utils;
 
 namespace Unity.Services.Cli.Access.Handlers;
 
-internal static class UpsertProjectPolicyHandler
+static class UpsertProjectPolicyHandler
 {
     public static async Task UpsertProjectPolicyAsync(AccessInput input, IUnityEnvironment environment, IAccessService accessService,
         ILogger logger, ILoadingIndicator loadingIndicator, CancellationToken cancellationToken)

@@ -12,7 +12,7 @@ namespace Unity.Services.Cli.Lobby.Input
     {
         /* Optional request body as file input or raw string. */
         private protected const string k_JsonBodyDescription = "If this is a file path, the content of the file is used; otherwise, the raw string is used.";
-        private const string k_DefaultJsonBody = "{}";
+        const string k_DefaultJsonBody = "{}";
 
         public static readonly Option<string> JsonFileOrBodyOption = new(
             aliases: new[] { "-b", "--body" },

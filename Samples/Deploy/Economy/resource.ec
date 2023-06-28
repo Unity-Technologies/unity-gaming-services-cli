@@ -1,0 +1,8 @@
+{
+    "id": "GOLD",
+    "name": "Gold",
+    "type": "CURRENCY",
+    "initial": 10,
+    "max": 1000,
+    "customData": null
+}

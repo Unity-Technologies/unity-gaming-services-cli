@@ -29,7 +29,7 @@ class ContextBinderTests
     const int k_TestIntValue = 1234;
     const string k_TestStringValue = "TestString";
     const string k_Command = "test";
-    private const string k_GetConfigMockedReturnValue = "value-from-mocked-config";
+    const string k_GetConfigMockedReturnValue = "value-from-mocked-config";
 
     CommandLineBuilder? m_CommandLineBuilder;
     TestInput? m_TestInput;

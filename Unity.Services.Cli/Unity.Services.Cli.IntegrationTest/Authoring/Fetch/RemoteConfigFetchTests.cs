@@ -12,6 +12,7 @@ using Unity.Services.Cli.MockServer;
 using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Cli.MockServer.ServiceMocks;
 using Unity.Services.Cli.MockServer.ServiceMocks.RemoteConfig;
+using Unity.Services.DeploymentApi.Editor;
 
 namespace Unity.Services.Cli.IntegrationTest.Authoring.Fetch;
 
@@ -24,23 +25,37 @@ public class RemoteConfigFetchTests : UgsCliFixture
         new AuthoringTestCase(
             "{ \"entries\" : { \"color\" : \"Red\" } }",
             "color.rc",
-            "Remote Config",
+            "RemoteConfig File",
             100,
-            "Deployed",
-            "Deployed Successfully",
-            k_TestDirectory),
+            "Fetched",
+            null!,
+            k_TestDirectory,
+            SeverityLevel.Success),
         new AuthoringTestCase(
             "{ \"entries\" : { \"ready\" : \"True\" } }",
             "ready.rc",
-            "Remote Config",
+            "RemoteConfig File",
             100,
-            "Deployed",
-            "Deployed Successfully",
-            k_TestDirectory)
+            "Fetched",
+            null!,
+            k_TestDirectory,
+            SeverityLevel.Success)
     };
+
+    //do this
+    readonly IReadOnlyList<DeployContent> m_FetchedKeysTestCases;
 
     // Since Remote Config open api is having issues we should use our mock to map the models for now
     readonly List<DeployContent> m_FetchedContents = new();
+
+    public RemoteConfigFetchTests()
+    {
+        m_FetchedKeysTestCases = new[]
+        {
+            new DeployContent("color" , "RemoteConfig Key", m_FetchedTestCases[0].ConfigFilePath, 100f, new DeploymentStatus(Statuses.Deleted, string.Empty)),
+            new DeployContent("ready" , "RemoteConfig Key", m_FetchedTestCases[1].ConfigFilePath, 100f, new DeploymentStatus(Statuses.Deleted, string.Empty))
+        };
+    }
 
     [SetUp]
     public async Task SetUp()
@@ -94,7 +109,7 @@ public class RemoteConfigFetchTests : UgsCliFixture
 
         await GetLoggedInCli()
             .Command($"fetch {invalidDirectory}")
-            .AssertStandardOutputContains(expectedOutput)
+            .AssertStandardErrorContains(expectedOutput)
             .AssertExitCode(ExitCode.HandledError)
             .ExecuteAsync();
     }
@@ -112,7 +127,7 @@ public class RemoteConfigFetchTests : UgsCliFixture
                 output =>
                 {
                     Console.WriteLine(output);
-                    StringAssert.Contains($"Successfully fetched into the following files:{Environment.NewLine}", output);
+                    StringAssert.Contains($"Successfully fetched the following files:{Environment.NewLine}", output);
                     foreach (var file in m_FetchedTestCases)
                     {
                         StringAssert.Contains(file.ConfigFileName, output);
@@ -150,25 +165,16 @@ public class RemoteConfigFetchTests : UgsCliFixture
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
         await CreateDeployTestFilesAsync(m_FetchedTestCases, m_FetchedContents);
         var fetchedPaths = m_FetchedTestCases
-            .Select(t => Path.GetRelativePath(UgsCliBuilder.RootDirectory, t.ConfigFilePath))
+            .Select(t => t.DeployedContent)
             .ToArray();
 
-        var deletedKeys = m_FetchedTestCases
-            .Select(
-                t => $"Key '{Path.GetFileNameWithoutExtension(t.ConfigFileName)}' " +
-                    $"in file '{Path.GetFullPath(t.ConfigFilePath)}'")
-            .ToArray();
-
-        var logResult = new
-        {
-            Result = new FetchResult(
-                Array.Empty<string>(),
-                deletedKeys,
-                Array.Empty<string>(),
-                fetchedPaths,
-                Array.Empty<string>()),
-            Messages = Array.Empty<string>()
-        };
+        var logResult = new FetchResult(
+            Array.Empty<DeployContent>(),
+            m_FetchedKeysTestCases,
+            Array.Empty<DeployContent>(),
+            fetchedPaths,
+            Array.Empty<DeployContent>(),
+            false);
         var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
         await GetLoggedInCli()
             .Command($"fetch {k_TestDirectory} -j")

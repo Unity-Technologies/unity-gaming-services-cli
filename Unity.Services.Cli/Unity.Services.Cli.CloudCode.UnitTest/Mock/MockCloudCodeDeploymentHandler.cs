@@ -7,7 +7,7 @@ using Unity.Services.CloudCode.Authoring.Editor.Core.Logging;
 
 namespace Unity.Services.Cli.CloudCode.UnitTest.Mock;
 
-internal class MockCloudCodeDeploymentHandler : CloudCodeDeploymentHandler, ICliDeploymentOutputHandler
+class MockCloudCodeDeploymentHandler : CloudCodeDeploymentHandler, ICliDeploymentOutputHandler
 {
     public MockCloudCodeDeploymentHandler(
         ICloudCodeClient client,

@@ -57,6 +57,30 @@ To create a deployable remote config file, you need a `.rc` file with the follow
 ```
 Please take [configuration.rc] as an example. For more details, please check [Remote Config files].
 
+## Deploy Economy
+
+Run command from [Samples/Deploy] directory:
+```
+ugs deploy ./Economy
+```
+You will find the resource from [resource.ec] published in your dashboard for the configured project and environment.
+
+### Create Economy Files:
+
+To create a deployable economy file, you need a `.ec` file with the following pattern:
+```Json
+{
+  "id": "GOLD",
+  "name": "Gold",
+  "type": "CURRENCY",
+  "initial": 10,
+  "max": 1000,
+  "customData": null
+}
+```
+Please take [resource.ec] as an example. There are other patterns for Inventory item, virtual and real money purchase, for more details, please check [Economy resource schemas].
+
+
 ## Deploy all Samples
 Run command from [Samples/Deploy] directory:
 ```
@@ -67,9 +91,11 @@ You will find all the contents deployed in your dashboard for the configured pro
 ---
 [`deploy`]: https://services.docs.unity.com/guides/ugs-cli/latest/general/base-commands/deploy
 [Remote Config files]: https://docs.unity3d.com/Packages/com.unity.remote-config@3.3/manual/Authoring/remote_config_files.html
+[Economy resource schemas]: https://services.docs.unity.com/economy-admin/v2#tag/Economy-Admin/operation/addConfigResource
 [Declare parameters in the script]: https://docs.unity.com/cloud-code/authoring-scripts-editor.html#Declare_parameters_in_the_script
 [Script.js]: /Samples/Deploy/CloudCode/Script.js
 [configuration.rc]: /Samples/Deploy/RemoteConfig/configuration.rc
+[resource.ec]: /Samples/Deploy/Economy/resource.ec
 [Samples/Deploy]: /Samples/Deploy
 [Deploy Command]: https://services.docs.unity.com/guides/ugs-cli/latest/general/troubleshooting/project-roles#deploy-command
 [Service Account]: https://services.docs.unity.com/docs/service-account-auth/index.html

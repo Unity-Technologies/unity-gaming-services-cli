@@ -8,19 +8,21 @@ using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.RemoteConfig.Deploy;
 using Unity.Services.Cli.RemoteConfig.Service;
+using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Deployment;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.ErrorHandling;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Fetch;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Results;
 using FetchResult = Unity.Services.RemoteConfig.Editor.Authoring.Core.Results.FetchResult;
+using RemoteConfigFile = Unity.Services.Cli.RemoteConfig.Deploy.RemoteConfigFile;
 
 namespace Unity.Services.Cli.RemoteConfig.UnitTest.Deploy;
 
 [TestFixture]
 public class RemoteConfigFetchServiceTests
 {
-    RemoteConfigFetchService? m_RemoteConfigDeploymentService;
+    RemoteConfigFetchService? m_RemoteConfigFetchService;
     const string k_ValidProjectId = "a912b1fd-541d-42e1-89f2-85436f27aabd";
     const string k_ValidEnvironmentId = "00000000-0000-0000-0000-000000000000";
     const string k_DeployFileExtension = ".rc";
@@ -31,7 +33,7 @@ public class RemoteConfigFetchServiceTests
         "test_b.rc"
     };
 
-    private List<IRemoteConfigFile> m_RemoteConfigFiles = new();
+    List<IRemoteConfigFile> m_RemoteConfigFiles = new();
 
     readonly Mock<IUnityEnvironment> m_MockUnityEnvironment = new();
     readonly Mock<ICliRemoteConfigClient> m_MockCliRemoteConfigClient = new();
@@ -48,7 +50,7 @@ public class RemoteConfigFetchServiceTests
         Reconcile = false
     };
 
-    private Result m_Result;
+    Result m_Result = null!;
 
     [SetUp]
     public void SetUp()
@@ -61,7 +63,7 @@ public class RemoteConfigFetchServiceTests
         m_MockRemoteConfigServicesWrapper.Reset();
         m_MockLogger.Reset();
 
-        m_RemoteConfigDeploymentService =
+        m_RemoteConfigFetchService =
             new RemoteConfigFetchService(
                 m_MockUnityEnvironment.Object,
                 m_MockRemoteConfigFetchHandler.Object,
@@ -126,55 +128,48 @@ public class RemoteConfigFetchServiceTests
                     CancellationToken.None))
             .Returns(Task.FromResult((FetchResult)m_Result));
 
-        m_MockRemoteConfigScriptsLoader.Setup(loader =>
-                loader.LoadScriptsAsync(It.IsAny<IReadOnlyList<string>>(), It.IsAny<ICollection<DeployContent>>()))
-            .Returns(Task.FromResult(new LoadResult(new List<IRemoteConfigFile>(), new List<DeployContent>())));
+        m_MockRemoteConfigScriptsLoader
+            .Setup(loader =>
+                loader.LoadScriptsAsync(It.IsAny<IReadOnlyList<string>>(), CancellationToken.None))
+            .Returns(Task.FromResult(new LoadResult(Array.Empty<RemoteConfigFile>(), Array.Empty<RemoteConfigFile>())));
     }
 
     [Test]
-    public void FetchAsync_MapsResultProperly()
+    public async Task FetchAsync_MapsResultProperly()
     {
-        var res = m_RemoteConfigDeploymentService!.FetchAsync(
+        var res = await m_RemoteConfigFetchService!.FetchAsync(
             m_DefaultInput,
             (StatusContext)null!,
             CancellationToken.None);
 
         Assert.Multiple(() =>
         {
-            Assert.That(res.Result.Deleted, Has.Count.EqualTo(1));
-            Assert.That(res.Result.Updated, Has.Count.EqualTo(1));
-            Assert.That(res.Result.Created, Has.Count.EqualTo(1));
+            Assert.That(res.Deleted, Has.Count.EqualTo(1));
+            Assert.That(res.Updated, Has.Count.EqualTo(1));
+            Assert.That(res.Created, Has.Count.EqualTo(1));
         });
     }
 
     [Test]
-    public void FetchAsync_FormatsKeyFilePair()
+    public async Task FetchAsync_FailedToLoadIsForwarded()
     {
-        var res = m_RemoteConfigDeploymentService!.FetchAsync(
+        var failedRcFileName = "failed.rc";
+        m_MockRemoteConfigScriptsLoader
+            .Setup(loader =>
+                loader.LoadScriptsAsync(It.IsAny<IReadOnlyList<string>>(), CancellationToken.None))
+            .Returns(Task.FromResult(
+                new LoadResult(Array.Empty<RemoteConfigFile>(),
+                    new []{ new RemoteConfigFile(failedRcFileName, failedRcFileName)
+                    {
+                        Status = new DeploymentStatus(Statuses.FailedToRead, string.Empty, SeverityLevel.Error)
+                    }})));
+
+        var res = await m_RemoteConfigFetchService!.FetchAsync(
             m_DefaultInput,
             (StatusContext)null!,
             CancellationToken.None);
 
-        var deletedKeyStr = string.Format(
-            m_RemoteConfigDeploymentService.m_KeyFileMessageFormat,
-            m_Result.Deleted[0].Key,
-            m_Result.Deleted[0].File.Path);
-
-        var updatedKeyStr = string.Format(
-            m_RemoteConfigDeploymentService.m_KeyFileMessageFormat,
-            m_Result.Updated[0].Key,
-            m_Result.Updated[0].File.Path);
-
-        var createddKeyStr = string.Format(
-            m_RemoteConfigDeploymentService.m_KeyFileMessageFormat,
-            m_Result.Created[0].Key,
-            m_Result.Created[0].File.Path);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(res.Result.Deleted[0], Is.EqualTo(deletedKeyStr));
-            Assert.That(res.Result.Updated[0], Is.EqualTo(updatedKeyStr));
-            Assert.That(res.Result.Created[0], Is.EqualTo(createddKeyStr));
-        });
+        Assert.That(res.Failed, Has.Count.EqualTo(1));
+        Assert.That(res.Failed[0].Name, Is.EqualTo(failedRcFileName));
     }
 }

@@ -2,13 +2,18 @@ namespace Unity.Services.Cli.Common.Logging;
 
 class LogFormatter : ILogFormatter
 {
+    readonly TextWriter m_Stdout;
+    readonly TextWriter m_StdErr;
     LogConfiguration LogConfiguration { get; set; }
 
-    public LogFormatter() : this(new LogConfiguration()) { }
-    public LogFormatter(LogConfiguration logConfiguration)
+    public LogFormatter(TextWriter stdout, TextWriter stdErr) : this(new LogConfiguration(), stdout, stdErr) { }
+    public LogFormatter(LogConfiguration logConfiguration, TextWriter stdout, TextWriter stdErr)
     {
+        m_Stdout = stdout;
+        m_StdErr = stdErr;
         LogConfiguration = logConfiguration;
     }
+
     /// <inheritdoc cref="ILogFormatter.WriteLog"/>
     public void WriteLog(LogCache logCache)
     {
@@ -23,12 +28,12 @@ class LogFormatter : ILogFormatter
     void WriteResult(object result)
     {
         var resultString = result.ToString();
-        if (result is IEnumerable<string> valueList)
+        if (result is IEnumerable<object> valueList)
         {
             resultString = string.Join(Environment.NewLine, valueList);
         }
 
-        System.Console.WriteLine(resultString);
+        m_Stdout.WriteLine(resultString);
     }
 
     void WriteMessages(List<LogMessage> messages)
@@ -37,10 +42,10 @@ class LogFormatter : ILogFormatter
         {
             var previousForegroundColor = System.Console.ForegroundColor;
             System.Console.ForegroundColor = LogConfiguration.LogLevels[message.Type];
-            System.Console.Write($"[{message.Type}]: ");
+            m_StdErr.Write($"[{message.Type}]: ");
             System.Console.ForegroundColor = previousForegroundColor;
-            System.Console.WriteLine(message.Name);
-            System.Console.WriteLine($"    {message.Message}");
+            m_StdErr.WriteLine(message.Name);
+            m_StdErr.WriteLine($"    {message.Message}");
         }
     }
 }

@@ -12,6 +12,7 @@ class JsonConverterTests
         Name = "foo",
         Number = 1794806,
         Flag = true,
+        InnerJson = "{'a':'b'}"
     };
     readonly string m_ExpectedJson;
     readonly JsonConverter m_Converter = new();

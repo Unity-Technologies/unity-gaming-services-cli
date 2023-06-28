@@ -23,8 +23,8 @@ public class PlayerServiceTests
     const string k_InvalidPlayerId = "1nv4lid-pl4y3r-1d";
 
 
-    private readonly Mock<IPlayerAuthenticationAdminApiAsync> m_PlayerAdminApiAsync = new();
-    private readonly Mock<IDefaultApiAsync> m_PlayerAuthApiAsync = new();
+    readonly Mock<IPlayerAuthenticationAdminApiAsync> m_PlayerAdminApiAsync = new();
+    readonly Mock<IDefaultApiAsync> m_PlayerAuthApiAsync = new();
     readonly Mock<IConfigurationValidator> m_ValidatorObject = new();
     readonly Mock<IServiceAccountAuthenticationService> m_AuthenticationServiceObject = new();
 
@@ -83,7 +83,7 @@ public class PlayerServiceTests
             .Throws(new ConfigValidationException(Keys.ConfigKeys.ProjectId, k_InvalidProjectId, It.IsAny<string>()));
 
         Assert.ThrowsAsync<ConfigValidationException>(
-            () => m_PlayerService!.DeleteAsync(k_InvalidProjectId, k_ValidplayerId , CancellationToken.None));
+            () => m_PlayerService!.DeleteAsync(k_InvalidProjectId, k_ValidplayerId, CancellationToken.None));
 
         m_PlayerAdminApiAsync.Verify(
             a => a.DeletePlayerAsync(
@@ -101,7 +101,7 @@ public class PlayerServiceTests
             .Throws(new PlayerAdminApiException());
 
         Assert.ThrowsAsync<PlayerAdminApiException>(
-            () => m_PlayerService!.DeleteAsync(k_ValidProjectId, k_InvalidPlayerId , CancellationToken.None));
+            () => m_PlayerService!.DeleteAsync(k_ValidProjectId, k_InvalidPlayerId, CancellationToken.None));
     }
 
     [Test]
@@ -130,7 +130,7 @@ public class PlayerServiceTests
             .Throws(new ConfigValidationException(Keys.ConfigKeys.ProjectId, k_InvalidProjectId, It.IsAny<string>()));
 
         Assert.ThrowsAsync<ConfigValidationException>(
-            () => m_PlayerService!.CreateAsync(k_InvalidProjectId , CancellationToken.None));
+            () => m_PlayerService!.CreateAsync(k_InvalidProjectId, CancellationToken.None));
 
         m_PlayerAuthApiAsync.Verify(
             a => a.AnonymousSignupAsync(
@@ -169,7 +169,7 @@ public class PlayerServiceTests
             .Throws(new ConfigValidationException(Keys.ConfigKeys.ProjectId, k_InvalidProjectId, It.IsAny<string>()));
 
         Assert.ThrowsAsync<ConfigValidationException>(
-            () => m_PlayerService!.EnableAsync(k_InvalidProjectId, k_ValidplayerId , CancellationToken.None));
+            () => m_PlayerService!.EnableAsync(k_InvalidProjectId, k_ValidplayerId, CancellationToken.None));
 
         m_PlayerAdminApiAsync.Verify(
             a => a.PlayerEnableAsync(
@@ -187,7 +187,7 @@ public class PlayerServiceTests
             .Throws(new PlayerAdminApiException());
 
         Assert.ThrowsAsync<PlayerAdminApiException>(
-            () => m_PlayerService!.EnableAsync(k_ValidProjectId, k_InvalidPlayerId , CancellationToken.None));
+            () => m_PlayerService!.EnableAsync(k_ValidProjectId, k_InvalidPlayerId, CancellationToken.None));
     }
 
     [Test]
@@ -216,7 +216,7 @@ public class PlayerServiceTests
             .Throws(new ConfigValidationException(Keys.ConfigKeys.ProjectId, k_InvalidProjectId, It.IsAny<string>()));
 
         Assert.ThrowsAsync<ConfigValidationException>(
-            () => m_PlayerService!.DisableAsync(k_InvalidProjectId, k_ValidplayerId , CancellationToken.None));
+            () => m_PlayerService!.DisableAsync(k_InvalidProjectId, k_ValidplayerId, CancellationToken.None));
 
         m_PlayerAdminApiAsync.Verify(
             a => a.PlayerDisableAsync(
@@ -234,7 +234,7 @@ public class PlayerServiceTests
             .Throws(new PlayerAdminApiException());
 
         Assert.ThrowsAsync<PlayerAdminApiException>(
-            () => m_PlayerService!.DisableAsync(k_ValidProjectId, k_InvalidPlayerId , CancellationToken.None));
+            () => m_PlayerService!.DisableAsync(k_ValidProjectId, k_InvalidPlayerId, CancellationToken.None));
     }
 
     [Test]
@@ -263,7 +263,7 @@ public class PlayerServiceTests
             .Throws(new ConfigValidationException(Keys.ConfigKeys.ProjectId, k_InvalidProjectId, It.IsAny<string>()));
 
         Assert.ThrowsAsync<ConfigValidationException>(
-            () => m_PlayerService!.GetAsync(k_InvalidProjectId, k_ValidplayerId , CancellationToken.None));
+            () => m_PlayerService!.GetAsync(k_InvalidProjectId, k_ValidplayerId, CancellationToken.None));
 
         m_PlayerAdminApiAsync.Verify(
             a => a.GetPlayerAsync(
@@ -281,7 +281,7 @@ public class PlayerServiceTests
             .ThrowsAsync(new PlayerAdminApiException());
 
         Assert.ThrowsAsync<PlayerAdminApiException>(
-            () => m_PlayerService!.GetAsync(k_ValidProjectId, k_InvalidPlayerId , CancellationToken.None));
+            () => m_PlayerService!.GetAsync(k_ValidProjectId, k_InvalidPlayerId, CancellationToken.None));
     }
 
     [Test]

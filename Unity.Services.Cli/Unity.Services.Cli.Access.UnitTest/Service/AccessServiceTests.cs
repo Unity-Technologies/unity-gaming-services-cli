@@ -15,15 +15,15 @@ namespace Unity.Services.Cli.Access.UnitTest.Service;
 public class AccessServiceTests
 {
     readonly Mock<IServiceAccountAuthenticationService> m_AuthenticationServiceObject = new();
-    private readonly Mock<IPlayerPolicyApi> m_PlayerPolicyApi = new();
-    private readonly Mock<IProjectPolicyApi> m_ProjectPolicyApi = new();
+    readonly Mock<IPlayerPolicyApi> m_PlayerPolicyApi = new();
+    readonly Mock<IProjectPolicyApi> m_ProjectPolicyApi = new();
 
-    AccessService m_AccessService;
-    FileInfo m_PolicyFile;
-    FileInfo m_DeleteOptionsFile;
-    FileInfo m_WrongFormattedFile;
+    AccessService? m_AccessService;
+    FileInfo? m_PolicyFile;
+    FileInfo? m_DeleteOptionsFile;
+    FileInfo? m_WrongFormattedFile;
 
-    private static async Task<FileInfo> GetFileInfoObjectAsync(string fileName, string jsonString)
+    static async Task<FileInfo> GetFileInfoObjectAsync(string fileName, string jsonString)
     {
         var filePath = Path.Combine(Path.GetTempPath(), fileName);
 
@@ -209,7 +209,7 @@ public class AccessServiceTests
     [Test]
     public async Task DeletePlayerPolicyStatementsAsync_Valid()
     {
-        m_PlayerPolicyApi.Setup(a => a.DeletePlayerPolicyStatementsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),It.IsAny<DeleteOptions>(), It.IsAny<int>(), CancellationToken.None));
+        m_PlayerPolicyApi.Setup(a => a.DeletePlayerPolicyStatementsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DeleteOptions>(), It.IsAny<int>(), CancellationToken.None));
 
         await m_AccessService!.DeletePlayerPolicyStatementsAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId, m_DeleteOptionsFile,
             CancellationToken.None);

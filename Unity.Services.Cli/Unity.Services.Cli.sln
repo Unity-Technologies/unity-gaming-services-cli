@@ -33,6 +33,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Integration.MockServer", "Unity.Services.Cli.Integration.MockServer\Unity.Services.Cli.Integration.MockServer.csproj", "{92DBFB5E-BAD9-4852-9162-DA6B94CE6BF3}"
 EndProject
 EndProject
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Leaderboards", "Unity.Services.Cli.Leaderboards\Unity.Services.Cli.Leaderboards.csproj", "{4C0810A8-3439-4DCD-8325-0E5F4D47DCC2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Leaderboards.UnitTest", "Unity.Services.Cli.Leaderboards.UnitTest\Unity.Services.Cli.Leaderboards.UnitTest.csproj", "{64C6D8E5-4396-419A-94F6-2B221E9B7860}"
@@ -45,6 +46,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Authorin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.RemoteConfig.UnitTest", "Unity.Services.Cli.RemoteConfig.UnitTest\Unity.Services.Cli.RemoteConfig.UnitTest.csproj", "{F60B608F-8AED-4F6D-9853-C3A2D7CFA641}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.ModuleTemplate.Authoring.Core", "Unity.Services.ModuleTemplate.Authoring.Core\Unity.Services.ModuleTemplate.Authoring.Core.csproj", "{08B0E479-D8CF-43B9-AB24-C3FF18452E98}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Access", "Unity.Services.Cli.Access\Unity.Services.Cli.Access.csproj", "{26EE370C-FB17-41C2-8AE8-215515900CC3}"
 EndProject
@@ -61,6 +63,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Integration.MockServerApp", "Unity.Services.Cli.Integration.MockServerApp\Unity.Services.Cli.Integration.MockServerApp.csproj", "{27BBE31C-43CE-45AA-9DE4-BF3D097DC1A3}"
+EndProject
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -148,6 +151,10 @@ Global
 		{F60B608F-8AED-4F6D-9853-C3A2D7CFA641}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F60B608F-8AED-4F6D-9853-C3A2D7CFA641}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F60B608F-8AED-4F6D-9853-C3A2D7CFA641}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08B0E479-D8CF-43B9-AB24-C3FF18452E98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08B0E479-D8CF-43B9-AB24-C3FF18452E98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08B0E479-D8CF-43B9-AB24-C3FF18452E98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08B0E479-D8CF-43B9-AB24-C3FF18452E98}.Release|Any CPU.Build.0 = Release|Any CPU
 		{93151F5A-F12D-47A1-AF9A-25A4D0717B53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{93151F5A-F12D-47A1-AF9A-25A4D0717B53}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{93151F5A-F12D-47A1-AF9A-25A4D0717B53}.Release|Any CPU.ActiveCfg = Release|Any CPU

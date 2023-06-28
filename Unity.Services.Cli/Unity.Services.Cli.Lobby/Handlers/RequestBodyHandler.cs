@@ -2,7 +2,7 @@ using Unity.Services.Cli.Common.Exceptions;
 
 namespace Unity.Services.Cli.Lobby.Handlers
 {
-    internal static class RequestBodyHandler
+    static class RequestBodyHandler
     {
         internal static string GetRequestBodyFromFileOrInput(string? input, bool isRequired = false)
         {

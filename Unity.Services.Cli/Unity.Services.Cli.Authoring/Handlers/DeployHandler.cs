@@ -22,9 +22,10 @@ static class DeployHandler
         ILogger logger,
         ILoadingIndicator loadingIndicator,
         CancellationToken cancellationToken
-        )
+    )
     {
-        await loadingIndicator.StartLoadingAsync($"Deploying files...",
+        await loadingIndicator.StartLoadingAsync(
+            $"Deploying files...",
             context => DeployAsync(
                 host,
                 input,
@@ -47,27 +48,51 @@ static class DeployHandler
     {
         var services = host.Services.GetServices<IDeploymentService>().ToList();
 
-        if (input.Paths.Count == 0)
+        var supportedServicesStr = string.Join(", ", services.Select(s => s.ServiceType));
+        var supportedServiceNamesStr = string.Join(", ", services.Select(s => s.ServiceName));
+
+        bool areAllServicesSupported = !AreAllServicesSupported(input, services, out var unsupportedServicesStr);
+        if (input.Paths.Count == 0 || areAllServicesSupported)
         {
-            var supportedServicesStr = string.Join(", ", services.Select(s => s.ServiceType));
-            logger.LogInformation("Currently supported services are: {SupportedServicesStr}", supportedServicesStr);
+            if (areAllServicesSupported)
+            {
+                logger.LogError($"These service options were not recognized: {unsupportedServicesStr}.");
+            }
+
+            logger.LogInformation($"Currently supported services are: {supportedServicesStr}." +
+                $"{Environment.NewLine}    You can filter your service(s) with the --services option: " +
+                $"{supportedServiceNamesStr}");
+        }
+
+        if (input.Reconcile && input.Services.Count == 0)
+        {
+            logger.LogError(
+                "Reconcile is a destructive operation. Specify your service(s) with the --services option: {SupportedServiceNamesStr}",
+                supportedServiceNamesStr);
+            return;
         }
 
         var environmentId = await unityEnvironment.FetchIdentifierAsync();
         var projectId = input.CloudProjectId!;
-        var tasks = services.Select(
-            m => m.Deploy(
-                input,
-                deployFileService.ListFilesToDeploy(input.Paths, m.DeployFileExtension),
-                projectId,
-                environmentId,
-                loadingContext,
-                cancellationToken)).ToArray();
+        var deploymentServices = services
+            .Where(s => CheckService(input, s))
+            .ToArray();
+
+        var tasks = deploymentServices.Select(
+                m => m.Deploy(
+                    input,
+                    deployFileService.ListFilesToDeploy(input.Paths, m.DeployFileExtension),
+                    projectId,
+                    environmentId,
+                    loadingContext,
+                    cancellationToken))
+            .ToArray();
+
         try
         {
             await Task.WhenAll(tasks);
         }
-        catch (Exception)
+        catch
         {
             // do nothing
             // this allows us to capture all the exceptions
@@ -81,9 +106,9 @@ static class DeployHandler
             .ToArray();
 
         var totalResult = new DeploymentResult(
-            deploymentResults.SelectMany(x => x.Created).ToList(),
             deploymentResults.SelectMany(x => x.Updated).ToList(),
             deploymentResults.SelectMany(x => x.Deleted).ToList(),
+            deploymentResults.SelectMany(x => x.Created).ToList(),
             deploymentResults.SelectMany(x => x.Deployed).ToList(),
             deploymentResults.SelectMany(x => x.Failed).ToList(),
             input.DryRun
@@ -106,5 +131,22 @@ static class DeployHandler
         {
             throw new DeploymentFailureException();
         }
+    }
+
+    static bool CheckService(DeployInput input, IDeploymentService service)
+    {
+        if (!input.Reconcile && input.Services.Count == 0)
+            return true;
+
+        return input.Services.Contains(service.ServiceName);
+    }
+
+    static bool AreAllServicesSupported(DeployInput input, IReadOnlyList<IDeploymentService> services, out string unsupportedServices)
+    {
+        var serviceNames = services.Select(s => s.ServiceName);
+
+        unsupportedServices = string.Join(", ", input.Services.Except(serviceNames));
+
+        return string.IsNullOrEmpty(unsupportedServices);
     }
 }

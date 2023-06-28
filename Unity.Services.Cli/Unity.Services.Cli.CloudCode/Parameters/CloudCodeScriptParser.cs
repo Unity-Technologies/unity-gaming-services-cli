@@ -1,6 +1,7 @@
 using System.IO.Abstractions;
 using System.Reflection;
 using Unity.Services.Cli.CloudCode.Exceptions;
+using Unity.Services.Cli.CloudCode.Model;
 using Unity.Services.Cli.Common.Process;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
 using Unity.Services.Cli.Common.Utils;
@@ -8,7 +9,7 @@ using Unity.Services.Cli.Common.Telemetry;
 
 namespace Unity.Services.Cli.CloudCode.Parameters;
 
-internal class CloudCodeScriptParser : ICloudCodeScriptParser
+class CloudCodeScriptParser : ICloudCodeScriptParser
 {
     const int k_ParsingTimeLimitInMillisecond = 5000;
     const int k_MemorySizeLimitInMB = 256;
@@ -46,16 +47,17 @@ internal class CloudCodeScriptParser : ICloudCodeScriptParser
         }
     }
 
-    public async Task<IReadOnlyList<ScriptParameter>> ParseScriptParametersAsync(string scriptCode, CancellationToken cancellationToken)
+    public async Task<ParseScriptParametersResult> ParseScriptParametersAsync(string scriptCode, CancellationToken cancellationToken)
     {
         var parameterInJson = await ParseToScriptParamsJsonAsync(scriptCode, cancellationToken);
         var parameters = new List<ScriptParameter>();
+
         if (parameterInJson is not null)
         {
             parameters = m_CloudScriptParametersParser.ParseToScriptParameters(parameterInJson);
         }
 
-        return parameters;
+        return new ParseScriptParametersResult(!string.IsNullOrEmpty(parameterInJson), parameters);
     }
 
     internal async Task<string?> ParseToScriptParamsJsonAsync(string scriptCode, CancellationToken token)
@@ -81,6 +83,7 @@ internal class CloudCodeScriptParser : ICloudCodeScriptParser
                 $"--max-old-space-size={k_MemorySizeLimitInMB}",
                 k_ParameterScriptFile
             }, parseTimeoutTokenSource.Token, writeToStandardInput: WriteToProcessStandardInput);
+
             paramString = paramString.Replace(System.Environment.NewLine, "");
             return string.IsNullOrEmpty(paramString) ? null : paramString;
         }

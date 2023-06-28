@@ -2,6 +2,7 @@ using System.Net;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
+using Unity.Services.Gateway.EconomyApiV2.Generated.Model;
 using WireMock.Admin.Mappings;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
@@ -33,7 +34,8 @@ public class RemoteConfigMock : IServiceApiMock
         UpdateConfigUrl = $"{k_RemoteConfigPath}/projects/{m_ProjectId}/configs";
         GetAllConfigsUrl = $"{k_RemoteConfigPath}/projects/{m_ProjectId}/environments/{m_EnvironmentId}/configs";
         DeleteConfigUrl = $"{k_RemoteConfigPath}/projects/{m_ProjectId}/configs";
-        m_Config = new() {
+        m_Config = new()
+        {
             ProjectId = m_ProjectId,
             EnvironmentId = m_EnvironmentId,
             Type = ConfigTypeDefaultValue,
@@ -60,12 +62,34 @@ public class RemoteConfigMock : IServiceApiMock
     public void CustomMock(WireMockServer mockServer)
     {
         MockListCloudCodeScriptEmpty(mockServer);
+        MockListEconomyResourceEmpty(mockServer);
         MockGetAllConfigsFromEnvironmentAsync(mockServer, ConfigId);
         MockUpdateConfigAsync(mockServer, ConfigId);
         MockDeleteConfigAsync(mockServer, ConfigId);
     }
 
-    void MockListCloudCodeScriptEmpty(WireMockServer mockServer)
+    static void MockListEconomyResourceEmpty(WireMockServer mockServer)
+    {
+        var publishedResourcesResponse = new GetPublishedResourcesResponse(new List<GetResourcesResponseResultsInner>());
+        mockServer.Given(Request.Create().WithPath($"*/economy/v2/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/configs/published/resources").UsingGet())
+            .RespondWith(Response.Create().WithHeaders(new Dictionary<string, string>
+            {
+                {
+                    "Content-Type", "application/json"
+                }
+            }).WithBodyAsJson(publishedResourcesResponse).WithStatusCode(HttpStatusCode.OK));
+
+        var resourcesResponse = new GetResourcesResponse(new List<GetResourcesResponseResultsInner>());
+        mockServer.Given(Request.Create().WithPath($"*/economy/v2/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/configs/draft/resources").UsingGet())
+            .RespondWith(Response.Create().WithHeaders(new Dictionary<string, string>
+            {
+                {
+                    "Content-Type", "application/json"
+                }
+            }).WithBodyAsJson(resourcesResponse).WithStatusCode(HttpStatusCode.OK));
+    }
+
+    static void MockListCloudCodeScriptEmpty(WireMockServer mockServer)
     {
         var response = new ListScriptsResponse(
             new List<ListScriptsResponseResultsInner>
@@ -88,7 +112,7 @@ public class RemoteConfigMock : IServiceApiMock
         m_Config.Id = configId;
         mockServer.Given(Request.Create().WithPath(GetAllConfigsUrl).UsingGet())
             .RespondWith(Response.Create()
-                .WithHeaders(new Dictionary<string, string> {{"Content-Type","application/json"}})
+                .WithHeaders(new Dictionary<string, string> { { "Content-Type", "application/json" } })
                 .WithBodyAsJson(m_GetResponse)
                 .WithStatusCode(HttpStatusCode.OK));
     }

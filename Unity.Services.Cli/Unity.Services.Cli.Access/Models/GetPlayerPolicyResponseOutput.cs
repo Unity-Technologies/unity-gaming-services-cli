@@ -3,7 +3,7 @@ using Unity.Services.Gateway.AccessApiV1.Generated.Model;
 
 namespace Unity.Services.Cli.Access.Models;
 
-internal class GetPlayerPolicyResponseOutput
+class GetPlayerPolicyResponseOutput
 {
     public PlayerPolicy Policy { get; }
 

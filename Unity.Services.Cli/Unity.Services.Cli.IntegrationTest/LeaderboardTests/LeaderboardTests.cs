@@ -15,11 +15,12 @@ namespace Unity.Services.Cli.IntegrationTest.LeaderboardTests;
 public class LeaderboardTests : UgsCliFixture
 {
     static readonly string k_TestDirectory = Path.Combine(UgsCliBuilder.RootDirectory, ".tmp/FilesDir");
-    private static readonly string k_LeaderboardFileName = "foo";
-    static readonly string k_LearedboardDefaultZipFileName = "ugs";
-    private static readonly string k_LeaderboardZipFileName = "test_name";
-    private static readonly string k_MissingFieldLeaderboardFileName = "missing";
-    private static readonly string k_brokenFile = "broken";
+    static readonly string k_LeaderboardFileName = "foo";
+    static readonly string k_MissingFieldLeaderboardFileName = "missing";
+    static readonly string k_brokenFile = "broken";
+
+    static readonly string k_defaultFileName = "ugs.lbzip";
+    static readonly string k_alternateFileName = "other.lbzip";
 
     [OneTimeTearDown]
     public void OneTimeTearDown()
@@ -42,13 +43,9 @@ public class LeaderboardTests : UgsCliFixture
             Directory.Delete(k_TestDirectory, true);
         }
         Directory.CreateDirectory(k_TestDirectory);
-        await File.WriteAllTextAsync(k_TestDirectory + "/" + k_LeaderboardFileName, JsonConvert.SerializeObject(LeaderboardApiMock.Leaderboard1));
-        await File.WriteAllTextAsync(k_TestDirectory + "/" + k_MissingFieldLeaderboardFileName, "{ \"id\": \"lb1\", \"name\": \"leaderboard 1\" }");
-        await File.WriteAllTextAsync(k_TestDirectory + "/" + k_brokenFile, "{");
-
-        ZipArchiver<UpdatedLeaderboardConfig> m_zipArchiver = new ZipArchiver<UpdatedLeaderboardConfig>();
-        m_zipArchiver.Zip(k_TestDirectory + "/" + k_LearedboardDefaultZipFileName, k_LearedboardDefaultZipFileName, "test", "lbzip", new[] { LeaderboardApiMock.Leaderboard1 });
-        m_zipArchiver.Zip(k_TestDirectory + "/" + k_LeaderboardZipFileName, k_LearedboardDefaultZipFileName, "test", "lbzip", new[] { LeaderboardApiMock.Leaderboard1 });
+        await File.WriteAllTextAsync(Path.Join(k_TestDirectory, k_LeaderboardFileName), JsonConvert.SerializeObject(LeaderboardApiMock.Leaderboard1));
+        await File.WriteAllTextAsync(Path.Join(k_TestDirectory, k_MissingFieldLeaderboardFileName), "{ \"id\": \"lb1\", \"name\": \"leaderboard 1\" }");
+        await File.WriteAllTextAsync(Path.Join(k_TestDirectory, k_brokenFile), "{");
 
         m_MockApi.Server?.ResetMappings();
         await m_MockApi.MockServiceAsync(new IdentityV1Mock());
@@ -58,7 +55,7 @@ public class LeaderboardTests : UgsCliFixture
     [Test]
     public async Task LeaderboardListSucceed()
     {
-        var expectedMessage = @"Fetching leaderboard list...
+        var expectedResult = @"Fetching leaderboard list...
 [
   {
     ""Id"": ""lb1"",
@@ -68,31 +65,26 @@ public class LeaderboardTests : UgsCliFixture
     ""Id"": ""lb2"",
     ""Name"": ""leaderboard 2""
   }
-]
-";
-        await AssertSuccess("leaderboards list", expectedMessage);
+]";
+        await AssertSuccess("leaderboards list", expectedResult: expectedResult);
     }
 
     [Test]
     public async Task LeaderboardListSucceedJson()
     {
-        var expectedMessage = @"{
-  ""Result"": {
-    ""Leaderboards"": [
-      {
-        ""Id"": ""lb1"",
-        ""Name"": ""leaderboard 1""
-      },
-      {
-        ""Id"": ""lb2"",
-        ""Name"": ""leaderboard 2""
-      }
-    ]
-  },
-  ""Messages"": []
-}
-";
-        await AssertSuccess("leaderboards list -j", expectedMessage);
+        var expectedResult = @"{
+  ""Leaderboards"": [
+    {
+      ""Id"": ""lb1"",
+      ""Name"": ""leaderboard 1""
+    },
+    {
+      ""Id"": ""lb2"",
+      ""Name"": ""leaderboard 2""
+    }
+  ]
+}";
+        await AssertSuccess("leaderboards list -j", expectedResult: expectedResult);
     }
 
     [Test]
@@ -101,7 +93,7 @@ public class LeaderboardTests : UgsCliFixture
         DeleteLocalConfig();
         DeleteLocalCredentials();
 
-        var expectedMessage = @"Fetching leaderboard list...
+        var expectedResult = @"Fetching leaderboard list...
 [
   {
     ""Id"": ""lb1"",
@@ -113,14 +105,15 @@ public class LeaderboardTests : UgsCliFixture
   }
 ]
 ";
-        await AssertSuccess($"leaderboards list -p {CommonKeys.ValidProjectId} -e {CommonKeys.ValidEnvironmentName}", expectedMessage);
+        await AssertSuccess($"leaderboards list -p {CommonKeys.ValidProjectId} -e {CommonKeys.ValidEnvironmentName}", expectedResult: expectedResult);
     }
 
     [Test]
     public async Task LeaderboardGetSucceed()
     {
-        var expectedMessage =
-            @"sortOrder: Asc
+        var expectedResult =
+            @"Fetching leaderboard info...
+sortOrder: Asc
 updateType: Aggregate
 id: lb1
 name: leaderboard 1
@@ -138,42 +131,38 @@ updated: 0001-01-01T00:00:00.0000000
 created: 0001-01-01T00:00:00.0000000
 lastReset: 0001-01-01T00:00:00.0000000
 versions: []";
-        await AssertSuccess("leaderboards get lb1", expectedMessage);
+        await AssertSuccess("leaderboards get lb1", expectedResult: expectedResult);
     }
 
     [Test]
     public async Task LeaderboardGetSucceedJSon()
     {
-        var expectedMessage = @"{
-  ""Result"": {
-    ""SortOrder"": ""asc"",
-    ""UpdateType"": ""aggregate"",
-    ""Id"": ""lb1"",
-    ""Name"": ""leaderboard 1"",
-    ""BucketSize"": 10.0,
-    ""ResetConfig"": {
-      ""start"": ""2023-01-01T00:00:00"",
-      ""schedule"": ""@1d"",
-      ""archive"": true
-    },
-    ""TieringConfig"": {
-      ""strategy"": ""percent"",
-      ""tiers"": [
-        {
-          ""id"": ""tier1"",
-          ""cutoff"": 2.0
-        }
-      ]
-    },
-    ""Updated"": ""0001-01-01T00:00:00"",
-    ""Created"": ""0001-01-01T00:00:00"",
-    ""LastReset"": ""0001-01-01T00:00:00"",
-    ""Versions"": []
+        var expectedResult = @"{
+  ""SortOrder"": ""asc"",
+  ""UpdateType"": ""aggregate"",
+  ""Id"": ""lb1"",
+  ""Name"": ""leaderboard 1"",
+  ""BucketSize"": 10.0,
+  ""ResetConfig"": {
+    ""start"": ""2023-01-01T00:00:00"",
+    ""schedule"": ""@1d"",
+    ""archive"": true
   },
-  ""Messages"": []
-}
-";
-        await AssertSuccess("leaderboards get lb1 -j", expectedMessage);
+  ""TieringConfig"": {
+    ""strategy"": ""percent"",
+    ""tiers"": [
+      {
+        ""id"": ""tier1"",
+        ""cutoff"": 2.0
+      }
+    ]
+  },
+  ""Updated"": ""0001-01-01T00:00:00"",
+  ""Created"": ""0001-01-01T00:00:00"",
+  ""LastReset"": ""0001-01-01T00:00:00"",
+  ""Versions"": []
+}";
+        await AssertSuccess("leaderboards get lb1 -j", expectedResult: expectedResult);
     }
 
     [Test]
@@ -205,6 +194,52 @@ versions: []";
         await AssertSuccess($"leaderboards update lb1 {k_TestDirectory}/{k_LeaderboardFileName}", expectedMessage);
     }
 
+    [Test]
+    public async Task LeaderboardImportSucceed()
+    {
+        ZipArchiver m_zipArchiver = new ZipArchiver();
+        await m_zipArchiver.ZipAsync(Path.Join(k_TestDirectory, k_defaultFileName), "test", new[]
+            {  LeaderboardApiMock.Leaderboard1, LeaderboardApiMock.Leaderboard2, LeaderboardApiMock.Leaderboard3,
+                LeaderboardApiMock.Leaderboard4, LeaderboardApiMock.Leaderboard5, LeaderboardApiMock.Leaderboard6,
+                LeaderboardApiMock.Leaderboard7, LeaderboardApiMock.Leaderboard8, LeaderboardApiMock.Leaderboard9,
+                LeaderboardApiMock.Leaderboard10, LeaderboardApiMock.Leaderboard11, LeaderboardApiMock.Leaderboard12 });
+
+        var expectedMessage = "Importing configs...";
+        await AssertSuccess($"leaderboards import {k_TestDirectory}", expectedResult: expectedMessage);
+    }
+
+    [Test]
+    public async Task LeaderboardImportWithNameSucceed()
+    {
+        ZipArchiver m_zipArchiver = new ZipArchiver();
+        await m_zipArchiver.ZipAsync(Path.Join(k_TestDirectory, k_alternateFileName), "test", new[] { LeaderboardApiMock.Leaderboard1, LeaderboardApiMock.Leaderboard2, LeaderboardApiMock.Leaderboard3, LeaderboardApiMock.Leaderboard4, LeaderboardApiMock.Leaderboard5, LeaderboardApiMock.Leaderboard6, LeaderboardApiMock.Leaderboard7, LeaderboardApiMock.Leaderboard8, LeaderboardApiMock.Leaderboard9, LeaderboardApiMock.Leaderboard10, LeaderboardApiMock.Leaderboard11, LeaderboardApiMock.Leaderboard12 });
+
+        var expectedMessage = "Importing configs...";
+        await AssertSuccess($"leaderboards import {k_TestDirectory} {k_alternateFileName}", expectedResult: expectedMessage);
+    }
+
+    [Test]
+    public async Task LeaderboardExportSucceed()
+    {
+        var expectedMessage = "Exporting your environment...";
+        await AssertSuccess($"leaderboards export {k_TestDirectory}", expectedResult: expectedMessage);
+    }
+
+    [Test]
+    public async Task LeaderboardExportWithNameSucceed()
+    {
+        var expectedMessage = "Exporting your environment...";
+        await AssertSuccess($"leaderboards export {k_TestDirectory} {k_alternateFileName}", expectedResult: expectedMessage);
+    }
+
+    [Test]
+    public async Task LeaderboardExportWithSameNameSucceed()
+    {
+        var expectedMessage = "Exporting your environment...";
+        await AssertSuccess($"leaderboards export {k_TestDirectory} {k_alternateFileName}", expectedResult: expectedMessage);
+        var errorMessage = "The filename to export to already exists. Please create a new file";
+        await AssertException($"leaderboards export {k_TestDirectory} {k_alternateFileName}", errorMessage);
+    }
 
     [TestCase("create")]
     [TestCase("update foo")]
@@ -230,30 +265,28 @@ versions: []";
 
     }
 
-    private static async Task AssertSuccess(string command, string expectedMessage)
+    static async Task AssertSuccess(string command, string? expectedMessage = null, string? expectedResult = null)
     {
-        await GetLoggedInCli()
-            .Command(command)
-            .AssertNoErrors()
-            .AssertStandardOutputContains(expectedMessage)
-            .ExecuteAsync();
+        var test = GetLoggedInCli()
+            .Command(command);
+        if (expectedMessage != null)
+        {
+            test = test.AssertStandardErrorContains(expectedMessage.ReplaceLineEndings());
+        }
+
+        if (expectedResult != null)
+        {
+            test = test.AssertStandardOutputContains(expectedResult.ReplaceLineEndings());
+        }
+        await test.ExecuteAsync();
     }
 
-    private static async Task AssertApiException(string command)
+    static async Task AssertException(string command, string expectedMessage)
     {
         await GetLoggedInCli()
             .Command(command)
             .AssertExitCode(ExitCode.HandledError)
-            .ExecuteAsync();
-    }
-
-    private static async Task AssertException(string command, string expectedMessage)
-    {
-        await GetLoggedInCli()
-            .Command(command)
-            .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMessage)
+            .AssertStandardErrorContains(expectedMessage)
             .ExecuteAsync();
     }
 }
-

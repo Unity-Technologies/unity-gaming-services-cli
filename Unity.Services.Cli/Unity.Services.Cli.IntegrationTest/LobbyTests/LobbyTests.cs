@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Networking;
+using Unity.Services.Cli.IntegrationTest.Common;
 using Unity.Services.Cli.MockServer;
 using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Cli.MockServer.ServiceMocks;
@@ -64,7 +65,7 @@ public class LobbyTests : UgsCliFixture
         await AuthenticatedCommand()
             .Command("lobby query --service-id \"\"")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
@@ -78,7 +79,7 @@ public class LobbyTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command($"lobby get {k_LobbyId} {k_DefaultOptions}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
@@ -89,7 +90,7 @@ public class LobbyTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command($"lobby get {k_LobbyId} {k_DefaultOptions}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
@@ -119,7 +120,7 @@ public class LobbyTests : UgsCliFixture
         await AuthenticatedCommand()
             .Command($"lobby bulk-update {k_LobbyId} {k_InvalidJson} {k_DefaultOptions}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(k_FailedToDeserialize)
+            .AssertStandardErrorContains(k_FailedToDeserialize)
             .ExecuteAsync();
     }
 
@@ -164,7 +165,7 @@ public class LobbyTests : UgsCliFixture
         await AuthenticatedCommand()
             .Command($"lobby create {k_InvalidJson} {k_DefaultOptions}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(k_FailedToDeserialize)
+            .AssertStandardErrorContains(k_FailedToDeserialize)
             .ExecuteAsync();
     }
 
@@ -183,8 +184,8 @@ public class LobbyTests : UgsCliFixture
     {
         await AuthenticatedCommand()
             .Command($"lobby delete {k_LobbyId} {k_DefaultOptions}")
-            .AssertStandardOutputContains("Lobby successfully deleted")
-            .AssertNoErrors()
+            .AssertStandardOutputContains(string.Empty)
+            .AssertStandardErrorContains("Lobby successfully deleted")
             .ExecuteAsync();
     }
 
@@ -262,7 +263,7 @@ public class LobbyTests : UgsCliFixture
         await AuthenticatedCommand()
             .Command($"lobby join {playerString} {k_DefaultOptions}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains("Either lobby ID or lobby code must be provided to join a lobby.")
+            .AssertStandardErrorContains("Either lobby ID or lobby code must be provided to join a lobby.")
             .ExecuteAsync();
     }
 
@@ -272,7 +273,7 @@ public class LobbyTests : UgsCliFixture
         await AuthenticatedCommand()
             .Command($"lobby join {k_InvalidJson} {k_DefaultOptions} --lobby-id {k_LobbyId}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(k_FailedToDeserialize)
+            .AssertStandardErrorContains(k_FailedToDeserialize)
             .ExecuteAsync();
     }
 
@@ -353,7 +354,7 @@ public class LobbyTests : UgsCliFixture
         await AuthenticatedCommand()
             .Command($"lobby quickjoin {k_InvalidJson} {k_InvalidJson} {k_DefaultOptions}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(k_FailedToDeserialize)
+            .AssertStandardErrorContains(k_FailedToDeserialize)
             .ExecuteAsync();
     }
 
@@ -395,8 +396,8 @@ public class LobbyTests : UgsCliFixture
     {
         await AuthenticatedCommand()
             .Command($"lobby player remove {k_LobbyId} {k_PlayerId} {k_DefaultOptions}")
-            .AssertStandardOutputContains("Player successfully removed")
-            .AssertNoErrors()
+            .AssertStandardOutputContains(string.Empty)
+            .AssertStandardErrorContains("Player successfully removed")
             .ExecuteAsync();
     }
 
@@ -436,7 +437,7 @@ public class LobbyTests : UgsCliFixture
         await AuthenticatedCommand()
             .Command($"lobby player update {k_LobbyId} {k_PlayerId} {k_InvalidJson} {k_DefaultOptions}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(k_FailedToDeserialize)
+            .AssertStandardErrorContains(k_FailedToDeserialize)
             .ExecuteAsync();
     }
 
@@ -478,7 +479,7 @@ public class LobbyTests : UgsCliFixture
         await AuthenticatedCommand()
             .Command($"lobby update {k_LobbyId} {k_InvalidJson} {k_DefaultOptions}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(k_FailedToDeserialize)
+            .AssertStandardErrorContains(k_FailedToDeserialize)
             .ExecuteAsync();
     }
 
@@ -509,8 +510,8 @@ public class LobbyTests : UgsCliFixture
     {
         await AuthenticatedCommand()
             .Command($"lobby heartbeat {k_LobbyId} {k_DefaultOptions}")
-            .AssertStandardOutputContains("Lobby successfully heartbeated")
-            .AssertNoErrors()
+            .AssertStandardOutputContains(string.Empty)
+            .AssertStandardErrorContains("Lobby successfully heartbeated")
             .ExecuteAsync();
     }
 
@@ -589,7 +590,7 @@ public class LobbyTests : UgsCliFixture
         await AuthenticatedCommand()
             .Command($"lobby config update {k_ConfigId} ''")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains("Failed to deserialize config update request body.")
+            .AssertStandardErrorContains("Empty config request body")
             .ExecuteAsync();
     }
 

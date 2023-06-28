@@ -5,7 +5,7 @@ using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
 
 namespace Unity.Services.Cli.CloudCode.Parameters;
 
-internal class CloudScriptParametersParser : ICloudScriptParametersParser
+class CloudScriptParametersParser : ICloudScriptParametersParser
 {
     struct EvaluatedParam
     {

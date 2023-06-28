@@ -4,7 +4,7 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace Unity.Services.Cli.Leaderboards.Model;
 
-internal class GetLeaderboardResponseOutput
+class GetLeaderboardResponseOutput
 {
     public SortOrder SortOrder { get; set; }
     public UpdateType UpdateType { get; set; }

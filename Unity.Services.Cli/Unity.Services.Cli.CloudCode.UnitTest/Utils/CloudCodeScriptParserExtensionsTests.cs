@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Unity.Services.Cli.CloudCode.Exceptions;
+using Unity.Services.Cli.CloudCode.Model;
 using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
@@ -35,11 +36,10 @@ class CloudCodeScriptParserExtensionsTests
     public async Task TryParseScriptParametersAsyncReturnsTrueWhenParsingSucceeds()
     {
         m_Parser.Setup(x => x.ParseScriptParametersAsync(k_ScriptBody, CancellationToken.None))
-            .ReturnsAsync(
-                new[]
-                {
-                    new ScriptParameter("foo")
-                });
+            .ReturnsAsync(new ParseScriptParametersResult(true, new[]
+            {
+                new ScriptParameter("foo")
+            }));
 
         var (hasParameters, errorMessage) = await m_Parser.Object.TryParseScriptParametersAsync(
             m_Script.Object, CancellationToken.None);

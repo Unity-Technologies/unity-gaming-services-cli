@@ -3,9 +3,9 @@ using Unity.Services.Cli.Common.Input;
 
 namespace Unity.Services.Cli.Leaderboards.Input;
 
-internal class LeaderboardIdInput : CommonInput
+class LeaderboardIdInput : CommonInput
 {
-    private const string k_JsonLeaderboardIdDescription = "leaderboard id to update";
+    const string k_JsonLeaderboardIdDescription = "leaderboard id to fetch or update";
 
     public static readonly Argument<string> RequestLeaderboardIdArgument = new("leaderboard-id", k_JsonLeaderboardIdDescription);
 

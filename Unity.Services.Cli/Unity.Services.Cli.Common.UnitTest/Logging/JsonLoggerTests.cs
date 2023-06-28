@@ -7,7 +7,7 @@ namespace Unity.Services.Cli.Common.UnitTest;
 [TestFixture]
 class JsonLoggerTests
 {
-    const string k_Message = "Message";
+    const string k_Result = "Message";
 
     readonly Logger m_Logger = new();
     LogMessageTestHelper? m_LogMessageTestHelper;
@@ -31,7 +31,7 @@ class JsonLoggerTests
     [TestCase(LogLevel.Critical)]
     public void Log_CorrectInformationOutput(LogLevel level)
     {
-        m_Logger.Log(level, k_Message);
+        m_Logger.Log(level, k_Result);
         m_Logger.Write();
         var resultLogMessage = m_LogMessageTestHelper!.LogMessage;
         var messageList = new List<LogMessage>
@@ -39,24 +39,22 @@ class JsonLoggerTests
             new()
             {
                 Name = "",
-                Message = k_Message,
+                Message = k_Result,
                 Type = level
             }
         };
-        var expectMessage =
-            LogMessageTestHelper.GetJsonLogMessage(messageList, null);
+        var expectMessage = LogMessageTestHelper.GetJsonLogFormatted(null, messageList);
         Assert.AreEqual(expectMessage, resultLogMessage);
     }
 
     [Test]
     public void LogResult_JsonResultOutput()
     {
-        m_Logger.LogResultValue(k_Message);
+        m_Logger.LogResultValue(k_Result);
         m_Logger.Write();
         var resultLogMessage = m_LogMessageTestHelper!.LogMessage;
         var messageList = new List<LogMessage>();
-        var expectMessage =
-            LogMessageTestHelper.GetJsonLogMessage(messageList, k_Message);
+        var expectMessage = LogMessageTestHelper.GetJsonLogFormatted(k_Result, messageList);
         Assert.AreEqual(expectMessage, resultLogMessage);
     }
 
@@ -64,8 +62,8 @@ class JsonLoggerTests
     public void Log_JsonResultAndInformationOutput()
     {
         var level = LogLevel.Information;
-        m_Logger.LogResultValue(k_Message);
-        m_Logger.Log(level, k_Message);
+        m_Logger.LogResultValue(k_Result);
+        m_Logger.Log(level, k_Result);
         m_Logger.Write();
         var resultLogMessage = m_LogMessageTestHelper!.LogMessage;
         var messageList = new List<LogMessage>
@@ -73,12 +71,11 @@ class JsonLoggerTests
             new()
             {
                 Name = "",
-                Message = k_Message,
+                Message = k_Result,
                 Type = level
             }
         };
-        var expectMessage =
-            LogMessageTestHelper.GetJsonLogMessage(messageList, k_Message);
+        var expectMessage = LogMessageTestHelper.GetJsonLogFormatted(k_Result, messageList);
         Assert.AreEqual(expectMessage, resultLogMessage);
     }
 }

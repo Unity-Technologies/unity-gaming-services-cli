@@ -5,6 +5,7 @@ using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.CloudCode.Deploy;
 using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
+using Unity.Services.DeploymentApi.Editor;
 
 namespace Unity.Services.Cli.CloudCode.Authoring;
 
@@ -62,23 +63,30 @@ class JavaScriptFetchHandler : IJavaScriptFetchHandler
         await EnforceScriptParametersInBodyAsync(updated, failed, token);
 
         if (dryRun)
-            return CreateResult();
+            return CreateResult(dryRun);
+
+        FilterFailedScripts();
 
         await ApplyFetchAsync(updated, created, deleted, failed, token);
 
-        return CreateResult();
+        return CreateResult(dryRun);
 
-        FetchResult CreateResult()
+        FetchResult CreateResult(bool dryRun)
         {
             FilterFailedScripts();
-            var fetched = created.Union(updated, m_ScriptComparer)
-                .Union(deleted, m_ScriptComparer);
+            var updatedContent = updated.Select(j => GetDeployContent(j, "Updated")).ToList();
+            var deletedContent = deleted.Select(j => GetDeployContent(j, "Deleted")).ToList();
+            var createdContent = created.Select(j => GetDeployContent(j, "Created")).ToList();
+            var fetched = updatedContent
+                .Union(deletedContent)
+                .Union(createdContent);
             return new FetchResult(
-                updated.Select(GetScriptRelativePathOrName).ToList(),
-                deleted.Select(GetScriptRelativePathOrName).ToList(),
-                created.Select(GetScriptRelativePathOrName).ToList(),
-                fetched.Select(GetScriptRelativePathOrName).ToList(),
-                failed.Distinct(m_ScriptComparer).Select(x => x.Name.ToString()).ToList());
+                updatedContent,
+                deletedContent,
+                createdContent,
+                fetched.ToList(),
+                failed.Distinct(m_ScriptComparer).Select(j => GetDeployContent(j, "Failed")).ToList(),
+                dryRun);
         }
 
         void FilterFailedScripts()
@@ -88,13 +96,14 @@ class JavaScriptFetchHandler : IJavaScriptFetchHandler
             created = created.Except(failed, m_ScriptComparer).ToList();
         }
 
-        string GetScriptRelativePathOrName(IScript script)
+        DeployContent GetDeployContent(IScript script, string status)
         {
-            if (script.Path is null)
-                return script.Name.ToString();
-
-            var path = Path.GetRelativePath(rootDirectory, script.Path);
-            return IoUtils.NormalizePath(path);
+            return new DeployContent(
+                script.Name.ToString(),
+                "Cloud Code Scripts",
+                script.Path,
+                100,
+                new DeploymentStatus(status, string.Empty));
         }
     }
 
@@ -169,7 +178,9 @@ class JavaScriptFetchHandler : IJavaScriptFetchHandler
         var builder = new StringBuilder();
         foreach (var script in scripts)
         {
-            var (hasParameters, errorMessage) = await m_ScriptParser.TryParseScriptParametersAsync(script, token);
+            var (hasParameters, errorMessage) = await m_ScriptParser
+                .TryParseScriptParametersAsync(script, token);
+
             if (hasParameters)
             {
                 continue;
@@ -179,10 +190,12 @@ class JavaScriptFetchHandler : IJavaScriptFetchHandler
             if (errorMessage is not null)
             {
                 m_Logger.LogWarning(errorMessage);
+                failed.Add(script);
+                continue;
             }
 
             // We can't determine parameters for scripts that haven't been published.
-            if (string.IsNullOrEmpty(script.LastPublishedDate))
+            if (!script.Parameters.Any() && string.IsNullOrEmpty(script.LastPublishedDate))
             {
                 // TODO: Include this log in the result as a failure.
                 m_Logger.LogWarning(

@@ -2,6 +2,7 @@ using System.IO;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Networking;
+using Unity.Services.Cli.IntegrationTest.Common;
 using Unity.Services.Cli.MockServer;
 using Unity.Services.Cli.MockServer.Common;
 
@@ -10,7 +11,7 @@ namespace Unity.Services.Cli.IntegrationTest;
 /// <summary>
 /// A test fixture to facilitate integration testing
 /// </summary>
-[TestFixture]
+[TestFixture, Timeout(5 * 60 * 1000)]
 public abstract class UgsCliFixture
 {
 #if DISABLE_CLI_REBUILD
@@ -32,9 +33,9 @@ public abstract class UgsCliFixture
     /// </summary>
     protected string CredentialsFile => m_IntegrationConfig.CredentialsFile;
 
-    protected readonly MockApi m_MockApi = new (NetworkTargetEndpoints.MockServer);
+    protected readonly MockApi m_MockApi = new(NetworkTargetEndpoints.MockServer);
 
-    readonly IntegrationConfig m_IntegrationConfig = new ();
+    readonly IntegrationConfig m_IntegrationConfig = new();
 
     [OneTimeTearDown]
     public void DisposeMockServer()
@@ -90,5 +91,11 @@ public abstract class UgsCliFixture
         return new UgsCliTestCase()
             .Command($"login --service-key-id {CommonKeys.ValidServiceAccKeyId} --secret-key-stdin")
             .StandardInputWriteLine(CommonKeys.ValidServiceAccSecretKey);
+    }
+
+    protected UgsCliTestCase GetFullySetCli()
+    {
+        SetupProjectAndEnvironment();
+        return GetLoggedInCli();
     }
 }

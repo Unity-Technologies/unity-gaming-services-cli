@@ -1,6 +1,6 @@
 namespace Unity.Services.Cli.Common.Telemetry;
 
-internal static class TagKeys
+static class TagKeys
 {
     /// <summary>
     /// Full description of OS being used

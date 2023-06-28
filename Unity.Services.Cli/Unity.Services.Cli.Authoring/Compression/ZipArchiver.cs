@@ -1,72 +1,52 @@
 using System.IO.Compression;
 using Newtonsoft.Json;
 using Unity.Services.Cli.Common.Exceptions;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Unity.Services.Cli.Authoring.Compression;
 
-public class ZipArchiver<T> : IZipArchiver<T>
+/// <inheritdoc />
+public class ZipArchiver : IZipArchiver
 {
-    string m_ArchiveExtension = "";
-
-    public void Zip(string archivePath, string directoryName, string entryName, string archiveExtension, IReadOnlyList<T> data)
+    /// <inheritdoc />
+    public async Task ZipAsync<T>(string archivePath, string entryName, IEnumerable<T> data, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var fileMode = File.Exists(archivePath) ? FileMode.Open : FileMode.Create;
-            m_ArchiveExtension = archiveExtension;
-            archivePath = m_ArchiveExtension.StartsWith(".")
-                ? $"{archivePath}{m_ArchiveExtension}"
-                : $"{archivePath}.{m_ArchiveExtension}";
+        using var zipArchive = ZipFile.Open(archivePath, ZipArchiveMode.Create);
 
-            using var zipToOpen = new FileStream(archivePath, fileMode);
-            using var zipArchive = new ZipArchive(zipToOpen, ZipArchiveMode.Update);
-
-            var directory = zipArchive.CreateEntry($"{directoryName}/");
-            var entryPath = Path.Join(directory.FullName, $"{entryName}");
-            var entry = zipArchive.CreateEntry(entryPath);
-            using var writer = new StreamWriter(entry.Open());
-
-            writer.Write(JsonSerializer.Serialize(data));
-        }
-        catch(Exception e)
-        {
-            throw new CliException(e.Message, e.InnerException, ExitCode.HandledError);
-        }
+        var entry = zipArchive.CreateEntry(entryName);
+        using var stream = entry.Open();
+        using (StreamWriter writer = new StreamWriter(stream))
+            await writer.WriteAsync(JsonConvert.SerializeObject(data));
     }
 
-    public IEnumerable<T> Unzip(string archivePath, string entryName, string archiveExtension)
+    /// <inheritdoc />
+    public async Task<IEnumerable<T>> UnzipAsync<T>(string archivePath, string entryName, CancellationToken cancellationToken = default)
     {
-        try
+        if (!File.Exists(archivePath))
         {
-            archivePath = archiveExtension.StartsWith(".")
-                ? $"{archivePath}{archiveExtension}"
-                : $"{archivePath}.{archiveExtension}";
-            var unzipped = new List<T>();
-            using var zipArchive = ZipFile.OpenRead(archivePath);
-
-            foreach (var entry in zipArchive.Entries)
-            {
-                if (Path.GetFileName(entry.FullName) != entryName)
-                {
-                    continue;
-                }
-
-                using var reader = new StreamReader(entry.Open());
-                var data = reader.ReadToEnd();
-                var settings = new JsonSerializerSettings
-                {
-                    NullValueHandling = NullValueHandling.Ignore,
-                    MissingMemberHandling = MissingMemberHandling.Ignore
-                };
-                unzipped.AddRange(JsonConvert.DeserializeObject<IReadOnlyList<T>>(data, settings) ?? Array.Empty<T>());
-            }
-
-            return unzipped;
+            throw new CliException($"The file at '{archivePath}' could not be found. Ensure the file exists and the specified path is correct", null, ExitCode.HandledError);
         }
-        catch (Exception e)
+        using var zipArchive = ZipFile.OpenRead(archivePath);
+
+        var entry = zipArchive.Entries.FirstOrDefault(e => e.FullName == entryName);
+        if(entry == null)
         {
-            throw new CliException(e.Message, e.InnerException, ExitCode.HandledError);
+            throw new CliException($"The zip '{archivePath}' appears to be malformed.", ExitCode.HandledError);
         }
+
+        using var entryStream = entry.Open();
+        using var sr = new StreamReader(entryStream);
+        var str = await sr.ReadToEndAsync();
+        IEnumerable<T>? data = JsonConvert.DeserializeObject<IEnumerable<T>>(str);
+        return data ?? Array.Empty<T>();
+    }
+
+    /// <inheritdoc />
+    public ZipEntryStream? GetEntry(string path, string entryName)
+    {
+        var zip = ZipFile.OpenRead(path);
+        var entry = zip.GetEntry(entryName);
+        if (entry == null)
+            return null;
+        return new ZipEntryStream(entry.Open(), zip);
     }
 }

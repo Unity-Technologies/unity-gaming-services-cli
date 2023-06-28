@@ -22,9 +22,9 @@ class AccessService : IAccessService
         m_AuthenticationService = authenticationService;
     }
 
-    private const string JsonIncorrectFormatExceptionMessage = "Please make sure that the format of your JSON input is correct and all required fields are included. If you need help, please refer to the documentation.";
+    const string JsonIncorrectFormatExceptionMessage = "Please make sure that the format of your JSON input is correct and all required fields are included. If you need help, please refer to the documentation.";
 
-    private static string ReadFile(FileInfo file)
+    static string ReadFile(FileInfo file)
     {
         if (!file.Exists)
         {

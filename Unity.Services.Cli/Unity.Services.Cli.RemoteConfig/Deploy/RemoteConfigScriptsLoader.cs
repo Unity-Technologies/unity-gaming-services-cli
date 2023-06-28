@@ -1,38 +1,50 @@
+using System.IO.Abstractions;
 using Newtonsoft.Json;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.RemoteConfig.Deploy;
+using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
 
 namespace Unity.Services.Cli.RemoteConfig.Deploy;
 
-internal class RemoteConfigScriptsLoader : IRemoteConfigScriptsLoader
+class RemoteConfigScriptsLoader : IRemoteConfigScriptsLoader
 {
-    const string k_ServiceType = "Remote Config";
+    readonly IFile m_File;
+    readonly IPath m_Path;
 
-    public async Task<LoadResult> LoadScriptsAsync(IReadOnlyList<string> filePaths, ICollection<DeployContent> deployContents)
+    public RemoteConfigScriptsLoader(IFile file, IPath path)
+    {
+        m_File = file;
+        m_Path = path;
+    }
+
+    public async Task<LoadResult> LoadScriptsAsync(IReadOnlyList<string> filePaths, CancellationToken token)
     {
         var loaded = new List<RemoteConfigFile>();
-        var failed = new List<DeployContent>();
+        var failed = new List<RemoteConfigFile>();
 
         foreach (var filePath in filePaths)
         {
-            var name = Path.GetFileName(filePath);
+            var name = m_Path.GetFileName(filePath);
+            var file = new RemoteConfigFile(name, filePath);
             try
             {
-                var fileText = await File.ReadAllTextAsync(filePath);
-                var content = JsonConvert.DeserializeObject<RemoteConfigFileContent>(fileText)!;
+                var fileText = await m_File.ReadAllTextAsync(filePath, token);
+                var content = JsonConvert.DeserializeObject<RemoteConfigFileContent>(fileText);
+                if (content is null)
+                {
+                    throw new JsonException($"{filePath} is not a valid resource");
+                }
 
-                var file = new RemoteConfigFile(name, filePath);
                 content.ToRemoteConfigEntries(file, new RemoteConfigParser(new ConfigTypeDeriver()));
 
-                loaded.Add(new RemoteConfigFile(name, filePath));
-                deployContents.Add(new DeployContent(name, k_ServiceType, filePath, 0, "Loaded"));
+                loaded.Add(file);
+                file.Status = new DeploymentStatus(Statuses.Loaded);
             }
             catch (JsonException ex)
             {
-                var content = new DeployContent(name, k_ServiceType, filePath, 0, "Failed To Read", ex.Message);
-                failed.Add(content);
-                deployContents.Add(content);
+                file.Status = new DeploymentStatus(Statuses.FailedToRead, ex.Message, SeverityLevel.Error);
+                failed.Add(file);
             }
         }
         return new LoadResult(loaded, failed);

@@ -3,39 +3,44 @@ using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.CloudCode.Authoring;
+using Unity.Services.Cli.CloudCode.Model;
+using Unity.Services.Cli.CloudCode.Utils;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
+using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Client;
 
 namespace Unity.Services.Cli.CloudCode.Deploy;
 
 class CloudCodePrecompiledModuleDeploymentService : IDeploymentService
 {
-    internal ICliDeploymentOutputHandler CliDeploymentOutputHandler { get; }
     internal ICloudCodeModulesLoader CloudCodeModulesLoader { get; }
     internal ICliEnvironmentProvider EnvironmentProvider { get; }
     internal ICSharpClient CliCloudCodeClient { get; }
-    internal ICloudCodeDeploymentHandler CloudCodeDeploymentHandler { get; }
+    ICloudCodeDeploymentHandler CloudCodeDeploymentHandler { get; }
 
     readonly string m_ServiceType;
+    readonly string m_ServiceName;
     readonly string m_DeployPrecompiledFileExtension;
 
     public CloudCodePrecompiledModuleDeploymentService(
-        IDeploymentHandlerWithOutput deployHandlerWithOutput,
+        ICloudCodeDeploymentHandler deployHandler,
         ICloudCodeModulesLoader cloudCodeModulesLoader,
         ICliEnvironmentProvider environmentProvider,
         ICSharpClient client)
     {
-        CliDeploymentOutputHandler = deployHandlerWithOutput;
         CloudCodeModulesLoader = cloudCodeModulesLoader;
         EnvironmentProvider = environmentProvider;
         CliCloudCodeClient = client;
-        CloudCodeDeploymentHandler = deployHandlerWithOutput;
-        m_ServiceType = "Cloud Code";
+        CloudCodeDeploymentHandler = deployHandler;
+        m_ServiceType = CloudCodeConstants.ServiceTypeModules;
+        m_ServiceName = CloudCodeConstants.ServiceNameModule;
         m_DeployPrecompiledFileExtension = ".ccm";
     }
 
     string IDeploymentService.ServiceType => m_ServiceType;
+
+    string IDeploymentService.ServiceName => m_ServiceName;
 
     string IDeploymentService.DeployFileExtension => m_DeployPrecompiledFileExtension;
 
@@ -50,15 +55,14 @@ class CloudCodePrecompiledModuleDeploymentService : IDeploymentService
         CliCloudCodeClient.Initialize(environmentId, projectId, cancellationToken);
         EnvironmentProvider.Current = environmentId;
 
-        loadingContext?.Status($"Reading {m_ServiceType} Modules ...");
+        loadingContext?.Status($"Reading {m_ServiceType}...");
 
-        var modules = await CloudCodeModulesLoader.LoadPrecompiledModulesAsync(
+        var loadResult = await CloudCodeModulesLoader.LoadPrecompiledModulesAsync(
             filePaths,
-            m_ServiceType,
-            m_DeployPrecompiledFileExtension,
-            CliDeploymentOutputHandler.Contents);
+            m_ServiceType);
 
-        loadingContext?.Status($"Deploying {m_ServiceType} Modules...");
+
+        loadingContext?.Status($"Deploying {m_ServiceType}...");
 
         var dryrun = deployInput.DryRun;
         var reconcile = deployInput.Reconcile;
@@ -66,7 +70,7 @@ class CloudCodePrecompiledModuleDeploymentService : IDeploymentService
 
         try
         {
-            result = await CloudCodeDeploymentHandler.DeployAsync(modules, reconcile, dryrun);
+            result = await CloudCodeDeploymentHandler.DeployAsync(loadResult, reconcile, dryrun);
         }
         catch (ApiException)
         {
@@ -80,40 +84,33 @@ class CloudCodePrecompiledModuleDeploymentService : IDeploymentService
             result = ex.Result;
         }
 
-        if (result == null || modules == null)
+        if (result == null)
         {
-            return new DeploymentResult(CliDeploymentOutputHandler.Contents.ToList());
+            return new DeploymentResult(loadResult.OfType<IDeploymentItem>().ToList());
         }
 
         return new DeploymentResult(
-            ToDeployContents(result.Created),
-            ToDeployContents(result.Updated),
-            ToDeleteContents(result.Deleted),
-            ToDeployContents(result.Deployed),
-            ToDeployContents(result.Failed),
-            dryrun
-        );
+            result.Updated.Select(item => item as IDeploymentItem).ToList() as IReadOnlyList<IDeploymentItem>,
+            ToDeleteDeploymentItems(result.Deleted, deployInput.DryRun),
+            result.Created.Select(item => item as IDeploymentItem).ToList() as IReadOnlyList<IDeploymentItem>,
+            result.Deployed.Select(item => item as IDeploymentItem).ToList() as IReadOnlyList<IDeploymentItem>,
+            result.Failed.Select(item => item as IDeploymentItem).ToList() as IReadOnlyList<IDeploymentItem>,
+            dryrun);
     }
 
-    IReadOnlyCollection<DeployContent> ToDeployContents(IReadOnlyList<IScript> modules)
+    static IReadOnlyList<IDeploymentItem> ToDeleteDeploymentItems(IReadOnlyList<IScript> modules, bool dryRun)
     {
-        var contents = new List<DeployContent>();
+        var contents = new List<IDeploymentItem>();
 
         foreach (var module in modules)
         {
-            contents.AddRange(CliDeploymentOutputHandler.Contents.Where(deployContent => module.Path == deployContent.Path));
-        }
-
-        return contents;
-    }
-
-    static IReadOnlyCollection<DeployContent> ToDeleteContents(IReadOnlyList<IScript> modules)
-    {
-        var contents = new List<DeployContent>();
-
-        foreach (var module in modules)
-        {
-            contents.Add(new DeployContent(module.Name.ToString(), module.Language.ToString()!, module.Path));
+            var deletedCloudCode = new DeletedCloudCode(module.Name.ToString(), module.Language.ToString()!, module.Path);
+            contents.Add(deletedCloudCode);
+            if (!dryRun)
+            {
+                deletedCloudCode.Status = new DeploymentStatus("Deployed", "Deleted remotely", SeverityLevel.Success);
+                deletedCloudCode.Progress = 100f;
+            }
         }
 
         return contents;

@@ -11,10 +11,10 @@ namespace Unity.Services.Cli.Player.Service;
 
 class PlayerService : IPlayerService
 {
-    private readonly IPlayerAuthenticationAdminApiAsync m_PlayerAdminApiAsync;
-    private readonly IDefaultApiAsync m_PlayerAuthApiAsync;
-    private readonly IServiceAccountAuthenticationService m_ServiceAccountService;
-    private readonly IConfigurationValidator m_ConfigValidator;
+    readonly IPlayerAuthenticationAdminApiAsync m_PlayerAdminApiAsync;
+    readonly IDefaultApiAsync m_PlayerAuthApiAsync;
+    readonly IServiceAccountAuthenticationService m_ServiceAccountService;
+    readonly IConfigurationValidator m_ConfigValidator;
     public PlayerService(IPlayerAuthenticationAdminApiAsync playerAdminApiAsync, IDefaultApiAsync authApiAsync, IConfigurationValidator validator, IServiceAccountAuthenticationService authenticationService)
     {
         m_ConfigValidator = validator;
@@ -48,7 +48,7 @@ class PlayerService : IPlayerService
         await AuthorizeAuthServiceAsync(cancellationToken);
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
         var req = new PlayerAuthAnonymousSignupRequestBody();
-        return await m_PlayerAuthApiAsync.AnonymousSignupAsync(projectId, req ,cancellationToken: cancellationToken);
+        return await m_PlayerAuthApiAsync.AnonymousSignupAsync(projectId, req, cancellationToken: cancellationToken);
     }
 
     public async Task<PlayerAuthPlayerProjectResponse> GetAsync(string projectId, string playerId, CancellationToken cancellationToken = default)

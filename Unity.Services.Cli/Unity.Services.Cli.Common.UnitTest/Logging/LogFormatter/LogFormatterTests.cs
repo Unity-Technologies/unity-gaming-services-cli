@@ -16,7 +16,7 @@ public class LogFormatterTests
     {
         m_LogMessageTestHelper = new LogMessageTestHelper();
         m_Cache = new LogCache();
-        m_Formatter = new Logging.LogFormatter();
+        m_Formatter = new Logging.LogFormatter(System.Console.Out, System.Console.Error);
     }
 
     [TearDown]

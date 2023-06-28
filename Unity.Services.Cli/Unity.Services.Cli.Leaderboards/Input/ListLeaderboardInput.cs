@@ -3,7 +3,7 @@ using Unity.Services.Cli.Common.Input;
 
 namespace Unity.Services.Cli.Leaderboards.Input;
 
-internal class ListLeaderboardInput : CommonInput
+class ListLeaderboardInput : CommonInput
 {
     public static readonly Option<string?> CursorOption = new Option<string?>("--cursor", "The ID of the leaderboard that listing should start after, i.e. the last leaderboard returned from the previous page when paging");
     [InputBinding(nameof(CursorOption))]

@@ -1,4 +1,4 @@
-using Unity.Services.RemoteConfig.Editor.Authoring.Core.Networking;
+using Unity.Services.RemoteConfig.Editor.Authoring.Core.Service;
 
 namespace Unity.Services.Cli.RemoteConfig.Deploy;
 

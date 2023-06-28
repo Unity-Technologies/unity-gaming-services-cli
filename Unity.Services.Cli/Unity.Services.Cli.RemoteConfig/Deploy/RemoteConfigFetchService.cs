@@ -3,21 +3,23 @@ using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Service;
+using Unity.Services.Cli.RemoteConfig.Model;
+using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Fetch;
+using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
 
 namespace Unity.Services.Cli.RemoteConfig.Deploy;
 
 class RemoteConfigFetchService : IFetchService
 {
-    private readonly IUnityEnvironment m_UnityEnvironment;
-    private readonly IRemoteConfigFetchHandler m_FetchHandler;
-    private readonly ICliRemoteConfigClient m_RemoteConfigClient;
-    private readonly IDeployFileService m_DeployFileService;
-    private readonly IRemoteConfigScriptsLoader m_RemoteConfigScriptsLoader;
-    private readonly string m_DeployFileExtension;
-
-    internal readonly string m_KeyFileMessageFormat = "Key '{0}' in file '{1}'";
+    readonly IUnityEnvironment m_UnityEnvironment;
+    readonly IRemoteConfigFetchHandler m_FetchHandler;
+    readonly ICliRemoteConfigClient m_RemoteConfigClient;
+    readonly IDeployFileService m_DeployFileService;
+    readonly IRemoteConfigScriptsLoader m_RemoteConfigScriptsLoader;
+    readonly string m_DeployFileExtension;
     public string ServiceType { get; }
+    public string ServiceName { get; }
 
     string IFetchService.FileExtension => m_DeployFileExtension;
 
@@ -35,6 +37,7 @@ class RemoteConfigFetchService : IFetchService
         m_DeployFileService = deployFileService;
         m_RemoteConfigScriptsLoader = remoteConfigScriptsLoader;
         ServiceType = "Remote Config";
+        ServiceName = "remote-config";
         m_DeployFileExtension = ".rc";
     }
 
@@ -47,31 +50,49 @@ class RemoteConfigFetchService : IFetchService
         m_RemoteConfigClient.Initialize(input.CloudProjectId!, environmentId, cancellationToken);
         var remoteConfigFiles = m_DeployFileService.ListFilesToDeploy(new[] {input.Path}, m_DeployFileExtension).ToList();
 
-        var contents = new List<DeployContent>();
         var loadResult = await m_RemoteConfigScriptsLoader
-            .LoadScriptsAsync(remoteConfigFiles, contents);
+            .LoadScriptsAsync(remoteConfigFiles, cancellationToken);
         var configFiles = loadResult.Loaded.ToList();
 
         loadingContext?.Status($"Fetching {ServiceType} Files...");
 
-        Services.RemoteConfig.Editor.Authoring.Core.Results.FetchResult fetchResult = await m_FetchHandler.FetchAsync(
+        var fetchResult = await m_FetchHandler.FetchAsync(
                 input.Path,
                 configFiles,
                 input.DryRun,
                 input.Reconcile,
                 cancellationToken);
 
+        var failed = fetchResult
+            .Failed
+            .Select(d => (RemoteConfigFile)d)
+            .UnionBy(loadResult.Failed, f => f.Path)
+            .ToList();
 
         return new FetchResult(
-            fetchResult.Updated.Select(kvp => string.Format(m_KeyFileMessageFormat, kvp.Key, NormalizePath(kvp.File.Path)) ).ToList(),
-            fetchResult.Deleted.Select(kvp => string.Format(m_KeyFileMessageFormat, kvp.Key, NormalizePath(kvp.File.Path)) ).ToList(),
-            fetchResult.Created.Select(kvp => string.Format(m_KeyFileMessageFormat, kvp.Key, NormalizePath(kvp.File.Path)) ).ToList(),
-            fetchResult.Fetched.Select(f => Path.GetRelativePath(".", f.Path) ).ToList(),
-            fetchResult.Failed.Select(f => Path.GetRelativePath(".", f.Path)).ToList());
+            fetchResult.Updated.Select(rce => GetDeployContent(rce, "Updated")).ToList(),
+            fetchResult.Deleted.Select(rce => GetDeployContent(rce, "Deleted")).ToList(),
+            fetchResult.Created.Select(rce => GetDeployContent(rce, "Updated")).ToList(),
+            fetchResult.Fetched.Select(ToFetchedFile).ToList(),
+            failed,
+            input.DryRun);
     }
 
-    static string NormalizePath(string path)
+    static RemoteConfigFile ToFetchedFile(IRemoteConfigFile file)
     {
-        return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+        var f = (RemoteConfigFile)file;
+        f.Status = new DeploymentStatus(Statuses.Fetched, string.Empty, SeverityLevel.Success);
+        f.Progress = 100f;
+        return f;
+    }
+
+    static DeployContent GetDeployContent(RemoteConfigEntry entry, string status)
+    {
+        return new CliRemoteConfigEntry(entry.Key, "RemoteConfig Key", NormalizePath(entry.File) ,100, status, string.Empty);
+    }
+
+    static string NormalizePath(IRemoteConfigFile? file)
+    {
+        return file is null ? "" : file.Path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
     }
 }

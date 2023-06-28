@@ -3,10 +3,13 @@ using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.CloudCode.Authoring;
+using Unity.Services.Cli.CloudCode.Model;
 using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.CloudCode.Service;
+using Unity.Services.Cli.CloudCode.Utils;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
+using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Client;
 
 namespace Unity.Services.Cli.CloudCode.Deploy;
@@ -15,35 +18,36 @@ class CloudCodeScriptDeploymentService : IDeploymentService
 {
     internal ICloudCodeInputParser CloudCodeInputParser { get; }
     internal ICloudCodeScriptParser CloudCodeScriptParser { get; }
-    internal ICliDeploymentOutputHandler CliDeploymentOutputHandler { get; }
     internal ICloudCodeScriptsLoader CloudCodeScriptsLoader { get; }
     internal ICliEnvironmentProvider EnvironmentProvider { get; }
     internal IJavaScriptClient CliCloudCodeClient { get; }
     internal ICloudCodeDeploymentHandler CloudCodeDeploymentHandler { get; }
 
     readonly string m_ServiceType;
+    readonly string m_ServiceName;
 
     public CloudCodeScriptDeploymentService(
         ICloudCodeInputParser cloudCodeInputParser,
         ICloudCodeScriptParser cloudCodeScriptParser,
-        IDeploymentHandlerWithOutput deployHandlerWithOutput,
+        ICloudCodeDeploymentHandler deployHandlerWithOutput,
         ICloudCodeScriptsLoader cloudCodeScriptsLoader,
         ICliEnvironmentProvider cliEnvironmentProvider,
         IJavaScriptClient cliCloudCodeClient)
     {
         CloudCodeInputParser = cloudCodeInputParser;
         CloudCodeScriptParser = cloudCodeScriptParser;
-        CliDeploymentOutputHandler = deployHandlerWithOutput;
         CloudCodeScriptsLoader = cloudCodeScriptsLoader;
         EnvironmentProvider = cliEnvironmentProvider;
         CliCloudCodeClient = cliCloudCodeClient;
         CloudCodeDeploymentHandler = deployHandlerWithOutput;
 
-        m_ServiceType = Constants.ServiceType;
-        DeployFileExtension = Constants.JavaScriptFileExtension;
+        m_ServiceType = CloudCodeConstants.ServiceType;
+        m_ServiceName = CloudCodeConstants.ServiceName;
+        DeployFileExtension = CloudCodeConstants.JavaScriptFileExtension;
     }
 
     string IDeploymentService.ServiceType => m_ServiceType;
+    string IDeploymentService.ServiceName => m_ServiceName;
     public string DeployFileExtension { get; }
 
     public async Task<DeploymentResult> Deploy(
@@ -65,7 +69,6 @@ class CloudCodeScriptDeploymentService : IDeploymentService
             DeployFileExtension,
             CloudCodeInputParser,
             CloudCodeScriptParser,
-            CliDeploymentOutputHandler.Contents,
             cancellationToken);
 
         loadingContext?.Status($"Deploying {m_ServiceType} Scripts...");
@@ -89,38 +92,40 @@ class CloudCodeScriptDeploymentService : IDeploymentService
 
         if (result == null)
         {
-            return new DeploymentResult(CliDeploymentOutputHandler.Contents.ToList());
+            var deployContent = new List<IDeploymentItem>();
+
+            deployContent.AddRange(loadResult.LoadedScripts.OfType<IDeploymentItem>().ToList());
+            deployContent.AddRange(loadResult.FailedContents.OfType<IDeploymentItem>().ToList());
+
+            return new DeploymentResult(deployContent);
         }
+
+        var failedScripts = result.Failed.Select(item => item as IDeploymentItem)
+                .Concat(loadResult.FailedContents.Select(item => item as IDeploymentItem))
+                .ToList() as IReadOnlyList<IDeploymentItem>;
 
         return new DeploymentResult(
-            ToDeployContents(result.Created),
-            ToDeployContents(result.Updated),
-            ToDeleteContents(result.Deleted),
-            ToDeployContents(result.Deployed),
-            ToDeployContents(result.Failed).Concat(loadResult.FailedContents).ToList(),
-            deployInput.DryRun
-        );
+            result.Updated.Select(item => item as IDeploymentItem).ToList() as IReadOnlyList<IDeploymentItem>,
+            ToDeleteContents(result.Deleted, deployInput.DryRun),
+            result.Created.Select(item => item as IDeploymentItem).ToList() as IReadOnlyList<IDeploymentItem>,
+            result.Deployed.Select(item => item as IDeploymentItem).ToList() as IReadOnlyList<IDeploymentItem>,
+            failedScripts,
+            deployInput.DryRun);
     }
 
-    IReadOnlyCollection<DeployContent> ToDeployContents(IReadOnlyList<IScript> scripts)
+    IReadOnlyList<IDeploymentItem> ToDeleteContents(IReadOnlyList<IScript> scripts, bool dryRun)
     {
-        var contents = new List<DeployContent>();
+        var contents = new List<IDeploymentItem>();
 
         foreach (var script in scripts)
         {
-            contents.AddRange(CliDeploymentOutputHandler.Contents.Where(deployContent => script.Path == deployContent.Path));
-        }
-
-        return contents;
-    }
-
-    static IReadOnlyCollection<DeployContent> ToDeleteContents(IReadOnlyList<IScript> scripts)
-    {
-        var contents = new List<DeployContent>();
-
-        foreach (var script in scripts)
-        {
-            contents.Add(new DeployContent(script.Name.ToString(), script.Language.ToString()!, script.Path));
+            var deletedCloudCode = new DeletedCloudCode(script.Name.ToString(), m_ServiceType, script.Path);
+            contents.Add(deletedCloudCode);
+            if (!dryRun)
+            {
+                deletedCloudCode.Status = new DeploymentStatus("Deployed", "Deleted remotely", SeverityLevel.Success);
+                deletedCloudCode.Progress = 100f;
+            }
         }
 
         return contents;

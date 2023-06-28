@@ -9,7 +9,7 @@ class LobbyApiV1AsyncMock
 {
     public Mock<ILobbyApiAsync> DefaultLobbyClient = new();
 
-    private List<LobbyModel> m_TestLobbies = new List<LobbyModel>()
+    List<LobbyModel> m_TestLobbies = new List<LobbyModel>()
     {
         new LobbyModel(id: "test-lobby-1", lobbyCode: "code-1", maxPlayers: 8, hostId: "test-service-id", players: new List<Player>()),
         new LobbyModel(id: "test-lobby-2", lobbyCode: "code-2", maxPlayers: 8, hostId: "test-service-id", players: new List<Player>(){new Player(id: "test-player")}),
@@ -34,7 +34,8 @@ class LobbyApiV1AsyncMock
                     0,
                     CancellationToken.None
                 ))
-            .Returns((string _, string _, string lobbyId, string _, string _, BulkUpdateRequest bulkUpdateRequest, int _, CancellationToken _) => {
+            .Returns((string _, string _, string lobbyId, string _, string _, BulkUpdateRequest bulkUpdateRequest, int _, CancellationToken _) =>
+            {
                 var lobby = GetTestLobbyById(lobbyId);
                 if (lobby is null)
                 {
@@ -57,7 +58,8 @@ class LobbyApiV1AsyncMock
                     0,
                     CancellationToken.None
                 ))
-            .Returns((string _, string _, string serviceId, string _, CreateRequest createRequest, int _, CancellationToken _) => {
+            .Returns((string _, string _, string serviceId, string _, CreateRequest createRequest, int _, CancellationToken _) =>
+            {
                 var lobby = new LobbyModel(
                     id: createRequest.Name,
                     name: createRequest.Name,
@@ -78,7 +80,8 @@ class LobbyApiV1AsyncMock
                     0,
                     CancellationToken.None
                 ))
-            .Returns((string _, string _, string lobbyId, string _, string _, int _, CancellationToken _) => {
+            .Returns((string _, string _, string lobbyId, string _, string _, int _, CancellationToken _) =>
+            {
                 var lobby = GetTestLobbyById(lobbyId);
                 if (lobby is null)
                 {
@@ -97,7 +100,8 @@ class LobbyApiV1AsyncMock
                     0,
                     CancellationToken.None
                 ))
-            .Returns((string _, string _, string _, string impersonatedUserId, int _, CancellationToken _) => {
+            .Returns((string _, string _, string _, string impersonatedUserId, int _, CancellationToken _) =>
+            {
                 var lobbies = new List<string>();
                 foreach (var lobby in m_TestLobbies)
                 {
@@ -123,7 +127,8 @@ class LobbyApiV1AsyncMock
                     0,
                     CancellationToken.None
                 ))
-            .Returns((string _, string _, string serviceId, string _, int _, CancellationToken _) => {
+            .Returns((string _, string _, string serviceId, string _, int _, CancellationToken _) =>
+            {
                 return Task.FromResult(m_TestLobbies.Where(l => l.HostId.Equals(serviceId)).Select(l => l.Id).ToList());
             });
 
@@ -138,7 +143,8 @@ class LobbyApiV1AsyncMock
                     0,
                     CancellationToken.None
                 ))
-            .Returns((string _, string _, string lobbyId, string _, string _, string _, int _, CancellationToken _) => {
+            .Returns((string _, string _, string lobbyId, string _, string _, string _, int _, CancellationToken _) =>
+            {
                 var lobby = GetTestLobbyById(lobbyId);
                 if (lobby is null)
                 {
@@ -159,7 +165,8 @@ class LobbyApiV1AsyncMock
                     0,
                     CancellationToken.None
                 ))
-            .Returns((string _, string _, string lobbyId, string _, string _, JoinLobbyByIdRequest joinLobbyByIdRequest, int _, CancellationToken _) => {
+            .Returns((string _, string _, string lobbyId, string _, string _, JoinLobbyByIdRequest joinLobbyByIdRequest, int _, CancellationToken _) =>
+            {
                 var lobby = GetTestLobbyById(lobbyId);
                 if (lobby is null)
                 {
@@ -180,7 +187,8 @@ class LobbyApiV1AsyncMock
                     0,
                     CancellationToken.None
                 ))
-            .Returns((string _, string _, string _, string _, JoinByCodeRequest joinByCodeRequest, int _, CancellationToken _) => {
+            .Returns((string _, string _, string _, string _, JoinByCodeRequest joinByCodeRequest, int _, CancellationToken _) =>
+            {
                 var lobby = m_TestLobbies.Where(l => l.LobbyCode.Equals(joinByCodeRequest.LobbyCode)).FirstOrDefault();
                 if (lobby is null)
                 {
@@ -202,7 +210,8 @@ class LobbyApiV1AsyncMock
                     0,
                     CancellationToken.None
                 ))
-            .Returns((string _, string _, string lobbyId, string _, string impersonatedUserId, object _, int _, CancellationToken _) => {
+            .Returns((string _, string _, string lobbyId, string _, string impersonatedUserId, object _, int _, CancellationToken _) =>
+            {
                 var lobby = GetTestLobbyById(lobbyId);
                 if (lobby is null)
                 {
@@ -253,7 +262,8 @@ class LobbyApiV1AsyncMock
                     0,
                     CancellationToken.None
                 ))
-            .Returns((string _, string _, string lobbyId, string playerId, string _, string _, int _, CancellationToken _) => {
+            .Returns((string _, string _, string lobbyId, string playerId, string _, string _, int _, CancellationToken _) =>
+            {
                 var lobby = GetTestLobbyById(lobbyId);
                 if (lobby is null)
                 {
@@ -282,7 +292,8 @@ class LobbyApiV1AsyncMock
                     0,
                     CancellationToken.None
                 ))
-            .Returns((string _, string _, string lobbyId, string playerId, string _, string _, PlayerUpdateRequest playerUpdateRequest, int _, CancellationToken _) => {
+            .Returns((string _, string _, string lobbyId, string playerId, string _, string _, PlayerUpdateRequest playerUpdateRequest, int _, CancellationToken _) =>
+            {
                 var lobby = GetTestLobbyById(lobbyId);
                 if (lobby is null)
                 {
@@ -313,7 +324,8 @@ class LobbyApiV1AsyncMock
                     0,
                     CancellationToken.None
                 ))
-            .Returns((string _, string _, string lobbyId, string _, string _, UpdateRequest updateRequest, int _, CancellationToken _) => {
+            .Returns((string _, string _, string lobbyId, string _, string _, UpdateRequest updateRequest, int _, CancellationToken _) =>
+            {
                 var lobby = GetTestLobbyById(lobbyId);
                 if (lobby is null)
                 {
@@ -336,7 +348,8 @@ class LobbyApiV1AsyncMock
                     0,
                     CancellationToken.None
                 ))
-            .Returns((string _, string _, string lobbyId, string _, string _, object _, int _, CancellationToken _) => {
+            .Returns((string _, string _, string lobbyId, string _, string _, object _, int _, CancellationToken _) =>
+            {
                 var lobby = GetTestLobbyById(lobbyId);
                 return lobby is not null ? Task.CompletedTask : throw new HttpRequestException();
             });
@@ -352,7 +365,8 @@ class LobbyApiV1AsyncMock
                     0,
                     CancellationToken.None
                 ))
-            .Returns((string _, string _, string lobbyId, List<TokenRequest> _, string _, string _, int _, CancellationToken _) => {
+            .Returns((string _, string _, string lobbyId, List<TokenRequest> _, string _, string _, int _, CancellationToken _) =>
+            {
                 var lobby = GetTestLobbyById(lobbyId);
                 if (lobby is null)
                 {
@@ -363,12 +377,12 @@ class LobbyApiV1AsyncMock
             });
     }
 
-    private LobbyModel? GetTestLobbyById(string id)
+    LobbyModel? GetTestLobbyById(string id)
     {
         return m_TestLobbies.Where(l => l.Id.Equals(id)).FirstOrDefault();
     }
 
-    private static Player? GetPlayerInLobby(LobbyModel lobby, string playerId)
+    static Player? GetPlayerInLobby(LobbyModel lobby, string playerId)
     {
         var matchingPlayers = lobby.Players.Where(p => p.Id.Equals(playerId));
         return matchingPlayers.Any() ? matchingPlayers.First() : null;

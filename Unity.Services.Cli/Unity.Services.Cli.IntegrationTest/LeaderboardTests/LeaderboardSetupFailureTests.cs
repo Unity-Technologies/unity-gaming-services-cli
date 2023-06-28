@@ -3,6 +3,7 @@ using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Models;
 using Unity.Services.Cli.Common.Networking;
+using Unity.Services.Cli.IntegrationTest.Common;
 using Unity.Services.Cli.MockServer;
 using Unity.Services.Cli.MockServer.Common;
 
@@ -37,7 +38,7 @@ public class LeaderboardSetupFailureTests : UgsCliFixture
         await GetLoggedInCli()
             .Command(command)
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(k_ProjectIdNotSetErrorMessage)
+            .AssertStandardErrorContains(k_ProjectIdNotSetErrorMessage)
             .ExecuteAsync();
     }
 
@@ -55,7 +56,7 @@ public class LeaderboardSetupFailureTests : UgsCliFixture
         await new UgsCliTestCase()
             .Command(command)
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(k_LoggedOutErrorMessage)
+            .AssertStandardErrorContains(k_LoggedOutErrorMessage)
             .ExecuteAsync();
     }
 
@@ -72,7 +73,7 @@ public class LeaderboardSetupFailureTests : UgsCliFixture
         await GetLoggedInCli()
             .Command(command)
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(k_EnvironmentNameNotSetErrorMessage)
+            .AssertStandardErrorContains(k_EnvironmentNameNotSetErrorMessage)
             .ExecuteAsync();
     }
 }

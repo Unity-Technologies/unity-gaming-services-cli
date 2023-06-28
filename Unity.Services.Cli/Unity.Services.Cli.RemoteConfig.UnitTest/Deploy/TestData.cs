@@ -9,6 +9,8 @@ class TestData : IEquatable<TestData>
 
     public bool Flag;
 
+    public string InnerJson = "{}";
+
     public bool Equals(TestData? other)
     {
         if (ReferenceEquals(null, other))

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Unity.Services.Cli.Common;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Input;
+using Unity.Services.Cli.Common.Policies;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Common.Validator;
 using Unity.Services.Cli.Environment.Handlers;
@@ -89,5 +90,11 @@ public class EnvironmentModule : ICommandModule
 
         var unityEnvironment = new UnityEnvironment(environmentService, validator);
         serviceCollection.AddSingleton<IUnityEnvironment>(unityEnvironment);
+
+        // Set retry policy
+        Gateway.IdentityApiV1.Generated.Client.RetryConfiguration.RetryPolicy =
+            RetryPolicy.GetHttpRetryPolicy();
+        Gateway.IdentityApiV1.Generated.Client.RetryConfiguration.AsyncRetryPolicy =
+            RetryPolicy.GetAsyncHttpRetryPolicy();
     }
 }

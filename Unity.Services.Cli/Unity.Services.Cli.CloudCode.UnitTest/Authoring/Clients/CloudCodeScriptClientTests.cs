@@ -29,7 +29,7 @@ class CloudCodeScriptClientTests
 
     readonly Mock<ICloudCodeService> m_MockCcService = new();
     readonly Mock<ICloudCodeInputParser> m_MockCcInputParser = new();
-    private readonly Mock<ICloudCodeScriptParser> m_MockCLoudCodeScriptParser = new();
+    readonly Mock<ICloudCodeScriptParser> m_MockCLoudCodeScriptParser = new();
     readonly CloudCodeScriptClient m_CloudCodeScriptClient;
     readonly IScript m_Script = new CloudCodeScript(
         ScriptName.FromPath(k_File),
@@ -57,7 +57,9 @@ class CloudCodeScriptClientTests
         m_MockCcInputParser.Reset();
         m_MockCcInputParser.Setup(c => c.LoadScriptCodeAsync(k_File, CancellationToken.None))
             .ReturnsAsync(k_Script);
-
+        m_MockCLoudCodeScriptParser.Setup(ex => ex
+                .ParseScriptParametersAsync(k_Script, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ParseScriptParametersResult(false, new List<ScriptParameter>()));
         m_CloudCodeScriptClient.EnvironmentId = TestValues.ValidEnvironmentId;
         m_CloudCodeScriptClient.ProjectId = TestValues.ValidProjectId;
         m_CloudCodeScriptClient.CancellationToken = CancellationToken.None;

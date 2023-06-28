@@ -2,7 +2,7 @@ using Unity.Services.Cli.Common.Exceptions;
 
 namespace Unity.Services.Cli.Leaderboards.Handlers;
 
-internal class RequestBodyHandler
+class RequestBodyHandler
 {
     public static async Task<string> GetRequestBodyAsync(string? input)
     {

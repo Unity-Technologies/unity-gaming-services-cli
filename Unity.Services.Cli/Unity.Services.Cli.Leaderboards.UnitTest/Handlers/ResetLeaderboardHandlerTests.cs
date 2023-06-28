@@ -23,7 +23,7 @@ class ResetLeaderboardHandlerTests
     readonly Mock<IUnityEnvironment> m_MockUnityEnvironment = new();
     readonly Mock<ILeaderboardsService> m_MockLeaderboard = new();
     readonly Mock<ILogger> m_MockLogger = new();
-    private const string leaderboardId = "lb1";
+    const string leaderboardId = "lb1";
 
     [SetUp]
     public void SetUp()

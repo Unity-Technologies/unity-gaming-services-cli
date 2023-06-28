@@ -39,9 +39,16 @@ static class UpdateHandler
 
         loadingContext?.Status("Loading script...");
         var code = await cloudCodeInputParser.LoadScriptCodeAsync(input, cancellationToken);
-        var parameters = await cloudCodeInputParser.CloudCodeScriptParser.ParseScriptParametersAsync(code, cancellationToken);
+        var parametersParsingResult = await cloudCodeInputParser.CloudCodeScriptParser
+            .ParseScriptParametersAsync(code, cancellationToken);
         loadingContext?.Status("Uploading script...");
-        await cloudCodeService.UpdateAsync(projectId, environmentId, input.ScriptName, code, parameters, CancellationToken.None);
+        await cloudCodeService.UpdateAsync(
+            projectId,
+            environmentId,
+            input.ScriptName,
+            code,
+            parametersParsingResult.Parameters,
+            CancellationToken.None);
 
         logger.LogInformation("Script '{scriptName}' updated.", input.ScriptName);
     }

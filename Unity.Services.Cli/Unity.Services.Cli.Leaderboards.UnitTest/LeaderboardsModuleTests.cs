@@ -13,7 +13,7 @@ using Unity.Services.Gateway.LeaderboardApiV1.Generated.Api;
 namespace Unity.Services.Cli.Leaderboards.UnitTest;
 
 [TestFixture]
-internal class LeaderboardModuleTests
+class LeaderboardModuleTests
 {
     [Test]
     public void ListCommandWithInput()
@@ -39,5 +39,18 @@ internal class LeaderboardModuleTests
         collection.AddSingleton(ServiceDescriptor.Singleton(new Mock<IServiceAccountAuthenticationService>().Object));
         LeaderboardsModule.RegisterServices(new HostBuilderContext(new Dictionary<object, object>()), collection);
         Assert.That(collection.FirstOrDefault(c => c.ServiceType == serviceType), Is.Not.Null);
+    }
+
+    [Test]
+
+    public void RetryAfterSleepDuration()
+    {
+        var response = new RestSharp.RestResponse();
+        response.Headers = new List<RestSharp.HeaderParameter>()
+        {
+            new ("Retry-After", "1")
+        };
+        Polly.DelegateResult<RestSharp.RestResponse> res = new Polly.DelegateResult<RestSharp.RestResponse>(response);
+        Assert.AreEqual(TimeSpan.FromSeconds(2), LeaderboardsModule.RetryAfterSleepDuration(2, res, new Polly.Context()));
     }
 }

@@ -2,13 +2,14 @@ using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Compression;
+using Unity.Services.Cli.Common.Exceptions;
 
 namespace Unity.Services.Cli.Authoring.UnitTest.Compression;
 
 [TestFixture]
 public class ZipArchiverTests
 {
-    ZipArchiver<string> m_Archiver = new();
+    IZipArchiver m_Archiver = new ZipArchiver();
 
     IReadOnlyList<string> m_Data = new[]
     {
@@ -17,37 +18,55 @@ public class ZipArchiverTests
         "Check"
     };
 
-    const string k_Extension = "test-zip";
-    const string k_Path = "test";
-    const string k_EntryName = "__ugs-cli";
-    const string k_DirectoryName = "test-zip";
+    const string k_Path = "testdata/test.test-zip";
+
+    static string DirectoryName => Path.GetDirectoryName(k_Path)!;
 
     [SetUp]
     public void SetUp()
     {
-        if (Directory.Exists(k_Path))
+        if (Directory.Exists(DirectoryName))
         {
-            Directory.Delete(k_Path, true);
+            Directory.Delete(DirectoryName, true);
         }
-        Directory.CreateDirectory(k_Path);
+        Directory.CreateDirectory(DirectoryName);
     }
 
     [TearDown]
     public void TearDown()
     {
-        if (Directory.Exists(k_Path))
+        if (Directory.Exists(DirectoryName))
         {
-            Directory.Delete(k_Path, true);
+            Directory.Delete(DirectoryName, true);
         }
     }
 
     [Test]
-    public void TestZipAndUnZipDataAreEqual()
+    public async Task ZipAndUnzipDataAreEqual()
     {
-        m_Archiver.Zip(k_Path, k_DirectoryName, k_EntryName, k_Extension, m_Data);
+        var entryName = "test";
 
-        var unZipData = m_Archiver.Unzip(k_Path, k_EntryName, k_Extension);
+        await m_Archiver.ZipAsync(k_Path, entryName, m_Data);
+        var unZipData = await m_Archiver.UnzipAsync<string>(k_Path, entryName);
 
         Assert.AreEqual(m_Data, unZipData);
+    }
+
+    [Test]
+    public async Task ZipAndUnzipEntryWithDirectoryDataAreEqual()
+    {
+        var entryName = "testdir/testentry";
+
+        await m_Archiver.ZipAsync(k_Path, entryName, m_Data);
+        var unZipData = await m_Archiver.UnzipAsync<string>(k_Path, entryName);
+
+        Assert.AreEqual(m_Data, unZipData);
+    }
+
+    [Test]
+    public async Task UnzipNoEntryThrows()
+    {
+        await m_Archiver.ZipAsync(k_Path, "notUsed", m_Data);
+        Assert.ThrowsAsync<CliException>(() => m_Archiver.UnzipAsync<string>(k_Path, "nonexistentEntry"));
     }
 }

@@ -9,42 +9,55 @@ class LogMessageTestHelper : IDisposable
     readonly StringWriter m_StringWriter;
 
     readonly TextWriter m_PreviousTextWriter;
+    readonly TextWriter m_PreviousErrorTextWriter;
 
     public string LogMessage => m_StringWriter.ToString();
 
     public LogMessageTestHelper()
     {
         m_PreviousTextWriter = System.Console.Out;
+        m_PreviousErrorTextWriter = System.Console.Error;
         m_StringWriter = new StringWriter();
         System.Console.SetOut(m_StringWriter);
+        System.Console.SetError(m_StringWriter);
     }
 
     public void Dispose()
     {
         System.Console.SetOut(m_PreviousTextWriter);
+        System.Console.SetError(m_PreviousErrorTextWriter);
         m_StringWriter.Close();
     }
 
-    public static string GetJsonLogMessage(List<LogMessage>? messages, object? result)
+    public static string GetJsonLogFormatted(object? result, List<LogMessage> logMessages)
     {
-        var jsonMessages = new List<JsonLogMessage>();
+        return GetJsonResult(result) + GetJsonLogMessage(logMessages);
+    }
 
-        if (messages != null)
+    static string GetJsonResult(object? result)
+    {
+        return JsonConvert.SerializeObject(result, Formatting.Indented) + System.Environment.NewLine;
+    }
+
+    static string GetJsonLogMessage(List<LogMessage> logMessages)
+    {
+        var messages = new List<JsonLogMessage>(logMessages.Capacity);
+        foreach (var message in logMessages)
         {
-            foreach (var message in messages)
+            messages.Add(new JsonLogMessage()
             {
-                jsonMessages.Add(new JsonLogMessage()
-                {
-                    Message = message.Message,
-                    Type = message.Type.ToString()
-                });
-            }
+                Message = message.Message,
+                Type = message.Type.ToString()
+            });
         }
 
-        return JsonConvert.SerializeObject(new
+        string result = "";
+        if (messages.Any())
         {
-            Result = result,
-            Messages = jsonMessages
-        }, Formatting.Indented) + System.Environment.NewLine;
+            result = JsonConvert.SerializeObject(messages, Formatting.Indented) + System.Environment.NewLine;
+
+        }
+
+        return result;
     }
 }

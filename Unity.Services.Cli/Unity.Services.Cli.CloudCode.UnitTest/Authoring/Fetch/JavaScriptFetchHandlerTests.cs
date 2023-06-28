@@ -13,6 +13,7 @@ using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.CloudCode.Authoring;
 using Unity.Services.Cli.CloudCode.Deploy;
 using Unity.Services.Cli.CloudCode.Exceptions;
+using Unity.Services.Cli.CloudCode.Model;
 using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.TestUtils;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
@@ -137,15 +138,10 @@ class JavaScriptFetchHandlerTests
         {
             script.Body = $"// {k_ParameterLessErrorMessage}";
             script.LastPublishedDate = DateTime.MinValue.ToString(CultureInfo.InvariantCulture);
-            script.Parameters = new List<CloudCodeParameter>
-            {
-                new()
-                {
-                    Name = "bar",
-                    ParameterType = ParameterType.JSON,
-                }
-            };
-            SetUpParsingFailure(script.Body, k_ParameterLessErrorMessage);
+
+            m_ScriptParser.Setup(x => x.ParseScriptParametersAsync(script.Body, CancellationToken.None))
+                .ReturnsAsync(new ParseScriptParametersResult(false, new List<ScriptParameter>()));
+
             return script;
         }
 
@@ -161,11 +157,10 @@ class JavaScriptFetchHandlerTests
                 }
             };
             m_ScriptParser.Setup(x => x.ParseScriptParametersAsync(script.Body, CancellationToken.None))
-                .ReturnsAsync(
-                    new[]
-                    {
-                        new ScriptParameter("foo")
-                    });
+                .ReturnsAsync(new ParseScriptParametersResult(false, new[]
+                {
+                    new ScriptParameter("foo")
+                }));
 
             return script;
         }
@@ -345,13 +340,8 @@ class JavaScriptFetchHandlerTests
             Assert.That(failed, Does.Not.Contain(m_AnyParameterLessScript));
             Assert.That(failed, Does.Not.Contain(m_AnyScriptWithParameters));
             Assert.That(m_AnyParameterLessScript.Body, Is.Not.EqualTo(originalParameterLessBody));
-            Assert.That(m_AnyScriptWithParameters.Body, Is.EqualTo(originalBodyWithParameters));
+            Assert.That(m_AnyScriptWithParameters.Body, Is.Not.EqualTo(originalBodyWithParameters));
             TestsHelper.VerifyLoggerWasCalled(m_Logger, LogLevel.Warning, message: k_UnpublishedErrorMessage);
-            TestsHelper.VerifyLoggerWasCalled(m_Logger, LogLevel.Warning, message: k_ParameterLessErrorMessage);
-            TestsHelper.VerifyLoggerWasCalled(
-                m_Logger,
-                LogLevel.Warning,
-                message: $"\"{m_AnyUnpublishedScript.Path}\" parameters couldn't be determined.");
         }
     }
 
@@ -452,11 +442,11 @@ class JavaScriptFetchHandlerTests
             .Union(expectedDeleted)
             .Union(expectedUpdated)
             .ToList();
-        Assert.That(result.Created, Is.EquivalentTo(expectedCreated));
-        Assert.That(result.Deleted, Is.EquivalentTo(expectedDeleted));
-        Assert.That(result.Updated, Is.EquivalentTo(expectedUpdated));
-        Assert.That(result.Failed, Is.EquivalentTo(expectedFailures));
-        Assert.That(result.Fetched, Is.EquivalentTo(expectedFetched));
+        Assert.That(result.Created.Select(c => c.Name), Is.EquivalentTo(expectedCreated));
+        Assert.That(result.Deleted.Select(c => c.Name), Is.EquivalentTo(expectedDeleted));
+        Assert.That(result.Updated.Select(c => c.Name), Is.EquivalentTo(expectedUpdated));
+        Assert.That(result.Failed.Select(c => c.Name), Is.EquivalentTo(expectedFailures));
+        Assert.That(result.Fetched.Select(c => c.Name), Is.EquivalentTo(expectedFetched));
     }
 
     [Test]

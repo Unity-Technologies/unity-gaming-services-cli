@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "UGS EdEx Team",
+  "classifications": [
+    "Console",
+    "UGS",
+    "CLI",
+    "Unity",
+    "Services"
+  ],
+  "identity": "Ugs.Cli.ModuleDeploy",
+  "name": "UGS CLI ModuleDeploy",
+  "shortName": "UgsCliModuleDeploy",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "ModuleTemplate"
+}

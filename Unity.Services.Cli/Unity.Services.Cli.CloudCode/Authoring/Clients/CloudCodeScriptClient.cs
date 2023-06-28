@@ -54,7 +54,7 @@ class CloudCodeScriptClient : IJavaScriptClient
     {
         var scriptNameWithoutExt = script.Name.GetNameWithoutExtension();
         var code = await m_CloudCodeInputInputParser.LoadScriptCodeAsync(script.Path, CancellationToken);
-        var parameters = await m_CloudCodeScriptParser.ParseScriptParametersAsync(code, CancellationToken);
+        var parametersParsingResult = await m_CloudCodeScriptParser.ParseScriptParametersAsync(code, CancellationToken);
         try
         {
             await m_CloudCodeService.UpdateAsync(
@@ -62,7 +62,7 @@ class CloudCodeScriptClient : IJavaScriptClient
                 EnvironmentId,
                 scriptNameWithoutExt,
                 code,
-                parameters,
+                parametersParsingResult.Parameters,
                 CancellationToken);
         }
         catch (ApiException ex)
@@ -75,7 +75,7 @@ class CloudCodeScriptClient : IJavaScriptClient
                 ScriptType.API,
                 Language.JS,
                 code,
-                parameters,
+                parametersParsingResult.Parameters,
                 CancellationToken);
         }
 

@@ -14,11 +14,11 @@ public class AccessApiMock : IServiceApiMock
     readonly string m_ProjectId;
     readonly string m_EnvironmentId;
     readonly string m_PlayerId;
-    private readonly string k_AccessModulePath = "/access/v1";
+    readonly string k_AccessModulePath = "/access/v1";
 
-    private readonly string projectPolicyUrl;
-    private readonly string playerPolicyUrl;
-    private readonly string allPlayerPoliciesUrl;
+    readonly string projectPolicyUrl;
+    readonly string playerPolicyUrl;
+    readonly string allPlayerPoliciesUrl;
 
     public const string PlayerId = "j0oM0dnufzxgtwGqoH0zIpSyWUV7XUgy";
 
@@ -33,14 +33,14 @@ public class AccessApiMock : IServiceApiMock
         allPlayerPoliciesUrl = $"{k_AccessModulePath}/projects/{m_ProjectId}/environments/{m_EnvironmentId}/players/resource-policy";
     }
 
-    private static Policy GetPolicy()
+    static Policy GetPolicy()
     {
         List<Statement> statementLists = new List<Statement>();
         var policy = new Policy(statementLists);
 
         return policy;
     }
-    private PlayerPolicy GetPlayerPolicy()
+    PlayerPolicy GetPlayerPolicy()
     {
         List<Statement> statementLists = new List<Statement>();
         var policy = new PlayerPolicy(playerId: m_PlayerId, statementLists);
@@ -48,7 +48,7 @@ public class AccessApiMock : IServiceApiMock
         return policy;
     }
 
-    private PlayerPolicies GetPlayerPolicies()
+    PlayerPolicies GetPlayerPolicies()
     {
         List<PlayerPolicy> results = new List<PlayerPolicy>();
         results.Add(GetPlayerPolicy());
@@ -73,7 +73,7 @@ public class AccessApiMock : IServiceApiMock
     {
         mockServer.Given(Request.Create().WithPath(projectPolicyUrl).UsingGet())
             .RespondWith(Response.Create()
-                .WithHeaders(new Dictionary<string, string> {{"Content-Type","application/json"}})
+                .WithHeaders(new Dictionary<string, string> { { "Content-Type", "application/json" } })
                 .WithBodyAsJson(GetPolicy())
                 .WithStatusCode(HttpStatusCode.OK));
     }
@@ -82,7 +82,7 @@ public class AccessApiMock : IServiceApiMock
     {
         mockServer.Given(Request.Create().WithPath(playerPolicyUrl).UsingGet())
             .RespondWith(Response.Create()
-                .WithHeaders(new Dictionary<string, string> {{"Content-Type","application/json"}})
+                .WithHeaders(new Dictionary<string, string> { { "Content-Type", "application/json" } })
                 .WithBodyAsJson(GetPlayerPolicy())
                 .WithStatusCode(HttpStatusCode.OK));
     }
@@ -91,7 +91,7 @@ public class AccessApiMock : IServiceApiMock
     {
         mockServer.Given(Request.Create().WithPath(allPlayerPoliciesUrl).UsingGet())
             .RespondWith(Response.Create()
-                .WithHeaders(new Dictionary<string, string> {{"Content-Type","application/json"}})
+                .WithHeaders(new Dictionary<string, string> { { "Content-Type", "application/json" } })
                 .WithBodyAsJson(GetPlayerPolicies())
                 .WithStatusCode(HttpStatusCode.OK));
     }

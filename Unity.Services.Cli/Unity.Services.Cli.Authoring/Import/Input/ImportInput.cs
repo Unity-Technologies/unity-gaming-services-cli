@@ -17,9 +17,9 @@ public class ImportInput : DryRunInput
     /* Input directory for the import command */
     public static readonly Argument<string> InputDirectoryArgument = new("in-dir", "The input directory for import command");
 
-    /* Input file name for export command */
+    /* Input file name for import command */
     public static readonly Argument<string> FileNameArgument =
-        new("file-name", "The output file name for export command")
+        new("file-name", "The input file name for import command")
         {
             Arity = ArgumentArity.ZeroOrOne
         };
@@ -28,7 +28,7 @@ public class ImportInput : DryRunInput
     public string? InputDirectory { get; set; }
 
     /* Option for reconcile */
-    public static readonly Option<bool> ReconcileOption = new("--reconcile", "The command will do delete already present configs")
+    public static readonly Option<bool> ReconcileOption = new("--reconcile", "The command will delete existing configs before importing")
     {
         Arity = ArgumentArity.Zero
     };
