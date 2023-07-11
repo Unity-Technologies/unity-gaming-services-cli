@@ -44,7 +44,7 @@ public class UnityEnvironmentTests
         m_UnityEnvironment!.SetName(name);
         m_UnityEnvironment!.SetProjectId(projectId);
 
-        Assert.ThrowsAsync<MissingConfigurationException>(() => m_UnityEnvironment!.FetchIdentifierAsync());
+        Assert.ThrowsAsync<MissingConfigurationException>(() => m_UnityEnvironment!.FetchIdentifierAsync(CancellationToken.None));
     }
 
     [Test]
@@ -60,7 +60,7 @@ public class UnityEnvironmentTests
         m_MockEnvService.Setup(a => a.ListAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult(responses));
 
-        Assert.ThrowsAsync<EnvironmentNotFoundException>(() => m_UnityEnvironment!.FetchIdentifierAsync());
+        Assert.ThrowsAsync<EnvironmentNotFoundException>(() => m_UnityEnvironment!.FetchIdentifierAsync(CancellationToken.None));
     }
 
     [Test]
@@ -82,7 +82,7 @@ public class UnityEnvironmentTests
                 a.ListAsync(k_ValidProjectId, It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult(responses));
 
-        var result = await m_UnityEnvironment!.FetchIdentifierAsync();
+        var result = await m_UnityEnvironment!.FetchIdentifierAsync(CancellationToken.None);
         Assert.AreEqual(mockEnvironmentId, result!);
     }
 }

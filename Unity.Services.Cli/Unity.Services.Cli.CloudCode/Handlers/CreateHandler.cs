@@ -34,7 +34,7 @@ static class CreateHandler
         StatusContext? loadingContext,
         CancellationToken cancellationToken)
     {
-        var environmentId = await unityEnvironment.FetchIdentifierAsync();
+        var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         var projectId = input.CloudProjectId!;
 
         loadingContext?.Status("Loading script...");

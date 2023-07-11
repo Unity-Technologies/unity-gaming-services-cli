@@ -50,7 +50,7 @@ public abstract class BaseImporter<T> : IImporter
     /// <exception cref="CliException"></exception>
     public async Task ImportAsync(ImportInput input, CancellationToken cancellationToken, int maxParallelTaskLimit = 10)
     {
-        var environmentId = await m_UnityEnvironment.FetchIdentifierAsync();
+        var environmentId = await m_UnityEnvironment.FetchIdentifierAsync(cancellationToken);
         var projectId = input!.CloudProjectId!;
         var fileName = ImportExportUtils.ResolveFileName(input.FileName, FileName);
 

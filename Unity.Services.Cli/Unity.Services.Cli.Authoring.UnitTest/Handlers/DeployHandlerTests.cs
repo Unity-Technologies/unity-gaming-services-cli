@@ -141,7 +141,7 @@ public class DeployHandlerTests
         m_Host.Setup(x => x.Services)
             .Returns(provider);
 
-        m_UnityEnvironment.Setup(x => x.FetchIdentifierAsync()).Returns(Task.FromResult(ValidEnvironmentId));
+        m_UnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None)).Returns(Task.FromResult(ValidEnvironmentId));
         m_DeployFileService.Setup(x => x.ListFilesToDeploy(new[]
         {
             ""

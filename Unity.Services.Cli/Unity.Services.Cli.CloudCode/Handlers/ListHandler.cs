@@ -30,13 +30,13 @@ static class ListHandler
         ILogger logger,
         CancellationToken cancellationToken)
     {
-        var environmentId = await unityEnvironment.FetchIdentifierAsync();
+        var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         var projectId = input.CloudProjectId!;
         var scripts = await cloudCodeService.ListAsync(
             projectId, environmentId, cancellationToken);
 
         var result = scripts
-            .Select(s => new CloudListScriptResult(s.Name, s.LastPublishedDate) )
+            .Select(s => new CloudListScriptResult(s.Name, s.LastPublishedDate))
             .ToList();
 
         logger.LogResultValue(result);

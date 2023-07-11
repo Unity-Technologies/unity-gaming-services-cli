@@ -64,7 +64,7 @@ class GetModuleHandlerTests
             CloudProjectId = TestValues.ValidProjectId,
             ModuleName = "foo"
         };
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         await GetModuleHandler.GetModuleAsync(
@@ -75,7 +75,7 @@ class GetModuleHandlerTests
             CancellationToken.None
         );
 
-        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(), Times.Once);
+        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(CancellationToken.None), Times.Once);
         m_MockCloudCode.Verify(
             api => api.GetModuleAsync(
                 TestValues.ValidProjectId,

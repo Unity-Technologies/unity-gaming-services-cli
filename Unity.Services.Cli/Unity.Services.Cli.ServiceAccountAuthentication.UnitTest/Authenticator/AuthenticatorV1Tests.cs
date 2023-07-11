@@ -54,11 +54,26 @@ class AuthenticatorV1Tests
             .ReturnsAsync(k_ValidServiceKeyId);
         m_MockPrompt.Setup(p => p.PromptAsync(AuthenticatorV1.SecretKeyPrompt, CancellationToken.None))
             .ReturnsAsync(k_ValidServiceSecretKey);
+        m_MockPrompt.Setup(p => p.IsStandardInputRedirected)
+            .Returns(false);
+
         var authenticatorV1 = new AuthenticatorV1(m_MockPersister.Object, m_MockPrompt.Object);
 
         await authenticatorV1.LoginAsync(input, CancellationToken.None);
 
         m_MockPersister.Verify(p => p.SaveAsync(k_AccessToken, CancellationToken.None), Times.Once);
+    }
+
+    [Test]
+    public void LoginAsyncWithoutArgumentAndRedirectedStandardInputThrows()
+    {
+        var input = new LoginInput();
+        m_MockPrompt.Setup(p => p.IsStandardInputRedirected)
+            .Returns(true);
+
+        var authenticatorV1 = new AuthenticatorV1(m_MockPersister.Object, m_MockPrompt.Object);
+
+        Assert.ThrowsAsync<InvalidLoginInputException>(() => authenticatorV1.LoginAsync(input, CancellationToken.None));
     }
 
     [Test]

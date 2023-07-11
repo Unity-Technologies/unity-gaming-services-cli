@@ -28,7 +28,7 @@ static class DeleteHandler
         ILogger logger,
         CancellationToken cancellationToken)
     {
-        var environmentId = await unityEnvironment.FetchIdentifierAsync();
+        var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         var projectId = input.CloudProjectId!;
         await cloudCodeService.DeleteAsync(projectId, environmentId, input.ScriptName, cancellationToken);
 

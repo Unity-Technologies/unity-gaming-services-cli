@@ -35,7 +35,7 @@ public class UpsertPlayerPolicyHandlerTests
         await UpsertPlayerPolicyHandler.UpsertPlayerPolicyAsync(null!, null!, null!, null!,
             mockLoadingIndicator.Object, CancellationToken.None);
         mockLoadingIndicator.Verify(ex => ex
-            .StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?,Task>>()), Times.Once);
+            .StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?, Task>>()), Times.Once);
     }
 
     [Test]
@@ -48,14 +48,14 @@ public class UpsertPlayerPolicyHandlerTests
             PlayerId = TestValues.ValidPlayerId
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync()).ReturnsAsync(TestValues.ValidEnvironmentId);
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None)).ReturnsAsync(TestValues.ValidEnvironmentId);
         m_MockAccessService?.Setup(x =>
-            x.UpsertPlayerPolicyAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId, It.IsAny<FileInfo>(),  CancellationToken.None));
+            x.UpsertPlayerPolicyAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId, It.IsAny<FileInfo>(), CancellationToken.None));
 
         await UpsertPlayerPolicyHandler.UpsertPlayerPolicyAsync(input, m_MockUnityEnvironment.Object,
             m_MockAccessService!.Object, m_MockLogger!.Object, CancellationToken.None);
 
-        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(), Times.Once);
+        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(CancellationToken.None), Times.Once);
         m_MockAccessService.Verify(x => x.UpsertPlayerPolicyAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId, It.IsAny<FileInfo>(), CancellationToken.None), Times.Once);
         TestsHelper.VerifyLoggerWasCalled(m_MockLogger, LogLevel.Information, expectedTimes: Times.Once);
     }

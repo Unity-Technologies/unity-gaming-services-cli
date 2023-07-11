@@ -8,6 +8,12 @@ namespace Unity.Services.Cli.Common.Console;
 public interface ICliPrompt
 {
     /// <summary>
+    /// Is the standard input redirected.
+    /// Should default to System.Console.IsInputRedirected.
+    /// </summary>
+    bool IsStandardInputRedirected { get; }
+
+    /// <summary>
     /// Execute expected prompt and return user input for the prompt.
     /// </summary>
     /// <param name="prompt">

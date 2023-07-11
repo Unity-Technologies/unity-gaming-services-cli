@@ -112,7 +112,7 @@ class ExportScriptsHandlerTests
                 x.File.Exists(It.IsAny<string>()))
             .Returns(false);
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         m_MockCloudCodeService.Setup(

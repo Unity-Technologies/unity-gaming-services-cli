@@ -49,7 +49,7 @@ class GetLeaderboardConfigsHandlerTests
             Cursor = TestValues.Cursor,
             Limit = TestValues.Limit
         };
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         await GetLeaderboardConfigsHandler.GetLeaderboardConfigsAsync(
@@ -60,7 +60,7 @@ class GetLeaderboardConfigsHandlerTests
             CancellationToken.None
         );
 
-        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(), Times.Once);
+        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(CancellationToken.None), Times.Once);
         m_MockLeaderboard.Verify(
             ex => ex.GetLeaderboardsAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.Cursor, TestValues.Limit, CancellationToken.None),
             Times.Once);

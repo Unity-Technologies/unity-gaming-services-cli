@@ -58,9 +58,9 @@ class ImportScriptsHandlerTests
         };
 
 
-    readonly CloudCodeScript m_MockNonDuplicateScript =  new (new ScriptName("test"), Language.JS, "", "{}", new List<CloudCodeParameter>(), DateNow.ToString());
+    readonly CloudCodeScript m_MockNonDuplicateScript = new(new ScriptName("test"), Language.JS, "", "{}", new List<CloudCodeParameter>(), DateNow.ToString());
     // This mock script updates the existing script in m_MockScripts if used within tests
-    readonly CloudCodeScript m_MockScript =  new (new ScriptName("test1"), Language.JS, "", "{}", new List<CloudCodeParameter>(), DateNow.ToString());
+    readonly CloudCodeScript m_MockScript = new(new ScriptName("test1"), Language.JS, "", "{}", new List<CloudCodeParameter>(), DateNow.ToString());
 
     readonly List<CloudCodeScript> m_MockScripts = new()
     {
@@ -122,7 +122,7 @@ class ImportScriptsHandlerTests
             DryRun = true
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         await ImportInternalAsync(importInput);
@@ -143,7 +143,7 @@ class ImportScriptsHandlerTests
             DryRun = true
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         await ImportInternalAsync(importInput);
@@ -162,10 +162,10 @@ class ImportScriptsHandlerTests
             InputDirectory = "mock_input_directory",
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         SetupList(m_ScriptsListSingleScriptResponse);
-        SetupGet(new List<CloudCodeScript>(){m_MockScript});
+        SetupGet(new List<CloudCodeScript>() { m_MockScript });
         SetupUpdate();
 
         m_MockArchiver.Setup(
@@ -173,7 +173,7 @@ class ImportScriptsHandlerTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult<IEnumerable<CloudCodeScript>>(new List<CloudCodeScript>(){m_MockScript}));
+            .Returns(Task.FromResult<IEnumerable<CloudCodeScript>>(new List<CloudCodeScript>() { m_MockScript }));
         m_MockCloudCodeScriptParser.Setup(p => p.ParseScriptParametersAsync(
                 It.Is<string>(s => s == m_MockNonDuplicateScript.Body),
                 It.IsAny<CancellationToken>()))
@@ -203,9 +203,9 @@ class ImportScriptsHandlerTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult<IEnumerable<CloudCodeScript>>(new List<CloudCodeScript>(){m_MockScript}));
+            .Returns(Task.FromResult<IEnumerable<CloudCodeScript>>(new List<CloudCodeScript>() { m_MockScript }));
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         SetupGet(null!, true);
         SetupCreate();
@@ -232,14 +232,14 @@ class ImportScriptsHandlerTests
             Reconcile = true
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         m_MockArchiver.Setup(
                 za => za.UnzipAsync<CloudCodeScript>(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult<IEnumerable<CloudCodeScript>>(new List<CloudCodeScript>(){m_MockNonDuplicateScript}));
+            .Returns(Task.FromResult<IEnumerable<CloudCodeScript>>(new List<CloudCodeScript>() { m_MockNonDuplicateScript }));
         m_MockCloudCodeScriptParser.Setup(p => p.ParseScriptParametersAsync(
                 It.Is<string>(s => s == m_MockNonDuplicateScript.Body),
                 It.IsAny<CancellationToken>()))
@@ -247,13 +247,13 @@ class ImportScriptsHandlerTests
                 Array.Empty<ScriptParameter>())));
 
 
-        SetupList(new List<ListScriptsResponseResultsInner>(){new(m_MockNonDuplicateScript.Name.ToString(), ScriptType.API, Gateway.CloudCodeApiV1.Generated.Model.Language.JS, true, DateNow, 1),});
-        SetupGet(new List<CloudCodeScript>(){m_MockNonDuplicateScript});
+        SetupList(new List<ListScriptsResponseResultsInner>() { new(m_MockNonDuplicateScript.Name.ToString(), ScriptType.API, Gateway.CloudCodeApiV1.Generated.Model.Language.JS, true, DateNow, 1), });
+        SetupGet(new List<CloudCodeScript>() { m_MockNonDuplicateScript });
 
         SetupDelete();
 
         SetupList(m_ScriptsListSingleScriptResponse);
-        SetupGet(new List<CloudCodeScript>(){m_MockScript});
+        SetupGet(new List<CloudCodeScript>() { m_MockScript });
 
         SetupCreate();
 
@@ -278,14 +278,14 @@ class ImportScriptsHandlerTests
             Reconcile = true
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         m_MockArchiver.Setup(
                 za => za.UnzipAsync<CloudCodeScript>(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult<IEnumerable<CloudCodeScript>>(new List<CloudCodeScript>(){m_MockNonDuplicateScript}));
+            .Returns(Task.FromResult<IEnumerable<CloudCodeScript>>(new List<CloudCodeScript>() { m_MockNonDuplicateScript }));
         m_MockCloudCodeScriptParser
             .Setup(p => p.ParseScriptParametersAsync(
                 It.Is<string>(s => s == m_MockNonDuplicateScript.Body),
@@ -294,7 +294,8 @@ class ImportScriptsHandlerTests
                 Task.FromResult(new ParseScriptParametersResult(m_MockNonDuplicateScript.Parameters.Any(),
                 Array.Empty<ScriptParameter>())));
         var error = JsonConvert.SerializeObject(
-            new {
+            new
+            {
                 code = CloudCodeScriptsImporter.ScriptAlreadyActive
             });
 
@@ -315,7 +316,7 @@ class ImportScriptsHandlerTests
 
         SetupDelete();
         SetupList(m_ScriptsListSingleScriptResponse);
-        SetupGet(new List<CloudCodeScript>(){m_MockScript});
+        SetupGet(new List<CloudCodeScript>() { m_MockScript });
         SetupCreate();
 
         Assert.DoesNotThrowAsync(async () => await ImportInternalAsync(importInput));

@@ -33,7 +33,7 @@ class UnityEnvironment : IUnityEnvironment
     }
 
     /// <inheritdoc cref="IUnityEnvironment.FetchIdentifierFromSpecificEnvironmentNameAsync" />
-    public async Task<string> FetchIdentifierFromSpecificEnvironmentNameAsync(string environmentName)
+    public async Task<string> FetchIdentifierFromSpecificEnvironmentNameAsync(string environmentName, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(ProjectId))
         {
@@ -45,7 +45,7 @@ class UnityEnvironment : IUnityEnvironment
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentName, environmentName);
 
         var environments = await m_EnvironmentService!
-            .ListAsync(ProjectId!, CancellationToken.None);
+            .ListAsync(ProjectId!, cancellationToken);
 
         var environmentId = environments.ToList().Find(a => a.Name == environmentName)?.Id;
 
@@ -58,7 +58,7 @@ class UnityEnvironment : IUnityEnvironment
     }
 
     /// <inheritdoc cref="IUnityEnvironment.FetchIdentifierAsync" />
-    public async Task<string> FetchIdentifierAsync()
+    public async Task<string> FetchIdentifierAsync(CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(Name))
         {
@@ -67,6 +67,6 @@ class UnityEnvironment : IUnityEnvironment
                 Keys.EnvironmentKeys.EnvironmentName);
         }
 
-        return await FetchIdentifierFromSpecificEnvironmentNameAsync(m_Name!);
+        return await FetchIdentifierFromSpecificEnvironmentNameAsync(m_Name!, cancellationToken);
     }
 }

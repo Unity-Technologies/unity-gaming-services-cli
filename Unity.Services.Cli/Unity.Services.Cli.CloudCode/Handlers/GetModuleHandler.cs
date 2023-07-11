@@ -36,7 +36,7 @@ static class GetModuleHandler
         ILogger logger,
         CancellationToken cancellationToken)
     {
-        var environmentId = await unityEnvironment.FetchIdentifierAsync();
+        var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         var projectId = input.CloudProjectId!;
         var moduleName = input.ModuleName;
 

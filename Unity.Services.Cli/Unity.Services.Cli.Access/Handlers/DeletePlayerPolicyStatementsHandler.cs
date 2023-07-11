@@ -19,7 +19,7 @@ static class DeletePlayerPolicyStatementsHandler
         IAccessService accessService, ILogger logger,
         CancellationToken cancellationToken)
     {
-        var environmentId = await unityEnvironment.FetchIdentifierAsync();
+        var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         var projectId = input.CloudProjectId!;
         var playerId = input.PlayerId!;
         var filePath = input.FilePath!;

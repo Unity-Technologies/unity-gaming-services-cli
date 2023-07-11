@@ -46,9 +46,9 @@ class RemoteConfigFetchService : IFetchService
         StatusContext? loadingContext,
         CancellationToken cancellationToken)
     {
-        var environmentId = await m_UnityEnvironment.FetchIdentifierAsync();
+        var environmentId = await m_UnityEnvironment.FetchIdentifierAsync(cancellationToken);
         m_RemoteConfigClient.Initialize(input.CloudProjectId!, environmentId, cancellationToken);
-        var remoteConfigFiles = m_DeployFileService.ListFilesToDeploy(new[] {input.Path}, m_DeployFileExtension).ToList();
+        var remoteConfigFiles = m_DeployFileService.ListFilesToDeploy(new[] { input.Path }, m_DeployFileExtension).ToList();
 
         var loadResult = await m_RemoteConfigScriptsLoader
             .LoadScriptsAsync(remoteConfigFiles, cancellationToken);
@@ -88,7 +88,7 @@ class RemoteConfigFetchService : IFetchService
 
     static DeployContent GetDeployContent(RemoteConfigEntry entry, string status)
     {
-        return new CliRemoteConfigEntry(entry.Key, "RemoteConfig Key", NormalizePath(entry.File) ,100, status, string.Empty);
+        return new CliRemoteConfigEntry(entry.Key, "RemoteConfig Key", NormalizePath(entry.File), 100, status, string.Empty);
     }
 
     static string NormalizePath(IRemoteConfigFile? file)

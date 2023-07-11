@@ -98,7 +98,7 @@ class ExportModulesHandlerTests
             OutputDirectory = "test_output_directory"
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         m_MockCloudCodeService.Setup(

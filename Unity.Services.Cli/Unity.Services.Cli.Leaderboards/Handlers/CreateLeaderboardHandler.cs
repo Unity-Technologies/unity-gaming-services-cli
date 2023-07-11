@@ -21,7 +21,7 @@ static class CreateLeaderboardHandler
         CreateInput input, IUnityEnvironment unityEnvironment, ILeaderboardsService service,
         ILogger logger, CancellationToken cancellationToken)
     {
-        string environmentId = await unityEnvironment.FetchIdentifierAsync();
+        string environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         await service.CreateLeaderboardAsync(
             input.CloudProjectId!,
             environmentId,

@@ -52,7 +52,7 @@ class JavaScriptFetchService : IFetchService
     public async Task<FetchResult> FetchAsync(
         FetchInput input, StatusContext? loadingContext, CancellationToken cancellationToken)
     {
-        var environmentId = await m_UnityEnvironment.FetchIdentifierAsync();
+        var environmentId = await m_UnityEnvironment.FetchIdentifierAsync(cancellationToken);
         m_Client.Initialize(environmentId, input.CloudProjectId!, cancellationToken);
 
         loadingContext?.Status($"Reading {ServiceType} files...");

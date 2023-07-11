@@ -40,7 +40,7 @@ class ListModuleHandlerTests
             mockLoadingIndicator.Object, CancellationToken.None);
 
         mockLoadingIndicator.Verify(ex => ex
-            .StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?,Task>>()), Times.Once);
+            .StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?, Task>>()), Times.Once);
     }
 
     [Test]
@@ -59,7 +59,7 @@ class ListModuleHandlerTests
             CancellationToken.None
         );
 
-        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(), Times.Once);
+        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(CancellationToken.None), Times.Once);
         m_MockCloudCode.Verify(ex => ex
             .ListModulesAsync(It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<CancellationToken>()), Times.Once);

@@ -64,7 +64,7 @@ class CreateHandlerTests
             ScriptLanguage = k_ValidScriptLanguage,
             ScriptName = TestValues.ValidScriptName,
         };
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         m_MockInputParseService.Setup(x => x.ParseScriptType(input))
             .Returns(ScriptType.API);
@@ -85,7 +85,7 @@ class CreateHandlerTests
             (StatusContext)null!,
             CancellationToken.None);
 
-        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(), Times.Once);
+        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(CancellationToken.None), Times.Once);
         m_MockInputParseService.Verify(x => x.ParseScriptType(input), Times.Once);
         m_MockInputParseService.Verify(x => x.ParseLanguage(input), Times.Once);
         m_MockInputParseService.Verify(x => x.LoadScriptCodeAsync(input, CancellationToken.None), Times.Once);

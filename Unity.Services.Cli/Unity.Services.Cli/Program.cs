@@ -28,6 +28,7 @@ using Unity.Services.Cli.Common.Telemetry;
 using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
 using Unity.Services.Cli.Common.Telemetry.AnalyticEvent.AnalyticEventFactory;
 using Unity.Services.Cli.Authoring;
+using Unity.Services.Cli.GameServerHosting;
 #if FEATURE_LEADERBOARDS
 using Unity.Services.Cli.Leaderboards;
 #endif
@@ -71,6 +72,7 @@ public static partial class Program
                     host.ConfigureServices(CloudCodeModule.RegisterServices);
                     host.ConfigureServices(RemoteConfigModule.RegisterServices);
                     host.ConfigureServices(AccessModule.RegisterServices);
+                    host.ConfigureServices(GameServerHostingModule.RegisterServices);
                     host.ConfigureServices(LobbyModule.RegisterServices);
 #if FEATURE_LEADERBOARDS
                     host.ConfigureServices(LeaderboardsModule.RegisterServices);
@@ -136,6 +138,7 @@ public static partial class Program
             .AddModule(new LeaderboardsModule())
 #endif
             .AddModule(new LobbyModule())
+            .AddModule(new GameServerHostingModule())
             .AddModule(new PlayerModule())
             .AddModule(new RemoteConfigModule())
             .Build();
@@ -146,7 +149,7 @@ public static partial class Program
                 commandTask =>
                 {
                     logger.Write();
-                    TrySendCommandUsageMetric(analyticEventFactory, parser.Parse(args).CommandResult);
+                    TrySendCommandUsageMetric(analyticEventFactory, parser.Parse(args));
                     return commandTask.Result;
                 });
     }
@@ -178,11 +181,18 @@ public static partial class Program
         };
     }
 
-    static void TrySendCommandUsageMetric(IAnalyticEventFactory analyticEventFactory, SymbolResult symbol)
+    static void TrySendCommandUsageMetric(IAnalyticEventFactory analyticEventFactory, ParseResult parseResult)
     {
-        var command = AnalyticEventUtils.ConvertSymbolResultToString(symbol);
+        var options = parseResult.Tokens
+            .Where(t => t.Type == TokenType.Option)
+            .Select(t => t.ToString())
+            .ToArray();
+
+        var command = AnalyticEventUtils.ConvertSymbolResultToString(parseResult.CommandResult);
+
         var analyticEvent = analyticEventFactory.CreateMetricEvent();
         analyticEvent.AddData("command", command);
+        analyticEvent.AddData("options", options);
         analyticEvent.AddData("time", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
         analyticEvent.Send();
     }

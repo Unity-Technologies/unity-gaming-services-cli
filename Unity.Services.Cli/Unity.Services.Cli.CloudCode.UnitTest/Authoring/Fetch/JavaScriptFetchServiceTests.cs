@@ -66,7 +66,7 @@ class JavaScriptFetchServiceTests
         input.CloudProjectId = TestValues.ValidProjectId;
         input.DryRun = dryRun;
         input.Reconcile = reconcile;
-        m_UnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_UnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         var expectedResult = new FetchResult(
             Array.Empty<DeployContent>(),

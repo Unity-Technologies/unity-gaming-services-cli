@@ -72,7 +72,7 @@ static class DeployHandler
             return;
         }
 
-        var environmentId = await unityEnvironment.FetchIdentifierAsync();
+        var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         var projectId = input.CloudProjectId!;
         var deploymentServices = services
             .Where(s => CheckService(input, s))

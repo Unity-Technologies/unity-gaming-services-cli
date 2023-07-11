@@ -59,7 +59,7 @@ class DeleteLeaderboardHandlerTests
             leaderboardId,
             CancellationToken.None)).ReturnsAsync(new ApiResponse<object>(HttpStatusCode.NoContent, new object()));
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         await DeleteLeaderboardHandler.DeleteAsync(
@@ -69,7 +69,7 @@ class DeleteLeaderboardHandlerTests
             m_MockLogger.Object,
             CancellationToken.None);
 
-        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(), Times.Once);
+        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(CancellationToken.None), Times.Once);
         m_MockLeaderboard.Verify(
             e => e.DeleteLeaderboardAsync(
                 TestValues.ValidProjectId,

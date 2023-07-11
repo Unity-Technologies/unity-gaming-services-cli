@@ -38,7 +38,7 @@ class ExportHandlerTests
     public void SetUp()
     {
         m_MockUnityEnvironment.Reset();
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(Guid.NewGuid().ToString());
 
         m_MockRemoteConfigService.Reset();
@@ -51,7 +51,8 @@ class ExportHandlerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(() => {
+            .ReturnsAsync(() =>
+            {
                 return JsonConvert.SerializeObject(new RemoteConfigResponse
                 {
                     Configs = new List<RemoteConfigResponse.Config>{

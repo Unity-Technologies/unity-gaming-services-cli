@@ -38,7 +38,7 @@ class ImportHandlerTests
 
         m_MockUnityEnvironment.Reset();
         m_MockRemoteConfigService.Reset();
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(Guid.NewGuid().ToString());
 
         m_MockLogger.Reset();
@@ -49,7 +49,7 @@ class ImportHandlerTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult<IEnumerable<LobbyConfig>>(new List<LobbyConfig>{ m_Config }));
+            .Returns(Task.FromResult<IEnumerable<LobbyConfig>>(new List<LobbyConfig> { m_Config }));
 
         m_LobbyImporter = new LobbyImporter(
             m_MockRemoteConfigService.Object,
@@ -266,7 +266,8 @@ class ImportHandlerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(() => {
+            .ReturnsAsync(() =>
+            {
                 return JsonConvert.SerializeObject(new RemoteConfigResponse
                 {
                     Configs = new List<RemoteConfigResponse.Config>{

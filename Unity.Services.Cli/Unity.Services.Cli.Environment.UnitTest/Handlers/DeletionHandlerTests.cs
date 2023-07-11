@@ -71,7 +71,7 @@ class DeletionHandlerTests
         };
 
         m_MockUnityEnvironment.Setup(c =>
-                c.FetchIdentifierFromSpecificEnvironmentNameAsync(k_ValidEnvironmentName))
+                c.FetchIdentifierFromSpecificEnvironmentNameAsync(k_ValidEnvironmentName, CancellationToken.None))
             .ReturnsAsync(mockEnvironmentId);
 
         await DeletionHandler.DeleteAsync(input, m_MockHelper.MockEnvironment.Object, m_MockHelper.MockLogger.Object,

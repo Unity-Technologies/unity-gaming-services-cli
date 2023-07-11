@@ -14,7 +14,7 @@ namespace Unity.Services.Cli.Lobby.Handlers
         /// <inheritdoc cref="ILobbyHandler.Handler" />
         public static async Task BulkUpdateLobbyAsync(RequiredBodyInput input, IUnityEnvironment unityEnvironment, ILobbyService service, ILogger logger, CancellationToken cancellationToken)
         {
-            var environmentId = await unityEnvironment.FetchIdentifierAsync();
+            var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
 
             var response = await service.BulkUpdateLobbyAsync(
                 input.CloudProjectId,

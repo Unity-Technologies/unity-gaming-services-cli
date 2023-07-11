@@ -32,7 +32,7 @@ class ImportHandlerTests
         new RemoteConfigEntryDTO { key = "local", value = true, type = "bool"}
     };
 
-    ImportInput m_ImportInput = new ()
+    ImportInput m_ImportInput = new()
     {
         InputDirectory = "mock_input_directory"
     };
@@ -46,7 +46,7 @@ class ImportHandlerTests
         m_MockLogger.Reset();
 
         m_MockUnityEnvironment
-            .Setup(x => x.FetchIdentifierAsync())
+            .Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestEnvironment);
 
         m_MockArchiver.Setup(
@@ -127,7 +127,7 @@ class ImportHandlerTests
 
     [Test]
     [TestCase(true, true, 1, 0, 0, Description = "DryRun does not create or update")]
-    [TestCase(false, false, 1, 0 , 1, Description = "Creates if it does not exist")]
+    [TestCase(false, false, 1, 0, 1, Description = "Creates if it does not exist")]
     [TestCase(false, true, 1, 1, 0, Description = "Updates if it exists")]
     public async Task ImportAsync_ApiCalls(bool dryRun, bool exists, int getCalls, int updateCalls, int createCalls)
     {

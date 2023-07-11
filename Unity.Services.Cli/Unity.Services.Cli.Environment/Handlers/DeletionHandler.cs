@@ -24,7 +24,7 @@ static class DeletionHandler
         var projectId = input.CloudProjectId;
 
         var environmentId =
-            await unityEnvironment.FetchIdentifierFromSpecificEnvironmentNameAsync(environmentName!);
+            await unityEnvironment.FetchIdentifierFromSpecificEnvironmentNameAsync(environmentName!, cancellationToken);
 
         await environmentService.DeleteAsync(projectId!, environmentId!, cancellationToken);
         logger.LogInformation("Deleted environment '{environmentName}'", environmentName);

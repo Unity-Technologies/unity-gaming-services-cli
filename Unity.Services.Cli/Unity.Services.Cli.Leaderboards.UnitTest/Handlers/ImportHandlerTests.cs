@@ -92,7 +92,7 @@ class ImportHandlerTests
             DryRun = true
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         await ImportInternalAsync(importInput);
@@ -117,7 +117,7 @@ class ImportHandlerTests
             DryRun = true
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         await ImportInternalAsync(importInput);
@@ -142,7 +142,7 @@ class ImportHandlerTests
             DryRun = true
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         var exception = Assert.ThrowsAsync<CliException>(async () =>
@@ -161,7 +161,7 @@ class ImportHandlerTests
             DryRun = true
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         await ImportInternalAsync(importInput);
@@ -180,7 +180,7 @@ class ImportHandlerTests
             InputDirectory = "mock_input_directory",
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         SetupList(m_MockConfigs);
         SetupUpdate();
@@ -202,7 +202,7 @@ class ImportHandlerTests
             InputDirectory = "mock_input_directory",
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         SetupGet(null!, true);
         SetupCreate();
@@ -225,7 +225,7 @@ class ImportHandlerTests
             Reconcile = true
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         SetupList(new List<UpdatedLeaderboardConfig>()
         {
@@ -233,7 +233,7 @@ class ImportHandlerTests
                 "remote_name")
         });
         SetupDelete();
-        SetupList(new List<UpdatedLeaderboardConfig>() {new ("to_delete", "to_delete")});
+        SetupList(new List<UpdatedLeaderboardConfig>() { new("to_delete", "to_delete") });
         SetupCreate();
 
         await ImportInternalAsync(importInput);

@@ -30,7 +30,7 @@ static class GetLeaderboardHandler
         ILogger logger,
         CancellationToken cancellationToken)
     {
-        var environmentId = await unityEnvironment.FetchIdentifierAsync();
+        var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         var projectId = input.CloudProjectId!;
         var response = await leaderboardsService.GetLeaderboardAsync(
             projectId, environmentId, input.LeaderboardId!, cancellationToken);

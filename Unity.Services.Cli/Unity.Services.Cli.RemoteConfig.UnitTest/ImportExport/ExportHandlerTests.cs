@@ -45,7 +45,7 @@ class ExportHandlerTests
         m_FileSystemMock.Reset();
 
         m_MockUnityEnvironment
-            .Setup(x => x.FetchIdentifierAsync())
+            .Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestEnvironment);
 
         m_MockArchiver.Setup(
@@ -142,7 +142,7 @@ class ExportHandlerTests
 
     [Test]
     [TestCase(true, true, 1, 0, 0, Description = "DryRun still calls Get")]
-    [TestCase(false, false, 1, 0 , 0, Description = "Does not create if does not exist")]
+    [TestCase(false, false, 1, 0, 0, Description = "Does not create if does not exist")]
     [TestCase(false, true, 1, 0, 0, Description = "Does not update if does not exist")]
     public async Task ExportAsync_ApiCalls(bool dryRun, bool exists, int getCalls, int updateCalls, int createCalls)
     {

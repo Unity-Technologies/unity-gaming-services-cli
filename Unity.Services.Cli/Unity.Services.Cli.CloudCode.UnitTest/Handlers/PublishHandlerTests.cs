@@ -53,7 +53,7 @@ class PublishHandlerTests
             Version = version,
         };
         var expectedResponse = new PublishScriptResponse(version);
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         m_MockCloudCode.Setup(
                 x => x.PublishAsync(
@@ -71,7 +71,7 @@ class PublishHandlerTests
             m_MockLogger.Object,
             CancellationToken.None);
 
-        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(), Times.Once);
+        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(CancellationToken.None), Times.Once);
         m_MockCloudCode.Verify(
             ex => ex.PublishAsync(
                 TestValues.ValidProjectId,

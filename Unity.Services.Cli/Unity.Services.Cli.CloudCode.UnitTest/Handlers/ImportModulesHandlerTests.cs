@@ -105,7 +105,7 @@ class ImportModuleHandlerTests
                 za => za.GetEntry(
                     It.IsAny<string>(),
                     It.IsAny<string>()))
-            .Returns( new ZipEntryStream(mockStream) );
+            .Returns(new ZipEntryStream(mockStream));
     }
 
     [Test]
@@ -136,7 +136,7 @@ class ImportModuleHandlerTests
             DryRun = true
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         await ImportInternalAsync(importInput);
@@ -158,7 +158,7 @@ class ImportModuleHandlerTests
             DryRun = true
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         await ImportInternalAsync(importInput);
@@ -177,9 +177,9 @@ class ImportModuleHandlerTests
             InputDirectory = "mock_input_directory",
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
-        SetupList(m_ModulesListSingleModuleResponse, new List<Module>(){m_MockModule});
+        SetupList(m_ModulesListSingleModuleResponse, new List<Module>() { m_MockModule });
         SetupCreateOrUpdate();
 
         m_MockArchiver.Setup(
@@ -211,9 +211,9 @@ class ImportModuleHandlerTests
             FileName = "test.ccmzip"
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
-        SetupList(m_ModulesListSingleModuleResponse, new List<Module>(){m_MockModule});
+        SetupList(m_ModulesListSingleModuleResponse, new List<Module>() { m_MockModule });
         SetupCreateOrUpdate();
 
         m_MockArchiver.Setup(
@@ -244,9 +244,9 @@ class ImportModuleHandlerTests
             FileName = "test.ccmzip"
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
-        SetupList(m_ModulesListSingleModuleResponse, new List<Module>(){m_MockModule});
+        SetupList(m_ModulesListSingleModuleResponse, new List<Module>() { m_MockModule });
         SetupCreateOrUpdate(true);
 
         m_MockArchiver.Setup(
@@ -293,10 +293,10 @@ class ImportModuleHandlerTests
                 za => za.GetEntry(
                     It.IsAny<string>(),
                     It.IsAny<string>()))
-            .Returns( new ZipEntryStream(mockStream) );
+            .Returns(new ZipEntryStream(mockStream));
 
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         SetupGet(null!, true);
         SetupList(new List<ListModulesResponseResultsInner>(), new List<Module>());
@@ -331,7 +331,7 @@ class ImportModuleHandlerTests
                 m_MockModule
             });
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         SetupGet(null!, true);
         SetupList(new List<ListModulesResponseResultsInner>(), new List<Module>());
@@ -356,7 +356,7 @@ class ImportModuleHandlerTests
             Reconcile = true
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         m_MockArchiver.Setup(
                 za => za.UnzipAsync<Module>(
@@ -371,11 +371,11 @@ class ImportModuleHandlerTests
         SetupList(new List<ListModulesResponseResultsInner>()
         {
             new(m_MockNonDuplicateModule.Name.ToString(), Language.JS, new Dictionary<string, string>(), "url", DateNow, DateNow)
-        }, new List<Module>(){m_MockNonDuplicateModule});
+        }, new List<Module>() { m_MockNonDuplicateModule });
 
         SetupDelete();
 
-        SetupList(m_ModulesListSingleModuleResponse, new List<Module>(){m_MockModule});
+        SetupList(m_ModulesListSingleModuleResponse, new List<Module>() { m_MockModule });
 
         SetupCreateOrUpdate();
 
@@ -398,7 +398,7 @@ class ImportModuleHandlerTests
             Reconcile = true
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         m_MockArchiver.Setup(
                 za => za.UnzipAsync<Module>(
@@ -413,11 +413,11 @@ class ImportModuleHandlerTests
         SetupList(new List<ListModulesResponseResultsInner>()
         {
             new(m_MockNonDuplicateModule.Name.ToString(), Language.JS, new Dictionary<string, string>(), "url", DateNow, DateNow)
-        }, new List<Module>(){m_MockNonDuplicateModule});
+        }, new List<Module>() { m_MockNonDuplicateModule });
 
         SetupDelete(true);
 
-        SetupList(m_ModulesListSingleModuleResponse, new List<Module>(){m_MockModule});
+        SetupList(m_ModulesListSingleModuleResponse, new List<Module>() { m_MockModule });
 
         SetupCreateOrUpdate();
 

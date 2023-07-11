@@ -23,7 +23,7 @@ static class ResetLeaderboardHandler
         ResetInput input, IUnityEnvironment unityEnvironment, ILeaderboardsService service,
         ILogger logger, CancellationToken cancellationToken)
     {
-        string environmentId = await unityEnvironment.FetchIdentifierAsync();
+        string environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         var response = await service.ResetLeaderboardAsync(
             input.CloudProjectId!,
             environmentId,

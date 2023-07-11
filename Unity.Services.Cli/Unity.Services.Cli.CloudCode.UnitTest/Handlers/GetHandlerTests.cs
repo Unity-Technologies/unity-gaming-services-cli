@@ -66,7 +66,7 @@ class GetHandlerTests
             CloudProjectId = TestValues.ValidProjectId,
             ScriptName = "test"
         };
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         await GetHandler.GetAsync(
@@ -77,7 +77,7 @@ class GetHandlerTests
             CancellationToken.None
         );
 
-        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(), Times.Once);
+        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(CancellationToken.None), Times.Once);
         m_MockCloudCode.Verify(
             api => api.GetAsync(
                 TestValues.ValidProjectId,

@@ -14,6 +14,12 @@ public static class AnalyticEventUtils
             symbol = symbol.Parent!;
         }
         symbolNames.Reverse();
+
+        if (symbolNames.FirstOrDefault() != null)
+        {
+            symbolNames[0] = "ugs";
+        }
+
         return string.Join("_", symbolNames);
     }
 }

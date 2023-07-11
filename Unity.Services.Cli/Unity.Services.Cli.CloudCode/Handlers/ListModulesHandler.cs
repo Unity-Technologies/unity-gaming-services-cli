@@ -33,7 +33,7 @@ static class ListModulesHandler
         CancellationToken cancellationToken)
     {
         var projectId = input.CloudProjectId!;
-        var environmentId = await unityEnvironment.FetchIdentifierAsync();
+        var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
 
         var modules = await cloudCodeService
             .ListModulesAsync(projectId, environmentId, cancellationToken);

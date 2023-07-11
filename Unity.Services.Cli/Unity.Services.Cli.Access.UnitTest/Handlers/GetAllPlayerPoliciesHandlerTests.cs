@@ -46,14 +46,14 @@ public class GetAllPlayerPoliciesHandlerTests
             CloudProjectId = TestValues.ValidProjectId,
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync()).ReturnsAsync(TestValues.ValidEnvironmentId);
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None)).ReturnsAsync(TestValues.ValidEnvironmentId);
         m_MockAccessService?.Setup(x => x.GetAllPlayerPoliciesAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, CancellationToken.None))
             .ReturnsAsync(It.IsAny<List<PlayerPolicy>>());
 
         await GetAllPlayerPoliciesHandler.GetAllPlayerPoliciesAsync(input, m_MockUnityEnvironment.Object,
             m_MockAccessService!.Object, m_MockLogger!.Object, CancellationToken.None);
 
-        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(), Times.Once);
+        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(CancellationToken.None), Times.Once);
         m_MockAccessService.Verify(x => x.GetAllPlayerPoliciesAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, CancellationToken.None), Times.Once);
         TestsHelper.VerifyLoggerWasCalled(
             m_MockLogger, LogLevel.Critical, LoggerExtension.ResultEventId, Times.Once);

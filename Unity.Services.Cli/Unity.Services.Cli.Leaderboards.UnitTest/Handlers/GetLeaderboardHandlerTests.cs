@@ -43,7 +43,7 @@ class GetLeaderboardHandlerTests
                     updateType: UpdateType.Aggregate,
                     bucketSize: Decimal.One,
                     resetConfig: new ResetConfig(),
-                    tieringConfig: new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+                    tieringConfig: new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>() { new TieringConfigTiersInner("tier1", 2) }),
                     updated: DateTime.Today,
                     created: DateTime.Now,
                     lastReset: DateTime.Today,
@@ -71,7 +71,7 @@ class GetLeaderboardHandlerTests
             LeaderboardId = k_LeaderboardId
         };
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         await GetLeaderboardHandler.GetLeaderboardConfigAsync(
@@ -81,7 +81,7 @@ class GetLeaderboardHandlerTests
             m_MockLogger.Object,
             CancellationToken.None);
 
-        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(), Times.Once);
+        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(CancellationToken.None), Times.Once);
         m_MockLeaderboard.Verify(
             e => e.GetLeaderboardAsync(
                 TestValues.ValidProjectId,

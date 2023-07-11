@@ -22,7 +22,7 @@
     <PackageReference Include="Unity.Services.Gateway.PlayerAuthApiV1.Generated" Version="1.0.1" />
     <PackageReference Include="Unity.Services.TelemetryApi.Generated" Version="1.0.1" />
     <PackageReference Include="Unity.Services.MpsLobby.LobbyApiV1.Generated" Version="0.11.1" />
-    <PackageReference Include="Unity.Services.Gateway.GameServerHostingApiV1.Generated" Version="0.3.0" />
+    <PackageReference Include="Unity.Services.Gateway.GameServerHostingApiV1.Generated" Version="0.5.0" />
     <PackageReference Include="UnityAnalytic.Modules.Sender" Version="0.1.0" />
   </ItemGroup>
   <ItemGroup>

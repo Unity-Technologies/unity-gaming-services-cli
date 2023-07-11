@@ -4,7 +4,7 @@
     "Unity.Services.Cli": {
       "commandName": "Project",
       "workingDirectory": "$(SolutionDir)/../",
-      "commandLineArgs": "cloud-code modules import Unity.Services.Cli/Unity.Services.Cli.CloudCode.UnitTest/ModuleTestCases test.ccmzip"
+      "commandLineArgs": "-h"
     },
     "Unity.Services.Cli.PrintTree": {
       "commandName": "Project",

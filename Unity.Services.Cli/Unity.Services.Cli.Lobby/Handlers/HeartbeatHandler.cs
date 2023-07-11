@@ -13,7 +13,7 @@ namespace Unity.Services.Cli.Lobby.Handlers
         /// <inheritdoc cref="ILobbyHandler.Handler" />
         public static async Task HeartbeatLobbyAsync(CommonLobbyInput input, IUnityEnvironment unityEnvironment, ILobbyService service, ILogger logger, CancellationToken cancellationToken)
         {
-            string? environmentId = await unityEnvironment.FetchIdentifierAsync();
+            string? environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
 
             await service.HeartbeatLobbyAsync(
                 input.CloudProjectId,

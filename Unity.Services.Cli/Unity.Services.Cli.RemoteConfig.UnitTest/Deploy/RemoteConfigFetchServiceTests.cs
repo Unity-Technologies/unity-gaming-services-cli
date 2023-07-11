@@ -46,7 +46,7 @@ public class RemoteConfigFetchServiceTests
 
     FetchInput m_DefaultInput = new()
     {
-        CloudProjectId = k_ValidProjectId ,
+        CloudProjectId = k_ValidProjectId,
         Reconcile = false
     };
 
@@ -71,9 +71,9 @@ public class RemoteConfigFetchServiceTests
                 m_MockDeployFileService.Object,
                 m_MockRemoteConfigScriptsLoader.Object);
 
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(k_ValidEnvironmentId);
-        m_MockDeployFileService.Setup(d => d.ListFilesToDeploy(new [] {m_DefaultInput.Path}, k_DeployFileExtension))
+        m_MockDeployFileService.Setup(d => d.ListFilesToDeploy(new[] { m_DefaultInput.Path }, k_DeployFileExtension))
             .Returns(k_ValidFilePaths);
 
         m_RemoteConfigFiles = new List<IRemoteConfigFile>(k_ValidFilePaths.Count);
@@ -159,7 +159,7 @@ public class RemoteConfigFetchServiceTests
                 loader.LoadScriptsAsync(It.IsAny<IReadOnlyList<string>>(), CancellationToken.None))
             .Returns(Task.FromResult(
                 new LoadResult(Array.Empty<RemoteConfigFile>(),
-                    new []{ new RemoteConfigFile(failedRcFileName, failedRcFileName)
+                    new[]{ new RemoteConfigFile(failedRcFileName, failedRcFileName)
                     {
                         Status = new DeploymentStatus(Statuses.FailedToRead, string.Empty, SeverityLevel.Error)
                     }})));

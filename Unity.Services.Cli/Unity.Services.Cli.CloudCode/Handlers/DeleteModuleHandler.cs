@@ -30,7 +30,7 @@ static class DeleteModuleHandler
         CancellationToken cancellationToken
     )
     {
-        var environmentId = await unityEnvironment.FetchIdentifierAsync();
+        var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         var projectId = input.CloudProjectId!;
 
         await cloudCodeService.DeleteModuleAsync(projectId, environmentId, input.ModuleName, cancellationToken);

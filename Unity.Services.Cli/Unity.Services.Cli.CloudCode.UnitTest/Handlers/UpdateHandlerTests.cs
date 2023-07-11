@@ -61,7 +61,7 @@ class UpdateHandlerTests
             FilePath = TestValues.ValidFilepath,
             ScriptName = TestValues.ValidScriptName
         };
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         m_MockInputParseService.Setup(x => x.LoadScriptCodeAsync(input, CancellationToken.None))
             .ReturnsAsync(TestValues.ValidCode);
@@ -79,7 +79,7 @@ class UpdateHandlerTests
             (StatusContext)null!,
             CancellationToken.None);
 
-        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(), Times.Once);
+        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(CancellationToken.None), Times.Once);
         m_MockCloudCode.Verify(
             e => e.UpdateAsync(
                 TestValues.ValidProjectId,

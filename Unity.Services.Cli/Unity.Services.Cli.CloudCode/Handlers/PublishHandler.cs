@@ -30,7 +30,7 @@ static class PublishHandler
     {
         var scriptName = input.ScriptName;
         var version = input.Version ?? 0;
-        var environmentId = await unityEnvironment.FetchIdentifierAsync();
+        var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         var projectId = input.CloudProjectId!;
         var result = await cloudCodeService.PublishAsync(
             projectId, environmentId, scriptName!, version, cancellationToken);

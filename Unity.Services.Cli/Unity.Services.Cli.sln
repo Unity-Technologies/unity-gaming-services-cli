@@ -28,7 +28,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Lobby", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Lobby.UnitTest", "Unity.Services.Cli.Lobby.UnitTest\Unity.Services.Cli.Lobby.UnitTest.csproj", "{50E3FBD8-DB4C-4198-B24C-948AD2DAA571}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.GameServerHosting", "Unity.Services.Cli.GameServerHosting\Unity.Services.Cli.GameServerHosting.csproj", "{7FC4167A-B228-45DC-9D12-87EF16BBAAEB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.GameServerHosting.UnitTest", "Unity.Services.Cli.GameServerHosting.UnitTest\Unity.Services.Cli.GameServerHosting.UnitTest.csproj", "{734A360E-FEFC-447A-AD4F-621212EAA3ED}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Integration.MockServer", "Unity.Services.Cli.Integration.MockServer\Unity.Services.Cli.Integration.MockServer.csproj", "{92DBFB5E-BAD9-4852-9162-DA6B94CE6BF3}"
 EndProject
@@ -127,6 +129,14 @@ Global
 		{50E3FBD8-DB4C-4198-B24C-948AD2DAA571}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50E3FBD8-DB4C-4198-B24C-948AD2DAA571}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{50E3FBD8-DB4C-4198-B24C-948AD2DAA571}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FC4167A-B228-45DC-9D12-87EF16BBAAEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FC4167A-B228-45DC-9D12-87EF16BBAAEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FC4167A-B228-45DC-9D12-87EF16BBAAEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FC4167A-B228-45DC-9D12-87EF16BBAAEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{734A360E-FEFC-447A-AD4F-621212EAA3ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{734A360E-FEFC-447A-AD4F-621212EAA3ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{734A360E-FEFC-447A-AD4F-621212EAA3ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{734A360E-FEFC-447A-AD4F-621212EAA3ED}.Release|Any CPU.Build.0 = Release|Any CPU
 		{92DBFB5E-BAD9-4852-9162-DA6B94CE6BF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{92DBFB5E-BAD9-4852-9162-DA6B94CE6BF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{92DBFB5E-BAD9-4852-9162-DA6B94CE6BF3}.Release|Any CPU.ActiveCfg = Release|Any CPU

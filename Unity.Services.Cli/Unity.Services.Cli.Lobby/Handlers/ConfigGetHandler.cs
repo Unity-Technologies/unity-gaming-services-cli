@@ -37,7 +37,7 @@ namespace Unity.Services.Cli.Lobby.Handlers
 
             try
             {
-                environmentId = await unityEnvironment.FetchIdentifierAsync();
+                environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
             }
             catch (MissingConfigurationException)
             {

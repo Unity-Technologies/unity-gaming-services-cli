@@ -74,7 +74,7 @@ public class ConfigurationValidator : IConfigurationValidator
 
     static bool IsEnvironmentIdValid(string value, out string errorMessage)
     {
-        var guidRegex = new Regex(k_GuidRegexPattern);
+        var guidRegex = new Regex(k_GuidRegexPattern, RegexOptions.None, TimeSpan.FromSeconds(1));
         if (value.Any(char.IsWhiteSpace) || !guidRegex.IsMatch(value))
         {
             errorMessage = GuidInvalidMessage;
@@ -87,7 +87,7 @@ public class ConfigurationValidator : IConfigurationValidator
 
     static bool IsEnvironmentNameValid(string value, out string errorMessage)
     {
-        var guidRegex = new Regex(k_EnvironmentNameRegexPattern);
+        var guidRegex = new Regex(k_EnvironmentNameRegexPattern, RegexOptions.None, TimeSpan.FromSeconds(1));
         if (value.Any(char.IsWhiteSpace) || !guidRegex.IsMatch(value))
         {
             errorMessage = EnvironmentNameInvalidMessage;
@@ -100,7 +100,7 @@ public class ConfigurationValidator : IConfigurationValidator
 
     static bool IsProjectIdValid(string value, out string errorMessage)
     {
-        var guidRegex = new Regex(k_GuidRegexPattern);
+        var guidRegex = new Regex(k_GuidRegexPattern, RegexOptions.None, TimeSpan.FromSeconds(1));
         if (value.Any(char.IsWhiteSpace) || !guidRegex.IsMatch(value))
         {
             errorMessage = GuidInvalidMessage;

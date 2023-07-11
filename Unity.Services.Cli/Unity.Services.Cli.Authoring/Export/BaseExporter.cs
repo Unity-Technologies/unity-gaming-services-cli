@@ -46,7 +46,7 @@ public abstract class BaseExporter<T> : IExporter
     public async Task ExportAsync(ExportInput input, CancellationToken cancellationToken)
     {
         var projectId = input.CloudProjectId!;
-        var environmentId = await m_UnityEnvironment.FetchIdentifierAsync();
+        var environmentId = await m_UnityEnvironment.FetchIdentifierAsync(cancellationToken);
         var fileName = ImportExportUtils.ResolveFileName(input.FileName, FileName);
 
         var configs = await ListConfigsAsync(projectId, environmentId, cancellationToken);
@@ -57,7 +57,7 @@ public abstract class BaseExporter<T> : IExporter
             await ExportToZipAsync(input.OutputDirectory, fileName, state, cancellationToken);
         }
 
-        m_Logger.LogResultValue(new ImportExportResult( state.ExportedItems().ToList())
+        m_Logger.LogResultValue(new ImportExportResult(state.ExportedItems().ToList())
         {
             Header = input.DryRun ? "The following items will be exported:" : "The following items were exported:",
             DryRun = input.DryRun

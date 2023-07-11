@@ -45,6 +45,11 @@ class AuthenticatorV1 : IAuthenticator
         }
         else
         {
+            if (m_CliPrompt.IsStandardInputRedirected)
+            {
+                throw new InvalidLoginInputException($"Standard Input is redirected, please use the " +
+                    $"\"{LoginInput.ServiceKeyIdAlias}\" and \"{LoginInput.ServiceSecretKeyAlias}\" options to login.");
+            }
             (keyId, secretKey) = await PromptForServiceAccountKeysAsync(m_CliPrompt, cancellationToken);
         }
 

@@ -19,7 +19,7 @@ static class UpsertPlayerPolicyHandler
         IAccessService accessService, ILogger logger,
         CancellationToken cancellationToken)
     {
-        var environmentId = await unityEnvironment.FetchIdentifierAsync();
+        var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         var projectId = input.CloudProjectId!;
         var filePath = input.FilePath!;
         var playerId = input.PlayerId!;

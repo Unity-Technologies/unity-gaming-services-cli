@@ -141,7 +141,7 @@ public static class CommonModule
             Interactive = InteractionSupport.Yes
         };
         var console = AnsiConsole.Create(settings);
-        serviceCollection.AddSingleton<ICliPrompt>(new CliPrompt(console));
+        serviceCollection.AddSingleton<ICliPrompt>(new CliPrompt(console, System.Console.IsInputRedirected));
     }
 
     public static TelemetrySender CreateTelemetrySender(ISystemEnvironmentProvider systemEnvironmentProvider)

@@ -24,6 +24,7 @@
     <ProjectReference Include="..\Unity.Services.Cli.Authoring\Unity.Services.Cli.Authoring.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Integration.MockServer\Unity.Services.Cli.Integration.MockServer.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Player\Unity.Services.Cli.Player.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.GameServerHosting\Unity.Services.Cli.GameServerHosting.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.RemoteConfig\Unity.Services.Cli.RemoteConfig.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli\Unity.Services.Cli.csproj" />
   </ItemGroup>

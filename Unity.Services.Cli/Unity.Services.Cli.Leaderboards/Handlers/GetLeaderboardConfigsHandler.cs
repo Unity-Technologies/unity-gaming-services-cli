@@ -26,14 +26,14 @@ static class GetLeaderboardConfigsHandler
             _ => GetLeaderboardConfigsAsync(input, unityEnvironment, leaderboardsService, logger, cancellationToken));
     }
 
-    internal static async Task  GetLeaderboardConfigsAsync(
+    internal static async Task GetLeaderboardConfigsAsync(
         ListLeaderboardInput input,
         IUnityEnvironment unityEnvironment,
         ILeaderboardsService leaderboardsService,
         ILogger logger,
         CancellationToken cancellationToken)
     {
-        var environmentId = await unityEnvironment.FetchIdentifierAsync();
+        var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         var projectId = input.CloudProjectId!;
         var leaderboards = await leaderboardsService.GetLeaderboardsAsync(
             projectId, environmentId, input.Cursor, input.Limit, cancellationToken);

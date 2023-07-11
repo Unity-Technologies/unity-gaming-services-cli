@@ -80,7 +80,7 @@ class ExportHandlerTests
             Cursor = TestValues.Cursor,
             Limit = TestValues.Limit
         };
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         m_MockLeaderboardsService.Setup(
@@ -142,7 +142,7 @@ class ExportHandlerTests
             Cursor = TestValues.Cursor,
             Limit = TestValues.Limit
         };
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         m_MockLeaderboardsService.Setup(
@@ -205,7 +205,7 @@ class ExportHandlerTests
             Cursor = TestValues.Cursor,
             Limit = TestValues.Limit
         };
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
         m_LeaderboardExporter!.ListLeaderboardInput = input;

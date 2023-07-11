@@ -50,7 +50,7 @@ class DeleteHandlerTests
             CloudProjectId = TestValues.ValidProjectId,
             ScriptName = TestValues.ValidScriptName
         };
-        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync())
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         m_MockCloudCode.Setup(
                 ex => ex.DeleteAsync(
@@ -65,7 +65,7 @@ class DeleteHandlerTests
             CancellationToken.None
         );
 
-        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(), Times.Once);
+        m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(CancellationToken.None), Times.Once);
         m_MockCloudCode.Verify(
             ex => ex.DeleteAsync(
                 TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidScriptName, CancellationToken.None),

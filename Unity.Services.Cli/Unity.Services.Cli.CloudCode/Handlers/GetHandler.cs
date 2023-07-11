@@ -31,7 +31,7 @@ static class GetHandler
         CancellationToken cancellationToken)
     {
         var scriptName = input.ScriptName;
-        var environmentId = await unityEnvironment.FetchIdentifierAsync();
+        var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         var projectId = input.CloudProjectId!;
         var script = await cloudCodeService.GetAsync(projectId, environmentId, scriptName!, cancellationToken);
 

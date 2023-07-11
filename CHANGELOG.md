@@ -5,7 +5,17 @@ All notable changes to UGS CLI will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-# [1.0.0-beta.5] - 2023-06-28
+## [1.0.0-beta.6] - 2023-07-10
+
+### Added
+- Game Server Hosting Module Service commands. Run `ugs gsh -h` to show usage.
+  - Supports builds, build configurations, fleets, fleet regions and servers.
+
+### Fixed
+- A bug with the login command when stdin is redirected.
+- A bug preventing Remote Config fetch dry run to update the fetched file name.
+
+## [1.0.0-beta.5] - 2023-06-28
 
 ### Added
 - Added Batching to import and deploy to help prevent "Too Many Requests" error.
