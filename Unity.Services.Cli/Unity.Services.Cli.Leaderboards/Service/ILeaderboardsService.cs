@@ -11,11 +11,31 @@ public interface ILeaderboardsService
     Task<ApiResponse<UpdatedLeaderboardConfig>> GetLeaderboardAsync(string projectId, string environmentId, string leaderboardId,
         CancellationToken cancellationToken = default);
 
-    Task<ApiResponse<object>> CreateLeaderboardAsync(string projectId, string environmentId, string body,
+    Task<ApiResponse<object>> CreateLeaderboardAsync(
+        string projectId,
+        string environmentId,
+        LeaderboardIdConfig leaderboard,
         CancellationToken cancellationToken);
 
-    Task<ApiResponse<object>> UpdateLeaderboardAsync(string projectId, string environmentId, string leaderboardId,
-        string body, CancellationToken cancellationToken);
+    Task<ApiResponse<object>> CreateLeaderboardAsync(
+        string projectId,
+        string environmentId,
+        string body,
+        CancellationToken cancellationToken);
+
+    Task<ApiResponse<object>> UpdateLeaderboardAsync(
+        string projectId,
+        string environmentId,
+        string leaderboardId,
+        LeaderboardPatchConfig leaderboard,
+        CancellationToken cancellationToken);
+    
+    Task<ApiResponse<object>> UpdateLeaderboardAsync(
+        string projectId,
+        string environmentId,
+        string leaderboardId,
+        string body,
+        CancellationToken cancellationToken);
 
     Task<ApiResponse<object>> DeleteLeaderboardAsync(string projectId, string environmentId, string leaderboardId,
         CancellationToken cancellationToken);

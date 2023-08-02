@@ -8,10 +8,11 @@ public interface IFetchService
 {
     string ServiceType { get; }
     string ServiceName { get; }
-    protected string FileExtension { get; }
+    string FileExtension { get; }
 
     Task<FetchResult> FetchAsync(
         FetchInput input,
+        IReadOnlyList<string> filePaths,
         StatusContext? loadingContext,
         CancellationToken cancellationToken);
 }

@@ -39,10 +39,10 @@ public class DeployFileServiceTests
     {
         m_MockFile.Setup(f => f.Exists("test.gsh")).Returns(true);
         m_MockPath.Setup(p => p.GetFullPath("test.gsh")).Returns("test.gsh");
-        var files = m_Service.ListFilesToDeploy(new List<string>
-        {
-            "test.gsh"
-        }, ".gsh");
+        var files = m_Service.ListFilesToDeploy(
+            new List<string> { "test.gsh" },
+            ".gsh",
+            true);
 
         Assert.That(files, Contains.Item("test.gsh"));
     }
@@ -52,10 +52,14 @@ public class DeployFileServiceTests
     {
         Assert.Throws<PathNotFoundException>(() =>
         {
-            var _ = m_Service.ListFilesToDeploy(new List<string>
-            {
-                "does_not_exist"
-            }, ".gsh").ToList();
+            var _ = m_Service.ListFilesToDeploy(
+                    new List<string>
+                    {
+                        "does_not_exist"
+                    },
+                    ".gsh",
+                    true)
+                .ToList();
         });
     }
     [Test]
@@ -66,10 +70,14 @@ public class DeployFileServiceTests
         m_MockDirectory.Setup(d => d.GetFiles("foo", "*.gsh", SearchOption.AllDirectories))
             .Throws<UnauthorizedAccessException>();
 
-        Assert.Throws<CliException>(() => m_Service.ListFilesToDeploy(new List<string>
-        {
-            "foo"
-        }, ".gsh"));
+        Assert.Throws<CliException>(
+            () => m_Service.ListFilesToDeploy(
+                new List<string>
+                {
+                    "foo"
+                },
+                ".gsh",
+                false));
     }
 
     [Test]
@@ -83,10 +91,13 @@ public class DeployFileServiceTests
                 "test.gsh"
             });
 
-        var files = m_Service.ListFilesToDeploy(new List<string>
-        {
-            "foo"
-        }, ".gsh");
+        var files = m_Service.ListFilesToDeploy(
+            new List<string>
+            {
+                "foo"
+            },
+            ".gsh",
+            false);
 
         Assert.That(files, Contains.Item("test.gsh"));
     }
@@ -104,10 +115,13 @@ public class DeployFileServiceTests
         m_MockDirectory.Setup(f => f.Exists("foo")).Returns(true);
         m_MockDirectory.Setup(d => d.GetFiles("foo", "*.gsh", SearchOption.AllDirectories))
             .Returns(expectedFiles.ToArray);
-        var files = m_Service.ListFilesToDeploy(new List<string>
-        {
-            "foo"
-        }, ".gsh");
+        var files = m_Service.ListFilesToDeploy(
+            new List<string>
+            {
+                "foo"
+            },
+            ".gsh",
+            false);
         expectedFiles.Sort();
         CollectionAssert.AreEqual(expectedFiles, files);
     }
@@ -126,10 +140,13 @@ public class DeployFileServiceTests
         m_MockDirectory.Setup(f => f.Exists("foo")).Returns(true);
         m_MockDirectory.Setup(d => d.GetFiles("foo", "*.gsh", SearchOption.AllDirectories))
             .Returns(expectedFiles.ToArray);
-        var files = m_Service.ListFilesToDeploy(new List<string>
-        {
-            "foo"
-        }, ".gsh");
+        var files = m_Service.ListFilesToDeploy(
+            new List<string>
+            {
+                "foo"
+            },
+            ".gsh",
+            false);
         expectedFiles = expectedFiles.Distinct().ToList();
         expectedFiles.Sort();
         CollectionAssert.AreEqual(expectedFiles, files);
@@ -138,45 +155,6 @@ public class DeployFileServiceTests
     [Test]
     public void ListFilesToDeployOnEmptyInputThrowDeployException()
     {
-        Assert.Throws<DeployException>(() => m_Service.ListFilesToDeploy(new List<string>(), ".gsh"));
-    }
-
-    [Test]
-    public async Task LoadContentAsyncSuccessful()
-    {
-        m_MockFile.Setup(f => f.Exists("foo")).Returns(true);
-        m_MockFile.Setup(f => f.ReadAllTextAsync("foo", CancellationToken.None)).ReturnsAsync("{}");
-        var content = await m_Service.LoadContentAsync("foo", CancellationToken.None);
-        Assert.AreEqual("{}", content);
-    }
-
-    [Test]
-    public void LoadContentAsyncFailedWithFileNotFound()
-    {
-        m_MockFile.Setup(f => f.Exists("foo")).Returns(true);
-        m_MockFile.Setup(f => f.ReadAllTextAsync("foo", CancellationToken.None))
-            .ThrowsAsync(new FileNotFoundException());
-
-        Assert.ThrowsAsync<CliException>(async () => await m_Service.LoadContentAsync("foo", CancellationToken.None));
-    }
-
-    [Test]
-    public void LoadContentAsyncFailedWithUnauthorizedAccess()
-    {
-        m_MockFile.Setup(f => f.Exists("foo")).Returns(true);
-        m_MockFile.Setup(f => f.ReadAllTextAsync("foo", CancellationToken.None))
-            .ThrowsAsync(new UnauthorizedAccessException());
-
-        Assert.ThrowsAsync<CliException>(async () => await m_Service.LoadContentAsync("foo", CancellationToken.None));
-    }
-
-    [Test]
-    public void LoadContentAsyncFailedWithUnexpectedException()
-    {
-        m_MockFile.Setup(f => f.Exists("foo")).Returns(true);
-        m_MockFile.Setup(f => f.ReadAllTextAsync("foo", CancellationToken.None))
-            .ThrowsAsync(new Exception());
-
-        Assert.ThrowsAsync<Exception>(async () => await m_Service.LoadContentAsync("foo", CancellationToken.None));
+        Assert.Throws<DeployException>(() => m_Service.ListFilesToDeploy(new List<string>(), ".gsh", true));
     }
 }

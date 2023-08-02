@@ -17,7 +17,6 @@ using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Common.Validator;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Analytics;
-using Unity.Services.CloudCode.Authoring.Editor.Core.Crypto;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Api;
@@ -305,8 +304,6 @@ public class CloudCodeModule : ICommandModule
         serviceCollection.AddSingleton<EnvironmentProvider>();
         serviceCollection.AddSingleton<ICliEnvironmentProvider>(s => s.GetRequiredService<EnvironmentProvider>());
         serviceCollection.AddSingleton<IEnvironmentProvider>(s => s.GetRequiredService<EnvironmentProvider>());
-        serviceCollection.AddSingleton<IHashComputer, HashComputer>();
-        serviceCollection.AddSingleton<IScriptCache, JsScriptCache>();
         serviceCollection.AddSingleton<IPreDeployValidator, PreDeployValidator>();
         serviceCollection.AddSingleton<ICloudCodeModulesLoader, CloudCodeModulesLoader>();
         serviceCollection.AddSingleton<HttpClient>();

@@ -17,7 +17,7 @@ class GameServerHostingServersApiV1Mock
             locationID: ValidLocationId,
             locationName: ValidLocationName,
             machineName:"",
-            machineSpec: new MachineSpec(""),
+            machineSpec: new MachineSpec1("2020-12-31T12:00:00Z", "2020-01-01T12:00:00Z", "test-cpu"),
             hardwareType: Server.HardwareTypeEnum.CLOUD,
             fleetID: new Guid(ValidFleetId),
             fleetName: ValidFleetName,

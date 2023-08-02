@@ -4,7 +4,6 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>Unity.Services.Cli.Leaderboard.UnitTest</RootNamespace>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
@@ -21,5 +20,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Unity.Services.Cli.Leaderboards\Unity.Services.Cli.Leaderboards.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.TestUtils\Unity.Services.Cli.TestUtils.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Unity.Services.Cli.Leaderboards">
+      <HintPath>..\Unity.Services.Cli\bin\Debug\net6.0\Unity.Services.Cli.Leaderboards.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

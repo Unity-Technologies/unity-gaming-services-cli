@@ -15,7 +15,6 @@ class RemoteConfigFetchService : IFetchService
     readonly IUnityEnvironment m_UnityEnvironment;
     readonly IRemoteConfigFetchHandler m_FetchHandler;
     readonly ICliRemoteConfigClient m_RemoteConfigClient;
-    readonly IDeployFileService m_DeployFileService;
     readonly IRemoteConfigScriptsLoader m_RemoteConfigScriptsLoader;
     readonly string m_DeployFileExtension;
     public string ServiceType { get; }
@@ -27,14 +26,12 @@ class RemoteConfigFetchService : IFetchService
         IUnityEnvironment unityEnvironment,
         IRemoteConfigFetchHandler fetchHandler,
         ICliRemoteConfigClient remoteConfigClient,
-        IDeployFileService deployFileService,
         IRemoteConfigScriptsLoader remoteConfigScriptsLoader
     )
     {
         m_UnityEnvironment = unityEnvironment;
         m_FetchHandler = fetchHandler;
         m_RemoteConfigClient = remoteConfigClient;
-        m_DeployFileService = deployFileService;
         m_RemoteConfigScriptsLoader = remoteConfigScriptsLoader;
         ServiceType = "Remote Config";
         ServiceName = "remote-config";
@@ -43,15 +40,15 @@ class RemoteConfigFetchService : IFetchService
 
     public async Task<FetchResult> FetchAsync(
         FetchInput input,
+        IReadOnlyList<string> filePaths,
         StatusContext? loadingContext,
         CancellationToken cancellationToken)
     {
         var environmentId = await m_UnityEnvironment.FetchIdentifierAsync(cancellationToken);
         m_RemoteConfigClient.Initialize(input.CloudProjectId!, environmentId, cancellationToken);
-        var remoteConfigFiles = m_DeployFileService.ListFilesToDeploy(new[] { input.Path }, m_DeployFileExtension).ToList();
 
         var loadResult = await m_RemoteConfigScriptsLoader
-            .LoadScriptsAsync(remoteConfigFiles, cancellationToken);
+            .LoadScriptsAsync(filePaths, cancellationToken);
         var configFiles = loadResult.Loaded.ToList();
 
         loadingContext?.Status($"Fetching {ServiceType} Files...");
@@ -69,7 +66,7 @@ class RemoteConfigFetchService : IFetchService
             .UnionBy(loadResult.Failed, f => f.Path)
             .ToList();
 
-        return new FetchResult(
+        return new RemoteConfigFetchResult(
             fetchResult.Updated.Select(rce => GetDeployContent(rce, "Updated")).ToList(),
             fetchResult.Deleted.Select(rce => GetDeployContent(rce, "Deleted")).ToList(),
             fetchResult.Created.Select(rce => GetDeployContent(rce, "Updated")).ToList(),

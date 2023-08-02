@@ -18,7 +18,7 @@ public class ServersOutputTests
                 port: 9000,
                 machineID: ValidMachineId,
                 machineName: "test machine",
-                machineSpec: new MachineSpec("test-cpu"),
+                machineSpec: new MachineSpec1("2020-12-31T12:00:00Z", "2020-01-01T12:00:00Z", "test-cpu"),
                 locationID: ValidLocationId,
                 locationName: ValidLocationName,
                 fleetID: new Guid(ValidFleetId),

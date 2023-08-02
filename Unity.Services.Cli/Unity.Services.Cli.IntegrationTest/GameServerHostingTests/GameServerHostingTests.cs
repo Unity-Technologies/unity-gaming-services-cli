@@ -7,6 +7,7 @@ using Unity.Services.Cli.MockServer.ServiceMocks.GameServerHosting;
 
 namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 
+[Ignore("Disable until fixed by GHS")]
 public partial class GameServerHostingTests : UgsCliFixture
 {
     [OneTimeSetUp]

@@ -11,18 +11,25 @@ using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Common.Validator;
-using Unity.Services.Cli.Authoring.Compression;
 using Unity.Services.Cli.Authoring.Export.Input;
 using Unity.Services.Cli.Authoring.Import.Input;
 using Unity.Services.Cli.Authoring.Service;
 using System.IO.Abstractions;
 using Unity.Services.Cli.Leaderboards.Handlers.ImportExport;
+using Unity.Services.Cli.Leaderboards.Deploy;
+using Unity.Services.Leaderboards.Authoring.Core.Service;
+
 using Unity.Services.Cli.Leaderboards.Handlers;
 using Unity.Services.Cli.Leaderboards.Input;
 using Unity.Services.Cli.Leaderboards.Service;
 using Unity.Services.Gateway.LeaderboardApiV1.Generated.Api;
-using Unity.Services.Gateway.LeaderboardApiV1.Generated.Model;
-
+using Unity.Services.Cli.Authoring.Handlers;
+using Unity.Services.Leaderboards.Authoring.Core.Deploy;
+using Unity.Services.Leaderboards.Authoring.Core.Fetch;
+using Unity.Services.Leaderboards.Authoring.Core.Serialization;
+using LeaderboardFile = Unity.Services.Cli.Leaderboards.Deploy.LeaderboardConfigFile;
+using CoreIFileSystem = Unity.Services.Leaderboards.Authoring.Core.IO.IFileSystem;
+using CoreFileSystem = Unity.Services.Cli.Leaderboards.IO.FileSystem;
 
 namespace Unity.Services.Cli.Leaderboards;
 
@@ -32,8 +39,6 @@ public class LeaderboardsModule : ICommandModule
     internal Command ImportCommand { get; }
     internal Command ListLeaderboardsCommand { get; }
     internal Command GetLeaderboardCommand { get; }
-    internal Command CreateLeaderboardCommand { get; }
-    internal Command UpdateLeaderboardCommand { get; }
     internal Command DeleteLeaderboardCommand { get; }
     internal Command ResetLeaderboardCommand { get; }
 
@@ -61,14 +66,11 @@ public class LeaderboardsModule : ICommandModule
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
-            ListLeaderboardInput.CursorOption,
-            ListLeaderboardInput.LimitOption,
             ExportInput.OutputDirectoryArgument,
             ExportInput.DryRunOption,
             ExportInput.FileNameArgument
         };
         ExportCommand.SetHandler<
-            ListLeaderboardInput,
             ExportInput,
             ILogger,
             LeaderboardExporter,
@@ -106,34 +108,6 @@ public class LeaderboardsModule : ICommandModule
             ILoadingIndicator,
             CancellationToken>(
             GetLeaderboardHandler.GetLeaderboardConfigAsync);
-
-        CreateLeaderboardCommand = new Command("create", "Create a new leaderboard.")
-        {
-            CreateInput.RequestBodyArgument,
-        };
-        CreateLeaderboardCommand.SetHandler<
-            CreateInput,
-            IUnityEnvironment,
-            ILeaderboardsService,
-            ILogger,
-            ILoadingIndicator,
-            CancellationToken>(CreateLeaderboardHandler.CreateLeaderboardAsync);
-
-        UpdateLeaderboardCommand = new Command("update", "Update a leaderboard.")
-        {
-            LeaderboardIdInput.RequestLeaderboardIdArgument,
-            UpdateInput.RequestBodyArgument,
-            CommonInput.CloudProjectIdOption,
-            CommonInput.EnvironmentNameOption,
-        };
-        UpdateLeaderboardCommand.SetHandler<
-            UpdateInput,
-            IUnityEnvironment,
-            ILeaderboardsService,
-            ILogger,
-            ILoadingIndicator,
-            CancellationToken>(UpdateLeaderboardHandler.UpdateLeaderboardAsync);
-
         DeleteLeaderboardCommand = new Command("delete", "Delete a leaderboard.")
         {
             LeaderboardIdInput.RequestLeaderboardIdArgument,
@@ -165,12 +139,11 @@ public class LeaderboardsModule : ICommandModule
 
         ModuleRootCommand = new Command("leaderboards", "Manage Leaderboards.")
         {
-            CreateLeaderboardCommand,
             DeleteLeaderboardCommand,
             GetLeaderboardCommand,
-            UpdateLeaderboardCommand,
             ListLeaderboardsCommand,
             ResetLeaderboardCommand,
+            ModuleRootCommand.AddNewFileCommand<LeaderboardFile>("Leaderboard"),
             ExportCommand,
             ImportCommand
         };
@@ -203,13 +176,19 @@ public class LeaderboardsModule : ICommandModule
         Gateway.LeaderboardApiV1.Generated.Client.RetryConfiguration.AsyncRetryPolicy = retryAfterPolicy;
         serviceCollection.AddTransient<ILeaderboardsApiAsync>(_ => new LeaderboardsApi(config));
         serviceCollection.AddTransient<IConfigurationValidator, ConfigurationValidator>();
-        // TODO: Move this service registration into the common ImportExportModule in the
-        // authoring project once it exists.
-        serviceCollection.AddTransient<IZipArchiver, ZipArchiver>();
         serviceCollection.AddSingleton<ILeaderboardsService, LeaderboardsService>();
+        serviceCollection.AddSingleton<ILeaderboardsClient, LeaderboardsClient>();
         serviceCollection.AddTransient<LeaderboardImporter, LeaderboardImporter>();
         serviceCollection.AddTransient<LeaderboardExporter, LeaderboardExporter>();
         serviceCollection.AddTransient<IFileSystem, FileSystem>();
-
+        serviceCollection.AddTransient<CoreIFileSystem, CoreFileSystem>();
+        serviceCollection.AddTransient<IDeploymentService, LeaderboardDeploymentService>();
+        serviceCollection.AddTransient<IFetchService, LeaderboardFetchService>();
+        serviceCollection.AddTransient<ILeaderboardsDeploymentHandler, LeaderboardsDeploymentHandler>();
+        serviceCollection.AddTransient<ILeaderboardsFetchHandler, LeaderboardsFetchHandler>();
+        serviceCollection.AddTransient<ILeaderboardsConfigLoader, LeaderboardsConfigLoader>();
+        serviceCollection.AddTransient<ILeaderboardsSerializer, LeaderboardsSerializer>();
+        serviceCollection.AddTransient<LeaderboardImporter, LeaderboardImporter>();
+        serviceCollection.AddTransient<LeaderboardExporter, LeaderboardExporter>();
     }
 }

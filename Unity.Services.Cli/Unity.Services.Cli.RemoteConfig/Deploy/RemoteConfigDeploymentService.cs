@@ -72,7 +72,7 @@ partial class RemoteConfigDeploymentService : IDeploymentService
 
         if (deploymentResult == null)
         {
-            return new DeploymentResult(loadResult.Loaded.Concat(loadResult.Failed).ToList());
+            return new RemoteConfigDeploymentResult(loadResult.Loaded.Concat(loadResult.Failed).ToList());
         }
 
         var failed = deploymentResult
@@ -81,7 +81,7 @@ partial class RemoteConfigDeploymentService : IDeploymentService
             .UnionBy(loadResult.Failed, f => f.Path)
             .ToList();
 
-        return new DeploymentResult(
+        return new RemoteConfigDeploymentResult(
             ToDeployContents(deploymentResult.Updated, 100, "Updated"),
             ToDeployContents(deploymentResult.Deleted, 100, "Deleted"),
             ToDeployContents(deploymentResult.Created, 100, "Created"),

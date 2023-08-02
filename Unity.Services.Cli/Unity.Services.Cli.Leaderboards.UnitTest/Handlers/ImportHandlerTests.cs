@@ -79,7 +79,7 @@ class ImportHandlerTests
             CancellationToken.None
         );
 
-        m_MockLoadingIndicator.Verify(li => li.StartLoadingAsync(ImportHandler.k_LoadingIndicatorMessage,
+        m_MockLoadingIndicator.Verify(li => li.StartLoadingAsync(ImportHandler.LoadingIndicatorMessage,
             It.IsAny<Func<StatusContext?, Task>>()));
     }
 

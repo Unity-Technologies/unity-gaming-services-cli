@@ -21,8 +21,7 @@ class ExposeCliCloudCodeDeploymentHandler : CliCloudCodeDeploymentHandler<ICloud
     public ExposeCliCloudCodeDeploymentHandler(
         ICloudCodeClient client,
         IDeploymentAnalytics deploymentAnalytics,
-        IScriptCache scriptCache,
         ILogger logger,
         IPreDeployValidator preDeployValidator)
-        : base(client, deploymentAnalytics, scriptCache, logger, preDeployValidator) { }
+        : base(client, deploymentAnalytics, logger, preDeployValidator) { }
 }

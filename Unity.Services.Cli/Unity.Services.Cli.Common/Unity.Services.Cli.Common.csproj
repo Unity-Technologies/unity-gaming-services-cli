@@ -13,6 +13,7 @@
     <PackageReference Include="Spectre.Console" Version="0.46.0" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageReference Include="System.CommandLine.Hosting" Version="0.4.0-alpha.22272.1" />
+    <PackageReference Include="System.IO.Abstractions" Version="19.2.16" />
     <PackageReference Include="Unity.Services.Gateway.AccessApiV1.Generated" Version="1.0.1" />
     <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.2.0" />
     <PackageReference Include="Unity.Services.Gateway.EconomyApiV2.Generated" Version="2.0.2" />
@@ -22,7 +23,7 @@
     <PackageReference Include="Unity.Services.Gateway.PlayerAuthApiV1.Generated" Version="1.0.1" />
     <PackageReference Include="Unity.Services.TelemetryApi.Generated" Version="1.0.1" />
     <PackageReference Include="Unity.Services.MpsLobby.LobbyApiV1.Generated" Version="0.11.1" />
-    <PackageReference Include="Unity.Services.Gateway.GameServerHostingApiV1.Generated" Version="0.5.0" />
+    <PackageReference Include="Unity.Services.Gateway.GameServerHostingApiV1.Generated" Version="0.6.0-alpha.2" />
     <PackageReference Include="UnityAnalytic.Modules.Sender" Version="0.1.0" />
   </ItemGroup>
   <ItemGroup>

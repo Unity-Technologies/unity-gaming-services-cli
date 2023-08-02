@@ -24,23 +24,23 @@ class CloudCodeAuthoringLoggerTests
     }
 
     [Test]
-    public void LogErrorLoggerLogWithErrorLevel()
+    public void LogErrorLoggerLogWithErrorLevel_NoOpLogger()
     {
         m_CloudCodeAuthoringLogger.LogError("error message");
-        TestsHelper.VerifyLoggerWasCalled(m_MockLogger, LogLevel.Error, null, Times.Once);
+        TestsHelper.VerifyLoggerWasCalled(m_MockLogger, LogLevel.Error, null, Times.Never);
     }
 
     [Test]
-    public void LogLogInfoLoggerLogWithInformationLevel()
+    public void LogLogInfoLoggerLogWithInformationLevel_NoOpLogger()
     {
         m_CloudCodeAuthoringLogger.LogInfo("information message");
-        TestsHelper.VerifyLoggerWasCalled(m_MockLogger, LogLevel.Information, null, Times.Once);
+        TestsHelper.VerifyLoggerWasCalled(m_MockLogger, LogLevel.Information, null, Times.Never);
     }
 
     [Test]
-    public void LogLogWarningLoggerLogWitWarningLevel()
+    public void LogLogWarningLoggerLogWithWarningLevel_NoOpLogger()
     {
         m_CloudCodeAuthoringLogger.LogWarning("warning message");
-        TestsHelper.VerifyLoggerWasCalled(m_MockLogger, LogLevel.Warning, null, Times.Once);
+        TestsHelper.VerifyLoggerWasCalled(m_MockLogger, LogLevel.Warning, null, Times.Never);
     }
 }

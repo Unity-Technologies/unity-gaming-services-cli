@@ -6,10 +6,13 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Model.TableOutput;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Cli.MockServer.ServiceMocks;
 using Unity.Services.Cli.MockServer.ServiceMocks.RemoteConfig;
+using Unity.Services.Cli.RemoteConfig.Deploy;
+using Unity.Services.Cli.RemoteConfig.Model;
 using Unity.Services.DeploymentApi.Editor;
 
 namespace Unity.Services.Cli.IntegrationTest.Authoring.Deploy.RemoteConfig;
@@ -118,6 +121,7 @@ public class RemoteConfigDeployTests : UgsCliFixture
 
         await m_MockApi.MockServiceAsync(new IdentityV1Mock());
         await m_MockApi.MockServiceAsync(new RemoteConfigMock());
+        await m_MockApi.MockServiceAsync(new LeaderboardApiMock());
     }
 
     static async Task CreateDeployTestFilesAsync(IReadOnlyList<AuthoringTestCase> testCases, ICollection<DeployContent> contents)
@@ -231,11 +235,11 @@ public class RemoteConfigDeployTests : UgsCliFixture
 
         var createdEntries = m_DeployedTestCases
             .SelectMany(tc => RemoteConfigFileContent.RemoteConfigToDeployContents(
-                tc ,
+                tc,
                 new DeploymentStatus(Statuses.Created, string.Empty)))
             .ToList();
 
-        var logResult = DeployTestsFixture.CreateResult(
+        var logResult = DeployTestsFixture.CreateTableResult(
             createdEntries,
             Array.Empty<DeployContent>(),
             Array.Empty<DeployContent>(),
@@ -263,14 +267,26 @@ public class RemoteConfigDeployTests : UgsCliFixture
                 100f))
             .ToList();
 
-        var logResult = new DeploymentResult(
+        var deployFiles =
+            m_DryRunDeployedTestCases
+                .Select(d =>
+                    new DeployContent(
+                        d.ConfigFileName,
+                        "RemoteConfig File",
+                        d.ConfigFilePath,
+                        0,
+                        Statuses.Loaded))
+                .ToList();
+
+        var logResult = new RemoteConfigDeploymentResult(
             Array.Empty<DeployContent>(),
             Array.Empty<DeployContent>(),
             dc,
-            Array.Empty<DeployContent>(),
+            deployFiles,
             Array.Empty<DeployContent>(),
             true);
-        var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
+
+        var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
 
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory} -j --dry-run")
@@ -290,12 +306,12 @@ public class RemoteConfigDeployTests : UgsCliFixture
             .SelectMany(tc => RemoteConfigFileContent.RemoteConfigToDeployContents(tc, new DeploymentStatus(Statuses.Created, string.Empty)))
             .ToList();
 
-        var logResult = DeployTestsFixture.CreateResult(
+        var logResult = DeployTestsFixture.CreateTableResult(
             createdEntries,
             Array.Empty<DeployContent>(),
             new[]
             {
-                new DeployContent("test", "RemoteConfig Entry", "Remote", 100, "Deleted")
+                new CliRemoteConfigEntry("test", "RemoteConfig Entry", "Remote", 100, "Deleted")
             },
             m_ReconcileTestCases.Select(tc => tc.DeployedContent).ToList(),
             Array.Empty<DeployContent>());
@@ -319,7 +335,7 @@ public class RemoteConfigDeployTests : UgsCliFixture
             .SelectMany(tc => RemoteConfigFileContent.RemoteConfigToDeployContents(tc, new DeploymentStatus(Statuses.Created, string.Empty)))
             .ToList();
 
-        var logResult = DeployTestsFixture.CreateResult(
+        var logResult = DeployTestsFixture.CreateTableResult(
             createdEntries,
             Array.Empty<DeployContent>(),
             Array.Empty<DeployContent>(),

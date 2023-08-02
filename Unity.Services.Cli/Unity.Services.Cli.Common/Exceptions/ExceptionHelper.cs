@@ -121,15 +121,15 @@ public class ExceptionHelper
 
         try
         {
-            Diagnostics.AddData(TagKeys.DiagnosticName, "cli_unhandled_exception");
-            Diagnostics.AddData(TagKeys.DiagnosticMessage, exception.ToString());
+            Diagnostics.AddData(DiagnosticsTagKeys.DiagnosticName, "cli_unhandled_exception");
+            Diagnostics.AddData(DiagnosticsTagKeys.DiagnosticMessage, exception.ToString());
 
             var command = new StringBuilder("ugs");
             foreach (var arg in context.ParseResult.Tokens)
             {
                 command.Append("_" + arg);
             }
-            Diagnostics.AddData(TagKeys.Command, command.ToString());
+            Diagnostics.AddData(DiagnosticsTagKeys.Command, command.ToString());
             Diagnostics.AddData(TagKeys.Timestamp, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
 
             Diagnostics.Send();

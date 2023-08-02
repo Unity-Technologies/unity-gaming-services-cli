@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Model.TableOutput;
 using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Cli.MockServer.ServiceMocks;
 using Unity.Services.DeploymentApi.Editor;
@@ -76,6 +77,7 @@ public class CloudCodeDeployTests : UgsCliFixture
         Directory.CreateDirectory(k_TestDirectory);
         await m_MockApi.MockServiceAsync(new IdentityV1Mock());
         await m_MockApi.MockServiceAsync(new CloudCodeV1Mock());
+        await m_MockApi.MockServiceAsync(new LeaderboardApiMock());
     }
 
     [TearDown]
@@ -116,7 +118,7 @@ public class CloudCodeDeployTests : UgsCliFixture
             Array.Empty<DeployContent>(),
             m_DeployedContents,
             Array.Empty<DeployContent>());
-        var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
+        var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory} -j")
             .AssertStandardOutputContains(resultString)
@@ -138,7 +140,7 @@ public class CloudCodeDeployTests : UgsCliFixture
             Array.Empty<DeployContent>(),
             Array.Empty<DeployContent>(),
             true);
-        var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
+        var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory} -j --dry-run")
             .AssertStandardOutputContains(resultString)
@@ -155,20 +157,59 @@ public class CloudCodeDeployTests : UgsCliFixture
 
         var deletedStatus = new DeploymentStatus("Deployed", "Deleted remotely", SeverityLevel.Success);
 
-        var logResult = DeployTestsFixture.CreateResult(
+        var logResultCc = DeployTestsFixture.CreateResult(
             m_DeployedContents,
             Array.Empty<DeployContent>(),
             new[]
             {
-                new DeployContent("example-string.js", "Cloud Code Scripts", "", 100, deletedStatus),
-                new DeployContent("example-string.js", "Cloud Code Scripts", "",100, deletedStatus),
-                new DeployContent("example-string.js", "Cloud Code Scripts", "", 100, deletedStatus),
-                new DeployContent("ExistingModule.ccm", "JS", "", 100, deletedStatus),
-                new DeployContent("AnotherExistingModule.ccm", "JS", "", 100, deletedStatus),
+                new DeployContent(
+                    "example-string.js",
+                    "Cloud Code Scripts",
+                    "",
+                    100,
+                    deletedStatus),
+                new DeployContent(
+                    "example-string.js",
+                    "Cloud Code Scripts",
+                    "",
+                    100,
+                    deletedStatus),
+                new DeployContent(
+                    "example-string.js",
+                    "Cloud Code Scripts",
+                    "",
+                    100,
+                    deletedStatus)
             },
             m_DeployedContents,
             Array.Empty<DeployContent>());
-        var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
+
+        var logResultCcm = DeployTestsFixture.CreateResult(
+            Array.Empty<DeployContent>(),
+            Array.Empty<DeployContent>(),
+            new[]
+            {
+                new DeployContent(
+                    "ExistingModule.ccm",
+                    "JS",
+                    "",
+                    100,
+                    deletedStatus),
+                new DeployContent(
+                    "AnotherExistingModule.ccm",
+                    "JS",
+                    "",
+                    100,
+                    deletedStatus),
+            },
+            Array.Empty<DeployContent>(),
+            Array.Empty<DeployContent>());
+
+        var finalResult = new TableContent();
+        finalResult.AddRows(logResultCc.ToTable());
+        finalResult.AddRows(logResultCcm.ToTable());
+
+        var resultString = JsonConvert.SerializeObject(finalResult, Formatting.Indented);
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory} -j --reconcile -s cloud-code-scripts -s cloud-code-modules")
             .AssertStandardOutputContains(resultString)
@@ -189,7 +230,7 @@ public class CloudCodeDeployTests : UgsCliFixture
             Array.Empty<DeployContent>(),
             m_DeployedContents,
             Array.Empty<DeployContent>());
-        var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
+        var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory} -j")
             .AssertStandardOutputContains(resultString)

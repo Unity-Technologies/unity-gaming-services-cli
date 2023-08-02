@@ -17,7 +17,7 @@ using Unity.Services.Gateway.LeaderboardApiV1.Generated.Model;
 namespace Unity.Services.Cli.Leaderboards.UnitTest.Handlers;
 
 [TestFixture]
-class ExportHandlerTests
+class LeaderboardExportHandlerTests
 {
     readonly Mock<IUnityEnvironment> m_MockUnityEnvironment = new();
     readonly Mock<ILeaderboardsService> m_MockLeaderboardsService = new();
@@ -55,7 +55,6 @@ class ExportHandlerTests
 
         await ExportHandler.ExportAsync
         (
-            null!,
             exportInput,
             m_MockLogger.Object,
             m_LeaderboardExporter,
@@ -63,7 +62,7 @@ class ExportHandlerTests
             CancellationToken.None
         );
 
-        m_MockLoadingIndicator.Verify(li => li.StartLoadingAsync(ExportHandler.k_LoadingIndicatorMessage,
+        m_MockLoadingIndicator.Verify(li => li.StartLoadingAsync(ExportHandler.LoadingIndicatorMessage,
             It.IsAny<Func<StatusContext?, Task>>()));
     }
 
@@ -74,12 +73,7 @@ class ExportHandlerTests
         {
             OutputDirectory = "mock_output_directory"
         };
-        var input = new ListLeaderboardInput()
-        {
-            CloudProjectId = TestValues.ValidProjectId,
-            Cursor = TestValues.Cursor,
-            Limit = TestValues.Limit
-        };
+
         m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
@@ -107,8 +101,7 @@ class ExportHandlerTests
                     .Exists(It.IsAny<string>()))
             .Returns<string>((path) => false);
 
-        m_LeaderboardExporter!.ListLeaderboardInput = input;
-        await m_LeaderboardExporter.ExportAsync(exportInput, CancellationToken.None);
+        await m_LeaderboardExporter!.ExportAsync(exportInput, CancellationToken.None);
 
         var archivePath = Path.Join(exportInput.OutputDirectory, LeaderboardConstants.ZipName);
 
@@ -136,12 +129,7 @@ class ExportHandlerTests
             OutputDirectory = "mock_output_directory",
             FileName = fileName
         };
-        var input = new ListLeaderboardInput()
-        {
-            CloudProjectId = TestValues.ValidProjectId,
-            Cursor = TestValues.Cursor,
-            Limit = TestValues.Limit
-        };
+
         m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
@@ -171,8 +159,7 @@ class ExportHandlerTests
                     .Exists(It.IsAny<string>()))
             .Returns<string>((path) => false);
 
-        m_LeaderboardExporter!.ListLeaderboardInput = input;
-        await m_LeaderboardExporter.ExportAsync(exportInput, CancellationToken.None);
+        await m_LeaderboardExporter!.ExportAsync(exportInput, CancellationToken.None);
 
         m_MockLeaderboardsService.Verify(
             ls => ls.GetLeaderboardsAsync(It.IsAny<string>(),
@@ -199,21 +186,83 @@ class ExportHandlerTests
             FileName = fileName
         };
 
-        var input = new ListLeaderboardInput()
-        {
-            CloudProjectId = TestValues.ValidProjectId,
-            Cursor = TestValues.Cursor,
-            Limit = TestValues.Limit
-        };
         m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
 
-        m_LeaderboardExporter!.ListLeaderboardInput = input;
         var exception = Assert.ThrowsAsync<CliException>(async () =>
         {
-            await m_LeaderboardExporter.ExportAsync(exportInput, CancellationToken.None);
+            await m_LeaderboardExporter!.ExportAsync(exportInput, CancellationToken.None);
         });
 
         Assert.That(exception!.Message, Is.EqualTo("The file-name argument must have the extension '.lbzip'."));
+    }
+
+    [Test]
+    public async Task ExportAsync_ExportsMoreThan50()
+    {
+        var fileName = "other.lbzip";
+
+        var exportInput = new ExportInput()
+        {
+            OutputDirectory = "mock_output_directory",
+            FileName = fileName
+        };
+
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
+            .ReturnsAsync(TestValues.ValidEnvironmentId);
+
+        m_FileSystemMock.Setup(
+            e => e
+                .Directory
+                .CreateDirectory(It.IsAny<string>()));
+        m_FileSystemMock.Setup(
+                e => e
+                    .Path
+                    .Join(It.IsAny<string?>(), It.IsAny<string?>()))
+            .Returns(Path.Join(exportInput.OutputDirectory, LeaderboardConstants.ZipName));
+
+        m_FileSystemMock.Setup(
+                e => e
+                    .File
+                    .Exists(It.IsAny<string>()))
+            .Returns<string>(_ => false);
+
+        m_MockLeaderboardsService.Setup(
+                ls => ls.GetLeaderboardsAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns(ListFunc);
+
+        await m_LeaderboardExporter!.ExportAsync(exportInput, CancellationToken.None);
+
+        m_MockLeaderboardsService
+            .Verify(s => s.GetLeaderboardsAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()),
+                Times.Exactly(2));
+    }
+
+    static Task<IEnumerable<UpdatedLeaderboardConfig>> ListFunc(
+        string projectId,
+        string envId,
+        string? cursor,
+        int? limit,
+        CancellationToken token)
+    {
+        var remoteLbs = Enumerable.Range(0, 75)
+            .Select(i => new UpdatedLeaderboardConfig($"id{i}", $"name{i}"));
+
+        if (cursor == null)
+        {
+            return Task.FromResult(remoteLbs.Take(limit!.Value));
+        }
+
+        return Task.FromResult(remoteLbs.SkipWhile(l => l.Id != cursor).Skip(1).Take(limit!.Value));
     }
 }

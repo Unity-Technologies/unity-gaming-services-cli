@@ -45,6 +45,11 @@ public partial class UgsCliTestCase
         return Command(wrapper);
     }
 
+    /// <summary>
+    /// This command runs in the same process so that we can use breakpoints and
+    /// debug it. It has limitations compared to running the seperate executable
+    /// such as not being able to handle stdin
+    /// </summary>
     public UgsCliTestCase DebugCommand(string arguments)
     {
         NetworkTargetEndpoints.UseMockEndpoints = true;

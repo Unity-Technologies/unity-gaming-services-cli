@@ -1,6 +1,7 @@
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Unity.Services.Cli.Authoring.Model.TableOutput;
 using Unity.Services.DeploymentApi.Editor;
 
 namespace Unity.Services.Cli.Authoring.Model;
@@ -119,6 +120,21 @@ public abstract class AuthorResult
         return result.ToString();
     }
 
+    public virtual TableContent ToTable()
+    {
+         var table = new TableContent
+         {
+             IsDryRun = DryRun
+         };
+
+         table.AddRows(Updated.Select(TableContent.ToTable).ToList());
+         table.AddRows(Deleted.Select(TableContent.ToTable).ToList());
+         table.AddRows(Created.Select(TableContent.ToTable).ToList());
+         table.AddRows(Failed.Select(TableContent.ToTable).ToList());
+
+         return table;
+    }
+
     void AppendFetched(StringBuilder builder)
     {
         if (Authored.Any())
@@ -151,8 +167,6 @@ public abstract class AuthorResult
         }
 
         builder.AppendLine($"{resultHeader}:{joinedUpdated}");
-
-
     }
 
     public class DeployContentContractResolver : DefaultContractResolver

@@ -2,12 +2,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
+using Unity.Services.Cli.Authoring.DeploymentDefinition;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Model.TableOutput;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Logging;
+using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
 using Unity.Services.Cli.Common.Utils;
 
 namespace Unity.Services.Cli.Authoring.Handlers;
@@ -17,10 +20,11 @@ static class DeployHandler
     public static async Task DeployAsync(
         IHost host,
         DeployInput input,
-        IDeployFileService deployFileService,
         IUnityEnvironment unityEnvironment,
         ILogger logger,
         ILoadingIndicator loadingIndicator,
+        ICliDeploymentDefinitionService definitionService,
+        IAnalyticsEventBuilder analyticsEventBuilder,
         CancellationToken cancellationToken
     )
     {
@@ -29,20 +33,22 @@ static class DeployHandler
             context => DeployAsync(
                 host,
                 input,
-                deployFileService,
                 unityEnvironment,
                 logger,
                 context,
+                definitionService,
+                analyticsEventBuilder,
                 cancellationToken));
     }
 
     internal static async Task DeployAsync(
         IHost host,
         DeployInput input,
-        IDeployFileService deployFileService,
         IUnityEnvironment unityEnvironment,
         ILogger logger,
         StatusContext? loadingContext,
+        ICliDeploymentDefinitionService definitionService,
+        IAnalyticsEventBuilder analyticsEventBuilder,
         CancellationToken cancellationToken
     )
     {
@@ -78,10 +84,27 @@ static class DeployHandler
             .Where(s => CheckService(input, s))
             .ToArray();
 
+        var ddefResult = GetDdefResult(
+            definitionService,
+            logger,
+            input.Paths,
+            deploymentServices.Select(ds => ds.DeployFileExtension));
+        if (ddefResult == null)
+        {
+            return;
+        }
+
+        analyticsEventBuilder.SetAuthoringCommandlinePathsInputCount(input.Paths);
+
+        foreach (var deploymentService in deploymentServices)
+        {
+            analyticsEventBuilder.AddAuthoringServiceProcessed(deploymentService.ServiceName);
+        }
+
         var tasks = deploymentServices.Select(
-                m => m.Deploy(
-                    input,
-                    deployFileService.ListFilesToDeploy(input.Paths, m.DeployFileExtension),
+            m => m.Deploy(
+                input,
+                ddefResult.AllFilesByExtension[m.DeployFileExtension],
                     projectId,
                     environmentId,
                     loadingContext,
@@ -114,7 +137,29 @@ static class DeployHandler
             input.DryRun
         );
 
-        logger.LogResultValue(totalResult);
+        if (input.IsJson)
+        {
+            var tableResult = new TableContent()
+            {
+                IsDryRun = input.DryRun
+            };
+
+            foreach (var task in tasks)
+            {
+                tableResult.AddRows(task.Result.ToTable());
+            }
+
+            logger.LogResultValue(tableResult);
+        }
+        else
+        {
+            logger.LogResultValue(totalResult);
+        }
+
+        if (ddefResult.DefinitionFiles.HasExcludes)
+        {
+            logger.LogInformation(ddefResult.GetExclusionsLogMessage());
+        }
 
         // Get Exceptions from faulted deployments
         var exceptions = tasks
@@ -148,5 +193,29 @@ static class DeployHandler
         unsupportedServices = string.Join(", ", input.Services.Except(serviceNames));
 
         return string.IsNullOrEmpty(unsupportedServices);
+    }
+
+    static IDeploymentDefinitionFilteringResult? GetDdefResult(
+        ICliDeploymentDefinitionService ddefService,
+        ILogger logger,
+        IEnumerable<string> inputPaths,
+        IEnumerable<string> extensions)
+    {
+        IDeploymentDefinitionFilteringResult? ddefResult = null;
+        try
+        {
+            ddefResult = ddefService
+                .GetFilesFromInput(inputPaths, extensions);
+        }
+        catch (MultipleDeploymentDefinitionInDirectoryException e)
+        {
+            logger.LogError(e.Message);
+        }
+        catch (DeploymentDefinitionFileIntersectionException e)
+        {
+            logger.LogError(e.Message);
+        }
+
+        return ddefResult;
     }
 }

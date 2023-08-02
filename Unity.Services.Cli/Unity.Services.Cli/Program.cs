@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Builder;
@@ -7,6 +8,7 @@ using System.CommandLine.Hosting;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +36,7 @@ using Unity.Services.Cli.Leaderboards;
 #endif
 using Unity.Services.Cli.Player;
 using Unity.Services.Cli.Access;
+using Unity.Services.Cli.Authoring.Input;
 
 namespace Unity.Services.Cli;
 
@@ -51,6 +54,7 @@ public static partial class Program
         TelemetrySender telemetrySender = null;
         SystemEnvironmentProvider systemEnvironmentProvider = new SystemEnvironmentProvider();
         IAnalyticEventFactory analyticEventFactory = new AnalyticEventFactory(systemEnvironmentProvider);
+        IAnalyticsEventBuilder analyticsEventBuilder = new AnalyticsEventBuilder(analyticEventFactory, new FileSystem());
 
         var parser = BuildCommandLine()
             .UseHost(
@@ -74,12 +78,13 @@ public static partial class Program
                     host.ConfigureServices(AccessModule.RegisterServices);
                     host.ConfigureServices(GameServerHostingModule.RegisterServices);
                     host.ConfigureServices(LobbyModule.RegisterServices);
-#if FEATURE_LEADERBOARDS
                     host.ConfigureServices(LeaderboardsModule.RegisterServices);
-#endif
                     host.ConfigureServices(PlayerModule.RegisterServices);
                     host.ConfigureServices(serviceCollection => serviceCollection
                         .AddSingleton<ISystemEnvironmentProvider>(systemEnvironmentProvider));
+
+                    host.ConfigureServices(serviceCollection => serviceCollection
+                        .AddSingleton<IAnalyticsEventBuilder>(analyticsEventBuilder));
                 })
             .UseVersionOption()
             .UseHelp(
@@ -149,7 +154,7 @@ public static partial class Program
                 commandTask =>
                 {
                     logger.Write();
-                    TrySendCommandUsageMetric(analyticEventFactory, parser.Parse(args));
+                    TrySendCommandUsageMetric(analyticsEventBuilder, parser.Parse(args));
                     return commandTask.Result;
                 });
     }
@@ -181,19 +186,22 @@ public static partial class Program
         };
     }
 
-    static void TrySendCommandUsageMetric(IAnalyticEventFactory analyticEventFactory, ParseResult parseResult)
+    static void TrySendCommandUsageMetric(IAnalyticsEventBuilder analyticsEventBuilder, ParseResult parseResult)
     {
+        var command = AnalyticEventUtils.ConvertSymbolResultToString(parseResult.CommandResult);
+
         var options = parseResult.Tokens
             .Where(t => t.Type == TokenType.Option)
             .Select(t => t.ToString())
             .ToArray();
 
-        var command = AnalyticEventUtils.ConvertSymbolResultToString(parseResult.CommandResult);
+        analyticsEventBuilder.SetCommandName(command);
 
-        var analyticEvent = analyticEventFactory.CreateMetricEvent();
-        analyticEvent.AddData("command", command);
-        analyticEvent.AddData("options", options);
-        analyticEvent.AddData("time", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-        analyticEvent.Send();
+        foreach (var option in options)
+        {
+            analyticsEventBuilder.AddCommandOption(option);
+        }
+
+        analyticsEventBuilder.SendCommandCompletedEvent();
     }
 }

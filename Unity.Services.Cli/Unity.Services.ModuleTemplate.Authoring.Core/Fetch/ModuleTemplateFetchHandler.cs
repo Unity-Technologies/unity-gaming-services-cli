@@ -38,8 +38,8 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
 
             var remoteResources = await m_Client.List();
 
-            var toUpdate = remoteResources
-                .Intersect(localResources)
+            var toUpdate = localResources
+                .Intersect(remoteResources)
                 .ToList();
 
             var toDelete = localResources
@@ -60,7 +60,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
             res.Fetched = new List<IResource>();
             res.Failed = new List<IResource>();
 
-            UpdateDuplicateResourceStatus(res, duplicateGroups, dryRun);
+            UpdateDuplicateResourceStatus(res, duplicateGroups);
 
             if (dryRun)
             {
@@ -125,8 +125,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
 
         void UpdateDuplicateResourceStatus(
             FetchResult result,
-            IReadOnlyList<IGrouping<string, IResource>> duplicateGroups,
-            bool dryRun)
+            IReadOnlyList<IGrouping<string, IResource>> duplicateGroups)
         {
             foreach (var group in duplicateGroups)
             {

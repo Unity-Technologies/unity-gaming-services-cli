@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.RemoteConfig.Deploy;
+using Unity.Services.Cli.RemoteConfig.Model;
 using Unity.Services.DeploymentApi.Editor;
 
 namespace Unity.Services.Cli.IntegrationTest.Authoring.Deploy.RemoteConfig;
@@ -38,12 +40,14 @@ public class RemoteConfigFileContent
 
         foreach (var kvp in json!.entries)
         {
-            deployContents.Add(new DeployContent(
+            deployContents.Add(new CliRemoteConfigEntry(
                 kvp.Key,
                 "RemoteConfig Entry",
                 path,
                 progress,
-                status));
+                status.Message,
+                status.MessageDetail,
+                status.MessageSeverity));
         }
 
         return deployContents;

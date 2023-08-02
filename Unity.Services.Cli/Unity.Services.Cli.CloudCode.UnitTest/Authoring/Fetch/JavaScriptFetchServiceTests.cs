@@ -7,7 +7,6 @@ using Moq;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
-using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.CloudCode.Authoring;
 using Unity.Services.Cli.CloudCode.Deploy;
 using Unity.Services.Cli.CloudCode.Parameters;
@@ -24,7 +23,6 @@ class JavaScriptFetchServiceTests
 {
     readonly Mock<IUnityEnvironment> m_UnityEnvironment = new();
     readonly Mock<IJavaScriptClient> m_Client = new();
-    readonly Mock<IDeployFileService> m_DeployFileService = new();
     readonly Mock<ICloudCodeScriptsLoader> m_ScriptsLoader = new();
     readonly Mock<ICloudCodeInputParser> m_InputParser = new();
     readonly Mock<ICloudCodeScriptParser> m_ScriptParser = new();
@@ -37,7 +35,6 @@ class JavaScriptFetchServiceTests
         m_Service = new JavaScriptFetchService(
             m_UnityEnvironment.Object,
             m_Client.Object,
-            m_DeployFileService.Object,
             m_ScriptsLoader.Object,
             m_InputParser.Object,
             m_ScriptParser.Object,
@@ -49,7 +46,6 @@ class JavaScriptFetchServiceTests
     {
         m_UnityEnvironment.Reset();
         m_Client.Reset();
-        m_DeployFileService.Reset();
         m_ScriptsLoader.Reset();
         m_InputParser.Reset();
         m_ScriptParser.Reset();
@@ -62,7 +58,7 @@ class JavaScriptFetchServiceTests
     [TestCase(true, true)]
     public async Task FetchAsyncInitializesClientAndGetsResultFromHandler(bool dryRun, bool reconcile)
     {
-        SetupLocalResources(out var input, out var scripts);
+        SetupLocalResources(out var input, out var scripts, out var files);
         input.CloudProjectId = TestValues.ValidProjectId;
         input.DryRun = dryRun;
         input.Reconcile = reconcile;
@@ -75,39 +71,44 @@ class JavaScriptFetchServiceTests
             Array.Empty<DeployContent>(),
             Array.Empty<DeployContent>());
         m_FetchHandler.Setup(
-                x => x.FetchAsync(input.Path, scripts, input.DryRun, input.Reconcile, CancellationToken.None))
+                x => x.FetchAsync(
+                    input.Path,
+                    scripts,
+                    input.DryRun,
+                    input.Reconcile,
+                    CancellationToken.None))
             .ReturnsAsync(expectedResult);
 
-        var result = await m_Service.FetchAsync(input, null, CancellationToken.None);
+        var result = await m_Service.FetchAsync(input, files, null, CancellationToken.None);
 
         m_Client.Verify(
             x => x.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None),
             Times.Once);
-        Assert.That(result, Is.SameAs(expectedResult));
+        Assert.That(result.Fetched.Count, Is.EqualTo(expectedResult.Fetched.Count));
+        Assert.That(result.Deleted.Count, Is.EqualTo(expectedResult.Deleted.Count));
+        Assert.That(result.Created.Count, Is.EqualTo(expectedResult.Created.Count));
+        Assert.That(result.Updated.Count, Is.EqualTo(expectedResult.Updated.Count));
+        Assert.That(result.Failed.Count, Is.EqualTo(expectedResult.Failed.Count));
     }
 
-    void SetupLocalResources(out FetchInput input, out List<IScript> scripts)
+    void SetupLocalResources(out FetchInput input, out List<IScript> scripts, out List<string> files)
     {
         input = new FetchInput
         {
             Path = ".",
         };
-        var files = new[]
+        files = new List<string>
         {
             "foo.js",
             "bar/foobar.js"
         };
+        var filesInstance = new List<string>(files);
         scripts = files.Select(x => new ScriptInfo(ScriptName.FromPath(x)))
             .Cast<IScript>()
             .ToList();
-        m_DeployFileService.Setup(
-                x => x.ListFilesToDeploy(
-                    It.IsAny<IReadOnlyList<string>>(),
-                    CloudCodeConstants.JavaScriptFileExtension))
-            .Returns(files);
         m_ScriptsLoader.Setup(
                 x => x.LoadScriptsAsync(
-                    files,
+                    filesInstance,
                     CloudCodeConstants.ServiceType,
                     CloudCodeConstants.JavaScriptFileExtension,
                     m_InputParser.Object,
@@ -119,10 +120,58 @@ class JavaScriptFetchServiceTests
     [Test]
     public async Task GetResourcesFromFilesAsyncReturnsLoadedFiles()
     {
-        SetupLocalResources(out var input, out var scripts);
+        SetupLocalResources(out var input, out var scripts, out var files);
 
-        var resources = await m_Service.GetResourcesFromFilesAsync(input, CancellationToken.None);
+        var resources = await m_Service.GetResourcesFromFilesAsync(
+            files,
+            CancellationToken.None);
 
         Assert.That(resources.LoadedScripts, Is.SameAs(scripts));
+    }
+
+    [Test]
+    public async Task FailedToLoadAreReported()
+    {
+        m_ScriptsLoader.Setup(
+                x => x.LoadScriptsAsync(
+                    It.IsAny<IReadOnlyCollection<string>>(),
+                    CloudCodeConstants.ServiceType,
+                    CloudCodeConstants.JavaScriptFileExtension,
+                    m_InputParser.Object,
+                    m_ScriptParser.Object,
+                    CancellationToken.None))
+            .ReturnsAsync(new CloudCodeScriptLoadResult(new List<IScript>(), new List<IScript>()
+            {
+                new CloudCodeScript { Name = ScriptName.FromPath("failed-script.js"), Path = "failed-script.js" }
+            }));
+
+        var input = new FetchInput
+        {
+            Path = ".",
+        };
+
+        var expectedResult = new FetchResult(
+            Array.Empty<DeployContent>(),
+            Array.Empty<DeployContent>(),
+            Array.Empty<DeployContent>(),
+            Array.Empty<DeployContent>(),
+            Array.Empty<DeployContent>());
+
+        m_FetchHandler.Setup(
+                x => x.FetchAsync(
+                    input.Path,
+                    It.IsAny<IReadOnlyList<IScript>>(),
+                    input.DryRun,
+                    input.Reconcile,
+                    CancellationToken.None))
+            .ReturnsAsync(expectedResult);
+
+        var actualResult = await m_Service.FetchAsync(
+            input,
+            new [] { "hello.js" },
+            null!,
+            CancellationToken.None);
+
+        Assert.IsNotEmpty(actualResult.Failed);
     }
 }

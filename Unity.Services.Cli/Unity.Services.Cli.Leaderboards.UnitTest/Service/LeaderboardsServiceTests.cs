@@ -20,8 +20,8 @@ class LeaderboardsServiceTests
     const string k_TestAccessToken = "test-token";
     const string k_InvalidProjectId = "invalidProject";
     const string k_InvalidEnvironmentId = "foo";
-    const string leaderboardId = "leaderboard_id";
-    const bool archive = true;
+    const string k_LeaderboardId = "leaderboard_id";
+    const bool k_Archive = true;
 
     readonly Mock<IConfigurationValidator> m_ValidatorObject = new();
     readonly Mock<IServiceAccountAuthenticationService> m_AuthenticationServiceObject = new();
@@ -39,7 +39,7 @@ class LeaderboardsServiceTests
         m_AuthenticationServiceObject.Setup(a => a.GetAccessTokenAsync(CancellationToken.None))
             .Returns(Task.FromResult(k_TestAccessToken));
 
-        m_ExpectedLeaderboard = new(id: leaderboardId,
+        m_ExpectedLeaderboard = new(id: k_LeaderboardId,
             name: "leaderboard_name");
 
         m_ExpectedLeaderboards = new List<UpdatedLeaderboardConfig>
@@ -138,7 +138,7 @@ class LeaderboardsServiceTests
                 "{\"id\": \"leaderboard_id\", \"name\": \"lb_name_1\", \"sortOrder\": \"asc\", \"updateType\": \"aggregate\", \"bucketSize\": 10}",
                 CancellationToken.None));
 
-        var config = new LeaderboardIdConfig(id: leaderboardId, name: "lb_name_1", sortOrder: SortOrder.Asc,
+        var config = new LeaderboardIdConfig(id: k_LeaderboardId, name: "lb_name_1", sortOrder: SortOrder.Asc,
             updateType: UpdateType.Aggregate, bucketSize: 10);
 
         m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
@@ -176,7 +176,7 @@ class LeaderboardsServiceTests
         Assert.DoesNotThrowAsync(
             () =>
                 m_LeaderboardsService!.UpdateLeaderboardAsync(
-                    TestValues.ValidProjectId, TestValues.ValidEnvironmentId, leaderboardId,
+                    TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId,
                     "{\"id\": \"lb1\", \"name\": \"lb_name_1\", \"sortOrder\": \"asc\", \"updateType\": \"aggregate\", \"bucketSize\": 10}",
                     CancellationToken.None));
 
@@ -187,7 +187,7 @@ class LeaderboardsServiceTests
             ex => ex.UpdateLeaderboardConfigWithHttpInfoAsync(
                 Guid.Parse(TestValues.ValidProjectId),
                 Guid.Parse(TestValues.ValidEnvironmentId),
-                leaderboardId,
+                k_LeaderboardId,
                 config,
                 0,
                 CancellationToken.None),
@@ -202,7 +202,7 @@ class LeaderboardsServiceTests
             .Returns(true);
 
         var actualLeaderboard = await m_LeaderboardsService!.GetLeaderboardAsync(
-            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, leaderboardId, CancellationToken.None);
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, CancellationToken.None);
 
         Assert.AreEqual(m_ExpectedLeaderboard, actualLeaderboard.Data);
 
@@ -210,7 +210,7 @@ class LeaderboardsServiceTests
             a => a.GetLeaderboardConfigWithHttpInfoAsync(
                 Guid.Parse(TestValues.ValidProjectId),
                 Guid.Parse(TestValues.ValidEnvironmentId),
-                leaderboardId,
+                k_LeaderboardId,
                 0,
                 CancellationToken.None),
             Times.Once);
@@ -224,13 +224,13 @@ class LeaderboardsServiceTests
             .Returns(true);
 
         await m_LeaderboardsService!.DeleteLeaderboardAsync(
-            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, leaderboardId, CancellationToken.None);
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, CancellationToken.None);
 
         m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             a => a.DeleteLeaderboardWithHttpInfoAsync(
                 Guid.Parse(TestValues.ValidProjectId),
                 Guid.Parse(TestValues.ValidEnvironmentId),
-                leaderboardId,
+                k_LeaderboardId,
                 0,
                 CancellationToken.None),
             Times.Once);
@@ -244,14 +244,14 @@ class LeaderboardsServiceTests
             .Returns(true);
 
         await m_LeaderboardsService!.ResetLeaderboardAsync(
-            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, leaderboardId, archive, CancellationToken.None);
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, k_Archive, CancellationToken.None);
 
         m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             a => a.ResetLeaderboardScoresWithHttpInfoAsync(
                 Guid.Parse(TestValues.ValidProjectId),
                 Guid.Parse(TestValues.ValidEnvironmentId),
-                leaderboardId,
-                archive,
+                k_LeaderboardId,
+                k_Archive,
                 0,
                 CancellationToken.None),
             Times.Once);

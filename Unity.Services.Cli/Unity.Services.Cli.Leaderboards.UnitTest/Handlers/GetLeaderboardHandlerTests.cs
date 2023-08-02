@@ -13,7 +13,7 @@ using Unity.Services.Cli.TestUtils;
 using Unity.Services.Gateway.LeaderboardApiV1.Generated.Client;
 using Unity.Services.Gateway.LeaderboardApiV1.Generated.Model;
 
-namespace Unity.Services.Cli.Leaderboards.UnitTest.Handlers;
+namespace Unity.Services.Cli.Leaderboard.UnitTest.Handlers;
 
 [TestFixture]
 class GetLeaderboardHandlerTests

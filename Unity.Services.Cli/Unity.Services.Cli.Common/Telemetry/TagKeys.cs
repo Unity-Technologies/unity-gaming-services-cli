@@ -30,10 +30,4 @@ static class TagKeys
     /// Cli version
     /// </summary>
     public const string CliVersion = "application_version";
-
-    public const string DiagnosticName = "name";
-
-    public const string DiagnosticMessage = "message";
-
-    public const string Command = "cli_full_command";
 }

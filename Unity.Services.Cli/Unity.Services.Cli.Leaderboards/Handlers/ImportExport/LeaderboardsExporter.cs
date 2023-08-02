@@ -12,6 +12,7 @@ namespace Unity.Services.Cli.Leaderboards.Handlers.ImportExport;
 
 class LeaderboardExporter : BaseExporter<UpdatedLeaderboardConfig>
 {
+    const int k_Limit = 50;
     readonly ILeaderboardsService m_LeaderboardsService;
 
     public LeaderboardExporter(
@@ -32,16 +33,29 @@ class LeaderboardExporter : BaseExporter<UpdatedLeaderboardConfig>
     protected override string FileName => LeaderboardConstants.ZipName;
     protected override string EntryName => LeaderboardConstants.EntryName;
 
-    public ListLeaderboardInput ListLeaderboardInput { get; set; } = null!;
-
     protected override async Task<IEnumerable<UpdatedLeaderboardConfig>> ListConfigsAsync(string projectId, string environmentId, CancellationToken cancellationToken)
     {
-        return await m_LeaderboardsService.GetLeaderboardsAsync(
-            projectId,
-            environmentId,
-            ListLeaderboardInput.Cursor,
-            ListLeaderboardInput.Limit,
-            cancellationToken);
+        var leaderboards = new List<UpdatedLeaderboardConfig>();
+        string? cursor = null;
+        List<UpdatedLeaderboardConfig> newBatch;
+        do
+        {
+            var rawResponse = await m_LeaderboardsService.GetLeaderboardsAsync(
+                projectId,
+                environmentId,
+                cursor: cursor,
+                limit: k_Limit,
+                cancellationToken: cancellationToken);
+
+            newBatch = rawResponse.ToList();
+            cursor = newBatch.LastOrDefault()?.Id;
+            leaderboards.AddRange(newBatch);
+
+            if (cancellationToken.IsCancellationRequested)
+                break;
+        } while (newBatch.Count >= k_Limit);
+
+        return leaderboards;
     }
 
     protected override ImportExportEntry<UpdatedLeaderboardConfig> ToImportExportEntry(UpdatedLeaderboardConfig value)

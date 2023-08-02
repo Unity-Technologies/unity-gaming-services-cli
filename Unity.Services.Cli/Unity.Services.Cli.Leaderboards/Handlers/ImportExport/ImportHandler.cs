@@ -6,8 +6,8 @@ namespace Unity.Services.Cli.Leaderboards.Handlers.ImportExport;
 
 static class ImportHandler
 {
-    internal const string k_LoadingIndicatorMessage = "Importing configs...";
-    internal const string k_CompleteIndicatorMessage = "Import complete.";
+    internal const string LoadingIndicatorMessage = "Importing configs...";
+    internal const string CompleteIndicatorMessage = "Import complete.";
 
     public static async Task ImportAsync(
         ImportInput importInput,
@@ -18,8 +18,8 @@ static class ImportHandler
     )
     {
         await loadingIndicator.StartLoadingAsync(
-            k_LoadingIndicatorMessage,
+            LoadingIndicatorMessage,
             _ => leaderboardImporter!.ImportAsync(importInput, cancellationToken));
-        logger.LogInformation(k_CompleteIndicatorMessage);
+        logger.LogInformation(CompleteIndicatorMessage);
     }
 }

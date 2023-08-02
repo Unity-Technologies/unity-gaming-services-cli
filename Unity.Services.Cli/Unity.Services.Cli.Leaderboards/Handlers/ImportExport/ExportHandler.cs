@@ -7,11 +7,10 @@ namespace Unity.Services.Cli.Leaderboards.Handlers.ImportExport;
 
 static class ExportHandler
 {
-    internal const string k_LoadingIndicatorMessage = "Exporting your environment...";
-    internal const string k_CompleteIndicatorMessage = "Export complete.";
+    internal const string LoadingIndicatorMessage = "Exporting your environment...";
+    internal const string CompleteIndicatorMessage = "Export complete.";
 
     public static async Task ExportAsync(
-        ListLeaderboardInput listLeaderboardInput,
         ExportInput exportInput,
         ILogger logger,
         LeaderboardExporter? leaderboardExporter,
@@ -19,13 +18,12 @@ static class ExportHandler
         CancellationToken cancellationToken)
     {
         await loadingIndicator.StartLoadingAsync(
-            k_LoadingIndicatorMessage,
+            LoadingIndicatorMessage,
             _ =>
             {
-                leaderboardExporter!.ListLeaderboardInput = listLeaderboardInput;
-                return leaderboardExporter.ExportAsync(exportInput, cancellationToken);
+                return leaderboardExporter!.ExportAsync(exportInput, cancellationToken);
             }
         );
-        logger.LogInformation(k_CompleteIndicatorMessage);
+        logger.LogInformation(CompleteIndicatorMessage);
     }
 }

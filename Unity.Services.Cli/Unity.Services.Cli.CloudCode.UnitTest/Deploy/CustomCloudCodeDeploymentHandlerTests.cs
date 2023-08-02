@@ -16,7 +16,6 @@ class CustomCloudCodeDeploymentHandlerTests
 {
     static readonly Mock<ICloudCodeClient> k_MockICloudCodeClient = new();
     static readonly Mock<IDeploymentAnalytics> k_DeploymentAnalytics = new();
-    static readonly Mock<IScriptCache> k_ScriptCache = new();
     static readonly Mock<ILogger> k_Logger = new();
     static readonly Mock<IPreDeployValidator> k_PreDeployValidator = new();
 
@@ -25,7 +24,6 @@ class CustomCloudCodeDeploymentHandlerTests
     readonly ExposeCliCloudCodeDeploymentHandler m_CliCloudCodeDeploymentHandler = new(
         k_MockICloudCodeClient.Object,
         k_DeploymentAnalytics.Object,
-        k_ScriptCache.Object,
         k_Logger.Object,
         k_PreDeployValidator.Object);
 

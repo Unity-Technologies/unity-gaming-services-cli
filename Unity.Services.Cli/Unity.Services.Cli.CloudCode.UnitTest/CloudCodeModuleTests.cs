@@ -19,7 +19,6 @@ using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.Common.Validator;
 using Unity.Services.Cli.TestUtils;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Analytics;
-using Unity.Services.CloudCode.Authoring.Editor.Core.Crypto;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Logging;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Api;
@@ -129,8 +128,6 @@ class CloudCodeModuleTests
     [TestCase(typeof(EnvironmentProvider))]
     [TestCase(typeof(ICliEnvironmentProvider))]
     [TestCase(typeof(IEnvironmentProvider))]
-    [TestCase(typeof(IHashComputer))]
-    [TestCase(typeof(IScriptCache))]
     [TestCase(typeof(IPreDeployValidator))]
     [TestCase(typeof(ICloudCodeModulesLoader))]
     [TestCase(typeof(ICloudCodeScriptsLoader))]
@@ -163,7 +160,7 @@ class CloudCodeModuleTests
         var environmentProvider = new Mock<ICliEnvironmentProvider>();
         var client = new Mock<IJavaScriptClient>();
         var deploymentHandler = new CliCloudCodeDeploymentHandler<IJavaScriptClient>(
-            null!, null!, null!, null!, null!);
+            null!, null!, null!, null!);
         var provider = new Mock<IServiceProvider>();
         SetupProvider();
 
@@ -204,7 +201,7 @@ class CloudCodeModuleTests
         var csModuleLoader = new Mock<ICloudCodeModulesLoader>();
         var client = new Mock<ICSharpClient>();
         var deploymentHandlerWithOutput = new CliCloudCodeDeploymentHandler<ICSharpClient>(
-            client.Object, null!, null!, null!, null!);
+            client.Object, null!, null!, null!);
         var provider = new Mock<IServiceProvider>();
         SetupProvider();
 

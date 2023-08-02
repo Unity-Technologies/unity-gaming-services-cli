@@ -178,22 +178,6 @@ versions: []";
         var expectedMessage = "leaderboard reset! Version Id: v10";
         await AssertSuccess("leaderboards reset lb1", expectedMessage);
     }
-
-    [Test]
-    public async Task LeaderboardCreateSucceed()
-    {
-
-        var expectedMessage = "leaderboard created!";
-        await AssertSuccess($"leaderboards create {k_TestDirectory}/{k_LeaderboardFileName}", expectedMessage);
-    }
-
-    [Test]
-    public async Task LeaderboardUpdateSucceed()
-    {
-        var expectedMessage = "leaderboard updated!";
-        await AssertSuccess($"leaderboards update lb1 {k_TestDirectory}/{k_LeaderboardFileName}", expectedMessage);
-    }
-
     [Test]
     public async Task LeaderboardImportSucceed()
     {
@@ -240,31 +224,6 @@ versions: []";
         var errorMessage = "The filename to export to already exists. Please create a new file";
         await AssertException($"leaderboards export {k_TestDirectory} {k_alternateFileName}", errorMessage);
     }
-
-    [TestCase("create")]
-    [TestCase("update foo")]
-    public async Task LeaderboardInvalidFilePath(string command)
-    {
-        var expectedMessage = "Invalid file path.";
-        await AssertException($"leaderboards {command} /InvalidFilePath/foo.lb", expectedMessage);
-    }
-
-    [TestCase("create")]
-    [TestCase("update foo")]
-    public async Task LeaderboardWrongField(string command)
-    {
-        var expectedMessage = "Failed to deserialize object for Leaderboard request: Unexpected end when reading JSON.";
-        await AssertException($"leaderboards {command} {k_TestDirectory}/{k_brokenFile}", expectedMessage);
-    }
-
-    [Test]
-    public async Task LeaderboardCreateMissingRequiredField()
-    {
-        var expectedMessage = "Failed to deserialize object for Leaderboard request: Required property 'sortOrder' not found";
-        await AssertException($"leaderboards create {k_TestDirectory}/{k_MissingFieldLeaderboardFileName}", expectedMessage);
-
-    }
-
     static async Task AssertSuccess(string command, string? expectedMessage = null, string? expectedResult = null)
     {
         var test = GetLoggedInCli()

@@ -19,6 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.IO.Abstractions" Version="19.2.16" />
+    <PackageReference Include="Unity.Services.Deployment.Core" Version="0.4.0" />
     <PackageReference Include="Unity.Services.DeploymentApi" Version="1.0.0-beta.1" />
   </ItemGroup>
   <PropertyGroup>

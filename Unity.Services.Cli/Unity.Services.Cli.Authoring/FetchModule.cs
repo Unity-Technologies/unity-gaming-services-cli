@@ -1,6 +1,4 @@
 using System.CommandLine;
-using System.IO.Abstractions;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Unity.Services.Cli.Authoring.Handlers;
@@ -9,6 +7,7 @@ using Unity.Services.Cli.Common;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Authoring.Service;
+using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
 
 namespace Unity.Services.Cli.Authoring;
 
@@ -36,7 +35,9 @@ public class FetchModule : ICommandModule
             IHost,
             FetchInput,
             ILogger,
+            ICliDeploymentDefinitionService,
             ILoadingIndicator,
+            IAnalyticsEventBuilder,
             CancellationToken>(
             FetchHandler.FetchAsync);
     }

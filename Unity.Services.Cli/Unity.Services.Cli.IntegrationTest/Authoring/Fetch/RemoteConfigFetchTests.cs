@@ -12,6 +12,8 @@ using Unity.Services.Cli.MockServer;
 using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Cli.MockServer.ServiceMocks;
 using Unity.Services.Cli.MockServer.ServiceMocks.RemoteConfig;
+using Unity.Services.Cli.RemoteConfig.Deploy;
+using Unity.Services.Cli.RemoteConfig.Model;
 using Unity.Services.DeploymentApi.Editor;
 
 namespace Unity.Services.Cli.IntegrationTest.Authoring.Fetch;
@@ -52,8 +54,8 @@ public class RemoteConfigFetchTests : UgsCliFixture
     {
         m_FetchedKeysTestCases = new[]
         {
-            new DeployContent("color" , "RemoteConfig Key", m_FetchedTestCases[0].ConfigFilePath, 100f, new DeploymentStatus(Statuses.Deleted, string.Empty)),
-            new DeployContent("ready" , "RemoteConfig Key", m_FetchedTestCases[1].ConfigFilePath, 100f, new DeploymentStatus(Statuses.Deleted, string.Empty))
+            new CliRemoteConfigEntry("color" , "RemoteConfig Key", m_FetchedTestCases[0].ConfigFilePath, 100f, Statuses.Deleted, string.Empty),
+            new CliRemoteConfigEntry("ready" , "RemoteConfig Key", m_FetchedTestCases[1].ConfigFilePath, 100f, Statuses.Deleted, string.Empty)
         };
     }
 
@@ -75,6 +77,7 @@ public class RemoteConfigFetchTests : UgsCliFixture
 
         await m_MockApi.MockServiceAsync(new IdentityV1Mock());
         await m_MockApi.MockServiceAsync(new RemoteConfigMock());
+        await m_MockApi.MockServiceAsync(new LeaderboardApiMock());
     }
 
     [TearDown]
@@ -168,14 +171,14 @@ public class RemoteConfigFetchTests : UgsCliFixture
             .Select(t => t.DeployedContent)
             .ToArray();
 
-        var logResult = new FetchResult(
+        var logResult = new RemoteConfigFetchResult(
             Array.Empty<DeployContent>(),
             m_FetchedKeysTestCases,
             Array.Empty<DeployContent>(),
             fetchedPaths,
             Array.Empty<DeployContent>(),
             false);
-        var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
+        var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
         await GetLoggedInCli()
             .Command($"fetch {k_TestDirectory} -j")
             .AssertStandardOutputContains(resultString)

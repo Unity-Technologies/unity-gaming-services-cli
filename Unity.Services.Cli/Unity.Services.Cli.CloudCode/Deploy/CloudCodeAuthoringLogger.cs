@@ -14,17 +14,14 @@ class CloudCodeAuthoringLogger : ICloudCodeAuthoringLogger
 
     public void LogError(object message)
     {
-        m_Logger.LogError("{Message}", message.ToString());
     }
 
     public void LogWarning(object message)
     {
-        m_Logger.LogWarning("{Message}", message.ToString());
     }
 
     public void LogInfo(object message)
     {
-        m_Logger.LogInformation("{Message}", message.ToString());
     }
 
     public void LogVerbose(object message)

@@ -67,6 +67,13 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Integration.MockServerApp", "Unity.Services.Cli.Integration.MockServerApp\Unity.Services.Cli.Integration.MockServerApp.csproj", "{27BBE31C-43CE-45AA-9DE4-BF3D097DC1A3}"
 EndProject
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Leaderboards.Authoring.Core", "Unity.Services.Leaderboards.Authoring.Core\Unity.Services.Leaderboards.Authoring.Core.csproj", "{C1E40F5F-F47D-451F-B91D-75CB630402CC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configuration", "Configuration", "{ECED14B5-7FD3-4C82-8417-3C6E4A0FC054}"
+	ProjectSection(SolutionItems) = preProject
+		features-definition.json = features-definition.json
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -183,5 +190,9 @@ Global
 		{27BBE31C-43CE-45AA-9DE4-BF3D097DC1A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{27BBE31C-43CE-45AA-9DE4-BF3D097DC1A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{27BBE31C-43CE-45AA-9DE4-BF3D097DC1A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1E40F5F-F47D-451F-B91D-75CB630402CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1E40F5F-F47D-451F-B91D-75CB630402CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1E40F5F-F47D-451F-B91D-75CB630402CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1E40F5F-F47D-451F-B91D-75CB630402CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

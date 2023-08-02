@@ -211,9 +211,9 @@ class ExceptionHelperTests
                 k_MockHelper.MockLogger.Object, m_Context!));
 
         k_MockHelper.MockDiagnostics.Verify(ex =>
-            ex.AddData(TagKeys.DiagnosticName, "cli_unhandled_exception"), Times.Once);
+            ex.AddData(DiagnosticsTagKeys.DiagnosticName, "cli_unhandled_exception"), Times.Once);
         k_MockHelper.MockDiagnostics.Verify(ex =>
-            ex.AddData(TagKeys.DiagnosticMessage, exception.ToString()), Times.Once);
+            ex.AddData(DiagnosticsTagKeys.DiagnosticMessage, exception.ToString()), Times.Once);
 
         var command = new StringBuilder("ugs");
         foreach (var arg in m_Context!.ParseResult.Tokens)
@@ -222,7 +222,7 @@ class ExceptionHelperTests
         }
 
         k_MockHelper.MockDiagnostics.Verify(ex =>
-            ex.AddData(TagKeys.Command, command.ToString()), Times.Once);
+            ex.AddData(DiagnosticsTagKeys.Command, command.ToString()), Times.Once);
 
         k_MockHelper.MockDiagnostics.Verify(ex =>
             ex.AddData(TagKeys.Timestamp, It.IsAny<long>()), Times.Once);

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Model.TableOutput;
 using Unity.Services.DeploymentApi.Editor;
 
 namespace Unity.Services.Cli.Authoring.UnitTest.Model;
@@ -54,5 +55,33 @@ public class DeploymentResultTests
 
         Assert.IsFalse(result.Contains($"Deployed:{System.Environment.NewLine}    {k_DeployedContents.First().Name}"));
         Assert.IsTrue(result.Contains("No content deployed"));
+    }
+
+    [Test]
+    public void ToTableFormat()
+    {
+        m_DeploymentResult = new DeploymentResult(
+            k_DeployedContents,
+            new List<DeployContent>(),
+            new List<DeployContent>(),
+            k_DeployedContents,
+            k_FailedContents);
+        var result = m_DeploymentResult.ToTable();
+        var expected = TableContent.ToTable(k_DeployedContents[0]);
+
+        foreach (var failed in k_FailedContents)
+        {
+            expected.AddRow(RowContent.ToRow(failed));
+        }
+
+        Assert.IsTrue(result.Result.Count == expected.Result.Count);
+
+        for (int i = 0; i < result.Result.Count; i++)
+        {
+            for (int j = 0; j < result.Result.Count;j++)
+            {
+                Assert.AreEqual(expected.Result[i].Name, result.Result[i].Name);
+            }
+        }
     }
 }

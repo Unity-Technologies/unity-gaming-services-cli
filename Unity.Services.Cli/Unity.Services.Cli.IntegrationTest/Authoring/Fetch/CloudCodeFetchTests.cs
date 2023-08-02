@@ -95,6 +95,7 @@ public class CloudCodeFetchTests : UgsCliFixture
     {
         await m_MockApi.MockServiceAsync(new IdentityV1Mock());
         await m_MockApi.MockServiceAsync(new CloudCodeFetchMock());
+        await m_MockApi.MockServiceAsync(new LeaderboardApiMock());
     }
 
     [TearDown]
@@ -148,7 +149,7 @@ public class CloudCodeFetchTests : UgsCliFixture
             fetchedPaths,
             Array.Empty<DeployContent>(),
             !string.IsNullOrEmpty(dryRunOption) );
-        var resultString = JsonConvert.SerializeObject(res, Formatting.Indented);
+        var resultString = JsonConvert.SerializeObject(res.ToTable(), Formatting.Indented);
         await GetLoggedInCli()
             .Command($"fetch {k_TestDirectory} {dryRunOption} -j")
             .AssertStandardOutputContains(resultString)
@@ -183,7 +184,7 @@ public class CloudCodeFetchTests : UgsCliFixture
             fetchedPaths,
             Array.Empty<DeployContent>(),
             !string.IsNullOrEmpty(dryRunOption));
-        var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
+        var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
         await GetLoggedInCli()
             .Command($"fetch {k_TestDirectory} --reconcile -s cloud-code-scripts {dryRunOption} -j ")
             .AssertStandardOutputContains(resultString)

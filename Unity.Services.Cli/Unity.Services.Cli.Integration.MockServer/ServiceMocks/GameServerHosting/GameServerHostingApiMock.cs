@@ -13,8 +13,8 @@ public class GameServerHostingApiMock : IServiceApiMock
 {
     public async Task<IReadOnlyList<MappingModel>> CreateMappingModels()
     {
-        var models = await MappingModelUtils.ParseMappingModelsAsync(
-            "https://services.docs.unity.com/specs/v1/6d756c7469706c61792d636f6e666967.yaml",
+        var models = await MappingModelUtils.ParseMappingModelsFromGeneratorConfigAsync(
+            "game-server-hosting-api-v1-generator-config.yaml",
             new WireMockOpenApiParserSettings()
         );
 
@@ -92,7 +92,7 @@ public class GameServerHostingApiMock : IServiceApiMock
             locationName: "Test Location",
             machineID: 123,
             machineName: "test machine",
-            machineSpec: new MachineSpec("test-cpu"),
+            machineSpec: new MachineSpec1("2020-12-31T12:00:00Z", "2020-01-01T12:00:00Z", "test-cpu"),
             port: 0,
             status: Server.StatusEnum.ONLINE
         );
@@ -124,7 +124,7 @@ public class GameServerHostingApiMock : IServiceApiMock
                 locationName: "Test Location",
                 machineID: 123,
                 machineName: "test machine",
-                machineSpec: new MachineSpec("test-cpu"),
+                machineSpec: new MachineSpec1("2020-12-31T12:00:00Z", "2020-01-01T12:00:00Z", "test-cpu"),
                 port: 0,
                 status: Server.StatusEnum.ONLINE
             )

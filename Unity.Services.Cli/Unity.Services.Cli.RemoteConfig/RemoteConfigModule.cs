@@ -55,6 +55,7 @@ public class RemoteConfigModule : ICommandModule
             CommonInput.CloudProjectIdOption,
             ImportInput.InputDirectoryArgument,
             DryRunInput.DryRunOption,
+            ImportInput.ReconcileOption,
             ImportInput.FileNameArgument
         };
         ImportCommand.SetHandler<ImportInput, RemoteConfigImporter, ILoadingIndicator, CancellationToken>(ImportHandler.ImportAsync);

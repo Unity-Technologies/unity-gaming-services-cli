@@ -5,6 +5,23 @@ All notable changes to UGS CLI will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2023-08-01
+
+### Added
+- Added Deployment Definitions to the Deploy and Fetch commands.
+- Added analytics related to command usage and options used.
+- Deploy/Fetch return an array in a table-like format with -json flag enabled.
+- Leaderboards now supports the `ugs deploy` and `ugs fetch` commands at the root 
+  - Deploy sends file configurations into the service
+  - Fetch updates local files based on service configuration
+- Leaderboards now supports `new-file`, to create an empty file for leaderboards
+
+### Changed
+- Removed Leaderboards support to `create` and `update` commands.
+
+### Fixed
+- A bug logging an additional error when deploying a file.
+
 ## [1.0.0-beta.6] - 2023-07-10
 
 ### Added

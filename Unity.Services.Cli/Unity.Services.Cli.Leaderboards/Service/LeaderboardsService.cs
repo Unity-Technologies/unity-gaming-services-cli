@@ -52,37 +52,75 @@ public class LeaderboardsService : ILeaderboardsService
         return response;
     }
 
-    public async Task<ApiResponse<object>> CreateLeaderboardAsync(string projectId, string environmentId, string body, CancellationToken cancellationToken)
+    public async Task<ApiResponse<object>> CreateLeaderboardAsync(
+        string projectId,
+        string environmentId,
+        string body,
+        CancellationToken cancellationToken)
+    {
+
+        var createRequest = DeserializeBody<LeaderboardIdConfig>(body);
+        return await CreateLeaderboardAsync(
+            projectId,
+            environmentId,
+            createRequest,
+            cancellationToken);
+    }
+
+    public async Task<ApiResponse<object>> CreateLeaderboardAsync(
+        string projectId,
+        string environmentId,
+        LeaderboardIdConfig leaderboard,
+        CancellationToken cancellationToken)
     {
         await AuthorizeServiceAsync(cancellationToken);
         ValidateProjectIdAndEnvironmentId(projectId, environmentId);
 
-        var createRequest = DeserializeBody<LeaderboardIdConfig>(body);
         var response = await m_LeaderboardsApiAsync.CreateLeaderboardWithHttpInfoAsync(
             Guid.Parse(projectId),
             Guid.Parse(environmentId),
-            createRequest,
+            leaderboard,
             cancellationToken: cancellationToken
         );
 
         return response;
     }
 
-    public async Task<ApiResponse<object>> UpdateLeaderboardAsync(string projectId, string environmentId, string leaderboardId, string body, CancellationToken cancellationToken)
+    public async Task<ApiResponse<object>> UpdateLeaderboardAsync(
+        string projectId,
+        string environmentId,
+        string leaderboardId,
+        LeaderboardPatchConfig leaderboard,
+        CancellationToken cancellationToken)
     {
         await AuthorizeServiceAsync(cancellationToken);
         ValidateProjectIdAndEnvironmentId(projectId, environmentId);
 
-        var updateRequest = DeserializeBody<LeaderboardPatchConfig>(body);
         var response = await m_LeaderboardsApiAsync.UpdateLeaderboardConfigWithHttpInfoAsync(
             Guid.Parse(projectId),
             Guid.Parse(environmentId),
             leaderboardId,
-            updateRequest,
+            leaderboard,
             cancellationToken: cancellationToken
         );
 
         return response;
+    }
+
+    public async Task<ApiResponse<object>> UpdateLeaderboardAsync(
+        string projectId,
+        string environmentId,
+        string leaderboardId,
+        string body,
+        CancellationToken cancellationToken)
+    {
+        var updateRequest = DeserializeBody<LeaderboardPatchConfig>(body);
+        return await UpdateLeaderboardAsync(
+            projectId,
+            environmentId,
+            leaderboardId,
+            updateRequest,
+            cancellationToken);
     }
 
     public async Task<ApiResponse<object>> DeleteLeaderboardAsync(string projectId, string environmentId, string leaderboardId, CancellationToken cancellationToken)

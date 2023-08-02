@@ -55,7 +55,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Deploy
             res.Deployed = new List<IResource>();
             res.Failed = new List<IResource>();
 
-            UpdateDuplicateResourceStatus(res, duplicateGroups, dryRun);
+            UpdateDuplicateResourceStatus(res, duplicateGroups);
 
             if (dryRun)
             {
@@ -97,8 +97,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Deploy
 
         void UpdateDuplicateResourceStatus(
             DeployResult result,
-            IReadOnlyList<IGrouping<string, IResource>> duplicateGroups,
-            bool dryRun)
+            IReadOnlyList<IGrouping<string, IResource>> duplicateGroups)
         {
             foreach (var group in duplicateGroups)
             {

@@ -1,3 +1,5 @@
+using Unity.Services.DeploymentApi.Editor;
+
 namespace Unity.Services.Cli.Authoring.Model;
 
 public static class Statuses
@@ -10,4 +12,5 @@ public static class Statuses
     public const string Loaded = "Loaded";
     public const string Deployed = "Deployed";
     public const string Fetched = "Fetched";
+    public static DeploymentStatus GetFailedToFetch(string messageDetail) => new DeploymentStatus("Failed to fetch", messageDetail, SeverityLevel.Error);
 }

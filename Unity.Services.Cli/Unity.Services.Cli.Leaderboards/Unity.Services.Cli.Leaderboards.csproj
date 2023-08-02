@@ -3,14 +3,13 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>Unity.Services.Cli.Leaderboard</RootNamespace>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <DefineConstants>TRACE;FEATURE_LEADERBOARDS_IMPORT_EXPORT</DefineConstants>
+    <DefineConstants>TRACE;FEATURE_LEADERBOARDS_DEPLOY;FEATURE_LEADERBOARDS_IMPORT_EXPORT;</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DefineConstants>TRACE;FEATURE_LEADERBOARDS_IMPORT_EXPORT</DefineConstants>
+    <DefineConstants>TRACE;FEATURE_LEADERBOARDS_DEPLOY;FEATURE_LEADERBOARDS_IMPORT_EXPORT</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
@@ -24,6 +23,7 @@
     <ProjectReference Include="..\Unity.Services.Cli.Common\Unity.Services.Cli.Common.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Authoring\Unity.Services.Cli.Authoring.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
+    <ProjectReference Include="..\Unity.Services.Leaderboards.Authoring.Core\Unity.Services.Leaderboards.Authoring.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Unity.Services.Gateway.LeaderboardApiV1.Generated" Version="1.0.7-beta" />

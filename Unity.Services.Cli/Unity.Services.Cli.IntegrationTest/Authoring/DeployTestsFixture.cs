@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Model.TableOutput;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.MockServer.ServiceMocks;
 
@@ -137,7 +138,7 @@ public abstract class DeployTestsFixture : UgsCliFixture
             deployedContents,
             Array.Empty<DeployContent>());
 
-        var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
+        var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
         await GetFullySetCli()
             .Command($"deploy {k_TestDirectory} -j")
             .AssertStandardOutputContains(resultString)
@@ -161,7 +162,7 @@ public abstract class DeployTestsFixture : UgsCliFixture
             Array.Empty<DeployContent>(),
             Array.Empty<DeployContent>(),
             true);
-        var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
+        var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
         await GetFullySetCli()
             .Command($"deploy {k_TestDirectory} -j --dry-run")
             .AssertStandardOutputContains(resultString)
@@ -184,7 +185,7 @@ public abstract class DeployTestsFixture : UgsCliFixture
             Array.Empty<DeployContent>(),
             contentList,
             Array.Empty<DeployContent>());
-        var resultString = JsonConvert.SerializeObject(logResult, Formatting.Indented);
+        var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
 
         await GetFullySetCli()
             .Command($"deploy {k_TestDirectory} -j")
@@ -234,5 +235,36 @@ public abstract class DeployTestsFixture : UgsCliFixture
         }
 
         return new DeploymentResult(updated, deleted, createdCopy, deployed, failed, dryRun);
+    }
+
+    public static TableContent CreateTableResult(
+        IReadOnlyList<DeployContent> created,
+        IReadOnlyList<DeployContent> updated,
+        IReadOnlyList<DeployContent> deleted,
+        IReadOnlyList<DeployContent> deployed,
+        IReadOnlyList<DeployContent> failed,
+        bool dryRun = false)
+    {
+        var tableResult = new TableContent();
+
+        foreach (var item in deployed)
+        {
+            tableResult.AddRow(RowContent.ToRow(item));
+
+            var updatedRows = updated.Where(i => i.Path == item.Path).Select(RowContent.ToRow).ToList();
+            var createdRows = created.Where(i => i.Path == item.Path).Select(RowContent.ToRow).ToList();
+
+            tableResult.AddRows(updatedRows);
+            tableResult.AddRows(createdRows);
+
+        }
+
+        var deletedRows = deleted.Select(RowContent.ToRow).ToList();
+        var failedRows = failed.Select(RowContent.ToRow).ToList();
+
+        tableResult.AddRows(deletedRows);
+        tableResult.AddRows(failedRows);
+
+        return tableResult;
     }
 }

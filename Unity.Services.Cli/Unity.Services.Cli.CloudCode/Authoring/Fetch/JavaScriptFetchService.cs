@@ -7,6 +7,7 @@ using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.Cli.CloudCode.Utils;
 using Unity.Services.Cli.Common.Utils;
+using Unity.Services.DeploymentApi.Editor;
 
 namespace Unity.Services.Cli.CloudCode.Authoring;
 
@@ -15,8 +16,6 @@ class JavaScriptFetchService : IFetchService
     readonly IUnityEnvironment m_UnityEnvironment;
 
     readonly IJavaScriptClient m_Client;
-
-    readonly IDeployFileService m_DeployFileService;
 
     readonly ICloudCodeScriptsLoader m_ScriptsLoader;
 
@@ -29,7 +28,6 @@ class JavaScriptFetchService : IFetchService
     public JavaScriptFetchService(
         IUnityEnvironment unityEnvironment,
         IJavaScriptClient client,
-        IDeployFileService deployFileService,
         ICloudCodeScriptsLoader scriptsLoader,
         ICloudCodeInputParser inputParser,
         ICloudCodeScriptParser scriptParser,
@@ -37,7 +35,6 @@ class JavaScriptFetchService : IFetchService
     {
         m_UnityEnvironment = unityEnvironment;
         m_Client = client;
-        m_DeployFileService = deployFileService;
         m_ScriptsLoader = scriptsLoader;
         m_InputParser = inputParser;
         m_ScriptParser = scriptParser;
@@ -50,13 +47,16 @@ class JavaScriptFetchService : IFetchService
     string IFetchService.FileExtension => CloudCodeConstants.JavaScriptFileExtension;
 
     public async Task<FetchResult> FetchAsync(
-        FetchInput input, StatusContext? loadingContext, CancellationToken cancellationToken)
+        FetchInput input,
+        IReadOnlyList<string> filePaths,
+        StatusContext? loadingContext,
+        CancellationToken cancellationToken)
     {
         var environmentId = await m_UnityEnvironment.FetchIdentifierAsync(cancellationToken);
         m_Client.Initialize(environmentId, input.CloudProjectId!, cancellationToken);
 
         loadingContext?.Status($"Reading {ServiceType} files...");
-        var loadResult = await GetResourcesFromFilesAsync(input, cancellationToken);
+        var loadResult = await GetResourcesFromFilesAsync(filePaths, cancellationToken);
 
         loadingContext?.Status($"Fetching {ServiceType} Files...");
         var result = await m_FetchHandler.FetchAsync(
@@ -66,22 +66,23 @@ class JavaScriptFetchService : IFetchService
             input.Reconcile,
             cancellationToken);
 
+        result = new FetchResult(
+            created:result.Created,
+            updated: result.Updated,
+            deleted: result.Deleted,
+            authored:result.Fetched,
+            failed: result.Failed.Concat(loadResult.FailedContents.Cast<IDeploymentItem>()).ToList(),
+            dryRun: input.DryRun);
+
         return result;
     }
 
     internal async Task<CloudCodeScriptLoadResult> GetResourcesFromFilesAsync(
-        FetchInput input, CancellationToken cancellationToken)
+        IReadOnlyList<string> filePaths, CancellationToken cancellationToken)
     {
-        var files = m_DeployFileService.ListFilesToDeploy(
-            new[]
-            {
-                input.Path
-            },
-            CloudCodeConstants.JavaScriptFileExtension);
-
         var loadResult = await m_ScriptsLoader
             .LoadScriptsAsync(
-                files,
+                filePaths,
                 ServiceType,
                 CloudCodeConstants.JavaScriptFileExtension,
                 m_InputParser,

@@ -42,6 +42,7 @@ public abstract class FetchTestsFixture : UgsCliFixture
         m_MockApi.Server?.ResetMappings();
 
         await m_MockApi.MockServiceAsync(new IdentityV1Mock());
+        await m_MockApi.MockServiceAsync(new LeaderboardApiMock());
     }
 
     public static AuthoringTestCase SetTestCase(AuthoringTestCase testCase, string status)
@@ -268,7 +269,7 @@ public abstract class FetchTestsFixture : UgsCliFixture
     protected static string FormatJsonOutput(List<DeployContent> deployContentList, bool isDryRun)
     {
         var fetchResult = GetFetchResult(deployContentList, isDryRun);
-        return JsonConvert.SerializeObject(fetchResult, Formatting.Indented);
+        return JsonConvert.SerializeObject(fetchResult.ToTable(), Formatting.Indented);
     }
 
     static FetchResult GetFetchResult(List<DeployContent> deployContentList, bool isDryRun)

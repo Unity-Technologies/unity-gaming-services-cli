@@ -12,10 +12,9 @@ class MockCloudCodeDeploymentHandler : CloudCodeDeploymentHandler, ICliDeploymen
     public MockCloudCodeDeploymentHandler(
         ICloudCodeClient client,
         IDeploymentAnalytics deploymentAnalytics,
-        IScriptCache scriptCache,
         ILogger logger,
         IPreDeployValidator preDeployValidator, ICollection<DeployContent> contents)
-        : base(client, deploymentAnalytics, scriptCache, logger, preDeployValidator)
+        : base(client, deploymentAnalytics, logger, preDeployValidator)
     {
         Contents = contents;
     }

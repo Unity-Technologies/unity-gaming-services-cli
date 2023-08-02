@@ -1,3 +1,4 @@
+using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Fetch;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.IO;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Json;
@@ -18,5 +19,21 @@ class CliRemoteConfigFetchHandler : RemoteConfigFetchHandler
     protected override IRemoteConfigFile ConstructRemoteConfigFile(string path)
     {
         return new RemoteConfigFile(Path.GetFileName(path), path);
+    }
+
+    protected override void UpdateStatus(
+        IRemoteConfigFile remoteConfigFile,
+        string status,
+        string detail,
+        SeverityLevel severityLevel)
+    {
+        var file = (RemoteConfigFile)remoteConfigFile;
+        file.Status = new DeploymentStatus(status, detail, severityLevel);
+    }
+
+    protected override void UpdateProgress(IRemoteConfigFile remoteConfigFile, float progress)
+    {
+        var file = (RemoteConfigFile)remoteConfigFile;
+        file.Progress = progress;
     }
 }

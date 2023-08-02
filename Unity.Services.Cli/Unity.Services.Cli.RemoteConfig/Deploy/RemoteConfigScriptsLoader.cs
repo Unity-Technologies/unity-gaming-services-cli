@@ -39,7 +39,7 @@ class RemoteConfigScriptsLoader : IRemoteConfigScriptsLoader
                 content.ToRemoteConfigEntries(file, new RemoteConfigParser(new ConfigTypeDeriver()));
 
                 loaded.Add(file);
-                file.Status = new DeploymentStatus(Statuses.Loaded);
+                file.Status = new DeploymentStatus(Statuses.Loaded, "");
             }
             catch (JsonException ex)
             {

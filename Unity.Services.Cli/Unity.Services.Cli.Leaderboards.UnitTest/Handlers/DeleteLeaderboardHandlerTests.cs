@@ -22,7 +22,7 @@ class DeleteLeaderboardHandlerTests
     readonly Mock<IUnityEnvironment> m_MockUnityEnvironment = new();
     readonly Mock<ILeaderboardsService> m_MockLeaderboard = new();
     readonly Mock<ILogger> m_MockLogger = new();
-    const string leaderboardId = "lb1";
+    const string k_LeaderboardId = "lb1";
 
     [SetUp]
     public void SetUp()
@@ -50,13 +50,13 @@ class DeleteLeaderboardHandlerTests
         LeaderboardIdInput input = new LeaderboardIdInput()
         {
             CloudProjectId = TestValues.ValidProjectId,
-            LeaderboardId = leaderboardId
+            LeaderboardId = k_LeaderboardId
         };
 
         m_MockLeaderboard.Setup(x => x.DeleteLeaderboardAsync(
             TestValues.ValidProjectId,
             TestValues.ValidEnvironmentId,
-            leaderboardId,
+            k_LeaderboardId,
             CancellationToken.None)).ReturnsAsync(new ApiResponse<object>(HttpStatusCode.NoContent, new object()));
 
         m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
@@ -74,7 +74,7 @@ class DeleteLeaderboardHandlerTests
             e => e.DeleteLeaderboardAsync(
                 TestValues.ValidProjectId,
                 TestValues.ValidEnvironmentId,
-                leaderboardId,
+                k_LeaderboardId,
                 CancellationToken.None),
             Times.Once);
 

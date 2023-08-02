@@ -1,13 +1,17 @@
+using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
+using Unity.Services.Cli.Authoring.DeploymentDefinition;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Model.TableOutput;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Logging;
+using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
 
 namespace Unity.Services.Cli.Authoring.Handlers;
 
@@ -17,7 +21,9 @@ static class FetchHandler
         IHost host,
         FetchInput input,
         ILogger logger,
+        ICliDeploymentDefinitionService deploymentDefinitionService,
         ILoadingIndicator loadingIndicator,
+        IAnalyticsEventBuilder analyticsEventBuilder,
         CancellationToken cancellationToken)
     {
         await loadingIndicator.StartLoadingAsync(
@@ -27,6 +33,8 @@ static class FetchHandler
                 input,
                 logger,
                 context,
+                deploymentDefinitionService,
+                analyticsEventBuilder,
                 cancellationToken));
     }
 
@@ -35,6 +43,8 @@ static class FetchHandler
         FetchInput input,
         ILogger logger,
         StatusContext? loadingContext,
+        ICliDeploymentDefinitionService definitionService,
+        IAnalyticsEventBuilder analyticsEventBuilder,
         CancellationToken cancellationToken)
     {
         var services = host.Services.GetServices<IFetchService>().ToList();
@@ -55,24 +65,55 @@ static class FetchHandler
                 $"{supportedServiceNamesStr}");
         }
 
-        if (input.Reconcile && input.Services.Count == 0)
+        if (input.Reconcile)
         {
-            logger.LogError(
-                "Reconcile is a destructive operation. Specify your service(s) with the --services option: {SupportedServiceNamesStr}",
-                supportedServiceNamesStr);
-            return;
+            if (input.Services.Count == 0)
+            {
+                logger.LogError(
+                    "Reconcile is a destructive operation. Specify your service(s) with the --services option: {SupportedServiceNamesStr}",
+                    supportedServiceNamesStr);
+                return;
+            }
+
+            if (Path.GetExtension(input.Path) == CliDeploymentDefinitionService.Extension)
+            {
+                logger.LogError("Reconcile is not compatible with Deployment Definitions");
+                return;
+            }
         }
 
         var fetchResult = Array.Empty<FetchResult>();
 
         var fetchServices = services
             .Where(s => CheckService(input, s))
-            .ToArray();
+            .ToList();
+
+        var inputPaths = new List<string> { input.Path };
+
+
+        var ddefResult = GetDdefResult(
+            definitionService,
+            logger,
+            inputPaths,
+            fetchServices.Select(ds => ds.FileExtension));
+
+        if (ddefResult == null)
+        {
+            return;
+        }
+
+        analyticsEventBuilder.SetAuthoringCommandlinePathsInputCount(new[] { input.Path });
+
+        foreach (var fetchService in fetchServices)
+        {
+            analyticsEventBuilder.AddAuthoringServiceProcessed(fetchService.ServiceName);
+        }
 
         var tasks = fetchServices
             .Select(
                 m => m.FetchAsync(
                     input,
+                    ddefResult.AllFilesByExtension[m.FileExtension],
                     loadingContext,
                     cancellationToken))
             .ToArray();
@@ -89,7 +130,30 @@ static class FetchHandler
         }
 
         var totalResult = new FetchResult(fetchResult, input.DryRun);
-        logger.LogResultValue(totalResult);
+
+        if (input.IsJson)
+        {
+            var tableResult = new TableContent()
+            {
+                IsDryRun = input.DryRun
+            };
+
+            foreach (var task in tasks)
+            {
+                tableResult.AddRows(task.Result.ToTable());
+            }
+
+            logger.LogResultValue(tableResult);
+        }
+        else
+        {
+            logger.LogResultValue(totalResult);
+        }
+
+        if (ddefResult.DefinitionFiles.HasExcludes)
+        {
+            logger.LogInformation(ddefResult.GetExclusionsLogMessage());
+        }
 
         // Get Exceptions from faulted deployments
         var exceptions = tasks
@@ -123,5 +187,29 @@ static class FetchHandler
         unsupportedServices = string.Join(", ", input.Services.Except(serviceNames));
 
         return string.IsNullOrEmpty(unsupportedServices);
+    }
+
+    static IDeploymentDefinitionFilteringResult? GetDdefResult(
+        ICliDeploymentDefinitionService ddefService,
+        ILogger logger,
+        IEnumerable<string> inputPaths,
+        IEnumerable<string> extensions)
+    {
+        IDeploymentDefinitionFilteringResult? ddefResult = null;
+        try
+        {
+            ddefResult = ddefService
+                .GetFilesFromInput(inputPaths, extensions);
+        }
+        catch (MultipleDeploymentDefinitionInDirectoryException e)
+        {
+            logger.LogError(e.Message);
+        }
+        catch (DeploymentDefinitionFileIntersectionException e)
+        {
+            logger.LogError(e.Message);
+        }
+
+        return ddefResult;
     }
 }
