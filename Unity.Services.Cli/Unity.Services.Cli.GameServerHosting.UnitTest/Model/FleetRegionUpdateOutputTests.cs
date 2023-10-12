@@ -18,7 +18,7 @@ class FleetRegionUpdateOutputTests
             minAvailableServers: 3,
             regionID: Guid.Parse(ValidRegionId),
             regionName: "RegionName",
-            scalingEnabled: false,
+            scalingEnabled: true,
             shutdownTTL: 180
         );
     }

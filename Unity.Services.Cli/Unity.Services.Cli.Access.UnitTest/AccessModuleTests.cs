@@ -15,25 +15,25 @@ namespace Unity.Services.Cli.Access.UnitTest;
 [TestFixture]
 public class AccessModuleTests
 {
-    readonly AccessModule k_AccessModule = new();
+    readonly AccessModule m_AccessModule = new();
 
     [Test]
     public void BuildCommands_CreateCommands()
     {
         var commandLineBuilder = new CommandLineBuilder();
-        commandLineBuilder.AddModule(k_AccessModule);
-        TestsHelper.AssertContainsCommand(commandLineBuilder.Command, k_AccessModule.ModuleRootCommand!.Name, out var resultCommand);
+        commandLineBuilder.AddModule(m_AccessModule);
+        TestsHelper.AssertContainsCommand(commandLineBuilder.Command, m_AccessModule.ModuleRootCommand!.Name, out var resultCommand);
         Assert.Multiple(() =>
         {
-            Assert.That(resultCommand, Is.EqualTo(k_AccessModule.ModuleRootCommand));
-            Assert.That(k_AccessModule.GetPlayerPolicyCommand!.Handler, Is.Not.Null);
-            Assert.That(k_AccessModule.GetProjectPolicyCommand!.Handler, Is.Not.Null);
-            Assert.That(k_AccessModule.GetAllPlayerPoliciesCommand!.Handler, Is.Not.Null);
-            Assert.That(k_AccessModule.UpsertProjectPolicyCommand!.Handler, Is.Not.Null);
-            Assert.That(k_AccessModule.UpsertPlayerPolicyCommand!.Handler, Is.Not.Null);
-            Assert.That(k_AccessModule.DeleteProjectPolicyStatementsCommand!.Handler, Is.Not.Null);
-            Assert.That(k_AccessModule.ModuleRootCommand!.Aliases, Does.Contain("ac"));
-            Assert.That(k_AccessModule.DeletePlayerPolicyStatementsCommand!.Handler, Is.Not.Null);
+            Assert.That(resultCommand, Is.EqualTo(m_AccessModule.ModuleRootCommand));
+            Assert.That(m_AccessModule.GetPlayerPolicyCommand!.Handler, Is.Not.Null);
+            Assert.That(m_AccessModule.GetProjectPolicyCommand!.Handler, Is.Not.Null);
+            Assert.That(m_AccessModule.GetAllPlayerPoliciesCommand!.Handler, Is.Not.Null);
+            Assert.That(m_AccessModule.UpsertProjectPolicyCommand!.Handler, Is.Not.Null);
+            Assert.That(m_AccessModule.UpsertPlayerPolicyCommand!.Handler, Is.Not.Null);
+            Assert.That(m_AccessModule.DeleteProjectPolicyStatementsCommand!.Handler, Is.Not.Null);
+            Assert.That(m_AccessModule.ModuleRootCommand!.Aliases, Does.Contain("ac"));
+            Assert.That(m_AccessModule.DeletePlayerPolicyStatementsCommand!.Handler, Is.Not.Null);
         });
     }
 
@@ -42,8 +42,8 @@ public class AccessModuleTests
     {
         Assert.Multiple(() =>
         {
-            Assert.That(k_AccessModule.GetProjectPolicyCommand!.Options, Does.Contain(CommonInput.CloudProjectIdOption));
-            Assert.That(k_AccessModule.GetProjectPolicyCommand!.Options, Does.Contain(CommonInput.EnvironmentNameOption));
+            Assert.That(m_AccessModule.GetProjectPolicyCommand!.Options, Does.Contain(CommonInput.CloudProjectIdOption));
+            Assert.That(m_AccessModule.GetProjectPolicyCommand!.Options, Does.Contain(CommonInput.EnvironmentNameOption));
         });
     }
 
@@ -52,9 +52,9 @@ public class AccessModuleTests
     {
         Assert.Multiple(() =>
         {
-            Assert.That(k_AccessModule.GetPlayerPolicyCommand!.Options, Does.Contain(CommonInput.CloudProjectIdOption));
-            Assert.That(k_AccessModule.GetPlayerPolicyCommand!.Options, Does.Contain(CommonInput.EnvironmentNameOption));
-            Assert.That(k_AccessModule.GetPlayerPolicyCommand.Arguments, Does.Contain(AccessInput.PlayerIdArgument));
+            Assert.That(m_AccessModule.GetPlayerPolicyCommand!.Options, Does.Contain(CommonInput.CloudProjectIdOption));
+            Assert.That(m_AccessModule.GetPlayerPolicyCommand!.Options, Does.Contain(CommonInput.EnvironmentNameOption));
+            Assert.That(m_AccessModule.GetPlayerPolicyCommand.Arguments, Does.Contain(AccessInput.PlayerIdArgument));
         });
     }
 
@@ -63,8 +63,8 @@ public class AccessModuleTests
     {
         Assert.Multiple(() =>
         {
-            Assert.That(k_AccessModule.GetAllPlayerPoliciesCommand!.Options, Does.Contain(CommonInput.CloudProjectIdOption));
-            Assert.That(k_AccessModule.GetAllPlayerPoliciesCommand!.Options, Does.Contain(CommonInput.EnvironmentNameOption));
+            Assert.That(m_AccessModule.GetAllPlayerPoliciesCommand!.Options, Does.Contain(CommonInput.CloudProjectIdOption));
+            Assert.That(m_AccessModule.GetAllPlayerPoliciesCommand!.Options, Does.Contain(CommonInput.EnvironmentNameOption));
         });
     }
 
@@ -73,9 +73,9 @@ public class AccessModuleTests
     {
         Assert.Multiple(() =>
         {
-            Assert.That(k_AccessModule.UpsertProjectPolicyCommand!.Options, Does.Contain(CommonInput.CloudProjectIdOption));
-            Assert.That(k_AccessModule.UpsertProjectPolicyCommand!.Options, Does.Contain(CommonInput.EnvironmentNameOption));
-            Assert.That(k_AccessModule.UpsertProjectPolicyCommand!.Arguments, Does.Contain(AccessInput.FilePathArgument));
+            Assert.That(m_AccessModule.UpsertProjectPolicyCommand!.Options, Does.Contain(CommonInput.CloudProjectIdOption));
+            Assert.That(m_AccessModule.UpsertProjectPolicyCommand!.Options, Does.Contain(CommonInput.EnvironmentNameOption));
+            Assert.That(m_AccessModule.UpsertProjectPolicyCommand!.Arguments, Does.Contain(AccessInput.FilePathArgument));
         });
     }
 
@@ -84,10 +84,10 @@ public class AccessModuleTests
     {
         Assert.Multiple(() =>
         {
-            Assert.That(k_AccessModule.UpsertPlayerPolicyCommand!.Options, Does.Contain(CommonInput.CloudProjectIdOption));
-            Assert.That(k_AccessModule.UpsertPlayerPolicyCommand!.Options, Does.Contain(CommonInput.EnvironmentNameOption));
-            Assert.That(k_AccessModule.UpsertPlayerPolicyCommand!.Arguments, Does.Contain(AccessInput.PlayerIdArgument));
-            Assert.That(k_AccessModule.UpsertPlayerPolicyCommand!.Arguments, Does.Contain(AccessInput.FilePathArgument));
+            Assert.That(m_AccessModule.UpsertPlayerPolicyCommand!.Options, Does.Contain(CommonInput.CloudProjectIdOption));
+            Assert.That(m_AccessModule.UpsertPlayerPolicyCommand!.Options, Does.Contain(CommonInput.EnvironmentNameOption));
+            Assert.That(m_AccessModule.UpsertPlayerPolicyCommand!.Arguments, Does.Contain(AccessInput.PlayerIdArgument));
+            Assert.That(m_AccessModule.UpsertPlayerPolicyCommand!.Arguments, Does.Contain(AccessInput.FilePathArgument));
         });
     }
 
@@ -96,9 +96,9 @@ public class AccessModuleTests
     {
         Assert.Multiple(() =>
         {
-            Assert.That(k_AccessModule.DeleteProjectPolicyStatementsCommand!.Options, Does.Contain(CommonInput.CloudProjectIdOption));
-            Assert.That(k_AccessModule.DeleteProjectPolicyStatementsCommand!.Options, Does.Contain(CommonInput.EnvironmentNameOption));
-            Assert.That(k_AccessModule.DeleteProjectPolicyStatementsCommand!.Arguments, Does.Contain(AccessInput.FilePathArgument));
+            Assert.That(m_AccessModule.DeleteProjectPolicyStatementsCommand!.Options, Does.Contain(CommonInput.CloudProjectIdOption));
+            Assert.That(m_AccessModule.DeleteProjectPolicyStatementsCommand!.Options, Does.Contain(CommonInput.EnvironmentNameOption));
+            Assert.That(m_AccessModule.DeleteProjectPolicyStatementsCommand!.Arguments, Does.Contain(AccessInput.FilePathArgument));
         });
     }
 
@@ -107,10 +107,10 @@ public class AccessModuleTests
     {
         Assert.Multiple(() =>
         {
-            Assert.That(k_AccessModule.DeletePlayerPolicyStatementsCommand!.Options, Does.Contain(CommonInput.CloudProjectIdOption));
-            Assert.That(k_AccessModule.DeletePlayerPolicyStatementsCommand!.Options, Does.Contain(CommonInput.EnvironmentNameOption));
-            Assert.That(k_AccessModule.DeletePlayerPolicyStatementsCommand!.Arguments, Does.Contain(AccessInput.PlayerIdArgument));
-            Assert.That(k_AccessModule.DeletePlayerPolicyStatementsCommand!.Arguments, Does.Contain(AccessInput.FilePathArgument));
+            Assert.That(m_AccessModule.DeletePlayerPolicyStatementsCommand!.Options, Does.Contain(CommonInput.CloudProjectIdOption));
+            Assert.That(m_AccessModule.DeletePlayerPolicyStatementsCommand!.Options, Does.Contain(CommonInput.EnvironmentNameOption));
+            Assert.That(m_AccessModule.DeletePlayerPolicyStatementsCommand!.Arguments, Does.Contain(AccessInput.PlayerIdArgument));
+            Assert.That(m_AccessModule.DeletePlayerPolicyStatementsCommand!.Arguments, Does.Contain(AccessInput.FilePathArgument));
         });
     }
 

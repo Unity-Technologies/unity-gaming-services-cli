@@ -4,7 +4,7 @@ using Unity.Services.Cli.Common.Exceptions;
 
 namespace Unity.Services.Cli.Authoring.Service;
 
-class DeployFileService : IDeployFileService
+public class DeployFileService : IDeployFileService
 {
     readonly IFile m_File;
     readonly IDirectory m_Directory;

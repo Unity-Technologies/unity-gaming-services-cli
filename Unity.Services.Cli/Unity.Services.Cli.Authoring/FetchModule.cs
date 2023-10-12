@@ -8,6 +8,7 @@ using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
+using Unity.Services.Cli.Common.Utils;
 
 namespace Unity.Services.Cli.Authoring;
 
@@ -34,11 +35,12 @@ public class FetchModule : ICommandModule
         ModuleRootCommand.SetHandler<
             IHost,
             FetchInput,
+            IUnityEnvironment,
             ILogger,
             ICliDeploymentDefinitionService,
             ILoadingIndicator,
             IAnalyticsEventBuilder,
             CancellationToken>(
-            FetchHandler.FetchAsync);
+            FetchCommandHandler.FetchAsync);
     }
 }

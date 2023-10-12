@@ -2,6 +2,7 @@ using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.Common.Utils;
+using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.Leaderboards.Authoring.Core.Fetch;
 using Unity.Services.Leaderboards.Authoring.Core.Service;
 using FetchResult = Unity.Services.Cli.Authoring.Model.FetchResult;
@@ -36,20 +37,28 @@ public class LeaderboardFetchService : IFetchService
         m_FileExtension = ".lb";
     }
 
-    string IFetchService.ServiceType => m_ServiceType;
-    string IFetchService.ServiceName => m_ServiceName;
-    string IFetchService.FileExtension => m_FileExtension;
-    public async Task<FetchResult> FetchAsync(FetchInput input, IReadOnlyList<string> filePaths, StatusContext? loadingContext, CancellationToken cancellationToken)
+    public string ServiceType => m_ServiceType;
+    public string ServiceName => m_ServiceName;
+    public IReadOnlyList<string> FileExtensions => new[]
     {
-        var environmentId = await m_UnityEnvironment.FetchIdentifierAsync(cancellationToken);
-        m_Client.Initialize(environmentId, input.CloudProjectId!, cancellationToken);
+        m_FileExtension
+    };
+    public async Task<FetchResult> FetchAsync(
+        FetchInput input,
+        IReadOnlyList<string> filePaths,
+        string projectId,
+        string environmentId,
+        StatusContext? loadingContext,
+        CancellationToken cancellationToken)
+    {
+        m_Client.Initialize(environmentId, projectId, cancellationToken);
 
         var leaderboards = await m_LeaderboardsConfigLoader
             .LoadConfigsAsync(filePaths, cancellationToken);
 
         var deployStatusList = await m_FetchHandler.FetchAsync(
             input.Path,
-            leaderboards,
+            leaderboards.Loaded,
             input.DryRun,
             input.Reconcile,
             cancellationToken);
@@ -59,6 +68,6 @@ public class LeaderboardFetchService : IFetchService
             deleted: deployStatusList.Deleted,
             created: deployStatusList.Created,
             authored: deployStatusList.Fetched,
-            failed: deployStatusList.Failed);
+            failed: deployStatusList.Failed.Concat(leaderboards.Failed).Cast<IDeploymentItem>().ToList());
     }
 }

@@ -18,8 +18,8 @@ namespace Unity.Services.Cli.IntegrationTest.Authoring;
 [TestFixture]
 public abstract class FetchTestsFixture : UgsCliFixture
 {
-    protected static readonly string k_TestDirectory = Path.Combine(UgsCliBuilder.RootDirectory, ".tmp", "FilesDir");
-    protected List<AuthoringTestCase> m_FetchedTestCases = new();
+    protected static readonly string TestDirectory = Path.Combine(UgsCliBuilder.RootDirectory, ".tmp", "FilesDir");
+    readonly List<AuthoringTestCase> m_FetchedTestCases = new();
 
     protected abstract AuthoringTestCase GetLocalTestCase();
     protected abstract AuthoringTestCase GetRemoteTestCase();
@@ -30,27 +30,28 @@ public abstract class FetchTestsFixture : UgsCliFixture
         DeleteLocalConfig();
         DeleteLocalCredentials();
 
-        if (Directory.Exists(k_TestDirectory))
+        if (Directory.Exists(TestDirectory))
         {
-            Directory.Delete(k_TestDirectory, true);
+            Directory.Delete(TestDirectory, true);
         }
 
-        Directory.CreateDirectory(k_TestDirectory);
+        Directory.CreateDirectory(TestDirectory);
 
         m_FetchedTestCases.Clear();
 
-        m_MockApi.Server?.ResetMappings();
+        MockApi.Server?.ResetMappings();
 
-        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
-        await m_MockApi.MockServiceAsync(new LeaderboardApiMock());
+        await MockApi.MockServiceAsync(new IdentityV1Mock());
+        await MockApi.MockServiceAsync(new LeaderboardApiMock());
+        await MockApi.MockServiceAsync(new TriggersApiMock());
     }
 
-    public static AuthoringTestCase SetTestCase(AuthoringTestCase testCase, string status)
+    public static AuthoringTestCase SetTestCase(AuthoringTestCase testCase, string status, string detail = "")
     {
         var type = testCase.DeployedContent.Type;
         testCase.DeployedContent =
             new DeployContent(
-                testCase.ConfigFileName, type, testCase.ConfigFilePath, 100, status, "");
+                testCase.ConfigFileName, type, testCase.ConfigFilePath, 100, status, detail);
         return testCase;
     }
 
@@ -60,9 +61,9 @@ public abstract class FetchTestsFixture : UgsCliFixture
         DeleteLocalConfig();
         DeleteLocalCredentials();
 
-        if (Directory.Exists(k_TestDirectory))
+        if (Directory.Exists(TestDirectory))
         {
-            Directory.Delete(k_TestDirectory, true);
+            Directory.Delete(TestDirectory, true);
         }
     }
 
@@ -93,7 +94,7 @@ public abstract class FetchTestsFixture : UgsCliFixture
             jsonOption
         });
         await GetFullySetCli()
-            .Command($"fetch {k_TestDirectory} {dryRunOption} {jsonOption}")
+            .Command($"fetch {TestDirectory} {dryRunOption} {jsonOption}")
             .AssertStandardOutputContains(resultString)
             .AssertNoErrors()
             .ExecuteAsync();
@@ -107,7 +108,7 @@ public abstract class FetchTestsFixture : UgsCliFixture
         var fetchedContent = await CreateFetchTestFilesAsync(m_FetchedTestCases);
         var resultString = FormatDefaultOutput(fetchedContent, !string.IsNullOrEmpty(dryRunOption));
         await GetLoggedInCli()
-            .Command($"fetch {k_TestDirectory} -p {CommonKeys.ValidProjectId} -e {CommonKeys.ValidEnvironmentName} {dryRunOption}")
+            .Command($"fetch {TestDirectory} -p {CommonKeys.ValidProjectId} -e {CommonKeys.ValidEnvironmentName} {dryRunOption}")
             .AssertStandardOutputContains(resultString)
             .AssertNoErrors()
             .ExecuteAsync();
@@ -120,7 +121,7 @@ public abstract class FetchTestsFixture : UgsCliFixture
     public virtual async Task FetchValidConfigFromDirectorySuccessfully_FetchAndDelete(string dryRunOption, string jsonOption)
     {
         //Case: Fetch files successfully but no existing file in service so deletes local files
-        m_FetchedTestCases.Add(SetTestCase(GetLocalTestCase(), Statuses.Deleted));
+        m_FetchedTestCases.Add(SetTestCase(GetLocalTestCase(), Statuses.Fetched, "Deleted locally"));
         var fetchedContent = await CreateFetchTestFilesAsync(m_FetchedTestCases);
 
         var resultString = FormatOutput(fetchedContent, new List<string>()
@@ -130,7 +131,7 @@ public abstract class FetchTestsFixture : UgsCliFixture
         });
 
         await GetFullySetCli()
-            .Command($"fetch {k_TestDirectory} {dryRunOption} {jsonOption}")
+            .Command($"fetch {TestDirectory} {dryRunOption} {jsonOption}")
             .AssertStandardOutputContains(resultString)
             .AssertNoErrors()
             .ExecuteAsync();
@@ -143,7 +144,7 @@ public abstract class FetchTestsFixture : UgsCliFixture
     public virtual async Task FetchValidConfigFromDirectorySuccessfully_FetchAndUpdate(string dryRunOption, string jsonOption)
     {
         //Case: Fetch files successfully and updates local files
-        m_FetchedTestCases.Add(SetTestCase(GetRemoteTestCase(), Statuses.Updated));
+        m_FetchedTestCases.Add(SetTestCase(GetRemoteTestCase(), Statuses.Fetched, "Updated locally"));
         var fetchedContent = await CreateFetchTestFilesAsync(m_FetchedTestCases);
         var resultString = FormatOutput(fetchedContent, new List<string>()
         {
@@ -152,7 +153,7 @@ public abstract class FetchTestsFixture : UgsCliFixture
         });
 
         await GetFullySetCli()
-            .Command($"fetch {k_TestDirectory} {dryRunOption} {jsonOption}")
+            .Command($"fetch {TestDirectory} {dryRunOption} {jsonOption}")
             .AssertStandardOutputContains(resultString)
             .AssertNoErrors()
             .ExecuteAsync();
@@ -165,7 +166,7 @@ public abstract class FetchTestsFixture : UgsCliFixture
     public virtual async Task FetchEmptyDirectorySuccessfully_FetchAndCreate_WithReconcile(string dryRunOption, string jsonOption)
     {
         //Case: Fetch files successfully and create local files
-        m_FetchedTestCases.Add(SetTestCase(GetRemoteTestCase(), Statuses.Created));
+        m_FetchedTestCases.Add(SetTestCase(GetRemoteTestCase(), Statuses.Fetched, "Created locally"));
         List<DeployContent> fetchedContent = new();
         foreach (var testCase in m_FetchedTestCases)
         {
@@ -177,7 +178,7 @@ public abstract class FetchTestsFixture : UgsCliFixture
             jsonOption
         });
         await GetFullySetCli()
-            .Command($"fetch {k_TestDirectory} {dryRunOption} {jsonOption} --reconcile -s economy")
+            .Command($"fetch {TestDirectory} {dryRunOption} {jsonOption} --reconcile -s economy")
             .AssertStandardOutputContains(resultString)
             .AssertNoErrors()
             .ExecuteAsync();
@@ -275,15 +276,15 @@ public abstract class FetchTestsFixture : UgsCliFixture
     static FetchResult GetFetchResult(List<DeployContent> deployContentList, bool isDryRun)
     {
         var updatedContent = deployContentList
-            .Where(t => string.Equals(t.Status.Message, Statuses.Updated))
+            .Where(t => string.Equals(t.Status.MessageDetail, "Updated locally"))
             .ToArray();
 
         var deletedContent = deployContentList
-            .Where(t => string.Equals(t.Status.Message, Statuses.Deleted))
+            .Where(t => string.Equals(t.Status.MessageDetail, "Deleted locally"))
             .ToArray();
 
         var createdContent = deployContentList
-            .Where(t => string.Equals(t.Status.Message, Statuses.Created))
+            .Where(t => string.Equals(t.Status.MessageDetail, "Created locally"))
             .ToArray();
 
         var fetchedContent = deployContentList

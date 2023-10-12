@@ -32,9 +32,9 @@ public class LeaderboardFetchTests : UgsCliFixture
             Directory.Delete(k_TestDirectory, true);
         }
 
-        m_MockApi.Server?.ResetMappings();
-        await m_MockApi.MockServiceAsync(new LeaderboardApiMock());
-        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
+        MockApi.Server?.ResetMappings();
+        await MockApi.MockServiceAsync(new LeaderboardApiMock());
+        await MockApi.MockServiceAsync(new IdentityV1Mock());
         Directory.CreateDirectory(k_TestDirectory);
         m_LocalLeaderboards = new  LeaderboardConfig[]
         {

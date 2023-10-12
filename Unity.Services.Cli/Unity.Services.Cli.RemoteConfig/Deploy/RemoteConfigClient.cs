@@ -12,7 +12,7 @@ namespace Unity.Services.Cli.RemoteConfig.Deploy;
 
 class RemoteConfigClient : ICliRemoteConfigClient
 {
-    internal const string k_ConfigType = "settings";
+    internal const string ConfigType = "settings";
 
     internal string ConfigId { get; private set; }
     public string ProjectId { get; private set; }
@@ -61,7 +61,7 @@ class RemoteConfigClient : ICliRemoteConfigClient
         var kvps = remoteConfigEntries
             .Select(GetConfigValueFromEntry)
             .ToList();
-        return m_Service.UpdateConfigAsync(ProjectId, ConfigId, k_ConfigType, kvps, CancellationToken);
+        return m_Service.UpdateConfigAsync(ProjectId, ConfigId, ConfigType, kvps, CancellationToken);
     }
 
     public async Task CreateAsync(IReadOnlyList<RemoteConfigEntry> remoteConfigEntries)
@@ -70,21 +70,21 @@ class RemoteConfigClient : ICliRemoteConfigClient
             .Select(GetConfigValueFromEntry)
             .ToList();
 
-        string id = await m_Service.CreateConfigAsync(ProjectId, EnvironmentId, k_ConfigType, kvps, CancellationToken);
+        string id = await m_Service.CreateConfigAsync(ProjectId, EnvironmentId, ConfigType, kvps, CancellationToken);
 
         ConfigId = id;
     }
 
     public async Task<GetConfigsResult> GetAsync()
     {
-        var rawResponse = await m_Service.GetAllConfigsFromEnvironmentAsync(ProjectId, EnvironmentId, k_ConfigType, CancellationToken);
+        var rawResponse = await m_Service.GetAllConfigsFromEnvironmentAsync(ProjectId, EnvironmentId, ConfigType, CancellationToken);
         var res = new GetConfigsResult(false, null);
 
         var response = JsonConvert.DeserializeObject<GetResponse>(rawResponse, k_JsonSerializerSettings)!;
         if (response.Configs?.Count == 0)
             return res;
 
-        var config = response.Configs?.FirstOrDefault(c => c.Type == k_ConfigType);
+        var config = response.Configs?.FirstOrDefault(c => c.Type == ConfigType);
         if (config == null)
             return res;
 

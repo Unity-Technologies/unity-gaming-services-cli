@@ -94,7 +94,7 @@ class ExportModulesHandlerTests
     {
         var exportInput = new ExportInput()
         {
-            FileName = CloudCodeConstants.ModulesZipName,
+            FileName = CloudCodeConstants.ZipNameModules,
             OutputDirectory = "test_output_directory"
         };
 
@@ -128,7 +128,7 @@ class ExportModulesHandlerTests
         var archivePath = Path.Join(exportInput.OutputDirectory, exportInput.FileName);
         m_MockArchiver.Verify(za => za.ZipAsync(
             archivePath,
-            CloudCodeConstants.ModulesEntryName,
+            CloudCodeConstants.EntryNameModules,
             It.Is<IEnumerable<Module>>(m => m.Count() == m_Modules.Count()),
             It.IsAny<CancellationToken>()));
     }

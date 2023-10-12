@@ -38,7 +38,7 @@ class RemoteConfigClientTests
                 EnvironmentId = k_TestEnvironmentId,
                 Id = k_ConfigId,
                 ProjectId = k_TestProjectId,
-                Type = RemoteConfigClient.k_ConfigType,
+                Type = RemoteConfigClient.ConfigType,
                 UpdatedAt = "2022-11-16T21:38:34Z",
                 Value = new List<RemoteConfigEntryDTO>
                 {
@@ -102,9 +102,9 @@ class RemoteConfigClientTests
     {
         var rawResponse = JsonConvert.SerializeObject(m_ResponseWithConfig);
         m_MockRemoteConfigService.Setup(r => r.GetAllConfigsFromEnvironmentAsync(k_TestProjectId, k_TestEnvironmentId,
-            RemoteConfigClient.k_ConfigType, CancellationToken.None)).ReturnsAsync(rawResponse);
+            RemoteConfigClient.ConfigType, CancellationToken.None)).ReturnsAsync(rawResponse);
 
-        var config = m_ResponseWithConfig.Configs?.FirstOrDefault(c => c.Type == RemoteConfigClient.k_ConfigType);
+        var config = m_ResponseWithConfig.Configs?.FirstOrDefault(c => c.Type == RemoteConfigClient.ConfigType);
         var expectedResult = JsonConvert.SerializeObject(new GetConfigsResult(true, RemoteConfigClient.ToRemoteConfigEntry(config!.Value!)));
         var result = JsonConvert.SerializeObject(await m_RemoteConfigClient!.GetAsync());
         StringAssert.AreEqualIgnoringCase(expectedResult, result);
@@ -116,7 +116,7 @@ class RemoteConfigClientTests
         GetResponse responseNoConfig = new();
         var rawResponse = JsonConvert.SerializeObject(responseNoConfig);
         m_MockRemoteConfigService.Setup(r => r.GetAllConfigsFromEnvironmentAsync(k_TestProjectId, k_TestEnvironmentId,
-            RemoteConfigClient.k_ConfigType, CancellationToken.None)).ReturnsAsync(rawResponse);
+            RemoteConfigClient.ConfigType, CancellationToken.None)).ReturnsAsync(rawResponse);
         var expectedResult = new GetConfigsResult(false, null);
         var result = await m_RemoteConfigClient!.GetAsync();
         Assert.That(result, Is.EqualTo(expectedResult));
@@ -135,7 +135,7 @@ class RemoteConfigClientTests
                 rc.CreateConfigAsync(
                     k_TestProjectId,
                     k_TestEnvironmentId,
-                    RemoteConfigClient.k_ConfigType,
+                    RemoteConfigClient.ConfigType,
                     kvps,
                     CancellationToken.None))
             .ReturnsAsync(k_ConfigId);
@@ -168,7 +168,7 @@ class RemoteConfigClientTests
                 rc.GetAllConfigsFromEnvironmentAsync(
                     k_TestProjectId,
                     k_TestEnvironmentId,
-                    RemoteConfigClient.k_ConfigType,
+                    RemoteConfigClient.ConfigType,
                     CancellationToken.None))
             .ReturnsAsync(servStr);
         var result = await m_RemoteConfigClient!.GetAsync();
@@ -198,7 +198,7 @@ class RemoteConfigClientTests
                 rc.GetAllConfigsFromEnvironmentAsync(
                     k_TestProjectId,
                     k_TestEnvironmentId,
-                    RemoteConfigClient.k_ConfigType,
+                    RemoteConfigClient.ConfigType,
                     CancellationToken.None))
             .ReturnsAsync(servStr);
         var result = await m_RemoteConfigClient!.GetAsync();
@@ -229,7 +229,7 @@ class RemoteConfigClientTests
                 rc.GetAllConfigsFromEnvironmentAsync(
                     k_TestProjectId,
                     k_TestEnvironmentId,
-                    RemoteConfigClient.k_ConfigType,
+                    RemoteConfigClient.ConfigType,
                     CancellationToken.None))
             .ReturnsAsync(servStr);
         var result = await m_RemoteConfigClient!.GetAsync();
@@ -253,7 +253,7 @@ class RemoteConfigClientTests
             rc => rc.UpdateConfigAsync(
                 k_TestProjectId,
                 m_RemoteConfigClient.ConfigId,
-                RemoteConfigClient.k_ConfigType,
+                RemoteConfigClient.ConfigType,
                 It.Is(kvps, new ConfigsEqualityComparer()),
                 CancellationToken.None),
             Times.Once);

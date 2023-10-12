@@ -28,7 +28,7 @@ class LobbyService : ILobbyService
     /// <summary>
     /// The service account token received from the token exchange API.
     /// </summary>
-    string? m_serviceToken;
+    string? m_ServiceToken;
 
     /// <summary>
     /// The auto-generated Lobby client used for making Lobby API requests.
@@ -42,7 +42,7 @@ class LobbyService : ILobbyService
             if (m_LobbyApi is null)
             {
                 var configuration = new MpsLobby.LobbyApiV1.Generated.Client.Configuration();
-                configuration.AccessToken = m_serviceToken!;
+                configuration.AccessToken = m_ServiceToken!;
                 configuration.BasePath = EndpointHelper.GetCurrentEndpointFor<LobbyApiEndpoints>();
                 configuration.DefaultHeaders.SetXClientIdHeader();
                 m_LobbyApi = new LobbyApi(configuration);
@@ -384,7 +384,7 @@ class LobbyService : ILobbyService
             throw new CliException("Unable to convert service token into JWT.", ExitCode.UnhandledError);
         }
 
-        m_serviceToken = accessToken;
+        m_ServiceToken = accessToken;
     }
 
     /// <summary>

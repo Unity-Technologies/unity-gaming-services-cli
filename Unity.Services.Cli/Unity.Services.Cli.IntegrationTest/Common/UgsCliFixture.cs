@@ -33,14 +33,14 @@ public abstract class UgsCliFixture
     /// </summary>
     protected string CredentialsFile => m_IntegrationConfig.CredentialsFile;
 
-    protected readonly MockApi m_MockApi = new(NetworkTargetEndpoints.MockServer);
+    protected readonly MockApi MockApi = new(NetworkTargetEndpoints.MockServer);
 
     readonly IntegrationConfig m_IntegrationConfig = new();
 
     [OneTimeTearDown]
     public void DisposeMockServer()
     {
-        m_MockApi.Server?.Dispose();
+        MockApi.Server?.Dispose();
     }
     [OneTimeTearDown]
     public void DisposeIntegrationConfig()

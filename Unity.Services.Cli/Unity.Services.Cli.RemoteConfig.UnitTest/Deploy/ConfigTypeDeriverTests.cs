@@ -1,6 +1,7 @@
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Unity.Services.Cli.RemoteConfig.Deploy;
+using Unity.Services.Cli.RemoteConfig.Exceptions;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Formatting;
 
 namespace Unity.Services.Cli.RemoteConfig.UnitTest.Deploy;
@@ -38,6 +39,10 @@ public class ConfigTypeDeriverTests
         },
         new object[]
         {
+            new JArray(), ConfigType.JSON
+        },
+        new object[]
+        {
             new JObject(), ConfigType.JSON
         },
     };
@@ -48,5 +53,11 @@ public class ConfigTypeDeriverTests
     {
         var response = m_ConfigTypeDeriver.DeriveType(input);
         Assert.That(response, Is.EqualTo((ConfigType)configType));
+    }
+
+    [TestCase]
+    public void DeriveType_ThrowsOnUnsupportedType()
+    {
+        Assert.Throws<ConfigTypeException>(() => m_ConfigTypeDeriver.DeriveType(new string[5]));
     }
 }

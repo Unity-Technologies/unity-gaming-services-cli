@@ -1,20 +1,13 @@
 # UGS CLI
-For installing the UGS CLI and getting started, see [Getting Started](https://services.docs.unity.com/guides/ugs-cli/latest/general/get-started/install-the-cli).
+The unity gaming services (UGS) CLI is a unified command line interface tool for gaming services.
 
 The source code project is for reference only. You may not be able to build it due to lack of access to internal dependencies.
 
-## Installation
-
-### With npm
-Install the CLI with npm by calling `npm install -g ugs` in your command line.
-
-### With GitHub
-Download the executable directly from the [GitHub releases](https://github.com/Unity-Technologies/unity-gaming-services-cli/releases).
-
-On macos and linux, use `chmod +x <path_to_executable>` to mark the file as executable.
+## Installation and Getting Started
+To get started and install the CLI, see [Getting Started].
 
 ## Documentation
-To see the full list of services and commands available in the UGS CLI, visit the documentation on https://services.docs.unity.com/guides/ugs-cli/latest/general/overview
+To see the full list of services and commands available in the UGS CLI, visit the [documentation].
 
 ## Basic Commands
 An UGS CLI command has the following format:
@@ -55,3 +48,5 @@ Please [Submit a Request](https://support.unity.com/hc/en-us/requests/new?ticket
 [Alpine]: https://alpinelinux.org/
 [Ubuntu]: https://ubuntu.com/
 [Windows]: https://www.microsoft.com/windows/
+[Getting Started]: https://services.docs.unity.com/guides/ugs-cli/latest/general/get-started/install-the-cli
+[Documentation]: https://services.docs.unity.com/guides/ugs-cli/latest/general/overview

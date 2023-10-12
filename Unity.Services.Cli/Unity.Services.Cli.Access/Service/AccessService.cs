@@ -22,7 +22,7 @@ class AccessService : IAccessService
         m_AuthenticationService = authenticationService;
     }
 
-    const string JsonIncorrectFormatExceptionMessage = "Please make sure that the format of your JSON input is correct and all required fields are included. If you need help, please refer to the documentation.";
+    const string k_JsonIncorrectFormatExceptionMessage = "Please make sure that the format of your JSON input is correct and all required fields are included. If you need help, please refer to the documentation.";
 
     static string ReadFile(FileInfo file)
     {
@@ -98,7 +98,7 @@ class AccessService : IAccessService
         }
         catch
         {
-            throw new CliException(JsonIncorrectFormatExceptionMessage, ExitCode.HandledError);
+            throw new CliException(k_JsonIncorrectFormatExceptionMessage, ExitCode.HandledError);
         }
         await m_ProjectPolicyApi.UpsertPolicyAsync(projectId, environmentId, policy, cancellationToken: cancellationToken);
     }
@@ -120,7 +120,7 @@ class AccessService : IAccessService
         }
         catch
         {
-            throw new CliException(JsonIncorrectFormatExceptionMessage, ExitCode.HandledError);
+            throw new CliException(k_JsonIncorrectFormatExceptionMessage, ExitCode.HandledError);
         }
 
         await m_PlayerPolicyApi.UpsertPlayerPolicyAsync(projectId, environmentId, playerId, policy, cancellationToken: cancellationToken);
@@ -143,7 +143,7 @@ class AccessService : IAccessService
         }
         catch
         {
-            throw new CliException(JsonIncorrectFormatExceptionMessage, ExitCode.HandledError);
+            throw new CliException(k_JsonIncorrectFormatExceptionMessage, ExitCode.HandledError);
         }
 
         await m_ProjectPolicyApi.DeletePolicyStatementsAsync(projectId, environmentId, deleteOptions, cancellationToken: cancellationToken);
@@ -166,9 +166,29 @@ class AccessService : IAccessService
         }
         catch
         {
-            throw new CliException(JsonIncorrectFormatExceptionMessage, ExitCode.HandledError);
+            throw new CliException(k_JsonIncorrectFormatExceptionMessage, ExitCode.HandledError);
         }
 
         await m_PlayerPolicyApi.DeletePlayerPolicyStatementsAsync(projectId, environmentId, playerId, deleteOptions, cancellationToken: cancellationToken);
+    }
+
+    public async Task UpsertProjectAccessCaCAsync(
+        string projectId,
+        string environmentId,
+        Policy policy,
+        CancellationToken cancellationToken = default)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        await m_ProjectPolicyApi.UpsertPolicyAsync(projectId, environmentId, policy, cancellationToken: cancellationToken);
+    }
+
+    public async Task DeleteProjectAccessCaCAsync(
+        string projectId,
+        string environmentId,
+        DeleteOptions options,
+        CancellationToken cancellationToken = default)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        await m_ProjectPolicyApi.DeletePolicyStatementsAsync(projectId, environmentId, options, cancellationToken: cancellationToken);
     }
 }

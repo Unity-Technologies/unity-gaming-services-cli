@@ -15,7 +15,7 @@ namespace Unity.Services.Cli.RemoteConfig.Service;
 
 public class RemoteConfigService : IRemoteConfigService
 {
-    internal const string k_ConfigTypeDefaultValue = "settings";
+    const string k_ConfigTypeDefaultValue = "settings";
 
     static readonly string k_BaseUrl = $"{EndpointHelper.GetCurrentEndpointFor<RemoteConfigEndpoints>()}/remote-config/v1";
 
@@ -26,15 +26,15 @@ public class RemoteConfigService : IRemoteConfigService
         ContractResolver = new CamelCasePropertyNamesContractResolver()
     };
 
-    readonly HttpClient m_httpClient = new();
-    readonly IServiceAccountAuthenticationService m_authService;
-    readonly IConfigurationValidator m_configValidator;
+    readonly HttpClient m_HttpClient = new();
+    readonly IServiceAccountAuthenticationService m_AuthService;
+    readonly IConfigurationValidator m_ConfigValidator;
 
     public RemoteConfigService(IServiceAccountAuthenticationService authService, IConfigurationValidator validator)
     {
-        m_authService = authService;
-        m_configValidator = validator;
-        m_httpClient.DefaultRequestHeaders.SetXClientIdHeader();
+        m_AuthService = authService;
+        m_ConfigValidator = validator;
+        m_HttpClient.DefaultRequestHeaders.SetXClientIdHeader();
     }
 
     /// <inheritdoc />
@@ -53,7 +53,7 @@ public class RemoteConfigService : IRemoteConfigService
 
     async Task<string> CreateConfigAsync(string projectId, string body, CancellationToken cancellationToken = default)
     {
-        m_configValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
+        m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
 
         string requestType = GetRequestTypeFromBody(body);
 
@@ -73,7 +73,7 @@ public class RemoteConfigService : IRemoteConfigService
         HttpResponseMessage response = new HttpResponseMessage();
         try
         {
-            response = await m_httpClient.SendAsync(request, cancellationToken);
+            response = await m_HttpClient.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();
             var responseStr = await response.Content.ReadAsStringAsync(cancellationToken);
             var responseObj = JsonConvert.DeserializeObject<CreateResponse>(responseStr, k_JsonSerializerSettings);
@@ -104,7 +104,7 @@ public class RemoteConfigService : IRemoteConfigService
         string body,
         CancellationToken cancellationToken = default)
     {
-        m_configValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
+        m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
         if (string.IsNullOrEmpty(configId))
         {
             throw new ArgumentException("Required parameter is invalid", nameof(configId));
@@ -118,7 +118,7 @@ public class RemoteConfigService : IRemoteConfigService
         string body,
         CancellationToken cancellationToken = default)
     {
-        m_configValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
+        m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
 
         var requestType = GetRequestTypeFromBody(body);
 
@@ -138,7 +138,7 @@ public class RemoteConfigService : IRemoteConfigService
         HttpResponseMessage response = new HttpResponseMessage();
         try
         {
-            response = await m_httpClient.SendAsync(request, cancellationToken);
+            response = await m_HttpClient.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException exception)
@@ -154,7 +154,7 @@ public class RemoteConfigService : IRemoteConfigService
         string? configType,
         CancellationToken cancellationToken = default)
     {
-        m_configValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
+        m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
         if (string.IsNullOrEmpty(configId))
         {
             throw new ArgumentException("Required parameter is invalid", nameof(configId));
@@ -173,7 +173,7 @@ public class RemoteConfigService : IRemoteConfigService
                 request.Headers.Add("x-requesting-service", configType);
             }
 
-            var response = await m_httpClient.SendAsync(request, cancellationToken);
+            var response = await m_HttpClient.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException exception)
@@ -188,7 +188,7 @@ public class RemoteConfigService : IRemoteConfigService
         string? configType,
         CancellationToken cancellationToken = default)
     {
-        m_configValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
+        m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
         return GetAllConfigsFromEnvironmentInternalAsync(projectId, environmentId, configType, cancellationToken);
     }
 
@@ -201,7 +201,7 @@ public class RemoteConfigService : IRemoteConfigService
         {
             var sb = new StringBuilder($"/projects/{projectId}");
             // environmentId is an optional parameter, only add it if it's present
-            if (m_configValidator.IsConfigValid(Keys.ConfigKeys.EnvironmentId, environmentId!, out _))
+            if (m_ConfigValidator.IsConfigValid(Keys.ConfigKeys.EnvironmentId, environmentId!, out _))
             {
                 sb.Append($"/environments/{environmentId}");
             }
@@ -215,7 +215,7 @@ public class RemoteConfigService : IRemoteConfigService
                 // Only set x-requesting-service if a non-default configType was specified
                 request.Headers.Add("x-requesting-service", configType);
             }
-            var response = await m_httpClient.SendAsync(request, cancellationToken);
+            var response = await m_HttpClient.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync(cancellationToken);
         }
@@ -230,7 +230,7 @@ public class RemoteConfigService : IRemoteConfigService
         string body,
         CancellationToken cancellationToken = default)
     {
-        m_configValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
+        m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
         if (string.IsNullOrEmpty(configId))
         {
             throw new ArgumentException("Required parameter is invalid", nameof(configId));
@@ -247,7 +247,7 @@ public class RemoteConfigService : IRemoteConfigService
                 Content = new StringContent(body, Encoding.UTF8, "application/json"),
             };
 
-            response = await m_httpClient.SendAsync(request, cancellationToken);
+            response = await m_HttpClient.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException exception)
@@ -321,7 +321,7 @@ public class RemoteConfigService : IRemoteConfigService
     /// </summary>
     async Task AuthorizeServiceAsync(CancellationToken cancellationToken = default)
     {
-        var token = await m_authService.GetAccessTokenAsync(cancellationToken);
-        m_httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", token);
+        var token = await m_AuthService.GetAccessTokenAsync(cancellationToken);
+        m_HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", token);
     }
 }

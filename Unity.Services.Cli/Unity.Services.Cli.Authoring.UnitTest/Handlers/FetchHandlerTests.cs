@@ -14,6 +14,7 @@ using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
+using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.TestUtils;
 using Unity.Services.Deployment.Core.Model;
 using Unity.Services.DeploymentApi.Editor;
@@ -23,12 +24,14 @@ namespace Unity.Services.Cli.Authoring.UnitTest.Handlers;
 [TestFixture]
 public class FetchHandlerTests
 {
+    const string k_ValidEnvironmentId = "00000000-0000-0000-0000-000000000000";
     readonly Mock<IHost> m_Host = new();
     readonly Mock<ILogger> m_Logger = new();
     readonly Mock<IServiceProvider> m_ServiceProvider = new();
     readonly Mock<IFetchService> m_FetchService = new();
     readonly Mock<ICliDeploymentDefinitionService> m_DdefService = new();
     readonly Mock<IAnalyticsEventBuilder> m_AnalyticsEventBuilder = new();
+    readonly Mock<IUnityEnvironment> m_MockEnvironment = new();
 
     [SetUp]
     public void SetUp()
@@ -38,16 +41,24 @@ public class FetchHandlerTests
         m_FetchService.Reset();
         m_Logger.Reset();
         m_AnalyticsEventBuilder.Reset();
+        m_MockEnvironment.Reset();
 
+        m_MockEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None)).Returns(Task.FromResult(k_ValidEnvironmentId));
         m_FetchService.Setup(s => s.ServiceName)
             .Returns("mock_test");
-        m_FetchService.Setup(s => s.FileExtension)
-            .Returns(".test");
+        m_FetchService.Setup(s => s.FileExtensions)
+            .Returns(
+                new[]
+                {
+                    ".test"
+                });
 
         m_FetchService.Setup(
                 s => s.FetchAsync(
                     It.IsAny<FetchInput>(),
-                    It.IsAny<List<string>>(),
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
                     It.IsAny<StatusContext?>(),
                     It.IsAny<CancellationToken>()))
             .Returns(
@@ -88,13 +99,18 @@ public class FetchHandlerTests
         string m_ServiceName = "test";
         string m_DeployFileExtension = ".test";
 
-        string IFetchService.ServiceType => m_ServiceType;
-        string IFetchService.ServiceName => m_ServiceName;
-        string IFetchService.FileExtension => m_DeployFileExtension;
+        public string ServiceType => m_ServiceType;
+        public string ServiceName => m_ServiceName;
+        public IReadOnlyList<string> FileExtensions => new[]
+        {
+            m_DeployFileExtension
+        };
 
         public Task<FetchResult> FetchAsync(
             FetchInput input,
             IReadOnlyList<string> filePaths,
+            string projectId,
+            string environmentId,
             StatusContext? loadingContext,
             CancellationToken cancellationToken)
         {
@@ -113,9 +129,10 @@ public class FetchHandlerTests
     {
         var mockLoadingIndicator = new Mock<ILoadingIndicator>();
 
-        await FetchHandler.FetchAsync(
+        await FetchCommandHandler.FetchAsync(
             null!,
             null!,
+            m_MockEnvironment.Object,
             null!,
             m_DdefService.Object,
             mockLoadingIndicator.Object,
@@ -135,9 +152,10 @@ public class FetchHandlerTests
         var fetchInput = new FetchInput { DryRun = dryRun };
         var mockDdefService = new Mock<ICliDeploymentDefinitionService>();
 
-        await FetchHandler.FetchAsync(
+        await FetchCommandHandler.FetchAsync(
             m_Host.Object,
             fetchInput,
+            m_MockEnvironment.Object,
             mockLogger.Object,
             (StatusContext?)null,
             m_DdefService.Object,
@@ -159,9 +177,10 @@ public class FetchHandlerTests
     {
         var fetchInput = new FetchInput();
 
-        await FetchHandler.FetchAsync(
+        await FetchCommandHandler.FetchAsync(
             m_Host.Object,
             fetchInput,
+            m_MockEnvironment.Object,
             m_Logger.Object,
             (StatusContext)null!,
             m_DdefService.Object,
@@ -188,9 +207,10 @@ public class FetchHandlerTests
         var fetchInput = new FetchInput();
         Assert.ThrowsAsync<AggregateException>(async () =>
         {
-            await FetchHandler.FetchAsync(
+            await FetchCommandHandler.FetchAsync(
                 m_Host.Object,
                 fetchInput,
+                m_MockEnvironment.Object,
                 m_Logger.Object,
                 (StatusContext)null!,
                 m_DdefService.Object,
@@ -207,9 +227,10 @@ public class FetchHandlerTests
             Reconcile = true
         };
 
-        await FetchHandler.FetchAsync(
+        await FetchCommandHandler.FetchAsync(
             m_Host.Object,
             input,
+            m_MockEnvironment.Object,
             m_Logger.Object,
             (StatusContext)null!,
             m_DdefService.Object,
@@ -220,6 +241,8 @@ public class FetchHandlerTests
             s => s.FetchAsync(
                 It.IsAny<FetchInput>(),
                 It.IsAny<List<string>>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -237,9 +260,10 @@ public class FetchHandlerTests
             }
         };
 
-        await FetchHandler.FetchAsync(
+        await FetchCommandHandler.FetchAsync(
             m_Host.Object,
             input,
+            m_MockEnvironment.Object,
             m_Logger.Object,
             (StatusContext)null!,
             m_DdefService.Object,
@@ -249,7 +273,9 @@ public class FetchHandlerTests
         m_FetchService.Verify(
             s => s.FetchAsync(
                 It.IsAny<FetchInput>(),
-                It.IsAny<List<string>>(),
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
@@ -266,9 +292,10 @@ public class FetchHandlerTests
             }
         };
 
-        await FetchHandler.FetchAsync(
+        await FetchCommandHandler.FetchAsync(
             m_Host.Object,
             input,
+            m_MockEnvironment.Object,
             m_Logger.Object,
             (StatusContext)null!,
             m_DdefService.Object,
@@ -278,7 +305,9 @@ public class FetchHandlerTests
         m_FetchService.Verify(
             s => s.FetchAsync(
                 It.IsAny<FetchInput>(),
-                It.IsAny<List<string>>(),
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
@@ -295,9 +324,10 @@ public class FetchHandlerTests
             }
         };
 
-        await FetchHandler.FetchAsync(
+        await FetchCommandHandler.FetchAsync(
             m_Host.Object,
             input,
+            m_MockEnvironment.Object,
             m_Logger.Object,
             (StatusContext)null!,
             m_DdefService.Object,
@@ -308,6 +338,8 @@ public class FetchHandlerTests
             s => s.FetchAsync(
                 It.IsAny<FetchInput>(),
                 It.IsAny<List<string>>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -336,9 +368,10 @@ public class FetchHandlerTests
                         new Mock<IDeploymentDefinition>().Object,
                         "path"));
 
-        await FetchHandler.FetchAsync(
+        await FetchCommandHandler.FetchAsync(
             m_Host.Object,
             input,
+            m_MockEnvironment.Object,
             m_Logger.Object,
             (StatusContext)null!,
             m_DdefService.Object,
@@ -349,6 +382,8 @@ public class FetchHandlerTests
             s => s.FetchAsync(
                 It.IsAny<FetchInput>(),
                 It.IsAny<List<string>>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -375,9 +410,10 @@ public class FetchHandlerTests
                     new Dictionary<IDeploymentDefinition, List<string>>(),
                     true));
 
-        await FetchHandler.FetchAsync(
+        await FetchCommandHandler.FetchAsync(
             m_Host.Object,
             input,
+            m_MockEnvironment.Object,
             m_Logger.Object,
             (StatusContext)null!,
             m_DdefService.Object,
@@ -388,6 +424,8 @@ public class FetchHandlerTests
             s => s.FetchAsync(
                 It.IsAny<FetchInput>(),
                 It.IsAny<List<string>>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -427,9 +465,10 @@ public class FetchHandlerTests
             .Returns(mockResult.Object);
 
 
-        await FetchHandler.FetchAsync(
+        await FetchCommandHandler.FetchAsync(
             m_Host.Object,
             input,
+            m_MockEnvironment.Object,
             m_Logger.Object,
             (StatusContext)null!,
             m_DdefService.Object,
@@ -452,9 +491,10 @@ public class FetchHandlerTests
             Reconcile = true
         };
 
-        await FetchHandler.FetchAsync(
+        await FetchCommandHandler.FetchAsync(
             m_Host.Object,
             input,
+            m_MockEnvironment.Object,
             m_Logger.Object,
             (StatusContext)null!,
             m_DdefService.Object,
@@ -465,6 +505,8 @@ public class FetchHandlerTests
             s => s.FetchAsync(
                 It.IsAny<FetchInput>(),
                 It.IsAny<List<string>>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -476,14 +518,18 @@ public class FetchHandlerTests
         string m_ServiceName = "test";
         string m_DeployFileExtension = ".test";
 
-        string IFetchService.ServiceType => m_ServiceType;
-        string IFetchService.ServiceName => m_ServiceName;
-
-        string IFetchService.FileExtension => m_DeployFileExtension;
+        public string ServiceType => m_ServiceType;
+        public string ServiceName => m_ServiceName;
+        public IReadOnlyList<string> FileExtensions => new[]
+        {
+            m_DeployFileExtension
+        };
 
         public Task<FetchResult> FetchAsync(
             FetchInput input,
             IReadOnlyList<string> filePaths,
+            string projectId,
+            string environmentId,
             StatusContext? loadingContext,
             CancellationToken cancellationToken)
         {

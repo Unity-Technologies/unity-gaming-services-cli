@@ -15,8 +15,10 @@
     </AssemblyAttribute>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Unity.Services.Cli.Authoring\Unity.Services.Cli.Authoring.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Common\Unity.Services.Cli.Common.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
+    <ProjectReference Include="..\Unity.Services.Access.Authoring.Core\Unity.Services.Access.Authoring.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Unity.Services.Gateway.AccessApiV1.Generated" Version="1.0.1" />

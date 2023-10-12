@@ -11,26 +11,26 @@ namespace Unity.Services.Cli.Lobby.Input
     public class LobbyBodyInput : CommonInput
     {
         /* Optional request body as file input or raw string. */
-        private protected const string k_JsonBodyDescription = "If this is a file path, the content of the file is used; otherwise, the raw string is used.";
+        protected const string JsonBodyDescription = "If this is a file path, the content of the file is used; otherwise, the raw string is used.";
         const string k_DefaultJsonBody = "{}";
 
         public static readonly Option<string> JsonFileOrBodyOption = new(
             aliases: new[] { "-b", "--body" },
             getDefaultValue: () => k_DefaultJsonBody,
-            description: $"The JSON body. {k_JsonBodyDescription}"
+            description: $"The JSON body. {JsonBodyDescription}"
         );
 
         [InputBinding(nameof(JsonFileOrBodyOption))]
         public virtual string? JsonFileOrBody { get; set; }
 
         /* Query filter. */
-        public static readonly Argument<string> QueryFilterArgument = new("filter", $"The JSON filter to use for querying. {k_JsonBodyDescription}");
+        public static readonly Argument<string> QueryFilterArgument = new("filter", $"The JSON filter to use for querying. {JsonBodyDescription}");
 
         [InputBinding(nameof(QueryFilterArgument))]
         public string? QueryFilter { get; set; }
 
         /* Player details. */
-        public static readonly Argument<string> PlayerDetailsArgument = new("player-details", $"The JSON player details. {k_JsonBodyDescription}");
+        public static readonly Argument<string> PlayerDetailsArgument = new("player-details", $"The JSON player details. {JsonBodyDescription}");
 
         [InputBinding(nameof(PlayerDetailsArgument))]
         public string? PlayerDetails { get; set; }
@@ -90,7 +90,7 @@ namespace Unity.Services.Cli.Lobby.Input
     public class RequiredBodyInput : CommonLobbyInput
     {
         /* Required request body as file input or raw string. */
-        public static readonly Argument<string> RequestBodyArgument = new("body", k_JsonBodyDescription);
+        public static readonly Argument<string> RequestBodyArgument = new("body", JsonBodyDescription);
 
         [InputBinding(nameof(RequestBodyArgument))]
         public override string? JsonFileOrBody { get; set; }

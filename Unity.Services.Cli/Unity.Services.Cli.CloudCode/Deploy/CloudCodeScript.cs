@@ -29,7 +29,7 @@ class CloudCodeScript : DeployContent, IScript
     { }
 
     public CloudCodeScript(string name, string path, float progress, DeploymentStatus? status)
-        : base(name, CloudCodeConstants.ServiceType, path, progress, status)
+        : base(name, CloudCodeConstants.ServiceTypeScripts, path, progress, status)
     {
         Name = ScriptName.FromPath(path);
         Language = LanguageType.JS;
@@ -46,7 +46,7 @@ class CloudCodeScript : DeployContent, IScript
         string body,
         List<CloudCodeParameter> parameters,
         string lastPublishedDate)
-    : base(name.GetNameWithoutExtension(), CloudCodeConstants.ServiceType, path, 0F, DeploymentStatus.Empty)
+    : base(name.GetNameWithoutExtension(), CloudCodeConstants.ServiceTypeScripts, path, 0F, DeploymentStatus.Empty)
     {
         Name = name;
         Language = language;
@@ -57,7 +57,7 @@ class CloudCodeScript : DeployContent, IScript
     }
 
     public CloudCodeScript(GetScriptResponse response)
-    : base(response.Name, CloudCodeConstants.ServiceType, "", 0F, DeploymentStatus.Empty)
+    : base(response.Name, CloudCodeConstants.ServiceTypeScripts, "", 0F, DeploymentStatus.Empty)
     {
         Path = "";
         Name = new ScriptName(response.Name);

@@ -11,14 +11,18 @@ public class GameServerHostingService : IGameServerHostingService
         IServiceAccountAuthenticationService authenticationService,
         IBuildsApi buildsApi,
         IBuildConfigurationsApi buildConfigurationsApi,
+        IFilesApi filesApi,
         IFleetsApi fleetsApi,
+        IMachinesApi machinesApi,
         IServersApi serversApi
     )
     {
         m_AuthenticationService = authenticationService;
         BuildsApi = buildsApi;
         BuildConfigurationsApi = buildConfigurationsApi;
+        FilesApi = filesApi;
         FleetsApi = fleetsApi;
+        MachinesApi = machinesApi;
         ServersApi = serversApi;
     }
 
@@ -26,7 +30,11 @@ public class GameServerHostingService : IGameServerHostingService
 
     public IBuildConfigurationsApi BuildConfigurationsApi { get; }
 
+    public IFilesApi FilesApi { get; }
+
     public IFleetsApi FleetsApi { get; }
+
+    public IMachinesApi MachinesApi { get; }
 
     public IServersApi ServersApi { get; }
 
@@ -36,7 +44,9 @@ public class GameServerHostingService : IGameServerHostingService
         var token = await m_AuthenticationService.GetAccessTokenAsync(cancellationToken);
         BuildsApi.Configuration.DefaultHeaders.Add("Authorization", $"Basic {token}");
         BuildConfigurationsApi.Configuration.DefaultHeaders.Add("Authorization", $"Basic {token}");
+        FilesApi.Configuration.DefaultHeaders.Add("Authorization", $"Basic {token}");
         FleetsApi.Configuration.DefaultHeaders.Add("Authorization", $"Basic {token}");
+        MachinesApi.Configuration.DefaultHeaders.Add("Authorization", $"Basic {token}");
         ServersApi.Configuration.DefaultHeaders.Add("Authorization", $"Basic {token}");
     }
 }

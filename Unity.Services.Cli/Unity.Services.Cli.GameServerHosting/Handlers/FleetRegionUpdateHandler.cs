@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Unity.Services.Cli.Common.Console;
+using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.GameServerHosting.Exceptions;
@@ -39,12 +40,62 @@ static class FleetRegionUpdateHandler
         var regionId = input.RegionId ?? throw new MissingInputException(FleetRegionUpdateInput.RegionIdKey);
         var deleteTtl = input.DeleteTtl ?? throw new MissingInputException(FleetRegionUpdateInput.DeleteTtlKey);
         var disabledDeleteTtl = input.DisabledDeleteTtl ?? throw new MissingInputException(FleetRegionUpdateInput.DisabledDeleteTtlKey);
-        var maxServers = input.MaxServers ?? throw new MissingInputException(FleetRegionUpdateInput.MaxServersKey);
-        var minAvailableServers = input.MinAvailableServers ?? throw new MissingInputException(FleetRegionUpdateInput.MinAvailableServersKey);
-        var scalingEnabled = input.ScalingEnabled ?? throw new MissingInputException(FleetRegionUpdateInput.ScalingEnabledKey);
         var shutdownTtl = input.ShutdownTtl ?? throw new MissingInputException(FleetRegionUpdateInput.ShutdownTtlKey);
 
+        var maxServers = input.MaxServers;
+        var minServers = input.MinAvailableServers;
+        var scalingEnabled = input.ScalingEnabled;
+
         await service.AuthorizeGameServerHostingService(cancellationToken);
+
+        // Fetch the fleet this fleet region belongs to
+        var fleet = await service.FleetsApi.GetFleetAsync(Guid.Parse(input.CloudProjectId!),
+            Guid.Parse(environmentId), fleetId, cancellationToken: cancellationToken);
+
+        var region = fleet.FleetRegions.Find(r => r.RegionID == regionId);
+        if (region == null)
+        {
+            throw new CliException("Region not found", ExitCode.HandledError);
+        }
+
+        if (scalingEnabled != null)
+        {
+            try
+            {
+                region.ScalingEnabled = bool.Parse(scalingEnabled);
+            }
+            catch (FormatException)
+            {
+                throw new CliException("Invalid --scaling-enabled value, please provide a valid boolean (true|false)", ExitCode.HandledError);
+            }
+        }
+
+        if (maxServers != null)
+        {
+            region.MaxServers = (long)maxServers;
+            if (scalingEnabled == null)
+            {
+                if (region.MaxServers > 0)
+                {
+                    region.ScalingEnabled = true;
+                    scalingEnabled = region.ScalingEnabled.ToString();
+                }
+                else
+                {
+                    region.ScalingEnabled = false;
+                }
+            }
+
+        }
+
+        if (minServers != null)
+        {
+            region.MinAvailableServers = (long)minServers;
+            if (scalingEnabled == null)
+            {
+                region.ScalingEnabled = region.MinAvailableServers > 0;
+            }
+        }
 
         var updateFleetRegionResponse = await service.FleetsApi.UpdateFleetRegionAsync(
             Guid.Parse(input.CloudProjectId!),
@@ -54,9 +105,9 @@ static class FleetRegionUpdateHandler
             new UpdateRegionRequest(
                 deleteTtl,
                 disabledDeleteTtl,
-                maxServers,
-                minAvailableServers,
-                scalingEnabled,
+                region.MaxServers,
+                region.MinAvailableServers,
+                region.ScalingEnabled,
                 shutdownTtl
             ),
             cancellationToken: cancellationToken

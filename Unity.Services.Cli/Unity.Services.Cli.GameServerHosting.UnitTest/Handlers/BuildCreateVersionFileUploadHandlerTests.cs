@@ -1,4 +1,5 @@
 using System.Net;
+using SystemFile = System.IO.File;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
@@ -27,7 +28,7 @@ partial class BuildCreateVersionHandlerTests
 
         // write a file to the temp directory
         m_TempFilePath = Path.Combine(m_TempDirectory, BuildWithOneFileFileName);
-        File.WriteAllText(m_TempFilePath, "file content to upload");
+        SystemFile.WriteAllText(m_TempFilePath, "file content to upload");
 
         // emptyDirectory
         m_TempDirectoryEmpty = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());

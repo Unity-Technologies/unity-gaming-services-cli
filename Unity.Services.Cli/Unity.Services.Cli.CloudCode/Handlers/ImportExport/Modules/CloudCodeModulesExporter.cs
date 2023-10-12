@@ -35,8 +35,8 @@ class CloudCodeModulesExporter : BaseExporter<Module>
         m_ModulesDownloader = cloudCodeModulesDownloader;
     }
 
-    protected override string FileName => CloudCodeConstants.ModulesZipName;
-    protected override string EntryName => CloudCodeConstants.ModulesEntryName;
+    protected override string FileName => CloudCodeConstants.ZipNameModules;
+    protected override string EntryName => CloudCodeConstants.EntryNameModules;
 
     protected override async Task<IEnumerable<Module>> ListConfigsAsync(string projectId, string environmentId, CancellationToken cancellationToken)
     {
@@ -44,7 +44,7 @@ class CloudCodeModulesExporter : BaseExporter<Module>
             projectId, environmentId, cancellationToken);
 
         var modules = moduleResults.Select(r =>
-            new Module(new ScriptName(r.Name), Language.JS, $"{r.Name}{CloudCodeConstants.SingleModuleFileExtension}", r.SignedDownloadURL));
+            new Module(new ScriptName(r.Name), Language.JS, $"{r.Name}{CloudCodeConstants.FileExtensionModulesCcm}", r.SignedDownloadURL));
 
         return modules;
     }

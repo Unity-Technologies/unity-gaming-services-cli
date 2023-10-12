@@ -35,7 +35,16 @@ public class AccessApiMock : IServiceApiMock
 
     static Policy GetPolicy()
     {
-        List<Statement> statementLists = new List<Statement>();
+        var statement = new Statement(
+            "statement-1",
+            new List<string>()
+            {
+                "*"
+            },
+            "Deny",
+            "Player",
+            "urn:ugs:*");
+        List<Statement> statementLists = new List<Statement>(){statement};
         var policy = new Policy(statementLists);
 
         return policy;

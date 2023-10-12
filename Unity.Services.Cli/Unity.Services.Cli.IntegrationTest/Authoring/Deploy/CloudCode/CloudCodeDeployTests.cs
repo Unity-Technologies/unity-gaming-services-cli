@@ -55,9 +55,9 @@ public class CloudCodeDeployTests : UgsCliFixture
             k_TestDirectory),
     };
 
-    List<DeployContent> m_DeployedContents = new();
-    List<DeployContent> m_FailedContents = new();
-    List<DeployContent> m_DryRunContents = new();
+    readonly List<DeployContent> m_DeployedContents = new();
+    readonly List<DeployContent> m_FailedContents = new();
+    readonly List<DeployContent> m_DryRunContents = new();
 
     [SetUp]
     public async Task SetUp()
@@ -72,12 +72,11 @@ public class CloudCodeDeployTests : UgsCliFixture
 
         m_DeployedContents.Clear();
         m_FailedContents.Clear();
-        m_MockApi.Server?.ResetMappings();
+        MockApi.Server?.ResetMappings();
 
         Directory.CreateDirectory(k_TestDirectory);
-        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
-        await m_MockApi.MockServiceAsync(new CloudCodeV1Mock());
-        await m_MockApi.MockServiceAsync(new LeaderboardApiMock());
+        await MockApi.MockServiceAsync(new IdentityV1Mock());
+        await MockApi.MockServiceAsync(new CloudCodeV1Mock());
     }
 
     [TearDown]
@@ -100,7 +99,7 @@ public class CloudCodeDeployTests : UgsCliFixture
         await CreateDeployTestFilesAsync(m_DeployedTestCases, m_DeployedContents);
         var deployedConfigFileString = string.Join(Environment.NewLine + "    ", m_DeployedTestCases.Select(a => $"'{a.ConfigFilePath}'"));
         await GetLoggedInCli()
-            .Command($"deploy {k_TestDirectory}")
+            .Command($"deploy {k_TestDirectory} -s cloud-code-scripts -s cloud-code-modules")
             .AssertStandardOutputContains($"Successfully deployed the following files:{Environment.NewLine}    {deployedConfigFileString}")
             .AssertNoErrors()
             .ExecuteAsync();
@@ -120,7 +119,7 @@ public class CloudCodeDeployTests : UgsCliFixture
             Array.Empty<DeployContent>());
         var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
         await GetLoggedInCli()
-            .Command($"deploy {k_TestDirectory} -j")
+            .Command($"deploy {k_TestDirectory} -j -s cloud-code-scripts -s cloud-code-modules")
             .AssertStandardOutputContains(resultString)
             .AssertNoErrors()
             .ExecuteAsync();
@@ -142,7 +141,7 @@ public class CloudCodeDeployTests : UgsCliFixture
             true);
         var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
         await GetLoggedInCli()
-            .Command($"deploy {k_TestDirectory} -j --dry-run")
+            .Command($"deploy {k_TestDirectory} -j --dry-run -s cloud-code-scripts -s cloud-code-modules")
             .AssertStandardOutputContains(resultString)
             .AssertNoErrors()
             .ExecuteAsync();
@@ -232,7 +231,7 @@ public class CloudCodeDeployTests : UgsCliFixture
             Array.Empty<DeployContent>());
         var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
         await GetLoggedInCli()
-            .Command($"deploy {k_TestDirectory} -j")
+            .Command($"deploy {k_TestDirectory} -j -s cloud-code-scripts -s cloud-code-modules")
             .AssertStandardOutputContains(resultString)
             .AssertNoErrors()
             .ExecuteAsync();

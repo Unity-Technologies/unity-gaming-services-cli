@@ -24,4 +24,10 @@ public interface IAccessService
 
     Task DeletePlayerPolicyStatementsAsync(string projectId, string environmentId, string playerId, FileInfo file,
         CancellationToken cancellationToken = default);
+
+    Task UpsertProjectAccessCaCAsync(string projectId, string environmentId, Policy policy,
+        CancellationToken cancellationToken = default);
+
+    Task DeleteProjectAccessCaCAsync(string projectId, string environmentId, DeleteOptions options,
+        CancellationToken cancellationToken = default);
 }

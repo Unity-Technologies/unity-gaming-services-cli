@@ -4,12 +4,8 @@ using Unity.Services.Cli.Authoring.Model;
 
 namespace Unity.Services.Cli.Authoring.Service;
 
-public interface IDeploymentService
+public interface IDeploymentService : IAuthoringService
 {
-    string ServiceType { get; }
-    string ServiceName { get; }
-    public string DeployFileExtension { get; }
-
     Task<DeploymentResult> Deploy(
         DeployInput deployInput,
         IReadOnlyList<string> filePaths,

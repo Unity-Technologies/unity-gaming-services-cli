@@ -41,14 +41,16 @@ class CloudCodeScriptDeploymentService : IDeploymentService
         CliCloudCodeClient = cliCloudCodeClient;
         CloudCodeDeploymentHandler = deployHandlerWithOutput;
 
-        m_ServiceType = CloudCodeConstants.ServiceType;
-        m_ServiceName = CloudCodeConstants.ServiceName;
-        DeployFileExtension = CloudCodeConstants.JavaScriptFileExtension;
+        m_ServiceType = CloudCodeConstants.ServiceTypeScripts;
+        m_ServiceName = CloudCodeConstants.ServiceNameScripts;
     }
 
-    string IDeploymentService.ServiceType => m_ServiceType;
-    string IDeploymentService.ServiceName => m_ServiceName;
-    public string DeployFileExtension { get; }
+    public string ServiceType => m_ServiceType;
+    public string ServiceName => m_ServiceName;
+    public IReadOnlyList<string> FileExtensions => new[]
+    {
+        CloudCodeConstants.FileExtensionJavaScript
+    };
 
     public async Task<DeploymentResult> Deploy(
         DeployInput deployInput,
@@ -63,20 +65,30 @@ class CloudCodeScriptDeploymentService : IDeploymentService
 
         loadingContext?.Status($"Reading {m_ServiceType} Scripts...");
 
-        var loadResult = await CloudCodeScriptsLoader.LoadScriptsAsync(
-            filePaths,
-            m_ServiceType,
-            DeployFileExtension,
-            CloudCodeInputParser,
-            CloudCodeScriptParser,
-            cancellationToken);
+        List<Task<CloudCodeScriptLoadResult>> loadTasks = new List<Task<CloudCodeScriptLoadResult>>();
+        foreach (var extension in FileExtensions)
+        {
+            loadTasks.Add(
+                CloudCodeScriptsLoader.LoadScriptsAsync(
+                    filePaths,
+                    m_ServiceType,
+                    extension,
+                    CloudCodeInputParser,
+                    CloudCodeScriptParser,
+                    cancellationToken));
+        }
+
+        await Task.WhenAll();
+
+        var loadedSuccessfullyScripts = loadTasks.SelectMany(task => task.Result.LoadedScripts).ToList();
+        var loadedFailedScripts = loadTasks.SelectMany(task => task.Result.FailedContents).ToList();
 
         loadingContext?.Status($"Deploying {m_ServiceType} Scripts...");
 
         DeployResult result = null!;
         try
         {
-            result = await CloudCodeDeploymentHandler.DeployAsync(loadResult.LoadedScripts, deployInput.Reconcile, deployInput.DryRun);
+            result = await CloudCodeDeploymentHandler.DeployAsync(loadedSuccessfullyScripts, deployInput.Reconcile, deployInput.DryRun);
         }
         catch (ApiException)
         {
@@ -94,14 +106,14 @@ class CloudCodeScriptDeploymentService : IDeploymentService
         {
             var deployContent = new List<IDeploymentItem>();
 
-            deployContent.AddRange(loadResult.LoadedScripts.OfType<IDeploymentItem>().ToList());
-            deployContent.AddRange(loadResult.FailedContents.OfType<IDeploymentItem>().ToList());
+            deployContent.AddRange(loadedSuccessfullyScripts.OfType<IDeploymentItem>().ToList());
+            deployContent.AddRange(loadedSuccessfullyScripts.OfType<IDeploymentItem>().ToList());
 
             return new DeploymentResult(deployContent);
         }
 
         var failedScripts = result.Failed.Select(item => item as IDeploymentItem)
-                .Concat(loadResult.FailedContents.Select(item => item as IDeploymentItem))
+                .Concat(loadedFailedScripts.Select(item => item as IDeploymentItem))
                 .ToList() as IReadOnlyList<IDeploymentItem>;
 
         return new DeploymentResult(

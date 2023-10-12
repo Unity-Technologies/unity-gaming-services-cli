@@ -29,15 +29,15 @@ public class LobbyTests : UgsCliFixture
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
     {
-        m_MockApi.Server?.AllowPartialMapping();
-        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
-        await m_MockApi.MockServiceAsync(new LobbyApiMock());
+        MockApi.Server?.AllowPartialMapping();
+        await MockApi.MockServiceAsync(new IdentityV1Mock());
+        await MockApi.MockServiceAsync(new LobbyApiMock());
     }
 
     [OneTimeTearDown]
     public void OneTimeTearDown()
     {
-        m_MockApi.Server?.Dispose();
+        MockApi.Server?.Dispose();
     }
 
     [SetUp]

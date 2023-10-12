@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -9,17 +10,34 @@ public partial class UgsCliTestCase
 {
     class ExternalProcess : IProcess
     {
+        const int k_Timeout = 30;
+
         public ExternalProcess(Process innerProcess)
         {
             InnerProcess = innerProcess;
+            StandardOutput = null!;
+            StandardError = null!;
         }
 
         public Process InnerProcess { get; }
 
         public bool HasExited => InnerProcess.HasExited;
-        public Task WaitForExitAsync(CancellationToken cancellationToken = default)
+        public async Task WaitForExitAsync(CancellationToken cancellationToken = default)
         {
-            return InnerProcess.WaitForExitAsync(cancellationToken);
+            try
+            {
+                StandardOutput = InnerProcess.StandardOutput;
+                StandardError = InnerProcess.StandardError;
+
+                await InnerProcess
+                    .WaitForExitAsync(cancellationToken)
+                    .WaitAsync(TimeSpan.FromSeconds(k_Timeout), cancellationToken);
+            }
+            catch (TimeoutException)
+            {
+                InnerProcess.Kill();
+                StandardError = InnerProcess.StandardOutput;
+            }
         }
 
         public int ExitCode => InnerProcess.ExitCode;
@@ -36,7 +54,7 @@ public partial class UgsCliTestCase
         }
 
         public StreamWriter StandardInput => InnerProcess.StandardInput;
-        public StreamReader StandardOutput => InnerProcess.StandardOutput;
-        public StreamReader StandardError => InnerProcess.StandardError;
+        public StreamReader StandardOutput { get; private set; }
+        public StreamReader StandardError { get; private set; }
     }
 }

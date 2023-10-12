@@ -127,11 +127,11 @@ class ImportScriptsHandlerTests
 
         await ImportInternalAsync(importInput);
 
-        var archivePath = Path.Join(importInput.InputDirectory, CloudCodeConstants.JavascriptZipName);
+        var archivePath = Path.Join(importInput.InputDirectory, CloudCodeConstants.ZipNameJavaScript);
 
         m_MockArchiver.Verify(za => za.UnzipAsync<CloudCodeScript>(
             archivePath,
-            CloudCodeConstants.ScriptsEntryName, CancellationToken.None));
+            CloudCodeConstants.EntryNameScripts, CancellationToken.None));
     }
 
     [Test]

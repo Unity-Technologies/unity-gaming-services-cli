@@ -1,18 +1,19 @@
+using System.Reflection;
 using Moq;
+using Newtonsoft.Json;
 using NUnit.Framework;
+using Unity.Services.Cli.Common.Exceptions;
+using Unity.Services.Cli.Common.Networking;
+using Unity.Services.Cli.Common.Validator;
+using Unity.Services.Cli.Lobby.Service;
+using Unity.Services.Cli.Lobby.UnitTest.Mock;
+using Unity.Services.Cli.ServiceAccountAuthentication;
+using Unity.Services.Gateway.Auth.Generated.Model;
 using Unity.Services.MpsLobby.LobbyApiV1.Generated.Model;
 using static Unity.Services.MpsLobby.LobbyApiV1.Generated.Model.TokenRequest;
-using Unity.Services.Cli.Lobby.Service;
-using Unity.Services.Cli.Common.Validator;
-using Unity.Services.Cli.ServiceAccountAuthentication;
-using Newtonsoft.Json;
-using System.Reflection;
-using Unity.Services.Cli.Common.Networking;
-using Unity.Services.Cli.Common.Exceptions;
 using IAuthApiAsync = Unity.Services.Gateway.Auth.Generated.Api.IDefaultApiAsync;
-using Unity.Services.Gateway.Auth.Generated.Model;
 
-namespace Unity.Services.Cli.Lobby.UnitTest.Mock;
+namespace Unity.Services.Cli.Lobby.UnitTest.Service;
 
 [TestFixture]
 class LobbyServiceTests
@@ -28,9 +29,9 @@ class LobbyServiceTests
     const string k_TestPlayerId = "test-player";
     const string k_InvalidJson = "invalid JSON";
 
-    static ConfigValidationException configValidationException = new ConfigValidationException(string.Empty, string.Empty, string.Empty);
-    static CliException cliException = new CliException(ExitCode.HandledError);
-    static HttpRequestException httpRequestException = new HttpRequestException();
+    static readonly ConfigValidationException k_ConfigValidationException = new ConfigValidationException(string.Empty, string.Empty, string.Empty);
+    static readonly CliException k_CliException = new CliException(ExitCode.HandledError);
+    static readonly HttpRequestException k_HttpRequestException = new HttpRequestException();
 
     LobbyService? m_LobbyService;
     readonly LobbyApiV1AsyncMock m_LobbyApiMock = new();
@@ -40,21 +41,21 @@ class LobbyServiceTests
 
     static readonly IEnumerable<TestCaseData> k_ValidateRequestIdsTestCases = new[]
     {
-        new TestCaseData(configValidationException, k_TestProjectId, string.Empty, k_TestEnvironmentId),
-        new TestCaseData(configValidationException, string.Empty, k_TestEnvironmentId, k_TestEnvironmentId),
-        new TestCaseData(cliException, k_TestProjectId, k_TestEnvironmentId, string.Empty),
+        new TestCaseData(k_ConfigValidationException, k_TestProjectId, string.Empty, k_TestEnvironmentId),
+        new TestCaseData(k_ConfigValidationException, string.Empty, k_TestEnvironmentId, k_TestEnvironmentId),
+        new TestCaseData(k_CliException, k_TestProjectId, k_TestEnvironmentId, string.Empty),
     };
 
     static readonly IEnumerable<TestCaseData> k_MissingOrInvalidPlayerTestCases = new[]
     {
-        new TestCaseData(cliException, null),
-        new TestCaseData(httpRequestException, "invalid-player"),
+        new TestCaseData(k_CliException, null),
+        new TestCaseData(k_HttpRequestException, "invalid-player"),
     };
 
     static readonly IEnumerable<TestCaseData> k_RequestTokenInvalidInputTestCases = new[]
 {
-        new TestCaseData(cliException, null, k_DefaultLobbyId),
-        new TestCaseData(httpRequestException, k_TestPlayerId, k_FakeLobbyId),
+        new TestCaseData(k_CliException, null, k_DefaultLobbyId),
+        new TestCaseData(k_HttpRequestException, k_TestPlayerId, k_FakeLobbyId),
     };
 
     [SetUp]

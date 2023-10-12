@@ -2,6 +2,7 @@ using System.IO.Abstractions;
 using Newtonsoft.Json;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.RemoteConfig.Deploy;
+using Unity.Services.Cli.RemoteConfig.Exceptions;
 using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.RemoteConfig.Editor.Authoring.Core.Model;
 
@@ -41,7 +42,8 @@ class RemoteConfigScriptsLoader : IRemoteConfigScriptsLoader
                 loaded.Add(file);
                 file.Status = new DeploymentStatus(Statuses.Loaded, "");
             }
-            catch (JsonException ex)
+            catch (Exception ex)
+                when (ex is JsonException or ConfigTypeException)
             {
                 file.Status = new DeploymentStatus(Statuses.FailedToRead, ex.Message, SeverityLevel.Error);
                 failed.Add(file);

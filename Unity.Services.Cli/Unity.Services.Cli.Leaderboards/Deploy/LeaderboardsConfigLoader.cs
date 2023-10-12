@@ -14,9 +14,10 @@ class LeaderboardsConfigLoader : ILeaderboardsConfigLoader
         m_FileSystem = fileSystem;
     }
 
-    public async Task<IReadOnlyList<LeaderboardConfig>> LoadConfigsAsync(IReadOnlyCollection<string> paths, CancellationToken cancellationToken)
+    public async Task<(IReadOnlyList<LeaderboardConfig> Loaded,IReadOnlyList<LeaderboardConfig> Failed)> LoadConfigsAsync(IReadOnlyCollection<string> paths, CancellationToken cancellationToken)
     {
         var leaderboards = new List<LeaderboardConfig>();
+        var failedToLoad = new List<LeaderboardConfig>();
         var serializationSettings = LeaderboardConfigFile.GetSerializationSettings();
         foreach (var path in paths)
         {
@@ -32,6 +33,7 @@ class LeaderboardsConfigLoader : ILeaderboardsConfigLoader
 
                 lb = FromFile(leaderboardConfigFile, path);
                 lb.Status = new DeploymentStatus("Loaded");
+                leaderboards.Add(lb);
             }
             catch (Exception ex)
             {
@@ -39,11 +41,11 @@ class LeaderboardsConfigLoader : ILeaderboardsConfigLoader
                     "Failed to Load",
                     $"Error reading file: {ex.Message}",
                     SeverityLevel.Error);
+                failedToLoad.Add(lb);
             }
-            leaderboards.Add(lb);
         }
 
-        return leaderboards;
+        return (leaderboards, failedToLoad);
     }
 
     static LeaderboardConfig FromFile(LeaderboardConfigFile config, string path)

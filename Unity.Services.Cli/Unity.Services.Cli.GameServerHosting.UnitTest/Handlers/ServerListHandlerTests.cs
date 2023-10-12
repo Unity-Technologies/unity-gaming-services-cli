@@ -121,6 +121,7 @@ class ServerListHandlerTests : HandlerCommon
                 null,
                 fleetGuid,
                 null,
+                null,
                 buildConfigurationIdString,
                 null,
                 partialString,

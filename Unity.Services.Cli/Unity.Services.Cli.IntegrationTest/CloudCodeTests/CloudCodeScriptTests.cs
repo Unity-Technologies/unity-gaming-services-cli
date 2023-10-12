@@ -30,8 +30,7 @@ public class CloudCodeScriptTests : UgsCliFixture
         + " Please login using the 'ugs login' command.";
     const string k_EnvironmentNameNotSetErrorMessage = "'environment-name' is not set in project configuration."
         + " '" + Keys.EnvironmentKeys.EnvironmentName + "' is not set in system environment variables.";
-    const string k_UnauthorizedFileAccessErrorMessage = "Make sure that the CLI has the permissions to access"
-        + " the file and that the specified path points to a file and not a directory.";
+    const string k_UnauthorizedFileAccessErrorMessage = "The path passed is not a valid file path, please review it and try again.";
 
     [SetUp]
     public async Task SetUp()
@@ -40,15 +39,15 @@ public class CloudCodeScriptTests : UgsCliFixture
         DeleteLocalCredentials();
         if (!Directory.Exists(k_TestDirectory))
             Directory.CreateDirectory(k_TestDirectory);
-        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
-        await m_MockApi.MockServiceAsync(new CloudCodeV1Mock());
+        await MockApi.MockServiceAsync(new IdentityV1Mock());
+        await MockApi.MockServiceAsync(new CloudCodeV1Mock());
     }
 
     [TearDown]
     public void TearDown()
     {
         File.Delete(k_ValidFilepath);
-        m_MockApi.Server?.ResetMappings();
+        MockApi.Server?.ResetMappings();
     }
 
     // cloud-code list tests

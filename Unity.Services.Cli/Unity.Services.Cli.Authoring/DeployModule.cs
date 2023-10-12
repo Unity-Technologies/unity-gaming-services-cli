@@ -45,7 +45,7 @@ public class DeployModule : ICommandModule
             ICliDeploymentDefinitionService,
             IAnalyticsEventBuilder,
             CancellationToken>(
-            DeployHandler.DeployAsync);
+            DeployCommandHandler.DeployAsync);
     }
 
     /// <summary>

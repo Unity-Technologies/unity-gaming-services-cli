@@ -18,7 +18,7 @@ public class DeploymentResult : AuthorResult
     {
     }
 
-    public DeploymentResult(IReadOnlyList<AuthorResult> results) : base(results) { }
+    public DeploymentResult(IReadOnlyList<AuthorResult> results, bool dryRun = false) : base(results, dryRun) { }
 
     public DeploymentResult(IReadOnlyList<IDeploymentItem> results) : base(results) { }
 

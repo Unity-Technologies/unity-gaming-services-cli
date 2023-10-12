@@ -35,11 +35,8 @@ public class LeaderboardFetchServiceTests
         var lb1 = new LeaderboardConfig("lb1", "LB1");
         var lb2 = new LeaderboardConfig("lb2", "LB2");
 
-        var mockLoad = Task.FromResult(
-            (IReadOnlyList<LeaderboardConfig>)(new[]
-            {
-                lb1
-            }));
+        var mockLoad = (IReadOnlyList<LeaderboardConfig>) new[] { lb1 };
+        var failedToLoad = (IReadOnlyList<LeaderboardConfig>)Array.Empty<LeaderboardConfig>();
 
         m_MockLeaderboardConfigLoader
             .Setup(
@@ -48,7 +45,7 @@ public class LeaderboardFetchServiceTests
                         It.IsAny<IReadOnlyList<string>>(),
                         It.IsAny<CancellationToken>())
             )
-            .Returns(mockLoad);
+            .ReturnsAsync((mockLoad, failedToLoad));
 
         var deployResult = new FetchResult()
         {
@@ -82,6 +79,8 @@ public class LeaderboardFetchServiceTests
         var res = await m_FetchService!.FetchAsync(
             input,
             new[] { "dir" },
+            string.Empty,
+            string.Empty,
             null,
             CancellationToken.None);
 
@@ -90,5 +89,42 @@ public class LeaderboardFetchServiceTests
         Assert.AreEqual(0, res.Deleted.Count);
         Assert.AreEqual(1, res.Fetched.Count);
         Assert.AreEqual(0, res.Failed.Count);
+    }
+
+    [Test]
+    public async Task FetchAsync_MapsFailed()
+    {
+        var lb1 = new LeaderboardConfig("lb1", "LB1");
+        var lbFailed = new LeaderboardConfig("failed_lb", "Failed");
+        var mockLoad = (IReadOnlyList<LeaderboardConfig>) new[] { lb1 };
+        var failedToLoad = (IReadOnlyList<LeaderboardConfig>) new[] { lbFailed };
+
+        m_MockLeaderboardConfigLoader
+            .Setup(
+                m =>
+                    m.LoadConfigsAsync(
+                        It.IsAny<IReadOnlyList<string>>(),
+                        It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync((mockLoad, failedToLoad));
+
+        var input = new FetchInput()
+        {
+            Path = "dir",
+            CloudProjectId = string.Empty
+        };
+        var res = await m_FetchService!.FetchAsync(
+            input,
+            new[] { "dir" },
+            string.Empty,
+            string.Empty,
+            null,
+            CancellationToken.None);
+
+        Assert.AreEqual(1, res.Created.Count);
+        Assert.AreEqual(0, res.Updated.Count);
+        Assert.AreEqual(0, res.Deleted.Count);
+        Assert.AreEqual(1, res.Fetched.Count);
+        Assert.AreEqual(1, res.Failed.Count);
     }
 }

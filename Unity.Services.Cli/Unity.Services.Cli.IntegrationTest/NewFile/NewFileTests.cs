@@ -34,6 +34,9 @@ public class NewFileTests : UgsCliFixture
 
     [TestCase("remote-config", k_RemoteConfigFileExtension)]
     [TestCase("cloud-code scripts", k_CloudCodeFileExtension)]
+#if FEATURE_ECONOMY
+    [TestCase("economy", k_EconomyFileExtension)]
+#endif
     public async Task NewFileCreatedWithNoErrorsAndCorrectOutput(string fullParentCommand, string serviceExtension)
     {
         var newFileOutPutString = $"[Information]: {Environment.NewLine}    Config file {k_NewFileBaseName}{serviceExtension} created successfully!{Environment.NewLine}";

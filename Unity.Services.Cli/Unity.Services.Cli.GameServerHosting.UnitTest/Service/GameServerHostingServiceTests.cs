@@ -18,8 +18,14 @@ class GameServerHostingServiceTests
         m_BuildsApi = new GameServerHostingBuildsApiV1Mock();
         m_BuildsApi.SetUp();
 
+        m_FilesApi = new GameServerHostingFilesApiV1Mock();
+        m_FilesApi.SetUp();
+
         m_FleetsApi = new GameServerHostingFleetsApiV1Mock();
         m_FleetsApi.SetUp();
+
+        m_MachinesApi = new GameServerHostingMachinesApiV1Mock();
+        m_MachinesApi.SetUp();
 
         m_ServersApi = new GameServerHostingServersApiV1Mock();
         m_ServersApi.SetUp();
@@ -31,14 +37,18 @@ class GameServerHostingServiceTests
             m_AuthenticationService.Object,
             m_BuildsApi.DefaultBuildsClient.Object,
             m_BuildConfigurationsApi.DefaultBuildConfigurationsClient.Object,
+            m_FilesApi.DefaultFilesClient.Object,
             m_FleetsApi.DefaultFleetsClient.Object,
+            m_MachinesApi.DefaultMachinesClient.Object,
             m_ServersApi.DefaultServersClient.Object
         );
     }
 
     Mock<IServiceAccountAuthenticationService>? m_AuthenticationService;
     GameServerHostingBuildsApiV1Mock? m_BuildsApi;
+    GameServerHostingFilesApiV1Mock? m_FilesApi;
     GameServerHostingFleetsApiV1Mock? m_FleetsApi;
+    GameServerHostingMachinesApiV1Mock? m_MachinesApi;
     GameServerHostingServersApiV1Mock? m_ServersApi;
     GameServerHostingService? m_GameServerHostingService;
     GameServerHostingBuildConfigurationsApiV1Mock? m_BuildConfigurationsApi;
@@ -55,6 +65,9 @@ class GameServerHostingServiceTests
                     m_BuildsApi!.DefaultBuildsClient.Object.Configuration.DefaultHeaders["Authorization"],
                     Is.EqualTo($"Basic {TestAccessToken}"));
                 Assert.That(
+                    m_FilesApi!.DefaultFilesClient.Object.Configuration.DefaultHeaders["Authorization"],
+                    Is.EqualTo($"Basic {TestAccessToken}"));
+                Assert.That(
                     m_FleetsApi!.DefaultFleetsClient.Object.Configuration.DefaultHeaders["Authorization"],
                     Is.EqualTo($"Basic {TestAccessToken}"));
                 Assert.That(
@@ -62,6 +75,9 @@ class GameServerHostingServiceTests
                     Is.EqualTo($"Basic {TestAccessToken}"));
                 Assert.That(
                     m_BuildConfigurationsApi!.DefaultBuildConfigurationsClient.Object.Configuration.DefaultHeaders["Authorization"],
+                    Is.EqualTo($"Basic {TestAccessToken}"));
+                Assert.That(
+                    m_MachinesApi!.DefaultMachinesClient.Object.Configuration.DefaultHeaders["Authorization"],
                     Is.EqualTo($"Basic {TestAccessToken}"));
             });
     }

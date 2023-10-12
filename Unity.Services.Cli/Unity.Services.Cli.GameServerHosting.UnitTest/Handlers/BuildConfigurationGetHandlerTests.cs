@@ -126,31 +126,31 @@ class BuildConfigurationGetHandlerTests : HandlerCommon
     public async Task BuildConfigurationGetAsync_ValidateLoggingOutput()
     {
 
-        var m_BuildConfiguration = new BuildConfiguration(
-           binaryPath: "/path/to/simple-go-server",
-           buildID: long.Parse(ValidBuildId),
-           buildName: ValidBuildName,
-           commandLine: "simple-go-server",
-           configuration: new List<ConfigEntry>()
-           {
-                new ConfigEntry(
+        var buildConfiguration = new BuildConfiguration(
+            binaryPath: "/path/to/simple-go-server",
+            buildID: long.Parse(ValidBuildId),
+            buildName: ValidBuildName,
+            commandLine: "simple-go-server",
+            configuration: new List<ConfigEntry>()
+            {
+                new(
                     id: 0,
                     key: "key",
                     value: "value"
                 ),
-           },
-           cores: 2L,
-           createdAt: new DateTime(2022, 10, 11),
-           fleetID: new Guid(ValidFleetId),
-           fleetName: ValidFleetName,
-           id: ValidBuildConfigurationId,
-           memory: 800L,
-           name: ValidBuildConfigurationName,
-           queryType: "sqp",
-           speed: 1200L,
-           updatedAt: new DateTime(2022, 10, 11),
-           version: 1L
-       );
+            },
+            cores: 2L,
+            createdAt: new DateTime(2022, 10, 11),
+            fleetID: new Guid(ValidFleetId),
+            fleetName: ValidFleetName,
+            id: ValidBuildConfigurationId,
+            memory: 800L,
+            name: ValidBuildConfigurationName,
+            queryType: "sqp",
+            speed: 1200L,
+            updatedAt: new DateTime(2022, 10, 11),
+            version: 1L
+        );
 
         BuildConfigurationIdInput input = new()
         {
@@ -167,6 +167,6 @@ class BuildConfigurationGetHandlerTests : HandlerCommon
             CancellationToken.None
         );
 
-        TestsHelper.VerifyLoggerWasCalled(MockLogger, LogLevel.Critical, LoggerExtension.ResultEventId, Times.Once, new BuildConfigurationOutput(m_BuildConfiguration).ToString());
+        TestsHelper.VerifyLoggerWasCalled(MockLogger, LogLevel.Critical, LoggerExtension.ResultEventId, Times.Once, new BuildConfigurationOutput(buildConfiguration).ToString());
     }
 }

@@ -1,0 +1,16 @@
+{
+  "Configs": [
+    {
+      "Name": "Trigger 1",
+      "EventType": "EventType1",
+      "ActionType": "cloud-code",
+      "ActionUrn": "urn:ugs:cloud-code:MyScript"
+    },
+    {
+      "Name": "Trigger 2",
+      "EventType": "EventType2",
+      "ActionType": "cloud-code",
+      "ActionUrn": "urn:ugs:cloud-code:MyModule/MyFunction"
+    }
+  ]
+}

@@ -20,7 +20,7 @@ public class PlayerTests : UgsCliFixture
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
-        m_MockApi.Server?.AllowPartialMapping();
+        MockApi.Server?.AllowPartialMapping();
     }
 
     [SetUp]
@@ -28,7 +28,7 @@ public class PlayerTests : UgsCliFixture
     {
         DeleteLocalConfig();
         DeleteLocalCredentials();
-        await m_MockApi.MockServiceAsync(new PlayerApiMock());
+        await MockApi.MockServiceAsync(new PlayerApiMock());
     }
 
     [Test]

@@ -24,7 +24,7 @@ public class EnvTests : UgsCliFixture
         DeleteLocalConfig();
         DeleteLocalCredentials();
 
-        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
+        await MockApi.MockServiceAsync(new IdentityV1Mock());
     }
 
     // env list tests

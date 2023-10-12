@@ -24,7 +24,7 @@
   <ItemGroup>
     <PackageReference Include="System.IO.Abstractions" Version="19.2.16" />
     <PackageReference Include="Unity.Services.Gateway.ContentDeliveryManagementApiV1.Generated" Version="0.1.1" />
-    <PackageReference Include="Unity.Services.Gateway.GameServerHostingApiV1.Generated" Version="0.6.0-alpha.2" />
+    <PackageReference Include="Unity.Services.Gateway.GameServerHostingApiV1.Generated" Version="0.8.0" />
     <PackageReference Include="Unity.Services.Multiplay.Authoring.Core" Version="0.0.11" />
     <PackageReference Include="YamlDotNet" Version="13.1.0" />
   </ItemGroup>

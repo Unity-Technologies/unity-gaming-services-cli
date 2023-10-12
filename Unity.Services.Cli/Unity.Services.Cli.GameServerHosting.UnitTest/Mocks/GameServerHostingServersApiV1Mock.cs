@@ -2,6 +2,7 @@ using Moq;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Client;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Api;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
+using Machine = Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model.Machine1;
 
 namespace Unity.Services.Cli.GameServerHosting.UnitTest.Mocks;
 
@@ -17,7 +18,12 @@ class GameServerHostingServersApiV1Mock
             locationID: ValidLocationId,
             locationName: ValidLocationName,
             machineName:"",
-            machineSpec: new MachineSpec1("2020-12-31T12:00:00Z", "2020-01-01T12:00:00Z", "test-cpu"),
+            machineSpec: new MachineSpec1(
+                contractEndDate: new DateTime(2020, 12, 31, 12, 0,0, DateTimeKind.Utc),
+                contractStartDate: new DateTime(2020, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+                cpuName: "test-cpu",
+                cpuShortname: "tc"
+            ),
             hardwareType: Server.HardwareTypeEnum.CLOUD,
             fleetID: new Guid(ValidFleetId),
             fleetName: ValidFleetName,
@@ -70,6 +76,7 @@ class GameServerHostingServersApiV1Mock
                     It.IsAny<string?>(), // sortBy
                     It.IsAny<string?>(), // sortDirection
                     It.IsAny<Guid?>(), // fleetId
+                    It.IsAny<string>(), // machineId
                     It.IsAny<string?>(), // locationId
                     It.IsAny<string?>(), // buildConfigurationId
                     It.IsAny<string?>(), // hardwareType
@@ -88,6 +95,7 @@ class GameServerHostingServersApiV1Mock
                     string? _,
                     string? _,
                     Guid? fleetId,
+                    string? _,
                     string? _,
                     string? buildConfigurationId,
                     string? _,

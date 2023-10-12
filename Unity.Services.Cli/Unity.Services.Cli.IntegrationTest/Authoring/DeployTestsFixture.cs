@@ -9,6 +9,7 @@ using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Model.TableOutput;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.MockServer.ServiceMocks;
+using Unity.Services.DeploymentApi.Editor;
 
 namespace Unity.Services.Cli.IntegrationTest.Authoring;
 
@@ -18,10 +19,10 @@ namespace Unity.Services.Cli.IntegrationTest.Authoring;
 [TestFixture]
 public abstract class DeployTestsFixture : UgsCliFixture
 {
-    protected static readonly string k_TestDirectory = Path.Combine(UgsCliBuilder.RootDirectory, ".tmp", "FilesDir");
+    protected static readonly string TestDirectory = Path.Combine(UgsCliBuilder.RootDirectory, ".tmp", "FilesDir");
 
-    protected List<AuthoringTestCase> m_DeployedTestCases = new();
-    protected List<AuthoringTestCase> m_DryRunDeployedTestCases = new();
+    protected readonly List<AuthoringTestCase> DeployedTestCases = new();
+    readonly List<AuthoringTestCase> m_DryRunDeployedTestCases = new();
 
     protected abstract AuthoringTestCase GetValidTestCase();
     protected abstract AuthoringTestCase GetInvalidTestCase();
@@ -32,21 +33,21 @@ public abstract class DeployTestsFixture : UgsCliFixture
         DeleteLocalConfig();
         DeleteLocalCredentials();
 
-        if (Directory.Exists(k_TestDirectory))
+        if (Directory.Exists(TestDirectory))
         {
-            Directory.Delete(k_TestDirectory, true);
+            Directory.Delete(TestDirectory, true);
         }
 
-        Directory.CreateDirectory(k_TestDirectory);
+        Directory.CreateDirectory(TestDirectory);
 
-        m_DeployedTestCases.Clear();
+        DeployedTestCases.Clear();
         m_DryRunDeployedTestCases.Clear();
 
-        m_MockApi.Server?.ResetMappings();
+        MockApi.Server?.ResetMappings();
 
-        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
+        await MockApi.MockServiceAsync(new IdentityV1Mock());
 
-        m_DeployedTestCases.Add(GetDeployedTestCase());
+        DeployedTestCases.Add(GetDeployedTestCase());
         m_DryRunDeployedTestCases.Add(GetLoadedTestCase());
     }
 
@@ -76,9 +77,9 @@ public abstract class DeployTestsFixture : UgsCliFixture
         DeleteLocalConfig();
         DeleteLocalCredentials();
 
-        if (Directory.Exists(k_TestDirectory))
+        if (Directory.Exists(TestDirectory))
         {
-            Directory.Delete(k_TestDirectory, true);
+            Directory.Delete(TestDirectory, true);
         }
     }
 
@@ -88,7 +89,7 @@ public abstract class DeployTestsFixture : UgsCliFixture
     public virtual async Task DeployFromEmptyDirectorySucceed()
     {
         await GetFullySetCli()
-            .Command($"deploy {k_TestDirectory}")
+            .Command($"deploy {TestDirectory}")
             .AssertStandardOutputContains($"No content deployed")
             .AssertNoErrors()
             .ExecuteAsync();
@@ -98,11 +99,11 @@ public abstract class DeployTestsFixture : UgsCliFixture
     public virtual async Task DeployValidConfigFromDirectorySucceed()
     {
         var deployedContentList =
-            await CreateDeployTestFilesAsync(m_DeployedTestCases);
+            await CreateDeployTestFilesAsync(DeployedTestCases);
         var deployedConfigFileString = $"{Environment.NewLine}    {deployedContentList[0]}";
 
         await GetFullySetCli()
-            .Command($"deploy {k_TestDirectory}")
+            .Command($"deploy {TestDirectory}")
             .AssertStandardOutputContains($"Successfully deployed the following files:{deployedConfigFileString}")
             .AssertNoErrors()
             .ExecuteAsync();
@@ -121,7 +122,7 @@ public abstract class DeployTestsFixture : UgsCliFixture
             $"'{invalidTestCase.ConfigFilePath}' - Status: {Statuses.FailedToRead}";
 
         await GetFullySetCli()
-            .Command($"deploy {k_TestDirectory}")
+            .Command($"deploy {TestDirectory}")
             .AssertStandardOutputContains($"Failed to deploy:{Environment.NewLine}    {deployedConfigFileString}")
             .AssertExitCode(ExitCode.HandledError)
             .ExecuteAsync();
@@ -130,7 +131,10 @@ public abstract class DeployTestsFixture : UgsCliFixture
     [Test]
     public virtual async Task DeployValidConfigFromDirectorySucceedWithJsonOutput()
     {
-        var deployedContents = await CreateDeployTestFilesAsync(m_DeployedTestCases);
+        var deployedContents = await CreateDeployTestFilesAsync(DeployedTestCases);
+
+        deployedContents[0].Status = new DeploymentStatus(Statuses.Deployed, "Created remotely");
+
         var logResult = CreateResult(
             deployedContents,
             Array.Empty<DeployContent>(),
@@ -140,7 +144,7 @@ public abstract class DeployTestsFixture : UgsCliFixture
 
         var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
         await GetFullySetCli()
-            .Command($"deploy {k_TestDirectory} -j")
+            .Command($"deploy {TestDirectory} -j")
             .AssertStandardOutputContains(resultString)
             .AssertNoErrors()
             .ExecuteAsync();
@@ -155,6 +159,8 @@ public abstract class DeployTestsFixture : UgsCliFixture
     {
         var contentList = await CreateDeployTestFilesAsync(m_DryRunDeployedTestCases);
 
+        contentList[0].Status = new DeploymentStatus(Statuses.Deployed, "Created remotely", SeverityLevel.Success);
+
         var logResult = new DeploymentResult(
             Array.Empty<DeployContent>(),
             Array.Empty<DeployContent>(),
@@ -164,7 +170,7 @@ public abstract class DeployTestsFixture : UgsCliFixture
             true);
         var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
         await GetFullySetCli()
-            .Command($"deploy {k_TestDirectory} -j --dry-run")
+            .Command($"deploy {TestDirectory} -j --dry-run")
             .AssertStandardOutputContains(resultString)
             .AssertNoErrors()
             .ExecuteAsync();
@@ -177,7 +183,9 @@ public abstract class DeployTestsFixture : UgsCliFixture
     [Test]
     public virtual async Task DeployWithoutReconcileWillNotDeleteRemoteFiles()
     {
-        var contentList = await CreateDeployTestFilesAsync(m_DeployedTestCases);
+        var contentList = await CreateDeployTestFilesAsync(DeployedTestCases);
+
+        contentList[0].Status = new DeploymentStatus(Statuses.Deployed, "Created remotely", SeverityLevel.Success);
 
         var logResult = CreateResult(
             contentList,
@@ -188,7 +196,7 @@ public abstract class DeployTestsFixture : UgsCliFixture
         var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
 
         await GetFullySetCli()
-            .Command($"deploy {k_TestDirectory} -j")
+            .Command($"deploy {TestDirectory} -j")
             .AssertStandardOutputContains(resultString)
             .AssertNoErrors()
             .ExecuteAsync();

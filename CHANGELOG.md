@@ -5,6 +5,42 @@ All notable changes to UGS CLI will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2023-10-12
+
+### Added
+* Bash installer to download and install the UGS CLI on MacOS and Linux
+* Added config as code support for economy module
+  * Deploy
+  * Fetch
+* Added config as code support for access module
+  * Deploy
+  * Fetch
+* Added `new-file` commands for economy resources
+  * For inventory items
+  * For currencies
+  * For virtual purchases
+  * For real-item purchases
+  * For Cloud Code C# Modules
+  * For project access policies
+  * For triggers
+* Added `gsh server files` command behind feature flag
+* Added support for .sln files on deploy
+  * .sln files now are compiled and zipped into .ccm before deploying
+* Added config as code support for triggers
+  * Deploy
+
+### Changed
+- Services can support multiple file extensions
+- Updated server states in `ugs gsh machine list`
+
+### Fixed
+- Handle exceptions when using Deploy with a Remote Config file that has unsupported config types.
+- Fixed an issue where if a leaderboard fails to load, it incorrectly deploys as a empty leaderboard and it is not reported
+- Added correct description when Cloud Code deploy has duplication file error during dry-run.
+- Fixed an issue with `ugs gsh fleet-region update` not ensuring the fleet region is brought online by default.
+- Handle exception for mis-spelt bool input params for `ugs gsh fleet-region update` command.
+- Fixed an issue with Deploy and Fetch on Remote Config containing JSON arrays.
+
 ## [1.0.0] - 2023-08-01
 
 ### Added
@@ -15,12 +51,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Deploy sends file configurations into the service
   - Fetch updates local files based on service configuration
 - Leaderboards now supports `new-file`, to create an empty file for leaderboards
+- Added new commands to Game Server Hosting for: machine list
 
 ### Changed
 - Removed Leaderboards support to `create` and `update` commands.
 
 ### Fixed
+- GSH Fleet Region Update now properly reports offline fleet region values.
+- GSH Fleet Region server settings now align with UDash
 - A bug logging an additional error when deploying a file.
+- A bug preventing Remote Config deploy from printing entries when encountering a `RemoteConfigDeploymentException`.
+- A bug in Cloud Code scripts throwing unhandled exception when using create command with a directory path but an empty file name.
 
 ## [1.0.0-beta.6] - 2023-07-10
 

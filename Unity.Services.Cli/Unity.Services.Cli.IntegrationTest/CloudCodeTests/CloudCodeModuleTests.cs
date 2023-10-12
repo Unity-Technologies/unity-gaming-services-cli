@@ -31,14 +31,14 @@ public class CloudCodeModuleTests : UgsCliFixture
         DeleteLocalConfig();
         DeleteLocalCredentials();
 
-        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
-        await m_MockApi.MockServiceAsync(new CloudCodeV1Mock());
+        await MockApi.MockServiceAsync(new IdentityV1Mock());
+        await MockApi.MockServiceAsync(new CloudCodeV1Mock());
     }
 
     [TearDown]
     public void TearDown()
     {
-        m_MockApi.Server?.ResetMappings();
+        MockApi.Server?.ResetMappings();
     }
 
     // cloud-code module list tests

@@ -1,19 +1,14 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Help;
 using System.CommandLine.Hosting;
-using System.CommandLine.IO;
 using System.CommandLine.Parsing;
-using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Unity.Services.Cli.CloudCode;
 using Unity.Services.Cli.Lobby;
@@ -31,12 +26,17 @@ using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
 using Unity.Services.Cli.Common.Telemetry.AnalyticEvent.AnalyticEventFactory;
 using Unity.Services.Cli.Authoring;
 using Unity.Services.Cli.GameServerHosting;
+#if FEATURE_ECONOMY
+using Unity.Services.Cli.Economy;
+#endif
 #if FEATURE_LEADERBOARDS
 using Unity.Services.Cli.Leaderboards;
 #endif
+#if FEATURE_TRIGGERS
+using Unity.Services.Cli.Triggers;
+#endif
 using Unity.Services.Cli.Player;
 using Unity.Services.Cli.Access;
-using Unity.Services.Cli.Authoring.Input;
 
 namespace Unity.Services.Cli;
 
@@ -78,6 +78,12 @@ public static partial class Program
                     host.ConfigureServices(AccessModule.RegisterServices);
                     host.ConfigureServices(GameServerHostingModule.RegisterServices);
                     host.ConfigureServices(LobbyModule.RegisterServices);
+#if FEATURE_ECONOMY
+                    host.ConfigureServices(EconomyModule.RegisterServices);
+#endif
+#if FEATURE_TRIGGERS
+                    host.ConfigureServices(TriggersModule.RegisterServices);
+#endif
                     host.ConfigureServices(LeaderboardsModule.RegisterServices);
                     host.ConfigureServices(PlayerModule.RegisterServices);
                     host.ConfigureServices(serviceCollection => serviceCollection
@@ -138,9 +144,15 @@ public static partial class Program
             .AddModule(new DeployModule())
             .AddModule(new FetchModule())
             .AddModule(new AccessModule())
+#if FEATURE_ECONOMY
+            .AddModule(new EconomyModule())
+#endif
             .AddModule(new EnvironmentModule())
 #if FEATURE_LEADERBOARDS
             .AddModule(new LeaderboardsModule())
+#endif
+#if FEATURE_TRIGGERS
+            .AddModule(new TriggersModule())
 #endif
             .AddModule(new LobbyModule())
             .AddModule(new GameServerHostingModule())

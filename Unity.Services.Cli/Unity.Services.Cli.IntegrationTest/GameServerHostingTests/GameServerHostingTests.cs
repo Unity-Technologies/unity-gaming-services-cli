@@ -7,23 +7,22 @@ using Unity.Services.Cli.MockServer.ServiceMocks.GameServerHosting;
 
 namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 
-[Ignore("Disable until fixed by GHS")]
 public partial class GameServerHostingTests : UgsCliFixture
 {
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
     {
-        m_MockApi.Server?.AllowPartialMapping();
-        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
-        await m_MockApi.MockServiceAsync(new GameServerHostingApiMock());
+        MockApi.Server?.AllowPartialMapping();
+        await MockApi.MockServiceAsync(new IdentityV1Mock());
+        await MockApi.MockServiceAsync(new GameServerHostingApiMock());
         CreateTempFiles();
     }
 
     [OneTimeTearDown]
     public void OneTimeTearDown()
     {
-        m_MockApi.Server?.Dispose();
-        m_MockApi.Server?.ResetMappings();
+        MockApi.Server?.Dispose();
+        MockApi.Server?.ResetMappings();
         DeleteTempFiles();
     }
 

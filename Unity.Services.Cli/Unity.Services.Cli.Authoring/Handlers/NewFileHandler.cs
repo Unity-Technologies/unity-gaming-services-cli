@@ -10,8 +10,8 @@ namespace Unity.Services.Cli.Authoring.Handlers;
 
 public static class NewFileHandler
 {
-    public static Command AddNewFileCommand<T>(this Command? self, string serviceName)
-        where T : IFileTemplate
+    public static Command AddNewFileCommand<T>(this Command? self, string serviceName, string defaultFileName = "new_file")
+        where T : IFileTemplate, new()
     {
         Command newFileCommand = new("new-file", $"Create new {serviceName} config file.")
         {
@@ -20,7 +20,7 @@ public static class NewFileHandler
         };
 
         newFileCommand.SetHandler<NewFileInput, IFile, ILogger, CancellationToken>
-        ((input, file, logger, token) => NewFileAsync(input, file, Activator.CreateInstance<T>(), logger, token));
+        ((input, file, logger, token) => NewFileAsync(input, file, new T(), logger, token, defaultFileName));
 
         return newFileCommand;
     }
@@ -30,10 +30,11 @@ public static class NewFileHandler
         IFile file,
         T template,
         ILogger logger,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string defaultFileName = "new_file")
     where T : IFileTemplate
     {
-        input.File = Path.ChangeExtension(input.File!, template.Extension);
+        input.File = Path.ChangeExtension(input.File ?? defaultFileName, template.Extension);
 
         if (file.Exists(input.File) && !input.UseForce)
         {

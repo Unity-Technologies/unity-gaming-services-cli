@@ -14,8 +14,10 @@ class HandlerCommon
     static Mock<IServiceAccountAuthenticationService>? s_AuthenticationServiceObject;
     protected static readonly Mock<IUnityEnvironment> MockUnityEnvironment = new();
     internal static GameServerHostingBuildsApiV1Mock? BuildsApi;
+    internal static GameServerHostingFilesApiV1Mock? FilesApi;
     internal static GameServerHostingFleetsApiV1Mock? FleetsApi;
     internal static GameServerHostingServersApiV1Mock? ServersApi;
+    internal static GameServerHostingMachinesApiV1Mock? MachinesApi;
     internal static GameServerHostingBuildConfigurationsApiV1Mock? BuildConfigurationsApi;
     protected static GameServerHostingService? GameServerHostingService;
 
@@ -42,6 +44,19 @@ class HandlerCommon
         };
         BuildsApi.SetUp();
 
+        FilesApi = new GameServerHostingFilesApiV1Mock
+        {
+            ValidProjects = new List<Guid>
+            {
+                Guid.Parse(ValidProjectId)
+            },
+            ValidEnvironments = new List<Guid>
+            {
+                Guid.Parse(ValidEnvironmentId)
+            }
+        };
+        FilesApi.SetUp();
+
         FleetsApi = new GameServerHostingFleetsApiV1Mock
         {
             ValidProjects = new List<Guid>
@@ -54,6 +69,19 @@ class HandlerCommon
             }
         };
         FleetsApi.SetUp();
+
+        MachinesApi = new GameServerHostingMachinesApiV1Mock
+        {
+            ValidProjects = new List<Guid>
+            {
+                Guid.Parse(ValidProjectId)
+            },
+            ValidEnvironments = new List<Guid>
+            {
+                Guid.Parse(ValidEnvironmentId)
+            }
+        };
+        MachinesApi.SetUp();
 
         ServersApi = new GameServerHostingServersApiV1Mock
         {
@@ -85,7 +113,9 @@ class HandlerCommon
             s_AuthenticationServiceObject.Object,
             BuildsApi.DefaultBuildsClient.Object,
             BuildConfigurationsApi.DefaultBuildConfigurationsClient.Object,
+            FilesApi.DefaultFilesClient.Object,
             FleetsApi.DefaultFleetsClient.Object,
+            MachinesApi.DefaultMachinesClient.Object,
             ServersApi.DefaultServersClient.Object
         );
 

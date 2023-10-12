@@ -9,7 +9,8 @@ namespace Unity.Services.Cli.IntegrationTest.Authoring.Deploy.RemoteConfig;
 
 public class RemoteConfigFileContent
 {
-    public Dictionary<string, string> entries;
+    // ReSharper disable once InconsistentNaming
+    public readonly Dictionary<string, string> entries;
 
     public RemoteConfigFileContent()
     {

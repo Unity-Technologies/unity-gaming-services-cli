@@ -18,7 +18,7 @@ namespace Unity.Services.Cli.RemoteConfig.UnitTest.ImportExport;
 [TestFixture]
 class ImportHandlerTests
 {
-    const string TestEnvironment = "00000000-0000-0000-0000-000000000000";
+    const string k_TestEnvironment = "00000000-0000-0000-0000-000000000000";
     readonly Mock<IUnityEnvironment> m_MockUnityEnvironment = new();
     readonly Mock<ICliRemoteConfigClient> m_MockRemoteConfigClient = new();
     readonly Mock<ILogger> m_MockLogger = new();
@@ -47,7 +47,7 @@ class ImportHandlerTests
 
         m_MockUnityEnvironment
             .Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
-            .ReturnsAsync(TestEnvironment);
+            .ReturnsAsync(k_TestEnvironment);
 
         m_MockArchiver.Setup(
                 za => za.UnzipAsync<RemoteConfigEntryDTO>(

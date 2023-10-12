@@ -131,6 +131,8 @@ public class RemoteConfigFetchServiceTests
         var res = await m_RemoteConfigFetchService!.FetchAsync(
             m_DefaultInput,
             k_ValidFilePaths,
+            string.Empty,
+            string.Empty,
             (StatusContext)null!,
             CancellationToken.None);
 
@@ -159,6 +161,8 @@ public class RemoteConfigFetchServiceTests
         var res = await m_RemoteConfigFetchService!.FetchAsync(
             m_DefaultInput,
             k_ValidFilePaths,
+            string.Empty,
+            string.Empty,
             (StatusContext)null!,
             CancellationToken.None);
 

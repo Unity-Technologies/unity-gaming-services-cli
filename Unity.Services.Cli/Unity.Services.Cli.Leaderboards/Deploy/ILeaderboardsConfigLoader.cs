@@ -4,7 +4,7 @@ namespace Unity.Services.Cli.Leaderboards.Deploy;
 
 public interface ILeaderboardsConfigLoader
 {
-    Task<IReadOnlyList<LeaderboardConfig>> LoadConfigsAsync(
+    Task<(IReadOnlyList<LeaderboardConfig> Loaded,IReadOnlyList<LeaderboardConfig> Failed)> LoadConfigsAsync(
         IReadOnlyCollection<string> paths,
         CancellationToken cancellationToken);
 }

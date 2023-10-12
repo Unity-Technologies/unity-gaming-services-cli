@@ -37,6 +37,7 @@ public static class GameServerHostingUnitTestsConstants
     public const string ValidFleetName2 = "Fleet Two";
 
     public const string OsNameLinux = "Linux";
+    public const string OsNameFullNameLinux = "Ubuntu (Server) 22.04 LTS";
 
     // Build Configuration specific constants
     public const long ValidBuildConfigurationId = 1L;
@@ -63,12 +64,18 @@ public static class GameServerHostingUnitTestsConstants
 
     public const string ValidFleetRegionId = "00000000-0000-0000-aaaa-300000000000";
 
-    public const long ValidServerId = 123456L;
-    public const long InvalidServerId = 666L;
-
-    public const long ValidMachineId = 654321L;
-    public const long InvalidMachineId = 666L;
+    public const long ValidServerId = 123L;
+    public const long ValidServerId2 = 456L;
+    public const long InvalidServerId = 999L;
 
     public const long ValidLocationId = 111111L;
     public const string ValidLocationName = "us-west1";
+
+    // Machine specific constants
+    public const long ValidMachineId = 654321L;
+    public const long InvalidMachineId = 666L;
+    public const string ValidMachineName = "p-gce-test-2";
+
+    public const string ValidMachineCpuSeriesShortname = "U1.Standard.3";
+    public const string ValidMachineCpuType = "Cloud Intel 2nd Gen Scalable";
 }

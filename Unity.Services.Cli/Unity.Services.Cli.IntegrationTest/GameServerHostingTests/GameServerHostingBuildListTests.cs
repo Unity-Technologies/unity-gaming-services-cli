@@ -41,7 +41,7 @@ public partial class GameServerHostingTests
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
         await new UgsCliTestCase()
-            .Command(k_BuildCreateCommand)
+            .Command(k_BuildListCommand)
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_NotLoggedIn)
             .ExecuteAsync();

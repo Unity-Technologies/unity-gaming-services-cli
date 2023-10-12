@@ -9,7 +9,7 @@ using Unity.Services.Cli.CloudCode.Utils;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.DeploymentApi.Editor;
 
-namespace Unity.Services.Cli.CloudCode.Authoring;
+namespace Unity.Services.Cli.CloudCode.Authoring.Fetch;
 
 class JavaScriptFetchService : IFetchService
 {
@@ -41,19 +41,23 @@ class JavaScriptFetchService : IFetchService
         m_FetchHandler = fetchHandler;
     }
 
-    public string ServiceType => CloudCodeConstants.ServiceType;
-    public string ServiceName => CloudCodeConstants.ServiceName;
+    public string ServiceType => CloudCodeConstants.ServiceTypeScripts;
+    public string ServiceName => CloudCodeConstants.ServiceNameScripts;
 
-    string IFetchService.FileExtension => CloudCodeConstants.JavaScriptFileExtension;
+    public IReadOnlyList<string> FileExtensions => new[]
+    {
+        CloudCodeConstants.FileExtensionJavaScript
+    };
 
     public async Task<FetchResult> FetchAsync(
         FetchInput input,
         IReadOnlyList<string> filePaths,
+        string projectId,
+        string environmentId,
         StatusContext? loadingContext,
         CancellationToken cancellationToken)
     {
-        var environmentId = await m_UnityEnvironment.FetchIdentifierAsync(cancellationToken);
-        m_Client.Initialize(environmentId, input.CloudProjectId!, cancellationToken);
+        m_Client.Initialize(environmentId, projectId, cancellationToken);
 
         loadingContext?.Status($"Reading {ServiceType} files...");
         var loadResult = await GetResourcesFromFilesAsync(filePaths, cancellationToken);
@@ -67,10 +71,10 @@ class JavaScriptFetchService : IFetchService
             cancellationToken);
 
         result = new FetchResult(
-            created:result.Created,
+            created: result.Created,
             updated: result.Updated,
             deleted: result.Deleted,
-            authored:result.Fetched,
+            authored: result.Fetched,
             failed: result.Failed.Concat(loadResult.FailedContents.Cast<IDeploymentItem>()).ToList(),
             dryRun: input.DryRun);
 
@@ -84,7 +88,7 @@ class JavaScriptFetchService : IFetchService
             .LoadScriptsAsync(
                 filePaths,
                 ServiceType,
-                CloudCodeConstants.JavaScriptFileExtension,
+                CloudCodeConstants.FileExtensionJavaScript,
                 m_InputParser,
                 m_ScriptParser,
                 cancellationToken);

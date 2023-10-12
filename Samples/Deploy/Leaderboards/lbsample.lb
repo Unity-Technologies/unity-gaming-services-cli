@@ -1,0 +1,26 @@
+{
+  "$schema": "https://ugs-config-schemas.unity3d.com/v1/leaderboards.schema.json",
+  "SortOrder": "asc",
+  "UpdateType": "keepBest",
+  "Name": "My Leaderboard",
+  "ResetConfig": {
+    "Start": "2023-08-25T00:00:00-04:00",
+    "Schedule": "0 12 1 * *"
+  },
+  "TieringConfig": {
+    "Strategy": "score",
+    "Tiers": [
+      {
+        "Id": "Gold",
+        "Cutoff": 200.0
+      },
+      {
+        "Id": "Silver",
+        "Cutoff": 100.0
+      },
+      {
+        "Id": "Bronze"
+      }
+    ]
+  }
+}

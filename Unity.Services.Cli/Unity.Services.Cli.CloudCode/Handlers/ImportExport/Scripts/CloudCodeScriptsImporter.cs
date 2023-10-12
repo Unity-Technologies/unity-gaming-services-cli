@@ -35,8 +35,8 @@ class CloudCodeScriptsImporter : BaseImporter<CloudCodeScript>
         m_CloudCodeService = cloudCodeService;
     }
 
-    protected override string FileName => CloudCodeConstants.JavascriptZipName;
-    protected override string EntryName => CloudCodeConstants.ScriptsEntryName;
+    protected override string FileName => CloudCodeConstants.ZipNameJavaScript;
+    protected override string EntryName => CloudCodeConstants.EntryNameScripts;
 
     protected override async Task DeleteConfigAsync(
         string projectId,

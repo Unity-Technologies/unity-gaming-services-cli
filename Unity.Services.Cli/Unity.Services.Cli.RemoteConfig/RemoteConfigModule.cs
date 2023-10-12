@@ -72,7 +72,6 @@ public class RemoteConfigModule : ICommandModule
         ModuleRootCommand.AddAlias("rc");
     }
 
-
     /// <summary>
     /// Register service to UGS CLI host builder
     /// </summary>

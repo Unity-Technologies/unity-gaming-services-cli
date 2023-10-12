@@ -71,13 +71,12 @@ public class RemoteConfigFetchTests : UgsCliFixture
         }
 
         m_FetchedContents.Clear();
-        m_MockApi.Server?.ResetMappings();
+        MockApi.Server?.ResetMappings();
 
         Directory.CreateDirectory(k_TestDirectory);
 
-        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
-        await m_MockApi.MockServiceAsync(new RemoteConfigMock());
-        await m_MockApi.MockServiceAsync(new LeaderboardApiMock());
+        await MockApi.MockServiceAsync(new IdentityV1Mock());
+        await MockApi.MockServiceAsync(new RemoteConfigMock());
     }
 
     [TearDown]
@@ -111,7 +110,7 @@ public class RemoteConfigFetchTests : UgsCliFixture
         var expectedOutput = $"Path \"{invalidDirectory}\" could not be found.";
 
         await GetLoggedInCli()
-            .Command($"fetch {invalidDirectory}")
+            .Command($"fetch {invalidDirectory} -s remote-config")
             .AssertStandardErrorContains(expectedOutput)
             .AssertExitCode(ExitCode.HandledError)
             .ExecuteAsync();
@@ -125,7 +124,7 @@ public class RemoteConfigFetchTests : UgsCliFixture
         await CreateDeployTestFilesAsync(m_FetchedTestCases, m_FetchedContents);
 
         await GetLoggedInCli()
-            .Command($"fetch {k_TestDirectory}")
+            .Command($"fetch {k_TestDirectory} -s remote-config")
             .AssertStandardOutput(
                 output =>
                 {
@@ -145,7 +144,7 @@ public class RemoteConfigFetchTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
         await GetLoggedInCli()
-            .Command($"fetch {k_TestDirectory}")
+            .Command($"fetch {k_TestDirectory} -s remote-config")
             .AssertStandardOutputContains("No content fetched")
             .AssertNoErrors()
             .ExecuteAsync();
@@ -155,7 +154,7 @@ public class RemoteConfigFetchTests : UgsCliFixture
     public async Task FetchNoConfigFromDirectoryWithOptionSucceed()
     {
         await GetLoggedInCli()
-            .Command($"fetch {k_TestDirectory} -p {CommonKeys.ValidProjectId} -e {CommonKeys.ValidEnvironmentName}")
+            .Command($"fetch {k_TestDirectory} -p {CommonKeys.ValidProjectId} -e {CommonKeys.ValidEnvironmentName} -s remote-config")
             .AssertStandardOutputContains($"No content fetched")
             .AssertNoErrors()
             .ExecuteAsync();
@@ -180,7 +179,7 @@ public class RemoteConfigFetchTests : UgsCliFixture
             false);
         var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
         await GetLoggedInCli()
-            .Command($"fetch {k_TestDirectory} -j")
+            .Command($"fetch {k_TestDirectory} -j -s remote-config")
             .AssertStandardOutputContains(resultString)
             .AssertNoErrors()
             .ExecuteAsync();

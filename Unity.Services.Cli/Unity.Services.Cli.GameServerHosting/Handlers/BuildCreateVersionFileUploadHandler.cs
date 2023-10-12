@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using SystemFile = System.IO.File;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Unity.Services.Cli.Common.Exceptions;
@@ -168,7 +169,7 @@ static partial class BuildCreateVersionHandler
         var uploaded = 0;
         foreach (var fileToUpload in localFiles)
         {
-            var localFile = File.OpenRead(fileToUpload.GetSystemPath());
+            var localFile = SystemFile.OpenRead(fileToUpload.GetSystemPath());
             var remoteFile = await service.BuildsApi.CreateOrUpdateBuildFileAsync(
                 Guid.Parse(projectId),
                 Guid.Parse(environmentId),

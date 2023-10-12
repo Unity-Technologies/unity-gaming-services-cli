@@ -20,7 +20,6 @@ public abstract class NetworkTargetEndpoints
     /// </summary>
     protected abstract string Staging { get; }
 
-
     /// <summary>
     /// URL to use when targeting mock server.
     /// </summary>

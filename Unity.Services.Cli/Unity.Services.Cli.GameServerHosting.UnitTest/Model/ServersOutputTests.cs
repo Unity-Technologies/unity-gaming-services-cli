@@ -18,7 +18,12 @@ public class ServersOutputTests
                 port: 9000,
                 machineID: ValidMachineId,
                 machineName: "test machine",
-                machineSpec: new MachineSpec1("2020-12-31T12:00:00Z", "2020-01-01T12:00:00Z", "test-cpu"),
+                machineSpec: new MachineSpec1(
+                    contractEndDate: new DateTime(2020, 12, 31, 12, 0,0, DateTimeKind.Utc),
+                    contractStartDate: new DateTime(2020, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+                    cpuName: "test-cpu",
+                    cpuShortname: "tc"
+                ),
                 locationID: ValidLocationId,
                 locationName: ValidLocationName,
                 fleetID: new Guid(ValidFleetId),

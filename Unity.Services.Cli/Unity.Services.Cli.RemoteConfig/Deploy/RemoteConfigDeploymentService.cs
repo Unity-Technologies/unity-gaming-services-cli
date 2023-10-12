@@ -34,11 +34,14 @@ partial class RemoteConfigDeploymentService : IDeploymentService
         m_DeployFileExtension = ".rc";
     }
 
-    string IDeploymentService.ServiceType => m_ServiceType;
+    public string ServiceType => m_ServiceType;
 
-    string IDeploymentService.ServiceName => m_ServiceName;
+    public string ServiceName => m_ServiceName;
 
-    string IDeploymentService.DeployFileExtension => m_DeployFileExtension;
+    public IReadOnlyList<string> FileExtensions => new[]
+    {
+        m_DeployFileExtension
+    };
 
     public async Task<DeploymentResult> Deploy(
         DeployInput deployInput,

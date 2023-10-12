@@ -12,6 +12,18 @@ using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Gateway.AccessApiV1.Generated.Api;
 using Unity.Services.Gateway.AccessApiV1.Generated.Client;
+using Unity.Services.Access.Authoring.Core.Deploy;
+using Unity.Services.Access.Authoring.Core.Fetch;
+using Unity.Services.Access.Authoring.Core.Json;
+using Unity.Services.Access.Authoring.Core.Model;
+using Unity.Services.Access.Authoring.Core.Validations;
+using Unity.Services.Access.Authoring.Core.IO;
+using Unity.Services.Access.Authoring.Core.Service;
+using Unity.Services.Cli.Access.Deploy;
+using Unity.Services.Cli.Access.IO;
+using Unity.Services.Cli.Access.Models;
+using Unity.Services.Cli.Authoring.Handlers;
+using Unity.Services.Cli.Authoring.Service;
 
 namespace Unity.Services.Cli.Access;
 
@@ -120,7 +132,8 @@ public class AccessModule : ICommandModule
             UpsertProjectPolicyCommand,
             UpsertPlayerPolicyCommand,
             DeleteProjectPolicyStatementsCommand,
-            DeletePlayerPolicyStatementsCommand
+            DeletePlayerPolicyStatementsCommand,
+            ModuleRootCommand.AddNewFileCommand<NewProjectAccessFile>("ProjectAccess"),
         };
 
         ModuleRootCommand.AddAlias("ac");
@@ -136,10 +149,31 @@ public class AccessModule : ICommandModule
             BasePath = EndpointHelper.GetCurrentEndpointFor<AccessEndpoints>()
         };
         config.DefaultHeaders.SetXClientIdHeader();
+
         // API Clients
         serviceCollection.AddSingleton<IProjectPolicyApi>(new ProjectPolicyApi(config));
         serviceCollection.AddSingleton<IPlayerPolicyApi>(new PlayerPolicyApi(config));
-        
+
+        serviceCollection.AddTransient<IProjectAccessParser, ProjectAccessParser>();
+        serviceCollection.AddTransient<IProjectAccessConfigValidator, ProjectAccessConfigValidator>();
+        serviceCollection.AddTransient<IProjectAccessMerger, ProjectAccessMerger>();
+        serviceCollection.AddTransient<IFileSystem, FileSystem>();
+        serviceCollection.AddTransient<IAccessConfigLoader, AccessConfigLoader>();
+        serviceCollection.AddTransient<IJsonConverter, JsonConverter>();
+
+        serviceCollection.AddSingleton<ProjectAccessClient>();
+        serviceCollection.AddSingleton<IProjectAccessClient>(s => s.GetRequiredService<ProjectAccessClient>());
+
+
         serviceCollection.AddSingleton<IAccessService, AccessService>();
+
+        serviceCollection.AddTransient<IDeploymentService, ProjectAccessDeploymentService>();
+        serviceCollection.AddTransient<IProjectAccessDeploymentHandler, ProjectAccessDeploymentHandler>();
+        serviceCollection.AddSingleton<ProjectAccessDeploymentHandler>();
+
+        serviceCollection.AddTransient<IFetchService, ProjectAccessFetchService>();
+        serviceCollection.AddTransient<IProjectAccessFetchHandler, ProjectAccessFetchHandler>();
+        serviceCollection.AddTransient<ProjectAccessFetchHandler>();
+
     }
 }

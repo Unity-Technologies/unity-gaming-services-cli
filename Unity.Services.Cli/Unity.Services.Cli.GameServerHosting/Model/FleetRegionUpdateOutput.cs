@@ -11,8 +11,8 @@ class FleetRegionUpdateOutput
         DeleteTtl = region.DeleteTTL;
         DisabledDeleteTtl = region.DisabledDeleteTTL;
         Id = region.Id;
-        MaxServers = region.MaxServers;
-        MinAvailableServers = region.MinAvailableServers;
+        MaxServers = region.ScalingEnabled ? region.MaxServers : 0;
+        MinAvailableServers = region.ScalingEnabled ? region.MinAvailableServers  : 0;
         RegionId = region.RegionID;
         RegionName = region.RegionName;
         ScalingEnabled = region.ScalingEnabled;

@@ -1,0 +1,8 @@
+{
+    "id": "GOLD",
+    "name": "Gold",
+    "type": "SOME_FAKE_TYPE",
+    "initial": 10,
+    "max": 1000,
+    "customData": null
+}

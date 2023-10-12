@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Spectre.Console;
 using Unity.Services.Cli.Common.Console;
+using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.GameServerHosting.Exceptions;
 using Unity.Services.Cli.GameServerHosting.Handlers;
@@ -42,7 +43,7 @@ class FleetRegionUpdateHandlerTests : HandlerCommon
             DisabledDeleteTtl = 60,
             MaxServers = 3,
             MinAvailableServers = 3,
-            ScalingEnabled = false,
+            ScalingEnabled = false.ToString(),
             ShutdownTtl = 180
         };
 
@@ -57,9 +58,13 @@ class FleetRegionUpdateHandlerTests : HandlerCommon
         MockUnityEnvironment.Verify(ex => ex.FetchIdentifierAsync(CancellationToken.None), Times.Once);
     }
 
-    [TestCase(ValidProjectId, ValidFleetId, ValidRegionId, 120, 60, 3, 3, false, 180)]
+    [TestCase(ValidProjectId, ValidFleetId, ValidRegionId, 120, 60, 3, 3, "false", 180, false, TestName = "Golden path")]
+    [TestCase(ValidProjectId, ValidFleetId, ValidRegionId, 120, 60, 3, 3, null, 180, true, TestName = "No Scaling Enabled supplied, maxServers and minAvailableServers both > 0")]
+    [TestCase(ValidProjectId, ValidFleetId, ValidRegionId, 120, 60, 3, 0, null, 180, true, TestName = "No Scaling Enabled supplied, maxServers > 0 minAvailableServers = 0")]
+    [TestCase(ValidProjectId, ValidFleetId, ValidRegionId, 120, 60, 0, 3, null, 180, true, TestName = "No Scaling Enabled supplied, maxServers = 0 minAvailableServers > 0")]
+    [TestCase(ValidProjectId, ValidFleetId, ValidRegionId, 120, 60, 0, 0, null, 180, false, TestName = "No Scaling Enabled supplied, maxServers and minAvailableServers both = 0")]
     public async Task FleetRegionUpdateAsync_CallsUpdateService(string projectId, string fleetId, string regionId, long deleteTtl,
-        long disabledDeleteTtl, long maxServers, long minAvailableServers, bool scalingEnabled, long shutdownTtl)
+        long disabledDeleteTtl, long maxServers, long minAvailableServers, string scalingEnabled, long shutdownTtl, bool defaultScalingEnabled)
     {
         FleetRegionUpdateInput input = new()
         {
@@ -87,7 +92,7 @@ class FleetRegionUpdateHandlerTests : HandlerCommon
             disabledDeleteTtl,
             maxServers,
             minAvailableServers,
-            scalingEnabled,
+            defaultScalingEnabled,
             shutdownTtl
         );
 
@@ -97,20 +102,21 @@ class FleetRegionUpdateHandlerTests : HandlerCommon
             ), Times.Once);
     }
 
-    [TestCase(null, ValidFleetId, ValidRegionId, 120, 60, 3, 3, false, 180, typeof(ArgumentNullException), TestName = "Null Project Id throws ArgumentNullException")]
-    [TestCase(InvalidProjectId, ValidFleetId, ValidRegionId, 120, 60, 3, 3, false, 180, typeof(HttpRequestException), TestName = "Invalid Project Id throws HttpRequestException")]
-    [TestCase(ValidProjectId, null, ValidRegionId, 120, 60, 3, 3, false, 180, typeof(MissingInputException), TestName = "Null Fleet Id throws ArgumentNullException")]
-    [TestCase(ValidProjectId, InvalidFleetId, ValidRegionId, 120, 60, 3, 3, false, 180, typeof(HttpRequestException), TestName = "Invalid Fleet Id throws HttpRequestException")]
-    [TestCase(ValidProjectId, ValidFleetId, null, 120, 60, 3, 3, false, 180, typeof(MissingInputException), TestName = "Null Region Id throws MissingInputException")]
-    [TestCase(ValidProjectId, ValidFleetId, InvalidRegionId, 120, 60, 3, 3, false, 180, typeof(HttpRequestException), TestName = "Invalid Region Id throws HttpRequestException")]
-    [TestCase(ValidProjectId, ValidFleetId, InvalidRegionId, 120, 60, null, 3, false, 180, typeof(MissingInputException), TestName = "Null Max Servers throws MissingInputException")]
-    [TestCase(ValidProjectId, ValidFleetId, InvalidRegionId, 120, 60, 3, null, false, 180, typeof(MissingInputException), TestName = "Null Min Available Servers throws MissingInputException")]
-    [TestCase(ValidProjectId, ValidFleetId, InvalidRegionId, 120, 60, 3, 3, null, 180, typeof(MissingInputException), TestName = "Null Scaling Enabled throws MissingInputException")]
-    [TestCase(ValidProjectId, ValidFleetId, InvalidRegionId, null, 60, 3, 3, false, 180, typeof(MissingInputException), TestName = "Null Delete Ttl throws MissingInputException")]
+    [TestCase(null, ValidFleetId, ValidRegionId, 120, 60, 3, 3, "false", 180, typeof(ArgumentNullException), TestName = "Null Project Id throws ArgumentNullException")]
+    [TestCase(InvalidProjectId, ValidFleetId, ValidRegionId, 120, 60, 3, 3, "false", 180, typeof(HttpRequestException), TestName = "Invalid Project Id throws HttpRequestException")]
+    [TestCase(ValidProjectId, null, ValidRegionId, 120, 60, 3, 3, "false", 180, typeof(MissingInputException), TestName = "Null Fleet Id throws ArgumentNullException")]
+    [TestCase(ValidProjectId, InvalidFleetId, ValidRegionId, 120, 60, 3, 3, "false", 180, typeof(HttpRequestException), TestName = "Invalid Fleet Id throws HttpRequestException")]
+    [TestCase(ValidProjectId, ValidFleetId, null, 120, 60, 3, 3, "false", 180, typeof(MissingInputException), TestName = "Null Region Id throws MissingInputException")]
+    [TestCase(ValidProjectId, ValidFleetId, InvalidRegionId, 120, 60, 3, 3, "false", 180, typeof(CliException), TestName = "Invalid Region Id throws HttpRequestException")]
+    [TestCase(ValidProjectId, ValidFleetId, InvalidRegionId, 120, 60, null, 3, "false", 180, typeof(CliException), TestName = "Null Max Servers throws MissingInputException")]
+    [TestCase(ValidProjectId, ValidFleetId, InvalidRegionId, 120, 60, 3, null, "false", 180, typeof(CliException), TestName = "Null Min Available Servers throws MissingInputException")]
+    [TestCase(ValidProjectId, ValidFleetId, InvalidRegionId, 120, 60, 3, 3, null, 180, typeof(CliException), TestName = "Null Scaling Enabled throws MissingInputException")]
+    [TestCase(ValidProjectId, ValidFleetId, InvalidRegionId, null, 60, 3, 3, "false", 180, typeof(MissingInputException), TestName = "Null Delete Ttl throws MissingInputException")]
     [TestCase(ValidProjectId, ValidFleetId, InvalidRegionId, 120, null, 3, 3, null, 180, typeof(MissingInputException), TestName = "Null Disabled Delete Ttl throws MissingInputException")]
-    [TestCase(ValidProjectId, ValidFleetId, InvalidRegionId, 120, 60, 3, 3, false, null, typeof(MissingInputException), TestName = "Null Shutdown Ttl throws MissingInputException")]
+    [TestCase(ValidProjectId, ValidFleetId, InvalidRegionId, 120, 60, 3, 3, "false", null, typeof(MissingInputException), TestName = "Null Shutdown Ttl throws MissingInputException")]
+    [TestCase(ValidProjectId, ValidFleetId, ValidRegionId, 120, 60, 3, 3, "flse", 180, typeof(CliException), TestName = "Mis-formed bool throws CliException")]
     public Task FleetRegionUpdateAsync_InvalidInputThrowsException(string? projectId, string? fleetId, string? regionId,
-        long? deleteTtl, long? disabledDeleteTtl, long? maxServers, long? minAvailableServers, bool? scalingEnabled,
+        long? deleteTtl, long? disabledDeleteTtl, long? maxServers, long? minAvailableServers, string? scalingEnabled,
         long? shutdownTtl, Type exceptionType)
     {
         FleetRegionUpdateInput input = new()

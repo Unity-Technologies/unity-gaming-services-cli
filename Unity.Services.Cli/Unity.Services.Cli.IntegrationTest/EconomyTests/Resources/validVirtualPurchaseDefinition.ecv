@@ -1,0 +1,18 @@
+{
+    "id": "BUY_SWORD",
+    "name": "Buy Sword",
+    "type": "VIRTUAL_PURCHASE",
+    "customData": null,
+    "costs": [
+        {
+            "resourceId": "GOLD",
+            "amount": 5
+        }
+    ],
+    "rewards": [
+        {
+            "resourceId": "SWORD",
+            "amount": 1
+        }
+    ]
+}

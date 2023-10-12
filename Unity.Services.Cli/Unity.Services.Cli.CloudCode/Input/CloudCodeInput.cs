@@ -33,6 +33,9 @@ public class CloudCodeInput : DeployInput
     public static readonly Argument<string> ModuleNameArgument =
         new("module-name", "Name of the target module");
 
+    public static readonly Argument<string> ModuleDirectoryArgument =
+        new("module-directory", "Directory for the new module");
+
     [InputBinding(nameof(ScriptNameArgument))]
     public string? ScriptName { get; set; }
 
@@ -50,4 +53,7 @@ public class CloudCodeInput : DeployInput
 
     [InputBinding(nameof(ModuleNameArgument))]
     public string? ModuleName { get; set; }
+
+    [InputBinding(nameof(ModuleDirectoryArgument))]
+    public string? ModuleDirectory { get; set; }
 }

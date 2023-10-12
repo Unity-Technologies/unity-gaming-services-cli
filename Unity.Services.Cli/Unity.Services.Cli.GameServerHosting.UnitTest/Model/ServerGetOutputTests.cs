@@ -26,7 +26,12 @@ public class ServerGetOutputTests
                 locationID: 3,
                 locationName: "locationName",
                 machineName: "test machine",
-                machineSpec: new MachineSpec1("2020-12-31T12:00:00Z", "2020-01-01T12:00:00Z", "test-cpu"),
+                machineSpec: new MachineSpec1(
+                    contractEndDate: new DateTime(2020, 12, 31, 12, 0, 0, DateTimeKind.Utc),
+                    contractStartDate: new DateTime(2020, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+                    cpuName: "test-cpu",
+                    cpuShortname: "tc"
+                ),
                 machineID: 5,
                 port: 440,
                 status: Server.StatusEnum.READY
@@ -36,7 +41,7 @@ public class ServerGetOutputTests
     [Test]
     public void ConstructServerGetOutput()
     {
-        ServerGetOutput output = new ServerGetOutput(m_Server!);
+        var output = new ServerGetOutput(m_Server!);
         Assert.Multiple(() =>
         {
             Assert.That(output.BuildConfigurationId, Is.EqualTo(m_Server!.BuildConfigurationID));

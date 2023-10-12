@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.IO.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Unity.Services.Cli.Authoring.Compression;
@@ -24,9 +25,18 @@ using Unity.Services.Gateway.CloudCodeApiV1.Generated.Client;
 using Unity.Services.Cli.Authoring.Handlers;
 using Unity.Services.Cli.CloudCode.Handlers.ImportExport.Scripts;
 using Unity.Services.Cli.Authoring.Import.Input;
+using Unity.Services.Cli.CloudCode.Authoring.Fetch;
 using Unity.Services.Cli.CloudCode.Handlers.ImportExport.Modules;
+using Unity.Services.Cli.CloudCode.Handlers.NewFile;
+using Unity.Services.Cli.CloudCode.IO;
+using Unity.Services.Cli.CloudCode.Solution;
 using Unity.Services.Cli.CloudCode.Templates;
 using Unity.Services.Cli.CloudCode.Utils;
+using Unity.Services.CloudCode.Authoring.Editor.Core.Dotnet;
+using Unity.Services.CloudCode.Authoring.Editor.Core.IO;
+using Unity.Services.CloudCode.Authoring.Editor.Core.Solution;
+using FileSystem = Unity.Services.Cli.CloudCode.IO.FileSystem;
+using IFileSystem = Unity.Services.CloudCode.Authoring.Editor.Core.IO.IFileSystem;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Unity.Services.Cli.CloudCode;
@@ -171,7 +181,7 @@ public class CloudCodeModule : ICommandModule
             CancellationToken>(
             UpdateHandler.UpdateAsync);
 
-        NewFileCommand = ModuleRootCommand.AddNewFileCommand<CloudCodeTemplate>(CloudCodeConstants.ServiceType);
+        NewFileCommand = ModuleRootCommand.AddNewFileCommand<CloudCodeTemplate>(CloudCodeConstants.ServiceTypeScripts);
 
         ScriptsCommand = new Command(
             "scripts",
@@ -256,7 +266,7 @@ public class CloudCodeModule : ICommandModule
             ILoadingIndicator,
             CancellationToken>(ModuleExportHandler.ExportAsync);
 
-        var importModulesCommand = new Command("import", "Import Cloud Code modules.")
+        var importModulesCommand = new Command("import", "Import Cloud-Code modules.")
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -272,6 +282,24 @@ public class CloudCodeModule : ICommandModule
             CancellationToken>(
             ModulesImportHandler.ImportAsync);
 
+        var newFileCommand = new Command(
+            "new-file",
+            "Create new Cloud-Code module.")
+        {
+            CloudCodeInput.ModuleNameArgument,
+            CloudCodeInput.ModuleDirectoryArgument,
+            CommonInput.UseForceOption
+        };
+        newFileCommand.SetHandler<
+            CloudCodeInput,
+            IPath,
+            IDirectory,
+            CloudCodeModuleSolutionGenerator,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken>(
+            NewFileModuleHandler.CreateNewModule);
+
         var modulesHandlerCommand = new Command(
             "modules",
             "Manage Cloud-Code modules.")
@@ -280,7 +308,8 @@ public class CloudCodeModule : ICommandModule
             listModuleCommand,
             deleteModuleCommand,
             exportModulesCommand,
-            importModulesCommand
+            importModulesCommand,
+            newFileCommand
         };
 
         modulesHandlerCommand.AddAlias("m");
@@ -320,7 +349,7 @@ public class CloudCodeModule : ICommandModule
         serviceCollection.AddSingleton<IEqualityComparer<IScript>, CloudCodeScriptNameComparer>();
 
         serviceCollection.AddTransient<IDeploymentService, CloudCodeScriptDeploymentService>(CreateJavaScriptDeployService);
-        serviceCollection.AddTransient<IDeploymentService, CloudCodePrecompiledModuleDeploymentService>(CreateCSharpDeployService);
+        serviceCollection.AddTransient<IDeploymentService, CloudCodeModuleDeploymentService>(CreateCSharpDeployService);
         serviceCollection.AddTransient<IFetchService, JavaScriptFetchService>();
 
         serviceCollection.AddTransient<CloudCodeScriptsExporter, CloudCodeScriptsExporter>();
@@ -329,6 +358,19 @@ public class CloudCodeModule : ICommandModule
         serviceCollection.AddTransient<CloudCodeModulesImporter, CloudCodeModulesImporter>();
 
         serviceCollection.AddTransient<IZipArchiver, ZipArchiver>();
+
+        serviceCollection.AddTransient<CloudCodeModuleSolutionGenerator, CloudCodeModuleSolutionGenerator>();
+        serviceCollection.AddTransient<IDotnetRunner, CloudCodeCliDotnetRunner>();
+        serviceCollection.AddTransient<IFileContentRetriever, FileContentRetriever>();
+        serviceCollection.AddTransient<IFileSystem, FileSystem>();
+        serviceCollection.AddTransient<ITemplateInfo, TemplateInfo>();
+        serviceCollection.AddTransient<IAssemblyLoader, AssemblyLoader>();
+        serviceCollection.AddTransient<IFileStream, CloudCodeFileStream>();
+        serviceCollection.AddTransient<IFileCopier, FileCopier>();
+        serviceCollection.AddTransient<IPathResolver, PathResolver>();
+        serviceCollection.AddTransient<ISolutionPublisher, SolutionPublisher>();
+        serviceCollection.AddTransient<IModuleZipper, ModuleZipper>();
+        serviceCollection.AddTransient<IDeployFileService, DeployFileService>();
     }
 
     internal static CloudCodeScriptDeploymentService CreateJavaScriptDeployService(IServiceProvider provider)
@@ -342,12 +384,16 @@ public class CloudCodeModule : ICommandModule
             provider.GetRequiredService<IJavaScriptClient>());
     }
 
-    internal static CloudCodePrecompiledModuleDeploymentService CreateCSharpDeployService(IServiceProvider provider)
+    internal static CloudCodeModuleDeploymentService CreateCSharpDeployService(IServiceProvider provider)
     {
-        return new CloudCodePrecompiledModuleDeploymentService(
+        return new CloudCodeModuleDeploymentService(
             provider.GetRequiredService<CliCloudCodeDeploymentHandler<ICSharpClient>>(),
             provider.GetRequiredService<ICloudCodeModulesLoader>(),
             provider.GetRequiredService<ICliEnvironmentProvider>(),
-            provider.GetRequiredService<ICSharpClient>());
+            provider.GetRequiredService<ICSharpClient>(),
+            provider.GetRequiredService<IDeployFileService>(),
+            provider.GetRequiredService<ISolutionPublisher>(),
+            provider.GetRequiredService<IModuleZipper>(),
+            provider.GetRequiredService<IFileSystem>());
     }
 }

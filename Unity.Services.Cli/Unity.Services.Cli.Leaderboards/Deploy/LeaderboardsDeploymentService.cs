@@ -2,6 +2,7 @@ using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Service;
+using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.Leaderboards.Authoring.Core.Deploy;
 using Unity.Services.Leaderboards.Authoring.Core.Model;
 using Unity.Services.Leaderboards.Authoring.Core.Service;
@@ -30,9 +31,12 @@ public class LeaderboardDeploymentService : IDeploymentService
         m_DeployFileExtension = ".lb";
     }
 
-    string IDeploymentService.ServiceType => m_ServiceType;
-    string IDeploymentService.ServiceName => m_ServiceName;
-    string IDeploymentService.DeployFileExtension => m_DeployFileExtension;
+    public string ServiceType => m_ServiceType;
+    public string ServiceName => m_ServiceName;
+    public IReadOnlyList<string> FileExtensions => new[]
+    {
+        m_DeployFileExtension
+    };
 
     public async Task<DeploymentResult> Deploy(
         DeployInput deployInput,
@@ -47,7 +51,7 @@ public class LeaderboardDeploymentService : IDeploymentService
         var files = await m_LeaderboardsConfigLoader.LoadConfigsAsync(filePaths, cancellationToken);
 
         var deployStatusList = await m_DeploymentHandler.DeployAsync(
-            files,
+            files.Loaded,
             deployInput.DryRun,
             deployInput.Reconcile,
             cancellationToken);
@@ -57,6 +61,6 @@ public class LeaderboardDeploymentService : IDeploymentService
             deployStatusList.Deleted,
             deployStatusList.Created,
             deployStatusList.Deployed,
-            deployStatusList.Failed);
+            deployStatusList.Failed.Concat(files.Failed).Cast<IDeploymentItem>().ToList());
     }
 }

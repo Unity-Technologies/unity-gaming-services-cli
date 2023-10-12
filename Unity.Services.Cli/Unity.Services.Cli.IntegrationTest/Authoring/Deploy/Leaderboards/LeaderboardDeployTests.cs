@@ -17,7 +17,6 @@ namespace Unity.Services.Cli.IntegrationTest.Authoring.Deploy.Leaderboards;
  */
 public class LeaderboardDeployTests : UgsCliFixture
 {
-
     static readonly string k_TestDirectory = Path.Combine(UgsCliBuilder.RootDirectory, ".tmp", "FilesDir");
 
     readonly IReadOnlyList<AuthoringTestCase> m_DeployedTestCases = new[]
@@ -32,8 +31,8 @@ public class LeaderboardDeployTests : UgsCliFixture
             k_TestDirectory),
     };
 
-    List<DeployContent> m_DeployedContents = new();
-    List<DeployContent> m_FailedContents = new();
+    readonly List<DeployContent> m_DeployedContents = new();
+    readonly List<DeployContent> m_FailedContents = new();
 
     [SetUp]
     public async Task SetUp()
@@ -48,9 +47,9 @@ public class LeaderboardDeployTests : UgsCliFixture
 
         m_DeployedContents.Clear();
         m_FailedContents.Clear();
-        m_MockApi.Server?.ResetMappings();
-        await m_MockApi.MockServiceAsync(new LeaderboardApiMock());
-        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
+        MockApi.Server?.ResetMappings();
+        await MockApi.MockServiceAsync(new LeaderboardApiMock());
+        await MockApi.MockServiceAsync(new IdentityV1Mock());
         Directory.CreateDirectory(k_TestDirectory);
     }
 
@@ -81,7 +80,7 @@ public class LeaderboardDeployTests : UgsCliFixture
         await CreateDeployTestFilesAsync(m_DeployedTestCases, m_DeployedContents);
         var deployedConfigFileString = string.Join(System.Environment.NewLine + "    ", m_DeployedTestCases.Select(r => $"'{r.ConfigFilePath}'"));
         await GetLoggedInCli()
-            .Command($"deploy {k_TestDirectory} -p {CommonKeys.ValidProjectId} -e {CommonKeys.ValidEnvironmentName}")
+            .Command($"deploy {k_TestDirectory} -p {CommonKeys.ValidProjectId} -e {CommonKeys.ValidEnvironmentName} -s leaderboards")
             .AssertStandardOutputContains($"Successfully deployed the following files:{System.Environment.NewLine}    {deployedConfigFileString}")
             .AssertNoErrors()
             .ExecuteAsync();
@@ -95,7 +94,7 @@ public class LeaderboardDeployTests : UgsCliFixture
         await CreateDeployTestFilesAsync(m_DeployedTestCases, m_DeployedContents);
         var deployedConfigFileString = string.Join(System.Environment.NewLine + "    ", m_DeployedTestCases.Select(r => $"'{r.ConfigFilePath}'"));
         await GetLoggedInCli()
-            .Command($"deploy {k_TestDirectory}")
+            .Command($"deploy {k_TestDirectory} -s leaderboards")
             .AssertStandardOutputContains($"Successfully deployed the following files:{System.Environment.NewLine}    {deployedConfigFileString}")
             .AssertNoErrors()
             .ExecuteAsync();

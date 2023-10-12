@@ -18,5 +18,5 @@ static class TestValues
     public const string PolicyJson =
         "{\"statements\":[{\"Sid\":\"Statement-1\",\"Action\":[\"*\"],\"Resource\":\"urn:ugs:*\",\"Principal\":\"Player\",\"Effect\":\"Deny\"}]}";
 
-    public const string deleteOptionsJson = "{\"statementIDs\":[\"statement-1\"]}";
+    public const string DeleteOptionsJson = "{\"statementIDs\":[\"statement-1\"]}";
 }

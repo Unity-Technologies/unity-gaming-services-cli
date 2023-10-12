@@ -96,7 +96,7 @@ class ExportScriptsHandlerTests
             OutputDirectory = "mock_output_directory"
         };
 
-        var archivePath = Path.Join(exportInput.OutputDirectory, CloudCodeConstants.JavascriptZipName);
+        var archivePath = Path.Join(exportInput.OutputDirectory, CloudCodeConstants.ZipNameJavaScript);
 
         m_MockFileSystem
             .Setup(x =>
@@ -140,7 +140,7 @@ class ExportScriptsHandlerTests
         }
 
         m_MockFileSystem.Setup(s => s.Directory.CreateDirectory(exportInput.OutputDirectory));
-        m_MockFileSystem.Setup(s => s.Path.Join(exportInput.OutputDirectory, CloudCodeConstants.JavascriptZipName))
+        m_MockFileSystem.Setup(s => s.Path.Join(exportInput.OutputDirectory, CloudCodeConstants.ZipNameJavaScript))
             .Returns(archivePath);
         m_MockFileSystem.Setup(s => s.File.Exists(archivePath));
 
@@ -162,7 +162,7 @@ class ExportScriptsHandlerTests
 
         m_MockArchiver.Verify(za => za.ZipAsync(
             It.Is<string>(s => s == archivePath),
-            It.Is<string>(s => s == CloudCodeConstants.ScriptsEntryName),
+            It.Is<string>(s => s == CloudCodeConstants.EntryNameScripts),
             It.Is<IEnumerable<CloudCodeScript>>(s => AssertAreEqual(s.ToList(), m_Scripts.ToList())),
             It.IsAny<CancellationToken>()));
     }

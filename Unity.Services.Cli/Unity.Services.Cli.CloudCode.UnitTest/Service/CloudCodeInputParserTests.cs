@@ -159,4 +159,15 @@ class CloudCodeInputParserTests
         };
         Assert.ThrowsAsync<CliException>(() => m_CloudCodeInputParser.LoadScriptCodeAsync(input, CancellationToken.None));
     }
+
+    [Test]
+    public void LoadScriptCodeFileNotFoundWithCorrectPathFailed()
+    {
+        Directory.CreateDirectory(k_TempDirectory);
+        var input = new CloudCodeInput
+        {
+            FilePath = k_TempDirectory + '/'
+        };
+        Assert.ThrowsAsync<CliException>(() => m_CloudCodeInputParser.LoadScriptCodeAsync(input, CancellationToken.None));
+    }
 }

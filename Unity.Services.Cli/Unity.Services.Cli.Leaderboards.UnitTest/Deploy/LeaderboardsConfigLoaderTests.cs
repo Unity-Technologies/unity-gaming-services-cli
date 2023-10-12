@@ -55,7 +55,9 @@ public class LeaderboardsConfigLoaderTests
         var configs = await m_LeaderboardsConfigLoader
             .LoadConfigsAsync(new[] { "path" }, CancellationToken.None);
 
-        var config = configs.First();
+        Assert.AreEqual(1, configs.Loaded.Count);
+        Assert.AreEqual(0, configs.Failed.Count);
+        var config = configs.Loaded.First();
 
         Assert.AreEqual("path", config.Id);
         Assert.AreEqual(SortOrder.Asc, config.SortOrder);
@@ -65,5 +67,25 @@ public class LeaderboardsConfigLoaderTests
         Assert.AreEqual("Gold", config.TieringConfig.Tiers[0].Id);
         Assert.AreEqual("Silver", config.TieringConfig.Tiers[1].Id);
         Assert.AreEqual("Bronze", config.TieringConfig.Tiers[2].Id);
+    }
+
+    [Test]
+    public async Task ConfigLoader_ReportsFailures()
+    {
+        m_LeaderboardsConfigLoader = new LeaderboardsConfigLoader(
+            m_FileSystem.Object);
+        var content = @"{
+  'SortOrder': 'asc',
+  'UpdateType': 'keepBest',
+  'Name': 'My Complex LB',
+  'BucketSize': 'hi'";
+        m_FileSystem.Setup(f => f.ReadAllText(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(content);
+
+        var configs = await m_LeaderboardsConfigLoader
+            .LoadConfigsAsync(new[] { "path" }, CancellationToken.None);
+
+        Assert.AreEqual(0, configs.Loaded.Count);
+        Assert.AreEqual(1, configs.Failed.Count);
     }
 }

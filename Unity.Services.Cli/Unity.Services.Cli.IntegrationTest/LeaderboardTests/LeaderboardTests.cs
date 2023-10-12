@@ -17,10 +17,10 @@ public class LeaderboardTests : UgsCliFixture
     static readonly string k_TestDirectory = Path.Combine(UgsCliBuilder.RootDirectory, ".tmp/FilesDir");
     static readonly string k_LeaderboardFileName = "foo";
     static readonly string k_MissingFieldLeaderboardFileName = "missing";
-    static readonly string k_brokenFile = "broken";
+    const string k_BrokenFile = "broken";
 
-    static readonly string k_defaultFileName = "ugs.lbzip";
-    static readonly string k_alternateFileName = "other.lbzip";
+    const string k_DefaultFileName = "ugs.lbzip";
+    const string k_AlternateFileName = "other.lbzip";
 
     [OneTimeTearDown]
     public void OneTimeTearDown()
@@ -45,11 +45,11 @@ public class LeaderboardTests : UgsCliFixture
         Directory.CreateDirectory(k_TestDirectory);
         await File.WriteAllTextAsync(Path.Join(k_TestDirectory, k_LeaderboardFileName), JsonConvert.SerializeObject(LeaderboardApiMock.Leaderboard1));
         await File.WriteAllTextAsync(Path.Join(k_TestDirectory, k_MissingFieldLeaderboardFileName), "{ \"id\": \"lb1\", \"name\": \"leaderboard 1\" }");
-        await File.WriteAllTextAsync(Path.Join(k_TestDirectory, k_brokenFile), "{");
+        await File.WriteAllTextAsync(Path.Join(k_TestDirectory, k_BrokenFile), "{");
 
-        m_MockApi.Server?.ResetMappings();
-        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
-        await m_MockApi.MockServiceAsync(new LeaderboardApiMock());
+        MockApi.Server?.ResetMappings();
+        await MockApi.MockServiceAsync(new IdentityV1Mock());
+        await MockApi.MockServiceAsync(new LeaderboardApiMock());
     }
 
     [Test]
@@ -181,8 +181,8 @@ versions: []";
     [Test]
     public async Task LeaderboardImportSucceed()
     {
-        ZipArchiver m_zipArchiver = new ZipArchiver();
-        await m_zipArchiver.ZipAsync(Path.Join(k_TestDirectory, k_defaultFileName), "test", new[]
+        ZipArchiver zipArchiver = new ZipArchiver();
+        await zipArchiver.ZipAsync(Path.Join(k_TestDirectory, k_DefaultFileName), "test", new[]
             {  LeaderboardApiMock.Leaderboard1, LeaderboardApiMock.Leaderboard2, LeaderboardApiMock.Leaderboard3,
                 LeaderboardApiMock.Leaderboard4, LeaderboardApiMock.Leaderboard5, LeaderboardApiMock.Leaderboard6,
                 LeaderboardApiMock.Leaderboard7, LeaderboardApiMock.Leaderboard8, LeaderboardApiMock.Leaderboard9,
@@ -195,11 +195,11 @@ versions: []";
     [Test]
     public async Task LeaderboardImportWithNameSucceed()
     {
-        ZipArchiver m_zipArchiver = new ZipArchiver();
-        await m_zipArchiver.ZipAsync(Path.Join(k_TestDirectory, k_alternateFileName), "test", new[] { LeaderboardApiMock.Leaderboard1, LeaderboardApiMock.Leaderboard2, LeaderboardApiMock.Leaderboard3, LeaderboardApiMock.Leaderboard4, LeaderboardApiMock.Leaderboard5, LeaderboardApiMock.Leaderboard6, LeaderboardApiMock.Leaderboard7, LeaderboardApiMock.Leaderboard8, LeaderboardApiMock.Leaderboard9, LeaderboardApiMock.Leaderboard10, LeaderboardApiMock.Leaderboard11, LeaderboardApiMock.Leaderboard12 });
+        ZipArchiver zipArchiver = new ZipArchiver();
+        await zipArchiver.ZipAsync(Path.Join(k_TestDirectory, k_AlternateFileName), "test", new[] { LeaderboardApiMock.Leaderboard1, LeaderboardApiMock.Leaderboard2, LeaderboardApiMock.Leaderboard3, LeaderboardApiMock.Leaderboard4, LeaderboardApiMock.Leaderboard5, LeaderboardApiMock.Leaderboard6, LeaderboardApiMock.Leaderboard7, LeaderboardApiMock.Leaderboard8, LeaderboardApiMock.Leaderboard9, LeaderboardApiMock.Leaderboard10, LeaderboardApiMock.Leaderboard11, LeaderboardApiMock.Leaderboard12 });
 
         var expectedMessage = "Importing configs...";
-        await AssertSuccess($"leaderboards import {k_TestDirectory} {k_alternateFileName}", expectedResult: expectedMessage);
+        await AssertSuccess($"leaderboards import {k_TestDirectory} {k_AlternateFileName}", expectedResult: expectedMessage);
     }
 
     [Test]
@@ -213,16 +213,16 @@ versions: []";
     public async Task LeaderboardExportWithNameSucceed()
     {
         var expectedMessage = "Exporting your environment...";
-        await AssertSuccess($"leaderboards export {k_TestDirectory} {k_alternateFileName}", expectedResult: expectedMessage);
+        await AssertSuccess($"leaderboards export {k_TestDirectory} {k_AlternateFileName}", expectedResult: expectedMessage);
     }
 
     [Test]
     public async Task LeaderboardExportWithSameNameSucceed()
     {
         var expectedMessage = "Exporting your environment...";
-        await AssertSuccess($"leaderboards export {k_TestDirectory} {k_alternateFileName}", expectedResult: expectedMessage);
+        await AssertSuccess($"leaderboards export {k_TestDirectory} {k_AlternateFileName}", expectedResult: expectedMessage);
         var errorMessage = "The filename to export to already exists. Please create a new file";
-        await AssertException($"leaderboards export {k_TestDirectory} {k_alternateFileName}", errorMessage);
+        await AssertException($"leaderboards export {k_TestDirectory} {k_AlternateFileName}", errorMessage);
     }
     static async Task AssertSuccess(string command, string? expectedMessage = null, string? expectedResult = null)
     {

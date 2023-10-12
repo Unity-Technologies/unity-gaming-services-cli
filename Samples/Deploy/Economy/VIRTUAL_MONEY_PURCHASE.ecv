@@ -1,0 +1,15 @@
+{
+  "costs": [
+    {
+      "resourceId": "CURRENCY",
+      "amount": 2
+    }
+  ],
+  "rewards": [
+    {
+      "resourceId": "INVENTORY_ITEM",
+      "amount": 6
+    }
+  ],
+  "name": "My Virtual Purchase"
+}

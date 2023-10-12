@@ -7,7 +7,7 @@ public class NewFileInput : CommonInput
 {
     public static readonly Argument<string> FileArgument = new(
         "file name",
-        () => "new_file",
+        () => null!,
         "The name of the file to create");
 
     [InputBinding(nameof(FileArgument))]

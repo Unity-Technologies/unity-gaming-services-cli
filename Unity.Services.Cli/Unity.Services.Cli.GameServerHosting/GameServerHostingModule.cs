@@ -229,15 +229,15 @@ public class GameServerHostingModule : ICommandModule
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
             BuildConfigurationUpdateInput.BuildConfigIdArgument,
-            BuildConfigurationUpdateInput.BinaryPathOption,
-            BuildConfigurationUpdateInput.BuildIdOption,
-            BuildConfigurationUpdateInput.CommandLineOption,
-            BuildConfigurationUpdateInput.ConfigurationOption,
-            BuildConfigurationUpdateInput.CoresOption,
-            BuildConfigurationUpdateInput.MemoryOption,
-            BuildConfigurationUpdateInput.NameOption,
-            BuildConfigurationUpdateInput.QueryTypeOption,
-            BuildConfigurationUpdateInput.SpeedOption,
+            BuildConfigurationCreateInput.BinaryPathOption,
+            BuildConfigurationCreateInput.BuildIdOption,
+            BuildConfigurationCreateInput.CommandLineOption,
+            BuildConfigurationCreateInput.ConfigurationOption,
+            BuildConfigurationCreateInput.CoresOption,
+            BuildConfigurationCreateInput.MemoryOption,
+            BuildConfigurationCreateInput.NameOption,
+            BuildConfigurationCreateInput.QueryTypeOption,
+            BuildConfigurationCreateInput.SpeedOption,
         };
         BuildConfigurationUpdateCommand.SetHandler<
             BuildConfigurationUpdateInput,
@@ -404,8 +404,12 @@ public class GameServerHostingModule : ICommandModule
             CommonInput.CloudProjectIdOption,
             FleetRegionUpdateInput.FleetIdOption,
             FleetRegionUpdateInput.RegionIdOption,
+            FleetRegionUpdateInput.DeleteTtlOption,
+            FleetRegionUpdateInput.DisabledDeleteTtlOption,
+            FleetRegionUpdateInput.MaxServersOption,
             FleetRegionUpdateInput.MinAvailableServersOption,
-            FleetRegionUpdateInput.MaxServersOption
+            FleetRegionUpdateInput.ScalingEnabledOption,
+            FleetRegionUpdateInput.ShutdownTtlOption,
         };
 
         FleetRegionUpdateCommand.SetHandler<
@@ -423,6 +427,30 @@ public class GameServerHostingModule : ICommandModule
             FleetRegionAvailableCommand,
             FleetRegionCreateCommand,
             FleetRegionUpdateCommand
+        };
+
+        MachineListCommand = new Command("list", "List Game Server Hosting machines.")
+        {
+            CommonInput.EnvironmentNameOption,
+            CommonInput.CloudProjectIdOption,
+            MachineListInput.FleetIdOption,
+            MachineListInput.LocationIdOption,
+            MachineListInput.HardwareTypeOption,
+            MachineListInput.PartialOption,
+            MachineListInput.StatusOption
+        };
+        MachineListCommand.SetHandler<
+            MachineListInput,
+            IUnityEnvironment,
+            IGameServerHostingService,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken
+        >(MachineListHandler.MachineListAsync);
+
+        MachineCommand = new Command("machine", "Manage Game Server Hosting machines.")
+        {
+            MachineListCommand,
         };
 
         ServerGetCommand = new Command("get", "Get a Game Server Hosting server.")
@@ -458,10 +486,11 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(ServerListHandler.ServerListAsync);
 
+
         ServerCommand = new Command("server", "Manage Game Server Hosting servers.")
         {
             ServerGetCommand,
-            ServerListCommand
+            ServerListCommand,
         };
 
         ModuleRootCommand = new Command("game-server-hosting", "Manage Game Sever Hosting resources.")
@@ -470,8 +499,8 @@ public class GameServerHostingModule : ICommandModule
             BuildConfigurationCommand,
             FleetCommand,
             FleetRegionCommand,
+            MachineCommand,
             ServerCommand
-
         };
 
         ModuleRootCommand.AddAlias("gsh");
@@ -479,6 +508,7 @@ public class GameServerHostingModule : ICommandModule
         BuildConfigurationCommand.AddAlias("bc");
         FleetCommand.AddAlias("f");
         FleetRegionCommand.AddAlias("fr");
+        MachineCommand.AddAlias("m");
         ServerCommand.AddAlias("s");
     }
 
@@ -486,6 +516,7 @@ public class GameServerHostingModule : ICommandModule
     internal Command BuildConfigurationCommand { get; }
     internal Command FleetCommand { get; }
     internal Command FleetRegionCommand { get; }
+    internal Command MachineCommand { get; }
     internal Command ServerCommand { get; }
 
     // Build Commands
@@ -517,22 +548,24 @@ public class GameServerHostingModule : ICommandModule
     internal Command FleetRegionCreateCommand { get; }
     internal Command FleetRegionUpdateCommand { get; }
 
+    // Machine Commands
+    internal Command MachineListCommand { get; }
+
     // Server Commands
     internal Command ServerGetCommand { get; }
     internal Command ServerListCommand { get; }
 
 
+
     internal static ExceptionFactory ExceptionFactory => (method, response) =>
     {
-        var message = (string text) => $"Error calling {method}: {text}";
-
         // Handle errors from the backend
         var statusCode = (int)response.StatusCode;
         if (statusCode >= 400)
         {
             return new ApiException(
                 statusCode,
-                message(response.RawContent),
+                Message(response.RawContent),
                 response.RawContent,
                 response.Headers
             );
@@ -544,13 +577,15 @@ public class GameServerHostingModule : ICommandModule
         {
             return new ApiException(
                 statusCode,
-                message(response.ErrorText),
+                Message(response.ErrorText),
                 response.Content,
                 response.Headers
             );
         }
 
         return null!;
+
+        string Message(string text) => $"Error calling {method}: {text}";
     };
 
     // GSH Module Command
@@ -575,7 +610,15 @@ public class GameServerHostingModule : ICommandModule
         {
             ExceptionFactory = ExceptionFactory
         };
+        IFilesApi filesApi = new FilesApi(gameServerHostingConfiguration)
+        {
+            ExceptionFactory = ExceptionFactory
+        };
         IFleetsApi fleetsApi = new FleetsApi(gameServerHostingConfiguration)
+        {
+            ExceptionFactory = ExceptionFactory
+        };
+        IMachinesApi machinesApi = new MachinesApi(gameServerHostingConfiguration)
         {
             ExceptionFactory = ExceptionFactory
         };
@@ -588,7 +631,9 @@ public class GameServerHostingModule : ICommandModule
             authenticationService,
             buildsApi,
             buildConfigurationsApi,
+            filesApi,
             fleetsApi,
+            machinesApi,
             serversApi
         );
 

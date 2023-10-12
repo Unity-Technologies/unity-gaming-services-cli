@@ -18,14 +18,16 @@ public static class Keys
     public const long ValidBuildIdBucket = 101;
     public const long ValidBuildIdContainer = 102;
     public const long ValidBuildIdFileUpload = 103;
-
+    public const long ValidMachineId = 654321L;
     public const string ValidServerId = "123";
 
     public const string ProjectPathPart =
         $"projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}";
 
+    public const string FilesPath = $"/multiplay/files/v1/{ProjectPathPart}/files";
     public const string FleetsPath = $"/multiplay/fleets/v1/{ProjectPathPart}/fleets";
     public const string ServersPath = $"/multiplay/servers/v1/{ProjectPathPart}/servers";
+    public const string MachinesPath = $"/multiplay/machines/v1/{ProjectPathPart}/machines";
 
     public const string ValidFleetPath = $"{FleetsPath}/{ValidFleetId}";
     public const string ValidServersPath = $"{ServersPath}/{ValidServerId}";

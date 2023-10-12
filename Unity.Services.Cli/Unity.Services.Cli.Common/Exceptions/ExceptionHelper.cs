@@ -13,6 +13,7 @@ using LeaderboardApiException = Unity.Services.Gateway.LeaderboardApiV1.Generate
 using PlayerAdminApiException = Unity.Services.Gateway.PlayerAdminApiV3.Generated.Client.ApiException;
 using PlayerAuthException = Unity.Services.Gateway.PlayerAuthApiV1.Generated.Client.ApiException;
 using HostingApiException = Unity.Services.Gateway.GameServerHostingApiV1.Generated.Client.ApiException;
+using SentisApiException = Unity.Services.Gateway.SentisApiV1.Generated.Client.ApiException;
 
 namespace Unity.Services.Cli.Common.Exceptions;
 
@@ -81,6 +82,9 @@ public class ExceptionHelper
                 break;
             case PlayerAuthException playerAuthApiException:
                 HandleApiException(exception, logger, playerAuthApiException.ErrorCode);
+                break;
+            case SentisApiException sentiApiException:
+                HandleApiException(exception, logger, sentiApiException.ErrorCode);
                 break;
             case AggregateException aggregateException:
                 foreach (var ex in aggregateException.InnerExceptions)

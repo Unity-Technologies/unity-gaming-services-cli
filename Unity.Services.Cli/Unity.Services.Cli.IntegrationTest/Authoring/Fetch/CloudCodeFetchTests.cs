@@ -93,15 +93,14 @@ public class CloudCodeFetchTests : UgsCliFixture
     [SetUp]
     public async Task SetUp()
     {
-        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
-        await m_MockApi.MockServiceAsync(new CloudCodeFetchMock());
-        await m_MockApi.MockServiceAsync(new LeaderboardApiMock());
+        await MockApi.MockServiceAsync(new IdentityV1Mock());
+        await MockApi.MockServiceAsync(new CloudCodeFetchMock());
     }
 
     [TearDown]
     public void TearDown()
     {
-        m_MockApi.Server?.ResetMappings();
+        MockApi.Server?.ResetMappings();
     }
 
     static async Task CreateDeployTestFilesAsync(
@@ -120,7 +119,7 @@ public class CloudCodeFetchTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
         await GetLoggedInCli()
-            .Command($"fetch {k_TestDirectory}")
+            .Command($"fetch {k_TestDirectory} -s cloud-code-scripts")
             .AssertStandardOutputContains("No content fetched")
             .AssertNoErrors()
             .ExecuteAsync();
@@ -148,10 +147,10 @@ public class CloudCodeFetchTests : UgsCliFixture
             Array.Empty<DeployContent>(),
             fetchedPaths,
             Array.Empty<DeployContent>(),
-            !string.IsNullOrEmpty(dryRunOption) );
+            !string.IsNullOrEmpty(dryRunOption));
         var resultString = JsonConvert.SerializeObject(res.ToTable(), Formatting.Indented);
         await GetLoggedInCli()
-            .Command($"fetch {k_TestDirectory} {dryRunOption} -j")
+            .Command($"fetch {k_TestDirectory} {dryRunOption} -j -s cloud-code-scripts")
             .AssertStandardOutputContains(resultString)
             .AssertNoErrors()
             .ExecuteAsync();

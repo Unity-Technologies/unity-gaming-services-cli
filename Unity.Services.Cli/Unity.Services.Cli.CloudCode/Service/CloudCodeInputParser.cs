@@ -81,9 +81,21 @@ class CloudCodeInputParser : ICloudCodeInputParser
         }
         catch (UnauthorizedAccessException exception)
         {
-            throw new CliException(string.Join(" ", exception.Message,
-                "Make sure that the CLI has the permissions to access the file and that the " +
-                "specified path points to a file and not a directory."), ExitCode.HandledError);
+            throw new CliException(
+                string.Join(
+                    " ",
+                    exception.Message,
+                    $"The path passed is not a valid file path, please review it and try again."),
+                ExitCode.HandledError);
+        }
+        catch (IOException exception)
+        {
+            throw new CliException(
+                string.Join(
+                    " ",
+                    exception.Message,
+                    $"The file path passed could not be found or is incomplete."),
+                ExitCode.HandledError);
         }
     }
 

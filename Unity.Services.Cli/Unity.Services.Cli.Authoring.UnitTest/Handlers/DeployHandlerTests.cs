@@ -41,10 +41,13 @@ public class DeployHandlerTests
         string m_ServiceName = "test";
         string m_DeployFileExtension = ".test";
 
-        string IDeploymentService.ServiceType => m_ServiceType;
-        string IDeploymentService.ServiceName => m_ServiceName;
+        public string ServiceType => m_ServiceType;
+        public string ServiceName => m_ServiceName;
 
-        string IDeploymentService.DeployFileExtension => m_DeployFileExtension;
+        public IReadOnlyList<string> FileExtensions => new[]
+        {
+            m_DeployFileExtension
+        };
 
         public Task<DeploymentResult> Deploy(DeployInput deployInput, IReadOnlyList<string> filePaths, string projectId, string environmentId,
             StatusContext? loadingContext, CancellationToken cancellationToken)
@@ -65,10 +68,13 @@ public class DeployHandlerTests
         string m_ServiceName = "test";
         string m_DeployFileExtension = ".test";
 
-        string IDeploymentService.ServiceType => m_ServiceType;
-        string IDeploymentService.ServiceName => m_ServiceName;
+        public string ServiceType => m_ServiceType;
+        public string ServiceName => m_ServiceName;
 
-        string IDeploymentService.DeployFileExtension => m_DeployFileExtension;
+        public IReadOnlyList<string> FileExtensions => new[]
+        {
+            m_DeployFileExtension
+        };
 
         public Task<DeploymentResult> Deploy(DeployInput deployInput, IReadOnlyList<string> filePaths, string projectId, string environmentId,
             StatusContext? loadingContext, CancellationToken cancellationToken)
@@ -95,10 +101,13 @@ public class DeployHandlerTests
         string m_ServiceName = "test";
         string m_DeployFileExtension = ".test";
 
-        string IDeploymentService.ServiceType => m_ServiceType;
-        string IDeploymentService.ServiceName => m_ServiceName;
+        public string ServiceType => m_ServiceType;
+        public string ServiceName => m_ServiceName;
 
-        string IDeploymentService.DeployFileExtension => m_DeployFileExtension;
+        public IReadOnlyList<string> FileExtensions => new[]
+        {
+            m_DeployFileExtension
+        };
 
         public Task<DeploymentResult> Deploy(DeployInput deployInput, IReadOnlyList<string> filePaths, string projectId, string environmentId,
             StatusContext? loadingContext, CancellationToken cancellationToken)
@@ -120,8 +129,12 @@ public class DeployHandlerTests
 
         m_DeploymentService.Setup(s => s.ServiceName)
             .Returns("mock_test");
-        m_DeploymentService.Setup(s => s.DeployFileExtension)
-            .Returns(".test");
+        m_DeploymentService.Setup(s => s.FileExtensions)
+            .Returns(
+                new[]
+                {
+                    ".test"
+                });
 
         m_DeploymentService.Setup(
                 s => s.Deploy(
@@ -168,7 +181,7 @@ public class DeployHandlerTests
     {
         var mockLoadingIndicator = new Mock<ILoadingIndicator>();
 
-        await DeployHandler.DeployAsync(
+        await DeployCommandHandler.DeployAsync(
             It.IsAny<IHost>(),
             It.IsAny<DeployInput>(),
             m_UnityEnvironment.Object,
@@ -186,7 +199,7 @@ public class DeployHandlerTests
     [Test]
     public async Task DeployAsync_CallsGetServicesCorrectly()
     {
-        await DeployHandler.DeployAsync(
+        await DeployCommandHandler.DeployAsync(
             m_Host.Object, new DeployInput(),
             m_UnityEnvironment.Object,
             m_Logger.Object,
@@ -210,7 +223,7 @@ public class DeployHandlerTests
 
         Assert.ThrowsAsync<DeploymentFailureException>(async () =>
         {
-            await DeployHandler.DeployAsync(
+            await DeployCommandHandler.DeployAsync(
                 m_Host.Object, new DeployInput(),
                 m_UnityEnvironment.Object,
                 m_Logger.Object,
@@ -233,7 +246,7 @@ public class DeployHandlerTests
 
         Assert.ThrowsAsync<AggregateException>(async () =>
         {
-            await DeployHandler.DeployAsync(
+            await DeployCommandHandler.DeployAsync(
                 m_Host.Object, new DeployInput(),
                 m_UnityEnvironment.Object,
                 m_Logger.Object,
@@ -253,7 +266,7 @@ public class DeployHandlerTests
             Reconcile = true
         };
 
-        await DeployHandler.DeployAsync(
+        await DeployCommandHandler.DeployAsync(
             m_Host.Object,
             input,
             m_UnityEnvironment.Object,
@@ -286,7 +299,7 @@ public class DeployHandlerTests
             }
         };
 
-        await DeployHandler.DeployAsync(
+        await DeployCommandHandler.DeployAsync(
             m_Host.Object,
             input,
             m_UnityEnvironment.Object,
@@ -318,7 +331,7 @@ public class DeployHandlerTests
             }
         };
 
-        await DeployHandler.DeployAsync(
+        await DeployCommandHandler.DeployAsync(
             m_Host.Object,
             input,
             m_UnityEnvironment.Object,
@@ -350,7 +363,7 @@ public class DeployHandlerTests
             }
         };
 
-        await DeployHandler.DeployAsync(
+        await DeployCommandHandler.DeployAsync(
             m_Host.Object,
             input,
             m_UnityEnvironment.Object,
@@ -379,7 +392,7 @@ public class DeployHandlerTests
             IsJson = true
         };
 
-        await DeployHandler.DeployAsync(
+        await DeployCommandHandler.DeployAsync(
             m_Host.Object,
             input,
             m_UnityEnvironment.Object,
@@ -423,7 +436,7 @@ public class DeployHandlerTests
                         new Mock<IDeploymentDefinition>().Object,
                         "path"));
 
-        await DeployHandler.DeployAsync(
+        await DeployCommandHandler.DeployAsync(
             m_Host.Object,
             input,
             m_UnityEnvironment.Object,
@@ -465,7 +478,7 @@ public class DeployHandlerTests
                     new Dictionary<IDeploymentDefinition, List<string>>(),
                     true));
 
-        await DeployHandler.DeployAsync(
+        await DeployCommandHandler.DeployAsync(
             m_Host.Object,
             input,
             m_UnityEnvironment.Object,
@@ -519,7 +532,7 @@ public class DeployHandlerTests
                     It.IsAny<IEnumerable<string>>()))
             .Returns(mockResult.Object);
 
-        await DeployHandler.DeployAsync(
+        await DeployCommandHandler.DeployAsync(
             m_Host.Object,
             input,
             m_UnityEnvironment.Object,

@@ -4,15 +4,13 @@ using Unity.Services.Cli.Authoring.Model;
 
 namespace Unity.Services.Cli.Authoring.Service;
 
-public interface IFetchService
+public interface IFetchService : IAuthoringService
 {
-    string ServiceType { get; }
-    string ServiceName { get; }
-    string FileExtension { get; }
-
     Task<FetchResult> FetchAsync(
         FetchInput input,
         IReadOnlyList<string> filePaths,
+        string projectId,
+        string environmentId,
         StatusContext? loadingContext,
         CancellationToken cancellationToken);
 }

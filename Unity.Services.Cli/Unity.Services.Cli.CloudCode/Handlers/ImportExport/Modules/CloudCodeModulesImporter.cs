@@ -29,8 +29,8 @@ class CloudCodeModulesImporter : BaseImporter<Module>
         m_CloudCodeService = cloudCodeService;
     }
 
-    protected override string EntryName => CloudCodeConstants.ModulesEntryName;
-    protected override string FileName => CloudCodeConstants.ModulesZipName;
+    protected override string EntryName => CloudCodeConstants.EntryNameModules;
+    protected override string FileName => CloudCodeConstants.ZipNameModules;
 
     protected override async Task DeleteConfigAsync(
         string projectId,
@@ -64,7 +64,7 @@ class CloudCodeModulesImporter : BaseImporter<Module>
             cloudProjectId, environmentId, cancellationToken);
 
         var modules = moduleResults.Select(
-            r => new Module(new ScriptName(r.Name), Language.JS, $"{r.Name}{CloudCodeConstants.SingleModuleFileExtension}", r.SignedDownloadURL));
+            r => new Module(new ScriptName(r.Name), Language.JS, $"{r.Name}{CloudCodeConstants.FileExtensionModulesCcm}", r.SignedDownloadURL));
 
         return modules;
     }

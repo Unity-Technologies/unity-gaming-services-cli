@@ -33,50 +33,35 @@ public class FleetRegionUpdateInput : CommonInput
     public static readonly Option<long> DeleteTtlOption = new(
         DeleteTtlKey,
         "The delete TTL set for the fleet"
-    )
-    {
-        IsRequired = true
-    };
+    );
 
     public static readonly Option<long> DisabledDeleteTtlOption = new(
         DisabledDeleteTtlKey,
         "The disabled delete TTL set for the fleet."
-    )
-    {
-        IsRequired = true
-    };
+    );
 
-    public static readonly Option<long> MaxServersOption = new(
+    public static readonly Option<long?> MaxServersOption = new(
         MaxServersKey,
         "The maximum number of servers to host in the fleet region."
-    )
-    {
-        IsRequired = true
-    };
+    );
 
-    public static readonly Option<long> MinAvailableServersOption = new(
+
+    public static readonly Option<long?> MinAvailableServersOption = new(
         MinAvailableServersKey,
         "The minimum number of servers to keep free for new game sessions."
-    )
-    {
-        IsRequired = true
-    };
+    );
 
-    public static readonly Option<bool> ScalingEnabledOption = new(
+
+    public static readonly Option<string> ScalingEnabledOption = new(
         ScalingEnabledKey,
         "Whether scaling should be enabled for the fleet."
-    )
-    {
-        IsRequired = true
-    };
+    );
+
 
     public static readonly Option<long> ShutdownTtlOption = new(
         ShutdownTtlKey,
         "The shutdown TTL set for the fleet."
-    )
-    {
-        IsRequired = true
-    };
+    );
 
     [InputBinding(nameof(FleetIdOption))]
     public Guid? FleetId { get; set; }
@@ -97,7 +82,7 @@ public class FleetRegionUpdateInput : CommonInput
     public long? MinAvailableServers { get; set; }
 
     [InputBinding(nameof(ScalingEnabledOption))]
-    public bool? ScalingEnabled { get; set; }
+    public string? ScalingEnabled { get; set; }
 
     [InputBinding(nameof(ShutdownTtlOption))]
     public long? ShutdownTtl { get; set; }

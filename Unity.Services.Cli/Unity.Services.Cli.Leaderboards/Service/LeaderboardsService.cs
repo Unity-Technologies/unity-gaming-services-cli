@@ -23,6 +23,7 @@ public class LeaderboardsService : ILeaderboardsService
         m_ConfigValidator = validator;
         m_AuthenticationService = authenticationService;
     }
+
     public async Task<IEnumerable<UpdatedLeaderboardConfig>> GetLeaderboardsAsync(string projectId, string environmentId, string? cursor, int? limit, CancellationToken cancellationToken = default)
     {
         await AuthorizeServiceAsync(cancellationToken);

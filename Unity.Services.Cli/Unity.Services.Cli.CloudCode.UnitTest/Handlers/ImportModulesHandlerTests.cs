@@ -141,11 +141,11 @@ class ImportModuleHandlerTests
 
         await ImportInternalAsync(importInput);
 
-        var archivePath = Path.Join(importInput.InputDirectory, CloudCodeConstants.ModulesZipName);
+        var archivePath = Path.Join(importInput.InputDirectory, CloudCodeConstants.ZipNameModules);
 
         m_MockArchiver.Verify(za => za.UnzipAsync<Module>(
             archivePath,
-            CloudCodeConstants.ModulesEntryName,
+            CloudCodeConstants.EntryNameModules,
             It.IsAny<CancellationToken>()));
     }
 

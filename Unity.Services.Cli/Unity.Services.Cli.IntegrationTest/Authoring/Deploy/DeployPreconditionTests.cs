@@ -18,8 +18,8 @@ public class DeployPreconditionTests : UgsCliFixture
     {
         DeleteLocalConfig();
         DeleteLocalCredentials();
-        m_MockApi.Server?.ResetMappings();
-        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
+        MockApi.Server?.ResetMappings();
+        await MockApi.MockServiceAsync(new IdentityV1Mock());
     }
 
     [Test]

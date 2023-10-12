@@ -25,7 +25,7 @@ public class AccessTests : UgsCliFixture
     const string k_EnvironmentNameNotSetErrorMessage = "'environment-name' is not set in project configuration."
                                                        + " '" + Keys.EnvironmentKeys.EnvironmentName + "' is not set in system environment variables.";
 
-    readonly string k_TestDirectory = Path.GetFullPath(Path.Combine(UgsCliBuilder.RootDirectory, "Unity.Services.Cli/Unity.Services.Cli.IntegrationTest/AccessTests/Data/"));
+    readonly string m_TestDirectory = Path.GetFullPath(Path.Combine(UgsCliBuilder.RootDirectory, "Unity.Services.Cli/Unity.Services.Cli.IntegrationTest/AccessTests/Data/"));
 
     const string k_RequiredArgumentMissing = "Required argument missing for command";
 
@@ -34,17 +34,17 @@ public class AccessTests : UgsCliFixture
     {
         DeleteLocalConfig();
         DeleteLocalCredentials();
-        m_MockApi.Server?.ResetMappings();
+        MockApi.Server?.ResetMappings();
 
-        await m_MockApi.MockServiceAsync(new IdentityV1Mock());
-        await m_MockApi.MockServiceAsync(new AccessApiMock());
+        await MockApi.MockServiceAsync(new IdentityV1Mock());
+        await MockApi.MockServiceAsync(new AccessApiMock());
 
     }
 
     [TearDown]
     public void TearDown()
     {
-        m_MockApi.Server?.ResetMappings();
+        MockApi.Server?.ResetMappings();
     }
 
 
@@ -98,7 +98,7 @@ public class AccessTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        await AssertSuccess("access get-project-policy", expectedStdOut: "\"statements\": []");
+        await AssertSuccess("access get-project-policy", expectedStdOut: "statement-1");
     }
 
     // access get-player-policy
@@ -142,7 +142,7 @@ public class AccessTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        await AssertSuccess($"access upsert-project-policy {Path.Combine(k_TestDirectory, "policy.json")}", $"Policy for project: '{CommonKeys.ValidProjectId}' and environment: '{CommonKeys.ValidEnvironmentId}' has been updated");
+        await AssertSuccess($"access upsert-project-policy {Path.Combine(m_TestDirectory, "policy.json")}", $"Policy for project: '{CommonKeys.ValidProjectId}' and environment: '{CommonKeys.ValidEnvironmentId}' has been updated");
     }
 
     // access upsert-player-policy
@@ -151,7 +151,7 @@ public class AccessTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        await AssertSuccess($"access upsert-player-policy {AccessApiMock.PlayerId} {Path.Combine(k_TestDirectory, "policy.json")}", $"Policy for player: '{AccessApiMock.PlayerId}' has been updated");
+        await AssertSuccess($"access upsert-player-policy {AccessApiMock.PlayerId} {Path.Combine(m_TestDirectory, "policy.json")}", $"Policy for player: '{AccessApiMock.PlayerId}' has been updated");
     }
 
     // access delete-project-policy-statements
@@ -160,7 +160,7 @@ public class AccessTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        await AssertSuccess($"access delete-project-policy-statements {Path.Combine(k_TestDirectory, "statements.json")}", $"Given policy statements for project: '{CommonKeys.ValidProjectId}' and environment: '{CommonKeys.ValidEnvironmentId}' has been deleted");
+        await AssertSuccess($"access delete-project-policy-statements {Path.Combine(m_TestDirectory, "statements.json")}", $"Given policy statements for project: '{CommonKeys.ValidProjectId}' and environment: '{CommonKeys.ValidEnvironmentId}' has been deleted");
     }
 
     // access delete-player-policy-statements
@@ -169,7 +169,7 @@ public class AccessTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        await AssertSuccess($"access delete-player-policy-statements {AccessApiMock.PlayerId} {Path.Combine(k_TestDirectory, "statements.json")}", $"Given policy statements for player: '{AccessApiMock.PlayerId}' has been deleted");
+        await AssertSuccess($"access delete-player-policy-statements {AccessApiMock.PlayerId} {Path.Combine(m_TestDirectory, "statements.json")}", $"Given policy statements for player: '{AccessApiMock.PlayerId}' has been deleted");
     }
 
     // helpers
@@ -186,7 +186,7 @@ public class AccessTests : UgsCliFixture
             yield return $"access delete-player-policy-statements {AccessApiMock.PlayerId} policy.json";
         }
     }
-    
+
     static async Task AssertSuccess(string command, string? expectedStdErr = null, string? expectedStdOut = null)
     {
         var test = GetLoggedInCli()

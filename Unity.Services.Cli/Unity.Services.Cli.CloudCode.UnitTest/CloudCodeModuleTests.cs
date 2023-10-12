@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Builder;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.CloudCode.Authoring;
 using Unity.Services.Cli.CloudCode.Deploy;
 using Unity.Services.Cli.CloudCode.Input;
@@ -22,6 +24,7 @@ using Unity.Services.CloudCode.Authoring.Editor.Core.Analytics;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Logging;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Api;
+using IFileSystem = Unity.Services.CloudCode.Authoring.Editor.Core.IO.IFileSystem;
 
 namespace Unity.Services.Cli.CloudCode.UnitTest;
 
@@ -200,6 +203,10 @@ class CloudCodeModuleTests
         var environmentProvider = new Mock<ICliEnvironmentProvider>();
         var csModuleLoader = new Mock<ICloudCodeModulesLoader>();
         var client = new Mock<ICSharpClient>();
+        var solutionPublisher = new Mock<ISolutionPublisher>();
+        var moduleSZipper = new Mock<IModuleZipper>();
+        var fileSystem = new Mock<IFileSystem>();
+        var fileService = new Mock<IDeployFileService>();
         var deploymentHandlerWithOutput = new CliCloudCodeDeploymentHandler<ICSharpClient>(
             client.Object, null!, null!, null!);
         var provider = new Mock<IServiceProvider>();
@@ -219,6 +226,14 @@ class CloudCodeModuleTests
                 .Returns(environmentProvider.Object);
             provider.Setup(x => x.GetService(typeof(ICSharpClient)))
                 .Returns(client.Object);
+            provider.Setup(x => x.GetService(typeof(IDeployFileService)))
+                .Returns(fileService.Object);
+            provider.Setup(x => x.GetService(typeof(ISolutionPublisher)))
+                .Returns(solutionPublisher.Object);
+            provider.Setup(x => x.GetService(typeof(IModuleZipper)))
+                .Returns(moduleSZipper.Object);
+            provider.Setup(x => x.GetService(typeof(IFileSystem)))
+                .Returns(fileSystem.Object);
         }
 
         void AssertExpectedServicesAreWrapped()

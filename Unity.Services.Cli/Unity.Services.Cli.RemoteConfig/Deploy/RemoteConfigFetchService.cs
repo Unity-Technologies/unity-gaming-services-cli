@@ -20,7 +20,10 @@ class RemoteConfigFetchService : IFetchService
     public string ServiceType { get; }
     public string ServiceName { get; }
 
-    string IFetchService.FileExtension => m_DeployFileExtension;
+    public IReadOnlyList<string> FileExtensions => new[]
+    {
+        m_DeployFileExtension
+    };
 
     public RemoteConfigFetchService(
         IUnityEnvironment unityEnvironment,
@@ -41,11 +44,12 @@ class RemoteConfigFetchService : IFetchService
     public async Task<FetchResult> FetchAsync(
         FetchInput input,
         IReadOnlyList<string> filePaths,
+        string projectId,
+        string environmentId,
         StatusContext? loadingContext,
         CancellationToken cancellationToken)
     {
-        var environmentId = await m_UnityEnvironment.FetchIdentifierAsync(cancellationToken);
-        m_RemoteConfigClient.Initialize(input.CloudProjectId!, environmentId, cancellationToken);
+        m_RemoteConfigClient.Initialize(projectId, environmentId, cancellationToken);
 
         var loadResult = await m_RemoteConfigScriptsLoader
             .LoadScriptsAsync(filePaths, cancellationToken);

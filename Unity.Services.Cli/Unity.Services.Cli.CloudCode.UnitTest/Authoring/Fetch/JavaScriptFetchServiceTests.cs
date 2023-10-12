@@ -8,6 +8,7 @@ using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.CloudCode.Authoring;
+using Unity.Services.Cli.CloudCode.Authoring.Fetch;
 using Unity.Services.Cli.CloudCode.Deploy;
 using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.CloudCode.Service;
@@ -79,7 +80,13 @@ class JavaScriptFetchServiceTests
                     CancellationToken.None))
             .ReturnsAsync(expectedResult);
 
-        var result = await m_Service.FetchAsync(input, files, null, CancellationToken.None);
+        var result = await m_Service.FetchAsync(
+            input,
+            files,
+            TestValues.ValidProjectId,
+            TestValues.ValidEnvironmentId,
+            null,
+            CancellationToken.None);
 
         m_Client.Verify(
             x => x.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None),
@@ -109,8 +116,8 @@ class JavaScriptFetchServiceTests
         m_ScriptsLoader.Setup(
                 x => x.LoadScriptsAsync(
                     filesInstance,
-                    CloudCodeConstants.ServiceType,
-                    CloudCodeConstants.JavaScriptFileExtension,
+                    CloudCodeConstants.ServiceTypeScripts,
+                    CloudCodeConstants.FileExtensionJavaScript,
                     m_InputParser.Object,
                     m_ScriptParser.Object,
                     CancellationToken.None))
@@ -135,8 +142,8 @@ class JavaScriptFetchServiceTests
         m_ScriptsLoader.Setup(
                 x => x.LoadScriptsAsync(
                     It.IsAny<IReadOnlyCollection<string>>(),
-                    CloudCodeConstants.ServiceType,
-                    CloudCodeConstants.JavaScriptFileExtension,
+                    CloudCodeConstants.ServiceTypeScripts,
+                    CloudCodeConstants.FileExtensionJavaScript,
                     m_InputParser.Object,
                     m_ScriptParser.Object,
                     CancellationToken.None))
@@ -168,7 +175,9 @@ class JavaScriptFetchServiceTests
 
         var actualResult = await m_Service.FetchAsync(
             input,
-            new [] { "hello.js" },
+            new[] { "hello.js" },
+            string.Empty,
+            string.Empty,
             null!,
             CancellationToken.None);
 

@@ -40,7 +40,7 @@ public class AccessServiceTests
         m_ProjectPolicyApi.Reset();
         m_PlayerPolicyApi.Reset();
 
-        m_DeleteOptionsFile = await GetFileInfoObjectAsync("tmp-delete-options.json", TestValues.deleteOptionsJson);
+        m_DeleteOptionsFile = await GetFileInfoObjectAsync("tmp-delete-options.json", TestValues.DeleteOptionsJson);
         m_PolicyFile = await GetFileInfoObjectAsync("tmp-policy.json", TestValues.PolicyJson);
         m_WrongFormattedFile =
             await GetFileInfoObjectAsync("tmp-wrong-formatted.json", "{\"invalidProperty\":[]}");
@@ -58,9 +58,9 @@ public class AccessServiceTests
     [OneTimeTearDown]
     public void OneTimeTearDown()
     {
-        m_PolicyFile.Delete();
-        m_DeleteOptionsFile.Delete();
-        m_WrongFormattedFile.Delete();
+        m_PolicyFile?.Delete();
+        m_DeleteOptionsFile?.Delete();
+        m_WrongFormattedFile?.Delete();
     }
 
     [Test]
@@ -131,7 +131,10 @@ public class AccessServiceTests
         m_ProjectPolicyApi.Setup(a => a.UpsertPolicyAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Policy>(),
             It.IsAny<int>(), CancellationToken.None));
 
-        await m_AccessService!.UpsertPolicyAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, m_PolicyFile,
+        await m_AccessService!.UpsertPolicyAsync(
+            TestValues.ValidProjectId,
+            TestValues.ValidEnvironmentId,
+            m_PolicyFile!,
             CancellationToken.None);
 
         m_ProjectPolicyApi.Verify(
@@ -148,7 +151,10 @@ public class AccessServiceTests
     public void UpsertPolicyAsync_InvalidInput()
     {
         Assert.ThrowsAsync<CliException>(
-            () => m_AccessService!.UpsertPolicyAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, m_WrongFormattedFile,
+            () => m_AccessService!.UpsertPolicyAsync(
+                TestValues.ValidProjectId,
+                TestValues.ValidEnvironmentId,
+                m_WrongFormattedFile!,
                 CancellationToken.None));
     }
 
@@ -158,7 +164,11 @@ public class AccessServiceTests
         m_PlayerPolicyApi.Setup(a => a.UpsertPlayerPolicyAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Policy>(),
             It.IsAny<int>(), CancellationToken.None));
 
-        await m_AccessService!.UpsertPlayerPolicyAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId, m_PolicyFile,
+        await m_AccessService!.UpsertPlayerPolicyAsync(
+            TestValues.ValidProjectId,
+            TestValues.ValidEnvironmentId,
+            TestValues.ValidPlayerId,
+            m_PolicyFile!,
             CancellationToken.None);
 
         m_PlayerPolicyApi.Verify(
@@ -176,8 +186,12 @@ public class AccessServiceTests
     public void UpsertPlayerPolicyAsync_InvalidInput()
     {
         Assert.ThrowsAsync<CliException>(
-            () => m_AccessService!.UpsertPlayerPolicyAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId,
-                m_WrongFormattedFile, CancellationToken.None));
+            () => m_AccessService!.UpsertPlayerPolicyAsync(
+                TestValues.ValidProjectId,
+                TestValues.ValidEnvironmentId,
+                TestValues.ValidPlayerId,
+                m_WrongFormattedFile!,
+                CancellationToken.None));
     }
 
     [Test]
@@ -185,7 +199,10 @@ public class AccessServiceTests
     {
         m_ProjectPolicyApi.Setup(a => a.DeletePolicyStatementsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DeleteOptions>(), It.IsAny<int>(), CancellationToken.None));
 
-        await m_AccessService!.DeletePolicyStatementsAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, m_DeleteOptionsFile,
+        await m_AccessService!.DeletePolicyStatementsAsync(
+            TestValues.ValidProjectId,
+            TestValues.ValidEnvironmentId,
+            m_DeleteOptionsFile!,
             CancellationToken.None);
 
         m_ProjectPolicyApi.Verify(
@@ -202,8 +219,11 @@ public class AccessServiceTests
     public void DeletePolicyStatementsAsync_InvalidInput()
     {
         Assert.ThrowsAsync<CliException>(
-            () => m_AccessService!.DeletePolicyStatementsAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId,
-                m_WrongFormattedFile, CancellationToken.None));
+            () => m_AccessService!.DeletePolicyStatementsAsync(
+                TestValues.ValidProjectId,
+                TestValues.ValidEnvironmentId,
+                m_WrongFormattedFile!,
+                CancellationToken.None));
     }
 
     [Test]
@@ -211,7 +231,11 @@ public class AccessServiceTests
     {
         m_PlayerPolicyApi.Setup(a => a.DeletePlayerPolicyStatementsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DeleteOptions>(), It.IsAny<int>(), CancellationToken.None));
 
-        await m_AccessService!.DeletePlayerPolicyStatementsAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId, m_DeleteOptionsFile,
+        await m_AccessService!.DeletePlayerPolicyStatementsAsync(
+            TestValues.ValidProjectId,
+            TestValues.ValidEnvironmentId,
+            TestValues.ValidPlayerId,
+            m_DeleteOptionsFile!,
             CancellationToken.None);
 
         m_PlayerPolicyApi.Verify(
@@ -229,7 +253,53 @@ public class AccessServiceTests
     public void DeletePlayerPolicyStatementsAsync_InvalidInput()
     {
         Assert.ThrowsAsync<CliException>(
-            () => m_AccessService!.DeletePlayerPolicyStatementsAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId,
-                m_WrongFormattedFile, CancellationToken.None));
+            () => m_AccessService!.DeletePlayerPolicyStatementsAsync(
+                TestValues.ValidProjectId,
+                TestValues.ValidEnvironmentId,
+                TestValues.ValidPlayerId,
+                m_WrongFormattedFile!,
+                CancellationToken.None));
+    }
+
+    [Test]
+    public async Task UpsertProjectAccessCaCAsync_Valid()
+    {
+        var statements = new List<Statement>()
+        {
+            TestMocks.GetStatement()
+        };
+        m_ProjectPolicyApi.Setup(a => a.UpsertPolicyAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Policy>(),
+            It.IsAny<int>(), CancellationToken.None));
+
+        await m_AccessService!.UpsertProjectAccessCaCAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestMocks.GetPolicy(statements),
+            CancellationToken.None);
+
+        m_ProjectPolicyApi.Verify(
+            a => a.UpsertPolicyAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<Policy>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task DeleteProjectAccessCaCAsync_Valid()
+    {
+        var statementIDs = new List<string>(){"statement-1"};
+        m_ProjectPolicyApi.Setup(a => a.DeletePolicyStatementsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DeleteOptions>(), It.IsAny<int>(), CancellationToken.None));
+
+        await m_AccessService!.DeleteProjectAccessCaCAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestMocks.GetDeleteOptions(statementIDs),
+            CancellationToken.None);
+
+        m_ProjectPolicyApi.Verify(
+            a => a.DeletePolicyStatementsAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<DeleteOptions>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 }
