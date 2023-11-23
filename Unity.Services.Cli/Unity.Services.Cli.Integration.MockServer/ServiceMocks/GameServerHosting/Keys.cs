@@ -1,4 +1,5 @@
 using Unity.Services.Cli.MockServer.Common;
+using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
 
 namespace Unity.Services.Cli.MockServer.ServiceMocks.GameServerHosting;
 
@@ -20,6 +21,7 @@ public static class Keys
     public const long ValidBuildIdFileUpload = 103;
     public const long ValidMachineId = 654321L;
     public const string ValidServerId = "123";
+    public const string ValidUsageSettingsJson = "{\"hardwareType\":\"CLOUD\", \"machineType\":\"GCP-N2\", \"maxServersPerMachine\":\"5\"}";
 
     public const string ProjectPathPart =
         $"projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}";

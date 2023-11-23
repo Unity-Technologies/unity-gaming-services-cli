@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.CommandLine.Parsing;
+using Newtonsoft.Json;
 using Unity.Services.Cli.Common.Input;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
 
@@ -11,6 +12,7 @@ public class FleetCreateInput : CommonInput
     public const string OsFamilyKey = "--os-family";
     public const string RegionsKey = "--region-id";
     public const string BuildConfigurationsKey = "--build-configuration-id";
+    public const string UsageSettingsKey = "--usage-setting";
 
     public static readonly Option<string> FleetNameOption = new(
         NameKey,
@@ -46,10 +48,19 @@ public class FleetCreateInput : CommonInput
         IsRequired = true
     };
 
+    public static readonly Option<string[]> FleetUsageSettingsOption = new(
+        UsageSettingsKey,
+        "Usage settings JSON object to be added to the fleet. Can be supplied more than once."
+    )
+    {
+        AllowMultipleArgumentsPerToken = true
+    };
+
     static FleetCreateInput()
     {
         FleetRegionsOption.AddValidator(ValidateRegionIds);
         FleetOsFamilyOption.AddValidator(ValidateOsFamilyEnum);
+        FleetUsageSettingsOption.AddValidator(ValidateUsageSetting);
     }
 
     [InputBinding(nameof(FleetNameOption))]
@@ -63,6 +74,9 @@ public class FleetCreateInput : CommonInput
 
     [InputBinding(nameof(FleetBuildConfigurationsOption))]
     public long[]? BuildConfigurations { get; set; }
+
+    [InputBinding(nameof(FleetUsageSettingsOption))]
+    public string[]? UsageSettings { get; set; }
 
     static void ValidateRegionIds(OptionResult result)
     {
@@ -89,6 +103,22 @@ public class FleetCreateInput : CommonInput
         catch (Exception)
         {
             result.ErrorMessage = $"Invalid option for --os-family. Did you mean one of the following? {string.Join(", ", Enum.GetNames<FleetCreateRequest.OsFamilyEnum>())}";
+        }
+    }
+
+    static void ValidateUsageSetting(OptionResult result)
+    {
+        var values = result.GetValueOrDefault<string[]>();
+        foreach (var setting in values!)
+        {
+            try
+            {
+                JsonConvert.DeserializeObject<FleetUsageSetting>(setting);
+            }
+            catch (Exception)
+            {
+                result.ErrorMessage = $"Invalid option for --usage-setting. '{setting}' is not a valid JSON usage setting object.";
+            }
         }
     }
 }

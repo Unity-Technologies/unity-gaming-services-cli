@@ -120,6 +120,9 @@ class HandlerCommon
         );
 
         MockUnityEnvironment.Setup(ex => ex.FetchIdentifierAsync(CancellationToken.None)).ReturnsAsync(ValidEnvironmentId);
+
+        // create tmp output directory for tests
+        Directory.CreateDirectory(ValidOutputDirectory);
     }
 
     [TearDown]
@@ -127,5 +130,8 @@ class HandlerCommon
     {
         // Clear invocations to Mock Environment
         MockUnityEnvironment.Invocations.Clear();
+
+        // delete tmp output directory for tests
+        Directory.Delete(ValidOutputDirectory, true);
     }
 }

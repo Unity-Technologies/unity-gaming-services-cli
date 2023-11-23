@@ -17,6 +17,11 @@ class NoopDeploymentAnalytics : IDeploymentAnalytics
         return new NoopDisposable();
     }
 
+    public IDisposable BeginDeploySend(int fileSize, string fileType)
+    {
+        return new NoopDisposable();
+    }
+
     public IDisposable BeginDeploySend(int fileSize)
     {
         return new NoopDisposable();

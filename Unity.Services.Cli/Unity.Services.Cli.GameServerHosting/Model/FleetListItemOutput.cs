@@ -15,6 +15,7 @@ class FleetListItemOutput
         BuildConfigurations = fleet.BuildConfigurations;
         Regions = fleet.Regions;
         Servers = fleet.Servers;
+        UsageSettings = fleet.UsageSettings;
     }
 
     public string Name { get; }
@@ -30,6 +31,8 @@ class FleetListItemOutput
     public List<FleetRegion> Regions { get; }
 
     public Servers Servers { get; }
+
+    public List<FleetUsageSetting> UsageSettings { get; }
 
     public override string ToString()
     {

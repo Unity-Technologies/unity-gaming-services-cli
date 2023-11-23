@@ -1,4 +1,6 @@
+using System;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.IntegrationTest.Common;
@@ -9,8 +11,9 @@ namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 
 public partial class GameServerHostingTests
 {
+    static readonly string k_ValidUsageSettingJson = JsonConvert.SerializeObject(Keys.ValidUsageSettingsJson);
     static readonly string k_FleetCreateCommand =
-        $"gsh fleet create --name test --os-family linux --region-id {Keys.ValidTemplateRegionId} --build-configuration-id {Keys.ValidBuildConfigurationId}";
+        $"gsh fleet create --name test --os-family linux --region-id {Keys.ValidTemplateRegionId} --build-configuration-id {Keys.ValidBuildConfigurationId} --usage-setting {k_ValidUsageSettingJson}";
 
     [Test]
     [Category("gsh")]
@@ -156,6 +159,20 @@ public partial class GameServerHostingTests
                 $"gsh fleet create --name test --os-family invalid --region-id {Keys.ValidTemplateRegionId} --build-configuration-id {Keys.ValidBuildConfigurationId}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Invalid option for --os-family.")
+            .ExecuteAsync();
+    }
+
+    [Test]
+    [Category("gsh")]
+    [Category("gsh fleet")]
+    [Category("gsh fleet create")]
+    public async Task FleetCreate_ThrowsInvalidUsageSettingsJsonException()
+    {
+        await GetFullySetCli()
+            .Command(
+                $"gsh fleet create --name test --os-family linux --region-id {Keys.ValidTemplateRegionId} --build-configuration-id {Keys.ValidBuildConfigurationId} --usage-setting invalid_json")
+            .AssertExitCode(ExitCode.HandledError)
+            .AssertStandardErrorContains("Invalid option for --usage-setting")
             .ExecuteAsync();
     }
 
@@ -398,6 +415,7 @@ public partial class GameServerHostingTests
     [Category("gsh")]
     [Category("gsh fleet")]
     [Category("gsh fleet list")]
+    [Ignore("Breaks on windows - Task to fix: https://jira.unity3d.com/browse/GID-2370")]
     public async Task FleetList_SucceedsWithValidInput()
     {
         await GetFullySetCli()

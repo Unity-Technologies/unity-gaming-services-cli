@@ -1,7 +1,9 @@
 using System.Net;
+using System.Text.RegularExpressions;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Models;
 using Unity.Services.Cli.Common.Validator;
+using Unity.Services.Cli.Economy.Exceptions;
 using Unity.Services.Cli.ServiceAccountAuthentication;
 using Unity.Services.Cli.ServiceAccountAuthentication.Token;
 using Unity.Services.Gateway.EconomyApiV2.Generated.Api;
@@ -88,7 +90,7 @@ class EconomyService : IEconomyService
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentId, environmentId);
 
-        await m_EconomyApiAsync.DeleteConfigResourceAsync(projectId, Guid.Parse(environmentId), resourceId, cancellationToken: cancellationToken );
+        await m_EconomyApiAsync.DeleteConfigResourceAsync(projectId, Guid.Parse(environmentId), resourceId, cancellationToken: cancellationToken);
     }
 
     public async Task AddAsync(AddConfigResourceRequest request, string projectId, string environmentId,
@@ -98,7 +100,27 @@ class EconomyService : IEconomyService
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentId, environmentId);
 
-        await m_EconomyApiAsync.AddConfigResourceAsync(projectId, Guid.Parse(environmentId), request, cancellationToken: cancellationToken );
+        try
+        {
+            await m_EconomyApiAsync.AddConfigResourceAsync(projectId, Guid.Parse(environmentId), request, cancellationToken: cancellationToken);
+        }
+        catch (Exception e)
+        {
+            var innerException = e.InnerException;
+            if (e.InnerException is InvalidDataException oldInnerException)
+            {
+                var oldMessage = oldInnerException.Message;
+                const string pattern = "messages\":\\[(.*?)\\]";
+                var match = Regex.Match(oldMessage, pattern, RegexOptions.None, TimeSpan.FromMilliseconds(100));
+
+                if (match.Success)
+                {
+                    var messagesData = match.Groups[1].Value;
+                    innerException = new InvalidDataException(messagesData);
+                }
+            }
+            throw new InvalidResourceException(innerException!.Message, innerException);
+        }
     }
 
     public async Task EditAsync(string resourceId, AddConfigResourceRequest request, string projectId, string environmentId,
@@ -108,6 +130,6 @@ class EconomyService : IEconomyService
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentId, environmentId);
 
-        await m_EconomyApiAsync.EditConfigResourceAsync(projectId, Guid.Parse(environmentId), resourceId, request, cancellationToken: cancellationToken );
+        await m_EconomyApiAsync.EditConfigResourceAsync(projectId, Guid.Parse(environmentId), resourceId, request, cancellationToken: cancellationToken);
     }
 }

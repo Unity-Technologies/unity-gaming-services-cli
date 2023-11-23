@@ -24,7 +24,7 @@
     <PackageReference Include="Unity.Services.Gateway.SentisApiV1.Generated" Version="1.0.5" />
     <PackageReference Include="Unity.Services.TelemetryApi.Generated" Version="1.0.1" />
     <PackageReference Include="Unity.Services.MpsLobby.LobbyApiV1.Generated" Version="0.11.1" />
-    <PackageReference Include="Unity.Services.Gateway.GameServerHostingApiV1.Generated" Version="0.8.0" />
+    <PackageReference Include="Unity.Services.Gateway.GameServerHostingApiV1.Generated" Version="0.9.0" />
     <PackageReference Include="UnityAnalytic.Modules.Sender" Version="0.1.0" />
   </ItemGroup>
   <ItemGroup>

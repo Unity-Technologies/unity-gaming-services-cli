@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Moq;
+using Newtonsoft.Json;
 using Spectre.Console;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Logging;
@@ -43,6 +44,10 @@ class FleetCreateHandlerTests : HandlerCommon
             Regions = new[]
             {
                 ValidRegionId
+            },
+            UsageSettings = new[]
+            {
+                ValidUsageSettingsJson
             }
         };
 
@@ -58,7 +63,8 @@ class FleetCreateHandlerTests : HandlerCommon
         MockUnityEnvironment.Verify(ex => ex.FetchIdentifierAsync(CancellationToken.None), Times.Once);
     }
 
-    [TestCase(ValidProjectId, ValidEnvironmentName, ValidFleetName, FleetCreateRequest.OsFamilyEnum.LINUX,
+    [TestCase(ValidProjectId, ValidEnvironmentName, ValidFleetName,
+        FleetCreateRequest.OsFamilyEnum.LINUX,
         new[]
         {
             ValidBuildConfigurationId
@@ -66,10 +72,13 @@ class FleetCreateHandlerTests : HandlerCommon
         new[]
         {
             ValidRegionId
+        },
+        new[]{
+            ValidUsageSettingsJson
         }
     )]
     public async Task FleetCreateAsync_CallsCreateService(string projectId, string environmentName, string fleetName,
-        FleetCreateRequest.OsFamilyEnum osFamily, long[] buildConfigurations, string[] regions)
+        FleetCreateRequest.OsFamilyEnum osFamily, long[] buildConfigurations, string[] regions, string[] usageSettings)
     {
         FleetCreateInput input = new()
         {
@@ -78,7 +87,8 @@ class FleetCreateHandlerTests : HandlerCommon
             FleetName = fleetName,
             OsFamily = osFamily,
             BuildConfigurations = buildConfigurations,
-            Regions = regions
+            Regions = regions,
+            UsageSettings = usageSettings
         };
 
         await FleetCreateHandler.FleetCreateAsync(input, MockUnityEnvironment.Object, GameServerHostingService!,
@@ -86,8 +96,10 @@ class FleetCreateHandlerTests : HandlerCommon
 
         var regionList = regions.Select(r => new Region(regionID: new Guid(r))).ToList();
 
+        var usageSetting = JsonConvert.DeserializeObject<FleetUsageSetting>(ValidUsageSettingsJson);
+
         var createRequest = new FleetCreateRequest(name: input.FleetName, osFamily: input.OsFamily,
-            buildConfigurations: buildConfigurations.ToList(), regions: regionList);
+            buildConfigurations: buildConfigurations.ToList(), regions: regionList, usageSettings: new List<FleetUsageSetting> { usageSetting! });
 
         FleetsApi!.DefaultFleetsClient.Verify(api => api.CreateFleetAsync(
             new Guid(input.CloudProjectId), new Guid(ValidEnvironmentId),
@@ -147,7 +159,7 @@ class FleetCreateHandlerTests : HandlerCommon
             ValidBuildConfigurationId
         },
         new string[0],
-        TestName = "Emty build regions"
+        TestName = "Empty build regions"
     )]
     public Task FleetCreateAsync_MissingInputThrowsException(string? projectId, string? environmentName,
         string? fleetName,
@@ -164,6 +176,48 @@ class FleetCreateHandlerTests : HandlerCommon
         };
 
         Assert.ThrowsAsync<MissingInputException>(() =>
+            FleetCreateHandler.FleetCreateAsync(input,
+                MockUnityEnvironment.Object,
+                GameServerHostingService!,
+                MockLogger!.Object,
+                CancellationToken.None
+            )
+        );
+
+        TestsHelper.VerifyLoggerWasCalled(MockLogger!, LogLevel.Critical, LoggerExtension.ResultEventId, Times.Never);
+        return Task.CompletedTask;
+    }
+
+    [TestCase(ValidProjectId, ValidEnvironmentName, ValidFleetName,
+        FleetCreateRequest.OsFamilyEnum.LINUX,
+        new[]
+        {
+            ValidBuildConfigurationId
+        },
+        new[]
+        {
+            ValidRegionId
+        },
+        new[]{
+            "badjson"
+        }
+    )]
+    public Task FleetCreateAsync_InvalidUsageSettingsJsonThrowsException(string? projectId, string? environmentName,
+        string? fleetName,
+        FleetCreateRequest.OsFamilyEnum? osFamily, long[] buildConfigurations, string[] regions, string[] usageSettings)
+    {
+        FleetCreateInput input = new()
+        {
+            CloudProjectId = projectId,
+            TargetEnvironmentName = environmentName,
+            FleetName = fleetName,
+            OsFamily = osFamily,
+            BuildConfigurations = buildConfigurations,
+            Regions = regions,
+            UsageSettings = usageSettings
+        };
+
+        Assert.ThrowsAsync<JsonReaderException>(() =>
             FleetCreateHandler.FleetCreateAsync(input,
                 MockUnityEnvironment.Object,
                 GameServerHostingService!,

@@ -66,6 +66,7 @@ static class BuildConfigurationUpdateHandler
         // API requires all these fields to be populated, to make it a nicer user experience we populate
         // Null input values with the existing values
         var req = new BuildConfigurationUpdateRequest(
+#pragma warning disable CS0612 // Type or member is obsolete
             binaryPath: input.BinaryPath ?? currentConfig.BinaryPath,
             buildID: (input.BuildId is not null && input.BuildId != 0) ? input.BuildId.Value : currentConfig.BuildID,
             commandLine: input.CommandLine ?? currentConfig.CommandLine,
@@ -75,6 +76,7 @@ static class BuildConfigurationUpdateHandler
             name: input.Name ?? currentConfig.Name,
             queryType: input.QueryType ?? currentConfig.QueryType,
             speed: input.Speed ?? currentConfig.Speed
+#pragma warning restore CS0612 // Type or member is obsolete
         );
 
         var buildConfiguration = await service.BuildConfigurationsApi.UpdateBuildConfigurationAsync(

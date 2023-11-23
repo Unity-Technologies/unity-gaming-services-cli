@@ -38,7 +38,7 @@ public class CcdCloudStorageTests
         var bucketId = Guid.NewGuid();
         var bucketName = "bucket";
         m_MockBucketsApi!.Setup(api => api.ListBucketsByProjectEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult(new List<CcdBucket> { new CcdBucket(id: bucketId, name: bucketName) }));
+            .Returns(Task.FromResult(new List<CcdGetBucket200Response> { new(id: bucketId, name: bucketName) }));
 
         var bucket = await m_CcdCloudStorage!.FindBucket("test");
 
@@ -50,8 +50,8 @@ public class CcdCloudStorageTests
     {
         var bucketId = Guid.NewGuid();
         var bucketName = "bucket";
-        m_MockBucketsApi!.Setup(api => api.CreateBucketByProjectEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CcdBucketCreate>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult(new CcdBucket(id: bucketId, name: bucketName)));
+        m_MockBucketsApi!.Setup(api => api.CreateBucketByProjectEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CcdCreateBucketByProjectRequest>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult(new CcdGetBucket200Response(id: bucketId, name: bucketName)));
 
         var bucket = await m_CcdCloudStorage!.CreateBucket("test");
 
@@ -61,59 +61,59 @@ public class CcdCloudStorageTests
     [Test]
     public async Task UploadBuildEntries_UploadsNewEntries()
     {
-        SetupUpload(new List<CcdEntry>());
+        SetupUpload(new List<CcdGetEntries200ResponseInner>());
 
         await m_CcdCloudStorage!.UploadBuildEntries(
             new CloudBucketId { Id = Guid.NewGuid() },
             new List<BuildEntry>
             {
-                new BuildEntry("path", new MemoryStream(Encoding.UTF8.GetBytes("content")))
+                new ("path", new MemoryStream(Encoding.UTF8.GetBytes("content")))
             });
 
-        m_MockEntriesApi!.Verify(api => api.CreateOrUpdateEntryByPathEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CcdEntryCreateByPath>(), It.IsAny<bool?>(), It.IsAny<int>(), It.IsAny<CancellationToken>()));
+        m_MockEntriesApi!.Verify(api => api.CreateOrUpdateEntryByPathEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CcdCreateOrUpdateEntryByPathRequest>(), It.IsAny<bool?>(), It.IsAny<int>(), It.IsAny<CancellationToken>()));
     }
 
     [Test]
     public async Task UploadBuildEntries_WhenExactFileExists_DoesNotUpload()
     {
-        SetupUpload(new List<CcdEntry>
+        SetupUpload(new List<CcdGetEntries200ResponseInner>
         {
             // Uppercase hash to ensure that case differences are handled
-            new CcdEntry(path: "path", contentHash: "9a0364b9e99bb480dd25e1f0284c8555".ToUpperInvariant())
+            new (path: "path", contentHash: "9a0364b9e99bb480dd25e1f0284c8555".ToUpperInvariant())
         });
 
         await m_CcdCloudStorage!.UploadBuildEntries(
             new CloudBucketId { Id = Guid.NewGuid() },
             new List<BuildEntry>
             {
-                new BuildEntry("path", new MemoryStream(Encoding.UTF8.GetBytes("content")))
+                new ("path", new MemoryStream(Encoding.UTF8.GetBytes("content")))
             });
 
-        m_MockEntriesApi!.Verify(api => api.CreateOrUpdateEntryByPathEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CcdEntryCreateByPath>(), It.IsAny<bool?>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never());
+        m_MockEntriesApi!.Verify(api => api.CreateOrUpdateEntryByPathEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CcdCreateOrUpdateEntryByPathRequest>(), It.IsAny<bool?>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never());
     }
 
     [Test]
     public async Task UploadBuildEntries_WhenOrphanExists_DeletesOrphan()
     {
-        SetupUpload(new List<CcdEntry>
+        SetupUpload(new List<CcdGetEntries200ResponseInner>
         {
-            new CcdEntry(path: "path", contentHash: "hash")
+            new (path: "path", contentHash: "hash")
         });
 
         await m_CcdCloudStorage!.UploadBuildEntries(
             new CloudBucketId { Id = Guid.NewGuid() },
             new List<BuildEntry>());
 
-        m_MockEntriesApi!.Verify(api => api.DeleteEntryEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()));
+        m_MockEntriesApi!.Verify(api => api.DeleteEntryEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()));
     }
 
-    void SetupUpload(List<CcdEntry> ccdEntries)
+    void SetupUpload(List<CcdGetEntries200ResponseInner> ccdEntries)
     {
-        m_MockEntriesApi!.Setup(api => api.GetEntriesEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<Guid?>(), It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+        m_MockEntriesApi!.Setup(api => api.GetEntriesEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<Guid?>(), It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult(ccdEntries));
-        m_MockEntriesApi.Setup(api => api.CreateOrUpdateEntryByPathEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CcdEntryCreateByPath>(), It.IsAny<bool?>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult(new CcdEntry(signedUrl: "https://signed.url.example.com")));
-        m_MockEntriesApi.Setup(api => api.DeleteEntryEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+        m_MockEntriesApi.Setup(api => api.CreateOrUpdateEntryByPathEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CcdCreateOrUpdateEntryByPathRequest>(), It.IsAny<bool?>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult(new CcdGetEntries200ResponseInner(signedUrl: "https://signed.url.example.com")));
+        m_MockEntriesApi.Setup(api => api.DeleteEntryEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult(new List<object>()));
         m_MockMessageHandler.Protected()
             .Setup<Task<HttpResponseMessage>>(

@@ -35,7 +35,7 @@ namespace Unity.Services.Cli.GameServerHosting.Services
 
         public async Task<CloudBucketId> CreateBucket(string name, CancellationToken cancellationToken = default)
         {
-            var res = await m_BucketsApiClient.CreateBucketByProjectEnvAsync(m_ApiConfig.ProjectId.ToString(), m_ApiConfig.EnvironmentId.ToString(), new CcdBucketCreate(name: name, projectguid: m_ApiConfig.ProjectId), cancellationToken: cancellationToken);
+            var res = await m_BucketsApiClient.CreateBucketByProjectEnvAsync(m_ApiConfig.ProjectId.ToString(), m_ApiConfig.EnvironmentId.ToString(), new CcdCreateBucketByProjectRequest(name: name, projectguid: m_ApiConfig.ProjectId), cancellationToken: cancellationToken);
             return new CloudBucketId { Id = res.Id };
         }
 
@@ -74,19 +74,19 @@ namespace Unity.Services.Cli.GameServerHosting.Services
             return changes;
         }
 
-        async Task DeleteEntry(CloudBucketId bucket, CcdEntry entry, CancellationToken cancellationToken = default)
+        async Task DeleteEntry(CloudBucketId bucket, CcdGetEntries200ResponseInner entry, CancellationToken cancellationToken = default)
         {
-            await m_EntriesApiClient.DeleteEntryEnvAsync(m_ApiConfig.EnvironmentId.ToString(), bucket.ToString(), entry.Entryid.ToString(), cancellationToken: cancellationToken);
+            await m_EntriesApiClient.DeleteEntryEnvAsync(m_ApiConfig.EnvironmentId.ToString(), bucket.ToString(), entry.Entryid.ToString(), m_ApiConfig.ProjectId.ToString(), cancellationToken: cancellationToken);
         }
 
-        async Task<CcdEntry> CreateOrUpdateEntry(CloudBucketId bucket, string path, string hash, int length, CancellationToken cancellationToken = default)
+        async Task<CcdGetEntries200ResponseInner> CreateOrUpdateEntry(CloudBucketId bucket, string path, string hash, int length, CancellationToken cancellationToken = default)
         {
-            var create = new CcdEntryCreateByPath(hash, length, signedUrl: true);
-            var res = await m_EntriesApiClient.CreateOrUpdateEntryByPathEnvAsync(m_ApiConfig.EnvironmentId.ToString(), bucket.ToString(), path, create, updateIfExists: true, cancellationToken: cancellationToken);
+            var create = new CcdCreateOrUpdateEntryByPathRequest(hash, length, signedUrl: true);
+            var res = await m_EntriesApiClient.CreateOrUpdateEntryByPathEnvAsync(m_ApiConfig.EnvironmentId.ToString(), bucket.ToString(), path, m_ApiConfig.ProjectId.ToString(), create, updateIfExists: true, cancellationToken: cancellationToken);
             return res;
         }
 
-        async Task UploadSignedContent(CcdEntry entry, Stream content, CancellationToken cancellationToken = default)
+        async Task UploadSignedContent(CcdGetEntries200ResponseInner entry, Stream content, CancellationToken cancellationToken = default)
         {
             // Signed uploads need to be done using HTTP Client
             // Unity generated client does not support sending application/offset+octet-stream
@@ -97,16 +97,16 @@ namespace Unity.Services.Cli.GameServerHosting.Services
             res.EnsureSuccessStatusCode();
         }
 
-        async Task<IDictionary<string, CcdEntry>> ListAllRemoteEntries(CloudBucketId bucket, CancellationToken cancellationToken = default)
+        async Task<IDictionary<string, CcdGetEntries200ResponseInner>> ListAllRemoteEntries(CloudBucketId bucket, CancellationToken cancellationToken = default)
         {
             const int entriesPerPage = 100;
-            var entries = new Dictionary<string, CcdEntry>();
+            var entries = new Dictionary<string, CcdGetEntries200ResponseInner>();
 
-            List<CcdEntry> res;
+            List<CcdGetEntries200ResponseInner> res;
             var page = 1;
             do
             {
-                res = await m_EntriesApiClient.GetEntriesEnvAsync(m_ApiConfig.EnvironmentId.ToString(), bucket.ToString(), page: page, perPage: entriesPerPage, cancellationToken: cancellationToken);
+                res = await m_EntriesApiClient.GetEntriesEnvAsync(m_ApiConfig.EnvironmentId.ToString(), bucket.ToString(), m_ApiConfig.ProjectId.ToString(), page: page, perPage: entriesPerPage, cancellationToken: cancellationToken);
 
                 foreach (var entry in res)
                 {

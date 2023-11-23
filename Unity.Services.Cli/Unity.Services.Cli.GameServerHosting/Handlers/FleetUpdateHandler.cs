@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.GameServerHosting.Exceptions;
@@ -30,6 +31,7 @@ static class FleetUpdateHandler
         var disabledDeleteTtl = input.DisabledDeleteTtl ?? throw new InvalidCastException();
         var shutdownTtl = input.ShutdownTtl ?? throw new InvalidCastException();
         var buildConfigs = input.BuildConfigs;
+        var usageSettings = input.UsageSettings;
         var name = input.Name;
 
         await service.AuthorizeGameServerHostingService(cancellationToken);
@@ -58,6 +60,12 @@ static class FleetUpdateHandler
             OsID = fleet.OsID
 #pragma warning restore 612
         };
+
+        // If provided, include usage settings
+        if (usageSettings != null)
+        {
+            fleetUpdateReq.UsageSettings = usageSettings.Select(setting => JsonConvert.DeserializeObject<FleetUsageSetting>(setting)!).ToList();
+        }
 
         await service.FleetsApi.UpdateFleetAsync(Guid.Parse(input.CloudProjectId!), Guid.Parse(environmentId),
             Guid.Parse(fleetId), fleetUpdateReq, cancellationToken: cancellationToken);

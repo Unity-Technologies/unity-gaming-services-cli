@@ -9,7 +9,7 @@ using Unity.Services.Leaderboards.Authoring.Core.Service;
 
 namespace Unity.Services.Cli.Leaderboards.Deploy;
 
-public class LeaderboardDeploymentService : IDeploymentService
+class LeaderboardDeploymentService : IDeploymentService
 {
     readonly ILeaderboardsClient m_Client;
     readonly ILeaderboardsDeploymentHandler m_DeploymentHandler;

@@ -32,6 +32,7 @@ using Unity.Services.Cli.CloudCode.IO;
 using Unity.Services.Cli.CloudCode.Solution;
 using Unity.Services.Cli.CloudCode.Templates;
 using Unity.Services.Cli.CloudCode.Utils;
+using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment.ModuleGeneration;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Dotnet;
 using Unity.Services.CloudCode.Authoring.Editor.Core.IO;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Solution;
@@ -370,6 +371,8 @@ public class CloudCodeModule : ICommandModule
         serviceCollection.AddTransient<IPathResolver, PathResolver>();
         serviceCollection.AddTransient<ISolutionPublisher, SolutionPublisher>();
         serviceCollection.AddTransient<IModuleZipper, ModuleZipper>();
+        serviceCollection.AddTransient<IModuleProjectRetriever, ModuleProjectRetriever>();
+        serviceCollection.AddTransient<IModuleBuilder, ModuleBuilder>();
         serviceCollection.AddTransient<IDeployFileService, DeployFileService>();
     }
 
@@ -391,9 +394,6 @@ public class CloudCodeModule : ICommandModule
             provider.GetRequiredService<ICloudCodeModulesLoader>(),
             provider.GetRequiredService<ICliEnvironmentProvider>(),
             provider.GetRequiredService<ICSharpClient>(),
-            provider.GetRequiredService<IDeployFileService>(),
-            provider.GetRequiredService<ISolutionPublisher>(),
-            provider.GetRequiredService<IModuleZipper>(),
-            provider.GetRequiredService<IFileSystem>());
+            provider.GetRequiredService<IDeployFileService>());
     }
 }

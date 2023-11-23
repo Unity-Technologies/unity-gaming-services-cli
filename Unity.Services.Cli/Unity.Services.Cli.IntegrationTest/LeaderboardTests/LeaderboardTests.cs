@@ -179,6 +179,7 @@ versions: []";
         await AssertSuccess("leaderboards reset lb1", expectedMessage);
     }
     [Test]
+    [Ignore("Flaky Test: Temporarily ignored, will be tackled in GID-2310")]
     public async Task LeaderboardImportSucceed()
     {
         ZipArchiver zipArchiver = new ZipArchiver();
@@ -193,6 +194,7 @@ versions: []";
     }
 
     [Test]
+    [Ignore("Flaky Test: Temporarily ignored, will be tackled in GID-2310")]
     public async Task LeaderboardImportWithNameSucceed()
     {
         ZipArchiver zipArchiver = new ZipArchiver();

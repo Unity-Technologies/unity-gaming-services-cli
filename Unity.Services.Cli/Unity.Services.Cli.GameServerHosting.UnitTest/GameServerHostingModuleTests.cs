@@ -75,7 +75,7 @@ public class GameServerHostingModuleTests
     }
 
     [Test]
-    public void ValidatFleetRegionCommands()
+    public void ValidateFleetRegionCommands()
     {
         var commandLineBuilder = new CommandLineBuilder();
         commandLineBuilder.AddModule(k_GshModule);
@@ -113,6 +113,8 @@ public class GameServerHostingModuleTests
                 Assert.That(resultCommand, Is.EqualTo(k_GshModule.ServerCommand));
                 Assert.That(k_GshModule.ServerGetCommand.Handler, Is.Not.Null);
                 Assert.That(k_GshModule.ServerListCommand.Handler, Is.Not.Null);
+                Assert.That(k_GshModule.ServerFilesListCommand.Handler, Is.Not.Null);
+                Assert.That(k_GshModule.ServerFilesDownloadCommand.Handler, Is.Not.Null);
             }
         );
     }

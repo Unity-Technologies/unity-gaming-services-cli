@@ -36,4 +36,19 @@ public class FleetCreateInputTests
     {
         Assert.That(FleetCreateInput.FleetOsFamilyOption.Parse(osFamily).Errors, validates ? Is.Empty : Is.Not.Empty);
     }
+
+    [TestCase(new[]
+    {
+        FleetCreateInput.UsageSettingsKey,
+        "badjson"
+    }, false)]
+    [TestCase(new[]
+    {
+        FleetCreateInput.UsageSettingsKey,
+        ValidUsageSettingsJson
+    }, true)]
+    public void Validate_WithValidUsageSettings_ReturnsTrue(string[] usageSetting, bool validates)
+    {
+        Assert.That(FleetCreateInput.FleetUsageSettingsOption.Parse(usageSetting).Errors, validates ? Is.Empty : Is.Not.Empty);
+    }
 }

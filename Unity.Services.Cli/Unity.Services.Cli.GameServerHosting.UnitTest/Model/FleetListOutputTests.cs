@@ -22,7 +22,8 @@ class FleetListOutputTests
                 servers: new Servers(new FleetServerBreakdown(new ServerStatus()),
                     new FleetServerBreakdown(new ServerStatus()),
                     new FleetServerBreakdown(new ServerStatus())),
-                status: FleetListItem.StatusEnum.ONLINE
+                status: FleetListItem.StatusEnum.ONLINE,
+                usageSettings: new List<FleetUsageSetting>()
             ),
             new(
                 allocationType: FleetListItem.AllocationTypeEnum.ALLOCATION,
@@ -34,7 +35,8 @@ class FleetListOutputTests
                 servers: new Servers(new FleetServerBreakdown(new ServerStatus()),
                     new FleetServerBreakdown(new ServerStatus()),
                     new FleetServerBreakdown(new ServerStatus())),
-                status: FleetListItem.StatusEnum.ONLINE
+                status: FleetListItem.StatusEnum.ONLINE,
+                usageSettings: new List<FleetUsageSetting>()
             )
         };
     }
@@ -56,6 +58,7 @@ class FleetListOutputTests
                 Assert.That(output[i].OsName, Is.EqualTo(m_Fleets[i].OsName));
                 Assert.That(output[i].Servers, Is.EqualTo(m_Fleets[i].Servers));
                 Assert.That(output[i].Status, Is.EqualTo(m_Fleets[i].Status));
+                Assert.That(output[i].UsageSettings, Is.EqualTo(m_Fleets[i].UsageSettings));
             });
     }
 
@@ -91,6 +94,7 @@ class FleetListOutputTests
             sb.AppendLine($"        available: {fleet.Servers.Metal.Status.Available}");
             sb.AppendLine($"        online: {fleet.Servers.Metal.Status.Online}");
             sb.AppendLine($"      total: {fleet.Servers.Metal.Total}");
+            sb.AppendLine("  usageSettings: []");
         }
 
         Assert.That(output.ToString(), Is.EqualTo(sb.ToString()));

@@ -50,7 +50,6 @@ public static class GameServerHostingUnitTestsConstants
 
     public const string ValidBuildConfigurationQueryType = "a2s";
 
-
     public const string ValidRegionId = "00000000-0000-0000-0000-000000000000";
     public const string ValidRegionId2 = "00000000-0000-0000-0000-000000000001";
     public const string InvalidRegionId = "00000000-0000-0000-0000-000000000002";
@@ -70,6 +69,10 @@ public static class GameServerHostingUnitTestsConstants
 
     public const long ValidLocationId = 111111L;
     public const string ValidLocationName = "us-west1";
+
+    public const string ValidUsageSettingsJson = "{\"hardwareType\":\"CLOUD\", \"machineType\":\"GCP-N2\", \"maxServersPerMachine\":5}";
+
+    public const string ValidOutputDirectory = "test/output";
 
     // Machine specific constants
     public const long ValidMachineId = 654321L;

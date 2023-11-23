@@ -20,7 +20,8 @@ public class FleetListItemOutputTests
             servers: new Servers(new FleetServerBreakdown(new ServerStatus()),
                 new FleetServerBreakdown(new ServerStatus()),
                 new FleetServerBreakdown(new ServerStatus())),
-            status: FleetListItem.StatusEnum.ONLINE
+            status: FleetListItem.StatusEnum.ONLINE,
+            usageSettings: new List<FleetUsageSetting>()
         );
     }
 
@@ -39,6 +40,7 @@ public class FleetListItemOutputTests
             Assert.That(output.OsName, Is.EqualTo(m_Fleet!.OsName));
             Assert.That(output.Servers, Is.EqualTo(m_Fleet!.Servers));
             Assert.That(output.Status, Is.EqualTo(m_Fleet!.Status));
+            Assert.That(output.UsageSettings, Is.EqualTo(m_Fleet!.UsageSettings));
         });
     }
 
@@ -72,6 +74,7 @@ public class FleetListItemOutputTests
         sb.AppendLine("      available: 0");
         sb.AppendLine("      online: 0");
         sb.AppendLine("    total: 0");
+        sb.AppendLine("usageSettings: []");
         Assert.That(output.ToString(), Is.EqualTo(sb.ToString()));
     }
 }

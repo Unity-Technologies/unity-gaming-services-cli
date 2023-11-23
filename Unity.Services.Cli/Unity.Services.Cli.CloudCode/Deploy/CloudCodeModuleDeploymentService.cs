@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
@@ -6,6 +8,8 @@ using Unity.Services.Cli.CloudCode.Authoring;
 using Unity.Services.Cli.CloudCode.Model;
 using Unity.Services.Cli.CloudCode.Utils;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
+using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment.ModuleGeneration;
+using Unity.Services.CloudCode.Authoring.Editor.Core.Dotnet;
 using Unity.Services.CloudCode.Authoring.Editor.Core.IO;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 using Unity.Services.DeploymentApi.Editor;
@@ -24,8 +28,6 @@ class CloudCodeModuleDeploymentService : IDeploymentService
 
     public string ServiceName => m_ServiceName;
 
-    public static string OutputPath = "module-compilation";
-
     public IReadOnlyList<string> FileExtensions { get; } = new[]
     {
         CloudCodeConstants.FileExtensionModulesCcm,
@@ -35,28 +37,19 @@ class CloudCodeModuleDeploymentService : IDeploymentService
     readonly string m_ServiceType;
     readonly string m_ServiceName;
     readonly IDeployFileService m_DeployFileService;
-    readonly ISolutionPublisher m_SolutionPublisher;
-    readonly IModuleZipper m_ModuleZipper;
-    readonly IFileSystem m_FileSystem;
 
     public CloudCodeModuleDeploymentService(
         ICloudCodeDeploymentHandler deployHandler,
         ICloudCodeModulesLoader cloudCodeModulesLoader,
         ICliEnvironmentProvider environmentProvider,
         ICSharpClient client,
-        IDeployFileService deployFileService,
-        ISolutionPublisher solutionPublisher,
-        IModuleZipper moduleZipper,
-        IFileSystem fileSystem)
+        IDeployFileService deployFileService)
     {
         CloudCodeModulesLoader = cloudCodeModulesLoader;
         EnvironmentProvider = environmentProvider;
         CliCloudCodeClient = client;
         CloudCodeDeploymentHandler = deployHandler;
         m_DeployFileService = deployFileService;
-        m_SolutionPublisher = solutionPublisher;
-        m_ModuleZipper = moduleZipper;
-        m_FileSystem = fileSystem;
 
         m_ServiceType = CloudCodeConstants.ServiceTypeModules;
         m_ServiceName = CloudCodeConstants.ServiceNameModules;
@@ -77,26 +70,10 @@ class CloudCodeModuleDeploymentService : IDeploymentService
 
         var (ccmFilePaths, slnFilePaths) = ListFilesToDeploy(filePaths.ToList());
 
-        var failedResultList = new List<IScript>();
-
-        if (slnFilePaths.Count > 0)
-        {
-            loadingContext?.Status("Generating Cloud Code Modules for solution files...");
-
-            var (generatedCcmFilePaths, failedGenerationResult) =
-                await CompileModules(slnFilePaths, cancellationToken);
-
-            ccmFilePaths.AddRange(generatedCcmFilePaths);
-            ccmFilePaths = ccmFilePaths.Distinct().ToList();
-
-            failedResultList.AddRange(failedGenerationResult);
-        }
-
         loadingContext?.Status($"Loading {m_ServiceName} modules...");
 
-        var loadResult = await CloudCodeModulesLoader.LoadPrecompiledModulesAsync(
-            ccmFilePaths,
-            m_ServiceType);
+        var (loadedModules, failedModules) =
+            await CloudCodeModulesLoader.LoadModulesAsync(ccmFilePaths, slnFilePaths, cancellationToken);
 
         loadingContext?.Status($"Deploying {m_ServiceType}...");
 
@@ -106,8 +83,8 @@ class CloudCodeModuleDeploymentService : IDeploymentService
 
         try
         {
-            result = await CloudCodeDeploymentHandler.DeployAsync(loadResult, reconcile, dryrun);
-            failedResultList.AddRange(result.Failed);
+            result = await CloudCodeDeploymentHandler.DeployAsync(loadedModules, reconcile, dryrun);
+            failedModules.AddRange(result.Failed);
         }
         catch (ApiException)
         {
@@ -121,45 +98,7 @@ class CloudCodeModuleDeploymentService : IDeploymentService
             result = ex.Result;
         }
 
-        return ConstructResult(loadResult, result, deployInput, failedResultList);
-    }
-
-    static CloudCodeModule SetUpFailedCloudCodeModule(ModuleGenerationResult failedGenerationSolution)
-    {
-        return new CloudCodeModule(
-            ScriptName.FromPath(failedGenerationSolution.SolutionPath).ToString(),
-            failedGenerationSolution.SolutionPath,
-            0,
-            new DeploymentStatus(Statuses.FailedToRead, "Could not generate module for solution."));
-    }
-
-    async Task<(List<string>, List<IScript>)> CompileModules(List<string> slnFilePaths, CancellationToken cancellationToken)
-    {
-        var ccmFilePaths = new List<string>();
-        var failedToGenerateList = new List<IScript>();
-        var generateTasks = new List<Task<ModuleGenerationResult>>();
-        foreach (var slnFilePath in slnFilePaths)
-        {
-            generateTasks.Add(CreateCloudCodeModuleFromSolution(slnFilePath, cancellationToken));
-        }
-
-        if (generateTasks.Count > 0)
-        {
-            var generationResultList = await Task.WhenAll(generateTasks);
-            foreach (var generationResult in generationResultList)
-            {
-                if (generationResult.Success)
-                {
-                    ccmFilePaths.Add(generationResult.CcmPath);
-                }
-                else
-                {
-                    failedToGenerateList.Add(SetUpFailedCloudCodeModule(generationResult));
-                }
-            }
-        }
-
-        return (ccmFilePaths, failedToGenerateList);
+        return ConstructResult(loadedModules, result, deployInput, failedModules);
     }
 
     (List<string>, List<string>) ListFilesToDeploy(List<string> filePaths)
@@ -181,6 +120,15 @@ class CloudCodeModuleDeploymentService : IDeploymentService
         return (ccmFilePaths, slnFilePaths);
     }
 
+    static IDeploymentItem SetPathAsSolutionWhenAvailable(IScript item)
+    {
+        return new CloudCodeModule(
+            item.Name.ToString(),
+            string.IsNullOrEmpty(((CloudCodeModule)item).SolutionPath) ? ((CloudCodeModule)item).Path : ((CloudCodeModule)item).SolutionPath,
+            ((CloudCodeModule)item).Progress,
+            ((CloudCodeModule)item).Status);
+    }
+
     static DeploymentResult ConstructResult(List<IScript> loadResult, DeployResult? result, DeployInput deployInput, List<IScript> failedModules)
     {
         DeploymentResult deployResult;
@@ -191,11 +139,11 @@ class CloudCodeModuleDeploymentService : IDeploymentService
         else
         {
             deployResult = new DeploymentResult(
-                result.Updated.Select(item => item as IDeploymentItem).ToList() as IReadOnlyList<IDeploymentItem>,
+                result.Updated.Select(SetPathAsSolutionWhenAvailable).ToList() as IReadOnlyList<IDeploymentItem>,
                 ToDeleteDeploymentItems(result.Deleted, deployInput.DryRun),
-                result.Created.Select(item => item as IDeploymentItem).ToList() as IReadOnlyList<IDeploymentItem>,
-                result.Deployed.Select(item => item as IDeploymentItem).ToList() as IReadOnlyList<IDeploymentItem>,
-                failedModules.Select(item => item as IDeploymentItem).ToList() as IReadOnlyList<IDeploymentItem>,
+                result.Created.Select(SetPathAsSolutionWhenAvailable).ToList() as IReadOnlyList<IDeploymentItem>,
+                result.Deployed.Select(SetPathAsSolutionWhenAvailable).ToList() as IReadOnlyList<IDeploymentItem>,
+                failedModules.Select(SetPathAsSolutionWhenAvailable).ToList() as IReadOnlyList<IDeploymentItem>,
                 deployInput.DryRun);
         }
 
@@ -218,46 +166,5 @@ class CloudCodeModuleDeploymentService : IDeploymentService
         }
 
         return contents;
-    }
-
-    async Task<ModuleGenerationResult> CreateCloudCodeModuleFromSolution(
-        string solutionPath,
-        CancellationToken cancellationToken)
-    {
-        var success = true;
-
-        var slnName = Path.GetFileNameWithoutExtension(solutionPath);
-        var dllOutputPath = Path.Combine(Path.GetTempPath(), slnName);
-        var moduleCompilationPath = Path.Combine(dllOutputPath, "module-compilation");
-
-        var ccmPath = dllOutputPath;
-        try
-        {
-            var moduleName = await m_SolutionPublisher.PublishToFolder(
-                solutionPath,
-                moduleCompilationPath,
-                cancellationToken);
-            ccmPath = await m_ModuleZipper.ZipCompilation(moduleCompilationPath, moduleName, cancellationToken);
-        }
-        catch (Exception)
-        {
-            success = false;
-        }
-
-        return new ModuleGenerationResult(solutionPath, ccmPath, success);
-    }
-
-    class ModuleGenerationResult
-    {
-        public string SolutionPath { get; }
-        public string CcmPath { get; }
-        public bool Success { get; }
-
-        public ModuleGenerationResult(string solutionPath, string ccmPath, bool success)
-        {
-            SolutionPath = solutionPath;
-            CcmPath = ccmPath;
-            Success = success;
-        }
     }
 }

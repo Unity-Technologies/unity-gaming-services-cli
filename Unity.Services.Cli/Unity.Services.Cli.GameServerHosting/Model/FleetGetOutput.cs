@@ -20,6 +20,7 @@ public class FleetGetOutput
         DeleteTtl = fleet.DeleteTTL;
         DisabledDeleteTtl = fleet.DisabledDeleteTTL;
         ShutdownTtl = fleet.ShutdownTTL;
+        UsageSettings = fleet.UsageSettings;
     }
 
     public string Name { get; }
@@ -50,6 +51,9 @@ public class FleetGetOutput
     public long DisabledDeleteTtl { get; }
 
     public long ShutdownTtl { get; }
+
+    [YamlMember(DefaultValuesHandling = DefaultValuesHandling.OmitDefaults)]
+    public List<FleetUsageSetting> UsageSettings { get; }
 
     public override string ToString()
     {

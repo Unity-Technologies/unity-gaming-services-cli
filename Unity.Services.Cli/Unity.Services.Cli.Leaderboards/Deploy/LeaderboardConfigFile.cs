@@ -7,7 +7,7 @@ using Unity.Services.Leaderboards.Authoring.Core.Model;
 namespace Unity.Services.Cli.Leaderboards.Deploy;
 
 [Serializable]
-public class LeaderboardConfigFile : IFileTemplate
+class LeaderboardConfigFile : IFileTemplate
 {
     [JsonConstructor]
     public LeaderboardConfigFile(string name) : this(null, name, SortOrder.Asc, UpdateType.KeepBest)

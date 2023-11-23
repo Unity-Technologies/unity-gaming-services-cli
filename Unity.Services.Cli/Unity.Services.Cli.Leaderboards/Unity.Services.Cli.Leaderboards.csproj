@@ -16,6 +16,9 @@
       <_Parameter1>$(AssemblyName).UnitTest</_Parameter1>
     </AssemblyAttribute>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Unity.Services.Cli.IntegrationTest</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
       <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
@@ -23,10 +26,10 @@
     <ProjectReference Include="..\Unity.Services.Cli.Common\Unity.Services.Cli.Common.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Authoring\Unity.Services.Cli.Authoring.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
-    <ProjectReference Include="..\Unity.Services.Leaderboards.Authoring.Core\Unity.Services.Leaderboards.Authoring.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Unity.Services.Gateway.LeaderboardApiV1.Generated" Version="1.0.7-beta" />
+    <PackageReference Include="Unity.Services.Leaderboards.Authoring.Editor.Core" Version="0.0.2" />
     <PackageReference Include="YamlDotNet" Version="13.1.0" />
   </ItemGroup>
 </Project>

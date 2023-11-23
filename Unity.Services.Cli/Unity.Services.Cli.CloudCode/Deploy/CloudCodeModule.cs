@@ -1,6 +1,5 @@
 using System.Globalization;
 using Newtonsoft.Json;
-using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.CloudCode.Utils;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 using Unity.Services.DeploymentApi.Editor;
@@ -9,7 +8,7 @@ using LanguageType = Unity.Services.CloudCode.Authoring.Editor.Core.Model.Langua
 
 namespace Unity.Services.Cli.CloudCode.Deploy;
 
-class CloudCodeModule : DeployContent, IScript
+class CloudCodeModule : ModuleDeployContent, IScript, IModuleItem
 {
     [JsonConverter(typeof(ScriptNameJsonConverter))]
     // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global used for deserialization
@@ -20,6 +19,19 @@ class CloudCodeModule : DeployContent, IScript
     public string LastPublishedDate { get; set; }
     [JsonIgnore]
     public string SignedUrl { get; set; }
+
+    public CloudCodeModule(string solutionPath)
+        : this(
+            default,
+            default,
+            "",
+            "",
+            new List<CloudCodeParameter>(),
+            "")
+    {
+        SolutionPath = solutionPath;
+    }
+
     public CloudCodeModule()
         : this(
             default,
@@ -100,5 +112,23 @@ class CloudCodeModule : DeployContent, IScript
         Parameters = new List<CloudCodeParameter>();
         LastPublishedDate = response.DateModified.ToString(CultureInfo.InvariantCulture);
         SignedUrl = "";
+    }
+
+    public string SolutionPath { get; } = "";
+
+    public string CcmPath
+    {
+        get => Path;
+        set => Path = value;
+    }
+
+    public string ModuleName
+    {
+        get => Name.ToString();
+        set
+        {
+            Name = new ScriptName(value);
+            base.Name = System.IO.Path.GetFileNameWithoutExtension(value);
+        }
     }
 }

@@ -5,29 +5,39 @@ All notable changes to UGS CLI will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2023-11-14
+
+### Added
+- Added support for usage settings under `gsh fleet` commands
+- Added `gsh server files list` and `gsh server files download`
+
+### Fixed
+- Fixed Economy deserialization error message when receiving invalid response.
+- Fixed issue where deploying a leaderboard would fail to remove Tiering and Reset config.
+
 ## [1.1.0] - 2023-10-12
 
 ### Added
-* Bash installer to download and install the UGS CLI on MacOS and Linux
-* Added config as code support for economy module
-  * Deploy
-  * Fetch
-* Added config as code support for access module
-  * Deploy
-  * Fetch
-* Added `new-file` commands for economy resources
-  * For inventory items
-  * For currencies
-  * For virtual purchases
-  * For real-item purchases
-  * For Cloud Code C# Modules
-  * For project access policies
-  * For triggers
-* Added `gsh server files` command behind feature flag
-* Added support for .sln files on deploy
-  * .sln files now are compiled and zipped into .ccm before deploying
-* Added config as code support for triggers
-  * Deploy
+- Bash installer to download and install the UGS CLI on MacOS and Linux
+- Added config as code support for economy module
+  - Deploy
+  - Fetch
+- Added config as code support for access module
+  - Deploy
+  - Fetch
+- Added `new-file` commands for economy resources
+  - For inventory items
+  - For currencies
+  - For virtual purchases
+  - For real-item purchases
+  - For Cloud Code C# Modules
+  - For project access policies
+  - For triggers
+- Added `gsh server files` command behind feature flag
+- Added support for .sln files on deploy
+  - .sln files now are compiled and zipped into .ccm before deploying
+- Added config as code support for triggers
+  - Deploy
 
 ### Changed
 - Services can support multiple file extensions

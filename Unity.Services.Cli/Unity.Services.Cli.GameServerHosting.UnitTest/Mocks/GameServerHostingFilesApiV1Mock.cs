@@ -49,12 +49,15 @@ public class GameServerHostingFilesApiV1Mock
     public List<Guid>? ValidEnvironments;
 
     public List<Guid>? ValidProjects;
+
     public void SetUp()
     {
         DefaultFilesClient = new Mock<IFilesApi>();
         DefaultFilesClient.Setup(a => a.Configuration)
             .Returns(new Configuration());
 
+#pragma warning disable CS8073 // The result of the expression is always the same since a value of this type is never equal to 'null'
+        // ReSharper disable ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         DefaultFilesClient.Setup(
                 a => a.ListFilesAsync(
                     It.IsAny<Guid>(), // projectId
@@ -89,14 +92,14 @@ public class GameServerHostingFilesApiV1Mock
 
                     if (filesListRequest.ModifiedFrom != null)
                     {
-                        results = results.Where(a => ValidateDateAfterFromString(a.LastModified, filesListRequest.ModifiedFrom));
-
+                        results = results.Where(
+                            a => ValidateDateAfterFromString(a.LastModified, filesListRequest.ModifiedFrom));
                     }
 
                     if (filesListRequest.ModifiedTo != null)
                     {
-                        results = results.Where(a => ValidateDateBeforeFromString(a.LastModified, filesListRequest.ModifiedTo));
-
+                        results = results.Where(
+                            a => ValidateDateBeforeFromString(a.LastModified, filesListRequest.ModifiedTo));
                     }
 
                     if (filesListRequest.Limit > 0)
@@ -107,26 +110,48 @@ public class GameServerHostingFilesApiV1Mock
                     return Task.FromResult(results.ToList());
                 }
             );
+        // ReSharper restore ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+#pragma warning restore CS8073 // The result of the expression is always the same since a value of this type is never equal to 'null'
+
+        DefaultFilesClient.Setup(
+                a => a.GenerateDownloadURLAsync(
+                    It.IsAny<Guid>(), // projectId
+                    It.IsAny<Guid>(), // environmentId
+                    It.IsAny<GenerateDownloadURLRequest>(),
+                    0,
+                    CancellationToken.None
+                ))
+            .Returns(
+                (
+                    Guid _,
+                    Guid _,
+                    GenerateDownloadURLRequest _,
+                    int _,
+                    CancellationToken _
+                ) => Task.FromResult(
+                    new GenerateDownloadURLResponse(
+                        url: "https://example.com"
+                    )
+                )
+            );
     }
 
     static bool ValidateDateBeforeFromString(DateTime lastModified, DateTime modifiedTo)
     {
         // providedDate is before targetDate
-        if (lastModified < modifiedTo || lastModified == modifiedTo) return true;
-        return false;
+        return lastModified < modifiedTo || lastModified == modifiedTo;
     }
 
     static bool ValidateDateAfterFromString(DateTime lastModified, DateTime modifiedFrom)
     {
         // providedDate is after targetDate
-        if (lastModified > modifiedFrom || lastModified == modifiedFrom) return true;
-        return false;
+        return lastModified > modifiedFrom || lastModified == modifiedFrom;
     }
 
     bool ValidateProjectEnvironment(Guid projectId, Guid environmentId)
     {
-        if (ValidProjects != null && !ValidProjects.Contains(projectId)) return false;
-        if (ValidEnvironments != null && !ValidEnvironments.Contains(environmentId)) return false;
-        return true;
+        var validaProject = ValidProjects != null && ValidProjects.Contains(projectId);
+        var validEnvironment = ValidEnvironments != null && ValidEnvironments.Contains(environmentId);
+        return validaProject && validEnvironment;
     }
 }

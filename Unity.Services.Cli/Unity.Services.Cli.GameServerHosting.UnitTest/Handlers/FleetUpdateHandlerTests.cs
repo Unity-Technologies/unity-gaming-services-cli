@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Moq;
+using Newtonsoft.Json;
 using Spectre.Console;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Logging;
@@ -38,7 +39,8 @@ class FleetUpdateHandlerTests : HandlerCommon
             BuildConfigs = new List<long>(),
             DisabledDeleteTtl = 0,
             ShutdownTtl = 0,
-            DeleteTtl = 0
+            DeleteTtl = 0,
+            UsageSettings = new List<string> { ValidUsageSettingsJson }
         };
 
         await FleetUpdateHandler.FleetUpdateAsync(
@@ -101,7 +103,8 @@ class FleetUpdateHandlerTests : HandlerCommon
             DeleteTtl = 0,
             BuildConfigs = new List<long>() { 1 },
             DisabledDeleteTtl = 0,
-            ShutdownTtl = 0
+            ShutdownTtl = 0,
+            UsageSettings = new List<string> { ValidUsageSettingsJson }
         };
 
         await FleetUpdateHandler.FleetUpdateAsync(
@@ -112,7 +115,9 @@ class FleetUpdateHandlerTests : HandlerCommon
             CancellationToken.None
         );
 
-        FleetUpdateRequest req = new FleetUpdateRequest(name: input.Name, buildConfigurations: input.BuildConfigs);
+        var usageSetting = JsonConvert.DeserializeObject<FleetUsageSetting>(ValidUsageSettingsJson);
+
+        FleetUpdateRequest req = new FleetUpdateRequest(name: input.Name, buildConfigurations: input.BuildConfigs, usageSettings: new List<FleetUsageSetting> { usageSetting! });
 
         FleetsApi!.DefaultFleetsClient.Verify(api => api.UpdateFleetAsync(
             new Guid(input.CloudProjectId), new Guid(ValidEnvironmentId),
@@ -226,5 +231,41 @@ class FleetUpdateHandlerTests : HandlerCommon
             new Guid(input.CloudProjectId), new Guid(ValidEnvironmentId),
             new Guid(fleetId), expected, 0, CancellationToken.None
         ), Times.Once);
+    }
+
+    [TestCase(ValidProjectId, ValidEnvironmentName, ValidFleetId)]
+    public void FleetUpdateAsync_InvalidUsageSettingsJsonThrowsException(
+        string projectId,
+        string environmentName,
+        string fleetId
+    )
+    {
+        FleetUpdateInput input = new()
+        {
+            CloudProjectId = ValidProjectId,
+            TargetEnvironmentName = ValidEnvironmentName,
+            FleetId = fleetId,
+            Name = ValidFleetName,
+            AllocTtl = 0,
+            DeleteTtl = 0,
+            BuildConfigs = new List<long>(),
+            DisabledDeleteTtl = 0,
+            ShutdownTtl = 0,
+            UsageSettings = new List<string> { "{badjson}" }
+        };
+
+        MockUnityEnvironment.Setup(ex => ex.FetchIdentifierAsync(CancellationToken.None)).ReturnsAsync(ValidEnvironmentId);
+
+        Assert.ThrowsAsync<JsonReaderException>(() =>
+            FleetUpdateHandler.FleetUpdateAsync(
+                input,
+                MockUnityEnvironment.Object,
+                GameServerHostingService!,
+                MockLogger!.Object,
+                CancellationToken.None
+            )
+        );
+
+        TestsHelper.VerifyLoggerWasCalled(MockLogger!, LogLevel.Critical, LoggerExtension.ResultEventId, Times.Never);
     }
 }

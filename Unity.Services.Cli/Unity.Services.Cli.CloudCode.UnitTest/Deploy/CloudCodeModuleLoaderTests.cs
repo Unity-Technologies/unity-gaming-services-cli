@@ -1,72 +1,114 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
-using Unity.Services.Cli.Authoring.Model;
-using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.CloudCode.Deploy;
+using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment.ModuleGeneration;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
+using CCModule = Unity.Services.Cli.CloudCode.Deploy.CloudCodeModule;
+
 
 namespace Unity.Services.Cli.CloudCode.UnitTest.Deploy;
 
 [TestFixture]
 public class CloudCodeModuleLoaderTests
 {
+    readonly Mock<IModuleBuilder> m_MockModuleBuilder = new();
 
-    readonly Mock<ICliDeploymentOutputHandler> m_MockCliDeploymentOutputHandler = new();
-
-    static readonly IReadOnlyCollection<DeployContent> k_DeployedContents = new[]
+    static readonly List<string> k_CcmPaths = new()
     {
-        new DeployContent("module.zip", "Cloud Code Modules", "path", 100, "Published"),
+        "new/path/to/test_a.ccm",
+        "new/path/to/test_b.ccm"
     };
 
-    static readonly IReadOnlyCollection<DeployContent> k_FailedContents = new[]
+    static readonly List<string> k_SlnPaths = new()
     {
-        new DeployContent("invalid1.zip", "Cloud Code Modules", "path", 0, "Failed to Load"),
-        new DeployContent("invalid2.zip", "Cloud Code Modules", "path", 0, "Failed to Load"),
+        "new/path/to/sln/test_a.sln",
+        "new/path/to/sln/test_b.sln"
     };
 
-    List<DeployContent> m_Contents = k_DeployedContents.Concat(k_FailedContents).ToList();
+    IScript m_TestAModule = new CCModule(
+        new ScriptName("test_a.ccm"),
+        Language.JS,
+        k_CcmPaths[0]);
 
-    static readonly List<string> k_ValidZipPaths = new()
-    {
-        "new/path/to/test_a.zip",
-        "new/path/to/test_b.zip"
-    };
+    IScript m_TestBModule = new CCModule(
+        new ScriptName("test_b.ccm"),
+        Language.JS,
+        k_CcmPaths[1]);
 
     [SetUp]
     public void SetUp()
     {
-        m_MockCliDeploymentOutputHandler.Reset();
-        m_MockCliDeploymentOutputHandler.SetupGet(c => c.Contents).Returns(m_Contents);
+        m_MockModuleBuilder.Reset();
     }
 
     [Test]
-    public async Task LoadPrecompiledModulesAsync_Deploys()
+    public async Task LoadPrecompiledModules()
     {
-        IScript test_a_module = new Unity.Services.Cli.CloudCode.Deploy.CloudCodeModule(
-            new ScriptName("test_a.zip"),
-            Language.JS,
-            "new/path/to/test_a.zip");
+        var cloudCodeModulesLoader = new CloudCodeModulesLoader(m_MockModuleBuilder.Object);
 
-        IScript test_b_module = new Unity.Services.Cli.CloudCode.Deploy.CloudCodeModule(
-            new ScriptName("test_b.zip"),
-            Language.JS,
-            "new/path/to/test_b.zip");
+        var (generatedModules, failedModules) = await cloudCodeModulesLoader.LoadModulesAsync(
+            k_CcmPaths,
+            new List<string>(),
+            CancellationToken.None);
+
         var expected = new List<IScript>
         {
-            test_a_module,
-            test_b_module
+            m_TestAModule,
+            m_TestBModule
         };
+        CompareScripts(expected, generatedModules);
+    }
 
-        var cloudCodeModulesLoader = new CloudCodeModulesLoader();
+    [Test]
+    public async Task LoadFailedModules()
+    {
+        m_MockModuleBuilder
+            .Setup(x => x.CreateCloudCodeModuleFromSolution(
+                It.IsAny<IModuleItem>(), It.IsAny<CancellationToken>()))
+            .Throws(new Exception("failed"));
 
-        var actual = await cloudCodeModulesLoader.LoadPrecompiledModulesAsync(
-            k_ValidZipPaths,
-            "Cloud Code Modules");
+        var cloudCodeModulesLoader = new CloudCodeModulesLoader(m_MockModuleBuilder.Object);
 
-        CompareScripts(expected, actual);
+        var (_, failedModules) =
+            await cloudCodeModulesLoader.LoadModulesAsync(k_CcmPaths, k_SlnPaths, CancellationToken.None);
+
+        Assert.AreEqual(k_SlnPaths.Count, failedModules.Count);
+        for (int i = 0; i < k_SlnPaths.Count; i++)
+        {
+            Assert.AreEqual(k_SlnPaths[i], ((CCModule)failedModules[i]).SolutionPath);
+        }
+    }
+
+    [Test]
+    public async Task LoadPrecompiledAndSolutions()
+    {
+        m_MockModuleBuilder.Setup(
+                x => x.CreateCloudCodeModuleFromSolution(
+                    It.IsAny<IModuleItem>(),
+                    It.IsAny<CancellationToken>()))
+            .Callback<IModuleItem, CancellationToken>((m, _) => { m.CcmPath = m_TestBModule.Path; });
+
+        var cloudCodeModulesLoader = new CloudCodeModulesLoader(m_MockModuleBuilder.Object);
+
+        var (generatedModules, failedModules) = await cloudCodeModulesLoader.LoadModulesAsync(
+            new List<string>() { k_CcmPaths[0] },
+            new List<string>() { k_SlnPaths[1] },
+            CancellationToken.None);
+
+        var expected = new List<IScript>
+        {
+            m_TestAModule,
+            m_TestBModule
+        };
+        Assert.AreEqual(expected.Count, generatedModules.Count);
+        for (int i = 0; i < expected.Count; i++)
+        {
+            Assert.AreEqual(expected[i].Path, generatedModules[i].Path);
+        }
     }
 
     static void CompareScripts(List<IScript> expected, List<IScript> actual)

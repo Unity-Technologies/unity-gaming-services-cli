@@ -1,4 +1,4 @@
-using Unity.Services.Cli.Authoring.Service;
+using Newtonsoft.Json;
 using Unity.Services.Cli.Leaderboards.Service;
 using Unity.Services.Gateway.LeaderboardApiV1.Generated.Client;
 using Unity.Services.Gateway.LeaderboardApiV1.Generated.Model;
@@ -18,7 +18,7 @@ using LeaderboardConfig = Unity.Services.Leaderboards.Authoring.Core.Model.Leade
 
 namespace Unity.Services.Cli.Leaderboards.Deploy;
 
-public class LeaderboardsClient : ILeaderboardsClient
+class LeaderboardsClient : ILeaderboardsClient
 {
     readonly ILeaderboardsService m_LeaderboardsService;
     internal string ProjectId { get; set; }
@@ -175,7 +175,7 @@ public class LeaderboardsClient : ILeaderboardsClient
 
     static LeaderboardPatchConfig PatchFromConfig(ILeaderboardConfig leaderboardConfig)
     {
-        var res = new LeaderboardPatchConfig()
+        var res = new LeaderboardPatchSpecializedConfig()
         {
             Name = leaderboardConfig.Name,
             SortOrder = (ApiSortOrder)(int)leaderboardConfig.SortOrder,
@@ -218,4 +218,7 @@ public class LeaderboardsClient : ILeaderboardsClient
             Start = config.Start
         };
     }
+
+    [JsonConverter(typeof(LeaderboardPatchConverter))]
+    class LeaderboardPatchSpecializedConfig : LeaderboardPatchConfig { }
 }

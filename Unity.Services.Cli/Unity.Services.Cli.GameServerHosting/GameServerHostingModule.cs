@@ -49,7 +49,9 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(BuildCreateHandler.BuildCreateAsync);
 
-        BuildCreateVersionCommand = new Command("create-version", "Create a new version of a Game Server Hosting build.")
+        BuildCreateVersionCommand = new Command(
+            "create-version",
+            "Create a new version of a Game Server Hosting build.")
         {
             BuildCreateVersionInput.BuildIdArgument,
             CommonInput.EnvironmentNameOption,
@@ -248,7 +250,9 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(BuildConfigurationUpdateHandler.BuildConfigurationUpdateAsync);
 
-        BuildConfigurationCommand = new Command("build-configuration", "Manage Game Server Hosting build configurations.")
+        BuildConfigurationCommand = new Command(
+            "build-configuration",
+            "Manage Game Server Hosting build configurations.")
         {
             BuildConfigurationGetCommand,
             BuildConfigurationCreateCommand,
@@ -263,6 +267,7 @@ public class GameServerHostingModule : ICommandModule
             FleetCreateInput.FleetOsFamilyOption,
             FleetCreateInput.FleetRegionsOption,
             FleetCreateInput.FleetBuildConfigurationsOption,
+            FleetCreateInput.FleetUsageSettingsOption,
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption
         };
@@ -329,6 +334,7 @@ public class GameServerHostingModule : ICommandModule
             FleetUpdateInput.DisabledDeleteTtlOption,
             FleetUpdateInput.ShutdownTtlOption,
             FleetUpdateInput.BuildConfigsOption,
+            FleetUpdateInput.UsageSettingsOption,
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption
         };
@@ -351,7 +357,9 @@ public class GameServerHostingModule : ICommandModule
         };
 
 
-        FleetRegionTemplatesCommand = new Command("templates", "List Game Server Hosting templates for creating fleet regions.")
+        FleetRegionTemplatesCommand = new Command(
+            "templates",
+            "List Game Server Hosting templates for creating fleet regions.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption
@@ -365,7 +373,9 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(RegionTemplatesHandler.RegionTemplatesAsync);
 
-        FleetRegionAvailableCommand = new Command("available", "List Game Server Hosting available template regions for creating fleet regions.")
+        FleetRegionAvailableCommand = new Command(
+            "available",
+            "List Game Server Hosting available template regions for creating fleet regions.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -486,11 +496,56 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(ServerListHandler.ServerListAsync);
 
+        ServerFilesDownloadCommand = new Command(
+            "download",
+            "Download files for the provided Game Server Hosting server.")
+        {
+            CommonInput.EnvironmentNameOption,
+            CommonInput.CloudProjectIdOption,
+            FileDownloadInput.PathOption,
+            FileDownloadInput.ServerIdOption,
+            FileDownloadInput.OutputOption,
+        };
+        ServerFilesDownloadCommand.SetHandler<
+            FileDownloadInput,
+            IUnityEnvironment,
+            IGameServerHostingService,
+            ILogger,
+            HttpClient,
+            ILoadingIndicator,
+            CancellationToken
+        >(FileDownloadHandler.FileDownloadAsync);
+
+        ServerFilesListCommand = new Command("list", "List of files for the provided Game Server Hosting servers.")
+        {
+            CommonInput.EnvironmentNameOption,
+            CommonInput.CloudProjectIdOption,
+            FileListInput.LimitOption,
+            FileListInput.ModifiedFromOption,
+            FileListInput.ModifiedToOption,
+            FileListInput.PathFilterOption,
+            FileListInput.ServerIdOption,
+        };
+        ServerFilesListCommand.SetHandler<
+            FileListInput,
+            IUnityEnvironment,
+            IGameServerHostingService,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken
+        >(FileListHandler.FileListAsync);
+
+        ServerFilesCommand = new Command("files", "Manage Game Server Hosting server files.")
+        {
+            ServerFilesDownloadCommand,
+            ServerFilesListCommand,
+        };
 
         ServerCommand = new Command("server", "Manage Game Server Hosting servers.")
         {
             ServerGetCommand,
             ServerListCommand,
+            ServerFilesCommand,
         };
 
         ModuleRootCommand = new Command("game-server-hosting", "Manage Game Sever Hosting resources.")
@@ -555,6 +610,9 @@ public class GameServerHostingModule : ICommandModule
     internal Command ServerGetCommand { get; }
     internal Command ServerListCommand { get; }
 
+    internal Command ServerFilesCommand { get; }
+    internal Command ServerFilesListCommand { get; }
+    internal Command ServerFilesDownloadCommand { get; }
 
 
     internal static ExceptionFactory ExceptionFactory => (method, response) =>

@@ -3,7 +3,7 @@ using Unity.Services.Leaderboards.Authoring.Core.Serialization;
 
 namespace Unity.Services.Cli.Leaderboards.Deploy;
 
-public class LeaderboardsSerializer : ILeaderboardsSerializer
+class LeaderboardsSerializer : ILeaderboardsSerializer
 {
     public string Serialize(ILeaderboardConfig config)
     {

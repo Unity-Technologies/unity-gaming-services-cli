@@ -9,7 +9,7 @@ using FetchResult = Unity.Services.Cli.Authoring.Model.FetchResult;
 
 namespace Unity.Services.Cli.Leaderboards.Deploy;
 
-public class LeaderboardFetchService : IFetchService
+class LeaderboardFetchService : IFetchService
 {
     readonly ILeaderboardsClient m_Client;
     readonly ILeaderboardsFetchHandler m_FetchHandler;

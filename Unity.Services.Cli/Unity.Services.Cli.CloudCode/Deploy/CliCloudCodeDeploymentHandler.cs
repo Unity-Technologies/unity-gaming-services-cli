@@ -22,9 +22,16 @@ class CliCloudCodeDeploymentHandler<TClient> : CloudCodeDeploymentHandler
     protected override void UpdateScriptStatus(
         IScript script, string message, string detail, StatusSeverityLevel level = StatusSeverityLevel.None)
     {
-        if(script is DeployContent deployContent)
+        if (script is DeployContent deployContent)
         {
             deployContent.Status = new DeploymentStatus(
+                message,
+                detail,
+                (SeverityLevel)Enum.Parse(typeof(SeverityLevel), level.ToString()));
+        }
+        else if (script is ModuleDeployContent moduleDeployContent)
+        {
+            moduleDeployContent.Status = new DeploymentStatus(
                 message,
                 detail,
                 (SeverityLevel)Enum.Parse(typeof(SeverityLevel), level.ToString()));
@@ -33,9 +40,13 @@ class CliCloudCodeDeploymentHandler<TClient> : CloudCodeDeploymentHandler
 
     protected override void UpdateScriptProgress(IScript script, float progress)
     {
-        if(script is DeployContent deployContent)
+        if (script is DeployContent deployContent)
         {
             deployContent.Progress = progress;
+        }
+        else if (script is ModuleDeployContent modDeployContent)
+        {
+            modDeployContent.Progress = progress;
         }
     }
 }

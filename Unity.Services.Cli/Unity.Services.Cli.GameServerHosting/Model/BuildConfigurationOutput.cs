@@ -18,9 +18,11 @@ class BuildConfigurationOutput
         CommandLine = buildConfiguration.CommandLine;
         QueryType = buildConfiguration.QueryType;
         Configuration = buildConfiguration._Configuration;
+#pragma warning disable CS0612 // Type or member is obsolete
         Cores = buildConfiguration.Cores;
         Speed = buildConfiguration.Speed;
         Memory = buildConfiguration.Memory;
+#pragma warning restore CS0612 // Type or member is obsolete
         Version = buildConfiguration._Version;
         CreatedAt = buildConfiguration.CreatedAt;
         UpdatedAt = buildConfiguration.UpdatedAt;

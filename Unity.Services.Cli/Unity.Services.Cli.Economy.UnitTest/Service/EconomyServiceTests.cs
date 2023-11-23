@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Models;
 using Unity.Services.Cli.Common.Validator;
+using Unity.Services.Cli.Economy.Exceptions;
 using Unity.Services.Cli.Economy.Service;
 using Unity.Services.Cli.Economy.UnitTest.Mock;
 using Unity.Services.Cli.Economy.UnitTest.Utils;
@@ -385,6 +388,54 @@ public class EconomyServiceTests
                 0,
                 CancellationToken.None),
             Times.Once);
+    }
+
+    [Test]
+    public void AddResourceAsync_WithInvalidDependency_ShowsCorrectError()
+    {
+        var dictionary = new Dictionary<string, object>
+        {
+            { "type", "problems/validation" },
+            { "title", "Validation error" },
+            { "status", 400 },
+            { "detail", "Invalid Request" },
+            { "instance", null! },
+            { "code", 1007 },
+            { "errors", new List<Dictionary<string, object>>
+                {
+                    new Dictionary<string, object>
+                    {
+                        { "field", "costs.0" },
+                        { "messages", new List<string> { "Cost resource not found." } }
+                    }
+                }
+            }
+        };
+        var errorMessage = JsonConvert.SerializeObject(dictionary, Formatting.Indented);
+        var expectedMessage = "Cost resource not found.";
+        var expectedException = new InvalidDataException("test exception", new InvalidDataException(errorMessage));
+
+        m_EconomyApiV2AsyncMock.DefaultApiAsyncObject.Setup(
+                api =>
+                    api.AddConfigResourceAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<Guid>(),
+                        It.IsAny<AddConfigResourceRequest>(),
+                        It.IsAny<int>(),
+                        It.IsAny<CancellationToken>()))
+            .Throws(expectedException);
+
+        CurrencyItemRequest currencyRequest = new CurrencyItemRequest("id", "name", CurrencyItemRequest.TypeEnum.CURRENCY);
+        AddConfigResourceRequest addRequest = new AddConfigResourceRequest(currencyRequest);
+
+
+        Assert.ThrowsAsync<InvalidResourceException>(
+            () => m_EconomyService!.AddAsync(
+                addRequest,
+                TestValues.ValidProjectId,
+                TestValues.ValidEnvironmentId,
+                CancellationToken.None),
+            expectedMessage);
     }
 
     [Test]

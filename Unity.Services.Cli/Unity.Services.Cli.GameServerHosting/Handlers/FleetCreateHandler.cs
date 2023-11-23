@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.Common.Utils;
@@ -46,15 +47,23 @@ static class FleetCreateHandler
         var regionIdList = regions.Select(Guid.Parse).ToList();
         var regionCreateRequestList = regionIdList.Select(regionId => new Region(regionID: regionId)).ToList();
 
+        var req = new FleetCreateRequest(
+            name: fleetName,
+            osFamily: osFamily,
+            regions: regionCreateRequestList,
+            buildConfigurations: buildConfigurations.ToList()
+        );
+
+        if (input.UsageSettings != null)
+        {
+            // Iterate through usage settings array, parse json and save as list. Only if usage settings specified.
+            req.UsageSettings = input.UsageSettings.Select(setting => JsonConvert.DeserializeObject<FleetUsageSetting>(setting)!).ToList();
+        }
+
         var fleet = await service.FleetsApi.CreateFleetAsync(
             Guid.Parse(input.CloudProjectId!),
             Guid.Parse(environmentId),
-            new FleetCreateRequest(
-                name: fleetName,
-                osFamily: osFamily,
-                regions: regionCreateRequestList,
-                buildConfigurations: buildConfigurations.ToList()
-            ),
+            req,
             cancellationToken: cancellationToken
         );
 
