@@ -12,6 +12,9 @@ public class Configuration
     [JsonProperty(Keys.ConfigKeys.ProjectId)]
     public string? CloudProjectId { get; set; }
 
+    [JsonProperty(Keys.ConfigKeys.BucketId)]
+    public string? CloudBucketId { get; set; }
+
     public string? GetValue(string key)
     {
         return GetType()

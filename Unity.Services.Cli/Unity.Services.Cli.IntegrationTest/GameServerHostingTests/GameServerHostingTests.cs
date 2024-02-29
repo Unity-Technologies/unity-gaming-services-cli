@@ -56,7 +56,8 @@ public partial class GameServerHostingTests : UgsCliFixture
     const string k_ProjectIdIsNotSet = "'project-id' is not set in project configuration.";
     const string k_EnvironmentNameIsNotSet = "'environment-name' is not set in project configuration.";
 
-    const string k_BuildConfigurationCreateOrUpdateCommandComplete = "--binary-path simple-game-server-go --build 25289 --command-line \"--init game.init\" --cores 1 --memory 100 --name \"Testing BC\" --query-type sqp --speed 100";
+    const string k_BuildConfigurationCreateOrUpdateCommandComplete = "--binary-path simple-game-server-go --build 25289 --command-line \"--init game.init\" --cores 1 --memory 100 --name \"Testing BC\" --query-type sqp --readiness true --speed 100";
+    const string k_BuildConfigurationCreateOrUpdateCommandMissingReadiness = "--binary-path simple-game-server-go --build 25289 --command-line \"--init game.init\" --cores 1 --memory 100 --name \"Testing BC\" --query-type sqp --speed 100";
     const string k_BuildConfigurationCreateOrUpdateCommandMissingBinaryPath = "--build 25289 --command-line \"--init game.init\" --cores 1 --memory 100 --name \"Testing BC\" --query-type sqp --speed 100";
     const string k_BuildConfigurationCreateOrUpdateCommandMissingBuild = "--binary-path simple-game-server-go --command-line \"--init game.init\" --cores 1 --memory 100 --name \"Testing BC\" --query-type sqp --speed 100";
     const string k_BuildConfigurationCreateOrUpdateCommandMissingCommandLine = "--binary-path simple-game-server-go --build 25289 --cores 1 --memory 100 --name \"Testing BC\" --query-type sqp --speed 100";

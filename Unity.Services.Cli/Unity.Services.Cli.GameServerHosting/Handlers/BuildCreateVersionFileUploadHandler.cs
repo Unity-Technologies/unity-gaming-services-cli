@@ -1,6 +1,5 @@
 using System.Net;
 using System.Text;
-using SystemFile = System.IO.File;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Unity.Services.Cli.Common.Exceptions;
@@ -8,8 +7,10 @@ using Unity.Services.Cli.GameServerHosting.Exceptions;
 using Unity.Services.Cli.GameServerHosting.Input;
 using Unity.Services.Cli.GameServerHosting.Model;
 using Unity.Services.Cli.GameServerHosting.Service;
+using Unity.Services.Cli.GameServerHosting.Services;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Client;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
+using SystemFile = System.IO.File;
 
 namespace Unity.Services.Cli.GameServerHosting.Handlers;
 
@@ -69,17 +70,27 @@ static partial class BuildCreateVersionHandler
                 cancellationToken);
 
         var policy = Policy
-            .Handle<ApiException>()
+            .Handle<ApiException>((exception => exception.ErrorCode.Equals(HttpStatusCode.BadRequest)))
             .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
 
-        await policy.ExecuteAsync(
-            async () => await service.BuildsApi.CreateNewBuildVersionAsync(
-                Guid.Parse(input.CloudProjectId!),
-                Guid.Parse(environmentId),
-                build.BuildID,
-                new CreateNewBuildVersionRequest(new CCDDetails2(build.Ccd.BucketID)),
-                cancellationToken: cancellationToken
-            ));
+        try
+        {
+            await policy.ExecuteAsync(
+                async () => await service.BuildsApi.CreateNewBuildVersionAsync(
+                    Guid.Parse(input.CloudProjectId!),
+                    Guid.Parse(environmentId),
+                    build.BuildID,
+                    new CreateNewBuildVersionRequest(
+                        buildVersionName: input.BuildVersionName!,
+                        ccd: new CCDDetails2(build.Ccd.BucketID)
+                    ),
+                    cancellationToken: cancellationToken
+                ));
+        }
+        catch (ApiException e) when (e.ErrorCode == (int)HttpStatusCode.BadRequest)
+        {
+            ApiExceptionConverter.Convert(e);
+        }
 
         var details = new StringBuilder()
             .AppendLine($"Files to upload: {localFiles.Count}")

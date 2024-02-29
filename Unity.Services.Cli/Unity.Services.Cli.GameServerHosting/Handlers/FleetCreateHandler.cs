@@ -63,7 +63,8 @@ static class FleetCreateHandler
         var fleet = await service.FleetsApi.CreateFleetAsync(
             Guid.Parse(input.CloudProjectId!),
             Guid.Parse(environmentId),
-            req,
+            null,
+            fleetCreateRequest: req,
             cancellationToken: cancellationToken
         );
 

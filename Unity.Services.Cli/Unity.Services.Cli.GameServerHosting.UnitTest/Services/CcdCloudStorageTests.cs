@@ -109,7 +109,7 @@ public class CcdCloudStorageTests
 
     void SetupUpload(List<CcdGetEntries200ResponseInner> ccdEntries)
     {
-        m_MockEntriesApi!.Setup(api => api.GetEntriesEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<Guid?>(), It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+        m_MockEntriesApi!.Setup(api => api.GetEntriesEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<Guid?>(), It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool?>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult(ccdEntries));
         m_MockEntriesApi.Setup(api => api.CreateOrUpdateEntryByPathEnvAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CcdCreateOrUpdateEntryByPathRequest>(), It.IsAny<bool?>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult(new CcdGetEntries200ResponseInner(signedUrl: "https://signed.url.example.com")));

@@ -15,6 +15,7 @@ public class BuildConfigurationCreateInput : CommonInput
     public const string NameKey = "--name";
     public const string QueryTypeKey = "--query-type";
     public const string SpeedKey = "--speed";
+    public const string ReadinessKey = "--readiness";
 
 
     public static readonly Option<string> BinaryPathOption = new(BinaryPathKey, "Path to the game binary")
@@ -64,6 +65,8 @@ public class BuildConfigurationCreateInput : CommonInput
         IsRequired = true
     };
 
+    public static readonly Option<bool> ReadinessOption = new(ReadinessKey, "Readiness of the build configuration");
+
     [InputBinding(nameof(BinaryPathOption))]
     public string? BinaryPath { get; init; }
 
@@ -91,4 +94,6 @@ public class BuildConfigurationCreateInput : CommonInput
     [InputBinding(nameof(SpeedOption))]
     public long? Speed { get; init; }
 
+    [InputBinding(nameof(ReadinessOption))]
+    public bool? Readiness { get; init; }
 }

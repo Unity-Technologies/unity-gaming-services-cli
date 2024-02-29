@@ -1,15 +1,10 @@
-using System.Net;
-using Microsoft.Extensions.Logging;
+using System.ComponentModel;
 using Moq;
-using Moq.Protected;
 using Spectre.Console;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Exceptions;
-using Unity.Services.Cli.Common.Logging;
-using Unity.Services.Cli.GameServerHosting.Exceptions;
 using Unity.Services.Cli.GameServerHosting.Handlers;
 using Unity.Services.Cli.GameServerHosting.Input;
-using Unity.Services.Cli.TestUtils;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
 
 namespace Unity.Services.Cli.GameServerHosting.UnitTest.Handlers;
@@ -66,5 +61,53 @@ partial class BuildCreateVersionHandlerTests : HandlerCommon
             CancellationToken.None);
 
         MockUnityEnvironment.Verify(ex => ex.FetchIdentifierAsync(CancellationToken.None), Times.Once);
+    }
+
+    [TestCase(CreateBuildRequest.BuildTypeEnum.CONTAINER)]
+    [TestCase(CreateBuildRequest.BuildTypeEnum.S3)]
+    [TestCase(CreateBuildRequest.BuildTypeEnum.FILEUPLOAD)]
+    public Task BuildCreateVersionAsync_InvalidBuildVersionName(CreateBuildRequest.BuildTypeEnum buildType)
+    {
+        BuildCreateVersionInput input = buildType switch
+        {
+            CreateBuildRequest.BuildTypeEnum.CONTAINER => new()
+            {
+                CloudProjectId = ValidProjectId,
+                TargetEnvironmentName = ValidEnvironmentName,
+                BuildId = ValidBuildIdContainer.ToString(),
+                ContainerTag = ValidContainerTag,
+                BuildVersionName = InValidBuildVersionName
+            },
+            CreateBuildRequest.BuildTypeEnum.S3 => new()
+            {
+                CloudProjectId = ValidProjectId,
+                TargetEnvironmentName = ValidEnvironmentName,
+                BuildId = ValidBuildIdBucket.ToString(),
+                BuildVersionName = InValidBuildVersionName,
+                AccessKey = "accessKey",
+                BucketUrl = "bucketUrl",
+                SecretKey = "secretKey"
+            },
+            CreateBuildRequest.BuildTypeEnum.FILEUPLOAD => new()
+            {
+                CloudProjectId = ValidProjectId,
+                TargetEnvironmentName = ValidEnvironmentName,
+                BuildId = BuildWithOneFileId.ToString(),
+                BuildVersionName = InValidBuildVersionName,
+                FileDirectory = m_TempDirectory
+            },
+            _ => throw new InvalidEnumArgumentException()
+        };
+
+        Assert.ThrowsAsync<CliException>(
+            async () => await BuildCreateVersionHandler.BuildCreateVersionAsync(
+                input,
+                MockUnityEnvironment.Object,
+                GameServerHostingService!,
+                MockLogger!.Object,
+                MockHttpClient!.Object,
+                CancellationToken.None));
+
+        return Task.CompletedTask;
     }
 }

@@ -117,7 +117,7 @@ public class GameServerHostingFilesApiV1Mock
                 a => a.GenerateDownloadURLAsync(
                     It.IsAny<Guid>(), // projectId
                     It.IsAny<Guid>(), // environmentId
-                    It.IsAny<GenerateDownloadURLRequest>(),
+                    It.IsAny<GenerateContentURLRequest>(),
                     0,
                     CancellationToken.None
                 ))
@@ -125,11 +125,11 @@ public class GameServerHostingFilesApiV1Mock
                 (
                     Guid _,
                     Guid _,
-                    GenerateDownloadURLRequest _,
+                    GenerateContentURLRequest _,
                     int _,
                     CancellationToken _
                 ) => Task.FromResult(
-                    new GenerateDownloadURLResponse(
+                    new GenerateContentURLResponse(
                         url: "https://example.com"
                     )
                 )

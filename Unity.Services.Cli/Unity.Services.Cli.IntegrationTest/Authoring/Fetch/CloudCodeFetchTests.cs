@@ -148,7 +148,7 @@ public class CloudCodeFetchTests : UgsCliFixture
             fetchedPaths,
             Array.Empty<DeployContent>(),
             !string.IsNullOrEmpty(dryRunOption));
-        var resultString = JsonConvert.SerializeObject(res.ToTable(), Formatting.Indented);
+        var resultString = JsonConvert.SerializeObject(res.ToTable("Cloud Code Scripts"), Formatting.Indented);
         await GetLoggedInCli()
             .Command($"fetch {k_TestDirectory} {dryRunOption} -j -s cloud-code-scripts")
             .AssertStandardOutputContains(resultString)
@@ -183,7 +183,7 @@ public class CloudCodeFetchTests : UgsCliFixture
             fetchedPaths,
             Array.Empty<DeployContent>(),
             !string.IsNullOrEmpty(dryRunOption));
-        var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
+        var resultString = JsonConvert.SerializeObject(logResult.ToTable("Cloud Code Scripts"), Formatting.Indented);
         await GetLoggedInCli()
             .Command($"fetch {k_TestDirectory} --reconcile -s cloud-code-scripts {dryRunOption} -j ")
             .AssertStandardOutputContains(resultString)

@@ -73,7 +73,7 @@ class FleetRegionCreateHandlerTests : HandlerCommon
 
         FleetsApi!.DefaultFleetsClient.Verify(api => api.AddFleetRegionAsync(
             new Guid(input.CloudProjectId), new Guid(ValidEnvironmentId),
-            new Guid(fleetId), createRequest, 0, CancellationToken.None
+            new Guid(fleetId), null, createRequest, 0, CancellationToken.None
         ), Times.Once);
     }
 

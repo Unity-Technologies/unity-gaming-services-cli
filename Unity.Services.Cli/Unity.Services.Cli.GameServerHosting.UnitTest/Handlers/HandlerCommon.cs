@@ -19,6 +19,7 @@ class HandlerCommon
     internal static GameServerHostingServersApiV1Mock? ServersApi;
     internal static GameServerHostingMachinesApiV1Mock? MachinesApi;
     internal static GameServerHostingBuildConfigurationsApiV1Mock? BuildConfigurationsApi;
+    internal static GameServerHostingCoreDumpApiV1Mock? CoreDumpApi;
     protected static GameServerHostingService? GameServerHostingService;
 
     [SetUp]
@@ -109,6 +110,9 @@ class HandlerCommon
         };
         BuildConfigurationsApi.SetUp();
 
+        CoreDumpApi = new GameServerHostingCoreDumpApiV1Mock();
+        CoreDumpApi.SetUp();
+
         GameServerHostingService = new GameServerHostingService(
             s_AuthenticationServiceObject.Object,
             BuildsApi.DefaultBuildsClient.Object,
@@ -116,10 +120,12 @@ class HandlerCommon
             FilesApi.DefaultFilesClient.Object,
             FleetsApi.DefaultFleetsClient.Object,
             MachinesApi.DefaultMachinesClient.Object,
+            CoreDumpApi.DefaultCoreDumpClient.Object,
             ServersApi.DefaultServersClient.Object
         );
 
-        MockUnityEnvironment.Setup(ex => ex.FetchIdentifierAsync(CancellationToken.None)).ReturnsAsync(ValidEnvironmentId);
+        MockUnityEnvironment.Setup(ex => ex.FetchIdentifierAsync(CancellationToken.None))
+            .ReturnsAsync(ValidEnvironmentId);
 
         // create tmp output directory for tests
         Directory.CreateDirectory(ValidOutputDirectory);

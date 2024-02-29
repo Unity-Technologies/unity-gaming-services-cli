@@ -15,7 +15,6 @@ class TriggersFetchService : TriggerDeployFetchBase, IFetchService
 {
     readonly ITriggersFetchHandler m_FetchHandler;
     readonly ITriggersClient m_Client;
-    readonly ITriggersResourceLoader m_ResourceLoader;
 
     public TriggersFetchService(
         ITriggersFetchHandler fetchHandler,
@@ -24,7 +23,6 @@ class TriggersFetchService : TriggerDeployFetchBase, IFetchService
     {
         m_FetchHandler = fetchHandler;
         m_Client = client;
-        m_ResourceLoader = resourceLoader;
     }
 
     public string ServiceType => TriggersConstants.ServiceType;
@@ -74,9 +72,14 @@ class TriggersFetchService : TriggerDeployFetchBase, IFetchService
             res.Updated,
             res.Deleted,
             res.Created,
-            deserializedFiles.Where(f => f.Status.MessageSeverity != SeverityLevel.Error)
-                .Concat(createdFiles).ToList(),
-            failedToDeserialize.Cast<IDeploymentItem>().Concat(failedToDeploy).ToList(),
+            deserializedFiles
+                .Where(f => f.Status.MessageSeverity != SeverityLevel.Error)
+                .Concat(createdFiles)
+                .ToList(),
+            failedToDeserialize
+                .Cast<IDeploymentItem>()
+                .Concat(failedToDeploy)
+                .ToList(),
             input.DryRun);
     }
 }

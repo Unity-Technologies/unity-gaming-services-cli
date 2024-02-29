@@ -50,6 +50,7 @@ public class FleetsClientTests
                 new FleetListItem(
                     allocationType: FleetListItem.AllocationTypeEnum.ALLOCATION,
                     new List<BuildConfiguration1>(),
+                    graceful: false,
                     Guid.Empty,
                     name: "test",
                     osName: string.Empty,
@@ -81,6 +82,7 @@ public class FleetsClientTests
                 new FleetListItem(
                     allocationType: FleetListItem.AllocationTypeEnum.ALLOCATION,
                     new List<BuildConfiguration1>(),
+                    graceful: false,
                     Guid.Empty,
                     name: "test",
                     osName: string.Empty,
@@ -94,6 +96,7 @@ public class FleetsClientTests
                 new FleetListItem(
                     allocationType: FleetListItem.AllocationTypeEnum.ALLOCATION,
                     new List<BuildConfiguration1>(),
+                    graceful: false,
                     Guid.Empty,
                     name: "test",
                     osName: string.Empty,
@@ -113,11 +116,11 @@ public class FleetsClientTests
     public async Task Create_CallsCreateApi()
     {
         m_MockApi!.Setup(a =>
-                a.ListTemplateFleetRegionsAsync(Guid.Empty, Guid.Empty, default, default))
+                a.ListTemplateFleetRegionsAsync(Guid.Empty, Guid.Empty, null, default, default))
             .ReturnsAsync(new List<FleetRegionsTemplateListItem>());
 
         m_MockApi.Setup(a =>
-                a.CreateFleetAsync(Guid.Empty, Guid.Empty, It.IsAny<FleetCreateRequest>(), default, default))
+                a.CreateFleetAsync(Guid.Empty, Guid.Empty, null, It.IsAny<FleetCreateRequest>(), default, default))
             .ReturnsAsync(new Fleet(
                 buildConfigurations: new List<BuildConfiguration2>(),
                 fleetRegions: new List<FleetRegion1>(),
@@ -132,14 +135,14 @@ public class FleetsClientTests
         await m_Client!.Create("test", new List<BuildConfigurationId>(), new MultiplayConfig.FleetDefinition());
 
         m_MockApi.Verify(a =>
-            a.CreateFleetAsync(Guid.Empty, Guid.Empty, It.IsAny<FleetCreateRequest>(), default, default));
+            a.CreateFleetAsync(Guid.Empty, Guid.Empty, null, It.IsAny<FleetCreateRequest>(), default, default));
     }
 
     [Test]
     public async Task Update_CallsTheUpdateApi()
     {
         m_MockApi!.Setup(a =>
-                a.ListTemplateFleetRegionsAsync(Guid.Empty, Guid.Empty, default, default))
+                a.ListTemplateFleetRegionsAsync(Guid.Empty, Guid.Empty, null, default, default))
             .ReturnsAsync(new List<FleetRegionsTemplateListItem>());
 
         m_MockApi.Setup(a =>
@@ -166,7 +169,7 @@ public class FleetsClientTests
     {
         var regionId = Guid.NewGuid();
         m_MockApi!.Setup(a =>
-                a.ListTemplateFleetRegionsAsync(Guid.Empty, Guid.Empty, default, default))
+                a.ListTemplateFleetRegionsAsync(Guid.Empty, Guid.Empty, null, default, default))
             .ReturnsAsync(new List<FleetRegionsTemplateListItem>());
 
         m_MockApi.Setup(a =>
@@ -195,7 +198,7 @@ public class FleetsClientTests
     {
         var regionId = Guid.NewGuid();
         m_MockApi!.Setup(a =>
-                a.ListTemplateFleetRegionsAsync(Guid.Empty, Guid.Empty, default, default))
+                a.ListTemplateFleetRegionsAsync(Guid.Empty, Guid.Empty, null, default, default))
             .ReturnsAsync(new List<FleetRegionsTemplateListItem>
             {
                 new ("North-America", regionId)
@@ -223,7 +226,7 @@ public class FleetsClientTests
         });
 
         m_MockApi.Verify(f =>
-            f.AddFleetRegionAsync(Guid.Empty, Guid.Empty, Guid.Empty, It.IsAny<AddRegionRequest>(), default, default));
+            f.AddFleetRegionAsync(Guid.Empty, Guid.Empty, Guid.Empty, null, It.IsAny<AddRegionRequest>(), default, default));
     }
 
     [Test]
@@ -231,7 +234,7 @@ public class FleetsClientTests
     {
         var regionId = Guid.NewGuid();
         m_MockApi!.Setup(a =>
-                a.ListTemplateFleetRegionsAsync(Guid.Empty, Guid.Empty, default, default))
+                a.ListTemplateFleetRegionsAsync(Guid.Empty, Guid.Empty, null, default, default))
             .ReturnsAsync(new List<FleetRegionsTemplateListItem>
             {
                 new ("North-America", regionId)

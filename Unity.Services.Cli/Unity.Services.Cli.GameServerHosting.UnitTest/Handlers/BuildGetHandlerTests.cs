@@ -18,11 +18,18 @@ class BuildGetHandlerTests : HandlerCommon
     {
         var mockLoadingIndicator = new Mock<ILoadingIndicator>();
 
-        await BuildGetHandler.BuildGetAsync(null!, MockUnityEnvironment.Object, null!, null!,
-            mockLoadingIndicator.Object, CancellationToken.None);
+        await BuildGetHandler.BuildGetAsync(
+            null!,
+            MockUnityEnvironment.Object,
+            null!,
+            null!,
+            mockLoadingIndicator.Object,
+            CancellationToken.None);
 
-        mockLoadingIndicator.Verify(ex => ex
-            .StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?, Task>>()), Times.Once);
+        mockLoadingIndicator.Verify(
+            ex => ex
+                .StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?, Task>>()),
+            Times.Once);
     }
 
     [Test]
@@ -56,22 +63,32 @@ class BuildGetHandlerTests : HandlerCommon
             BuildId = buildId
         };
 
-        Assert.ThrowsAsync<MissingInputException>(() =>
-            BuildGetHandler.BuildGetAsync(
-                input,
-                MockUnityEnvironment.Object,
-                GameServerHostingService!,
-                MockLogger!.Object,
-                CancellationToken.None
-            )
+        Assert.ThrowsAsync<MissingInputException>(
+            () =>
+                BuildGetHandler.BuildGetAsync(
+                    input,
+                    MockUnityEnvironment.Object,
+                    GameServerHostingService!,
+                    MockLogger!.Object,
+                    CancellationToken.None
+                )
         );
 
-        BuildsApi!.DefaultBuildsClient.Verify(api => api.GetBuildAsync(
-            It.IsAny<Guid>(), It.IsAny<Guid>(),
-            It.IsAny<long>(), 0, CancellationToken.None
-        ), Times.Never);
+        BuildsApi!.DefaultBuildsClient.Verify(
+            api => api.GetBuildAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<long>(),
+                0,
+                CancellationToken.None
+            ),
+            Times.Never);
 
-        TestsHelper.VerifyLoggerWasCalled(MockLogger!, LogLevel.Critical, LoggerExtension.ResultEventId, Times.Never);
+        TestsHelper.VerifyLoggerWasCalled(
+            MockLogger!,
+            LogLevel.Critical,
+            LoggerExtension.ResultEventId,
+            Times.Never);
     }
 
     [Test]
@@ -81,7 +98,7 @@ class BuildGetHandlerTests : HandlerCommon
         {
             CloudProjectId = ValidProjectId,
             TargetEnvironmentName = ValidEnvironmentName,
-            BuildId = ValidBuildIdContainer.ToString()
+            BuildId = ValidBuildIdContainer.ToString(),
         };
 
         await BuildGetHandler.BuildGetAsync(
@@ -92,10 +109,15 @@ class BuildGetHandlerTests : HandlerCommon
             CancellationToken.None
         );
 
-        BuildsApi!.DefaultBuildsClient.Verify(api => api.GetBuildAsync(
-            new Guid(input.CloudProjectId), new Guid(ValidEnvironmentId),
-            long.Parse(input.BuildId), 0, CancellationToken.None
-        ), Times.Once);
+        BuildsApi!.DefaultBuildsClient.Verify(
+            api => api.GetBuildAsync(
+                new Guid(input.CloudProjectId),
+                new Guid(ValidEnvironmentId),
+                long.Parse(input.BuildId),
+                0,
+                CancellationToken.None
+            ),
+            Times.Once);
     }
 
     [TestCase(InvalidProjectId, InvalidEnvironmentId, InvalidBuildId)]
@@ -112,16 +134,21 @@ class BuildGetHandlerTests : HandlerCommon
         };
         MockUnityEnvironment.Setup(ex => ex.FetchIdentifierAsync(CancellationToken.None)).ReturnsAsync(environmentId);
 
-        Assert.ThrowsAsync<HttpRequestException>(() =>
-            BuildGetHandler.BuildGetAsync(
-                input,
-                MockUnityEnvironment.Object,
-                GameServerHostingService!,
-                MockLogger!.Object,
-                CancellationToken.None
-            )
+        Assert.ThrowsAsync<HttpRequestException>(
+            () =>
+                BuildGetHandler.BuildGetAsync(
+                    input,
+                    MockUnityEnvironment.Object,
+                    GameServerHostingService!,
+                    MockLogger!.Object,
+                    CancellationToken.None
+                )
         );
 
-        TestsHelper.VerifyLoggerWasCalled(MockLogger!, LogLevel.Critical, LoggerExtension.ResultEventId, Times.Never);
+        TestsHelper.VerifyLoggerWasCalled(
+            MockLogger!,
+            LogLevel.Critical,
+            LoggerExtension.ResultEventId,
+            Times.Never);
     }
 }

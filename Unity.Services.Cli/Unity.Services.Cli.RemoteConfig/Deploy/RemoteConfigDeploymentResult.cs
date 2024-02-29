@@ -19,11 +19,11 @@ public class RemoteConfigDeploymentResult : DeploymentResult
             created,
             authored,
             failed,
-            dryRun)
-    { }
+            dryRun) { }
+
     public RemoteConfigDeploymentResult(IReadOnlyList<IDeploymentItem> results) : base(results) { }
 
-    public override TableContent ToTable()
+    public override TableContent ToTable(string service = "")
     {
         var baseTable = new TableContent();
         baseTable.IsDryRun = DryRun;

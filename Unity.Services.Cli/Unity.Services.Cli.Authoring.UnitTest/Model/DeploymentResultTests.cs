@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Model.TableOutput;
@@ -67,12 +65,10 @@ public class DeploymentResultTests
             k_DeployedContents,
             k_FailedContents);
         var result = m_DeploymentResult.ToTable();
-        var expected = TableContent.ToTable(k_DeployedContents[0]);
+        var expected = new TableContent();
 
-        foreach (var failed in k_FailedContents)
-        {
-            expected.AddRow(RowContent.ToRow(failed));
-        }
+        expected.AddRows(k_DeployedContents.Select(RowContent.ToRow).ToList());
+        expected.AddRows(k_FailedContents.Select(RowContent.ToRow).ToList());
 
         Assert.IsTrue(result.Result.Count == expected.Result.Count);
 

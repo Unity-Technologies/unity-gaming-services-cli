@@ -39,7 +39,7 @@ class GameServerHostingBuildConfigurationsApiV1Mock
         name: ValidBuildConfigurationName,
         queryType: "sqp",
         speed: 1200L,
-        updatedAt:new DateTime(2022, 10, 11),
+        updatedAt: new DateTime(2022, 10, 11),
         version: 1L
     );
 
@@ -121,22 +121,22 @@ class GameServerHostingBuildConfigurationsApiV1Mock
             );
             return Task.FromResult(buildConfig);
         });
-      
-      DefaultBuildConfigurationsClient.Setup(a =>
-            a.DeleteBuildConfigurationAsync(
-                It.IsAny<Guid>(), // projectId
-                It.IsAny<Guid>(), // environmentId
-                It.IsAny<long>(), // buildConfigurationId
-                null,
-                0,
-                CancellationToken.None
-            )).Returns((Guid projectId, Guid environmentId, long buildConfigurationId, bool _, int _, CancellationToken _) =>
-        {
-            var validated = ValidateProjectEnvironment(projectId, environmentId);
-            if (!validated) throw new HttpRequestException();
 
-            return Task.CompletedTask;
-        });
+        DefaultBuildConfigurationsClient.Setup(a =>
+              a.DeleteBuildConfigurationAsync(
+                  It.IsAny<Guid>(), // projectId
+                  It.IsAny<Guid>(), // environmentId
+                  It.IsAny<long>(), // buildConfigurationId
+                  null,
+                  0,
+                  CancellationToken.None
+              )).Returns((Guid projectId, Guid environmentId, long buildConfigurationId, bool _, int _, CancellationToken _) =>
+          {
+              var validated = ValidateProjectEnvironment(projectId, environmentId);
+              if (!validated) throw new HttpRequestException();
+
+              return Task.CompletedTask;
+          });
 
         DefaultBuildConfigurationsClient.Setup(
             a =>

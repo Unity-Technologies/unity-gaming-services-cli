@@ -12,6 +12,6 @@ public class TriggersSerializer : ITriggersSerializer
         {
             Configs = config.Cast<TriggerConfig>().ToList()
         };
-        return JsonConvert.SerializeObject(file);
+        return file.FileBodyText;
     }
 }

@@ -62,7 +62,7 @@ class RegionTemplatesHandlerTests : HandlerCommon
         );
 
         FleetsApi!.DefaultFleetsClient.Verify(api => api.ListTemplateFleetRegionsAsync(
-            new Guid(input.CloudProjectId), new Guid(ValidEnvironmentId),
+            new Guid(input.CloudProjectId), new Guid(ValidEnvironmentId), null,
             0, CancellationToken.None
         ), Times.Once);
     }

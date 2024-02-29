@@ -1,4 +1,5 @@
 using Unity.Services.DeploymentApi.Editor;
+using Newtonsoft.Json;
 
 namespace Unity.Services.Cli.Authoring.Model.TableOutput;
 
@@ -61,14 +62,5 @@ public class TableContent
         {
             AddRow(item);
         }
-    }
-
-    public static TableContent ToTable(IDeploymentItem item)
-    {
-        return new TableContent(
-            new[]
-            {
-                RowContent.ToRow(item)
-            });
     }
 }

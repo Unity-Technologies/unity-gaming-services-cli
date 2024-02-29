@@ -1,5 +1,4 @@
 using Unity.Services.Cli.MockServer.Common;
-using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
 
 namespace Unity.Services.Cli.MockServer.ServiceMocks.GameServerHosting;
 
@@ -16,12 +15,15 @@ public static class Keys
     public const long ValidBuildId = 1;
     public const string ValidBucketId = "00000000-0000-0000-0000-000000000000";
     public const string ValidReleaseId = "00000000-0000-0000-0000-000000000000";
+    public const string ValidBuildVersionName = "11.11.11.alpha.2";
     public const long ValidBuildIdBucket = 101;
     public const long ValidBuildIdContainer = 102;
     public const long ValidBuildIdFileUpload = 103;
     public const long ValidMachineId = 654321L;
     public const string ValidServerId = "123";
-    public const string ValidUsageSettingsJson = "{\"hardwareType\":\"CLOUD\", \"machineType\":\"GCP-N2\", \"maxServersPerMachine\":\"5\"}";
+
+    public const string ValidUsageSettingsJson =
+        "{\"hardwareType\":\"CLOUD\", \"machineType\":\"GCP-N2\", \"maxServersPerMachine\":\"5\"}";
 
     public const string ProjectPathPart =
         $"projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}";
@@ -37,8 +39,13 @@ public static class Keys
     public const string FleetRegionsPath = $"{ValidFleetPath}/regions";
 
     public const string BuildsPath = $"/multiplay/builds/v1/{ProjectPathPart}/builds";
-    public const string BuildConfigurationsPath = $"/multiplay/build-configurations/v1/{ProjectPathPart}/build-configurations";
-    public static readonly string ValidBuildConfigurationPath = $"{BuildConfigurationsPath}/{ValidBuildConfigurationId}";
+
+    public const string BuildConfigurationsPath =
+        $"/multiplay/build-configurations/v1/{ProjectPathPart}/build-configurations";
+
+    public static readonly string ValidBuildConfigurationPath =
+        $"{BuildConfigurationsPath}/{ValidBuildConfigurationId}";
+
     public static readonly string ValidBuildPath = $"{BuildsPath}/{ValidBuildId}";
     public static readonly string ValidBuildInstallsPath = $"{ValidBuildPath}/installs";
 
@@ -46,4 +53,9 @@ public static class Keys
     public static readonly string ValidBuildPathContainer = $"{BuildsPath}/{ValidBuildIdContainer}";
     public static readonly string ValidBuildPathFileUpload = $"{BuildsPath}/{ValidBuildIdFileUpload}";
     public static readonly string ValidBuildPathFileUploadFiles = $"{BuildsPath}/{ValidBuildIdFileUpload}/files";
+
+    public static readonly string MockedSignedUrlPath = "/multiplay/files/signed-url";
+    public static readonly string GenerateDownloadUrlPath = $"{FilesPath}/generate-download-url";
+    public static readonly string MockFileContent = "This is a mock file content";
+    public static readonly string ValidErrorLogPath = "/logs/error.log";
 }

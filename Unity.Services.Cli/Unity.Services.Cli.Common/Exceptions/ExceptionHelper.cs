@@ -7,13 +7,14 @@ using Unity.Services.Cli.Common.Telemetry;
 using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
 using IdentityApiException = Unity.Services.Gateway.IdentityApiV1.Generated.Client.ApiException;
 using CloudCodeApiException = Unity.Services.Gateway.CloudCodeApiV1.Generated.Client.ApiException;
+using SchedulerApiException = Unity.Services.Gateway.SchedulerApiV1.Generated.Client.ApiException;
+using CloudContentDeliveryApiException = Unity.Services.Gateway.ContentDeliveryManagementApiV1.Generated.Client.ApiException;
 using EconomyApiException = Unity.Services.Gateway.EconomyApiV2.Generated.Client.ApiException;
 using LobbyApiException = Unity.Services.MpsLobby.LobbyApiV1.Generated.Client.ApiException;
 using LeaderboardApiException = Unity.Services.Gateway.LeaderboardApiV1.Generated.Client.ApiException;
 using PlayerAdminApiException = Unity.Services.Gateway.PlayerAdminApiV3.Generated.Client.ApiException;
 using PlayerAuthException = Unity.Services.Gateway.PlayerAuthApiV1.Generated.Client.ApiException;
 using HostingApiException = Unity.Services.Gateway.GameServerHostingApiV1.Generated.Client.ApiException;
-using SentisApiException = Unity.Services.Gateway.SentisApiV1.Generated.Client.ApiException;
 
 namespace Unity.Services.Cli.Common.Exceptions;
 
@@ -68,6 +69,12 @@ public class ExceptionHelper
             case CloudCodeApiException cloudCodeApiException:
                 HandleApiException(exception, logger, cloudCodeApiException.ErrorCode);
                 break;
+            case SchedulerApiException schedulerApiException:
+                HandleApiException(exception, logger, schedulerApiException.ErrorCode);
+                break;
+            case CloudContentDeliveryApiException cloudContentDeliveryApiException:
+                HandleApiException(exception, logger, cloudContentDeliveryApiException.ErrorCode);
+                break;
             case EconomyApiException economyApiException:
                 HandleApiException(exception, logger, economyApiException.ErrorCode);
                 break;
@@ -82,9 +89,6 @@ public class ExceptionHelper
                 break;
             case PlayerAuthException playerAuthApiException:
                 HandleApiException(exception, logger, playerAuthApiException.ErrorCode);
-                break;
-            case SentisApiException sentiApiException:
-                HandleApiException(exception, logger, sentiApiException.ErrorCode);
                 break;
             case AggregateException aggregateException:
                 foreach (var ex in aggregateException.InnerExceptions)

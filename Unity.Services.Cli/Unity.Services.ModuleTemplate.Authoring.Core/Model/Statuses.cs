@@ -1,20 +1,50 @@
+using System;
 using Unity.Services.DeploymentApi.Editor;
 
 
 namespace Unity.Services.ModuleTemplate.Authoring.Core.Model
 {
-    static class Statuses
+    public static class Statuses
     {
         public static readonly DeploymentStatus FailedToLoad = new ("Failed to load", string.Empty, SeverityLevel.Error);
 
         public static DeploymentStatus GetFailedToFetch(string details)
             => new ("Failed to fetch", details, SeverityLevel.Error);
         public static readonly DeploymentStatus Fetching = new ("Fetching", string.Empty, SeverityLevel.Info);
-        public static readonly DeploymentStatus Fetched = new ("Fetched", string.Empty, SeverityLevel.Success);
+        public static DeploymentStatus GetFetched(string detail) => new ("Fetched", detail, SeverityLevel.Success);
 
         public static DeploymentStatus GetFailedToDeploy(string details)
             => new ("Failed to deploy", details, SeverityLevel.Error);
-        public static readonly DeploymentStatus Deploying = new ( "Deploying", string.Empty, SeverityLevel.Info);
-        public static readonly DeploymentStatus Deployed = new ("Deployed",  string.Empty, SeverityLevel.Success);
+        public static DeploymentStatus GetDeploying(string details = null)
+            => new ( "Deploying", details ?? string.Empty, SeverityLevel.Info);
+        public static DeploymentStatus GetDeployed(string details)
+            => new ("Deployed",  details, SeverityLevel.Success);
+
+        public static DeploymentStatus GetFailedToLoad(Exception e, string path)
+            => new ("Failed to load", $"Failed to load '{path}'. Reason: {e.Message}", SeverityLevel.Error);
+
+        public static DeploymentStatus GetFailedToRead(Exception e, string path)
+            => new ("Failed to read", $"Failed to read '{path}'. Reason: {e.Message}", SeverityLevel.Error);
+
+        public static DeploymentStatus GetFailedToWrite(Exception e, string path)
+            => new ("Failed to write", $"Failed to write '{path}'. Reason: {e.Message}", SeverityLevel.Error);
+
+        public static DeploymentStatus GetFailedToSerialize(Exception e, string path)
+            => new ("Failed to serialize", $"Failed to serialize '{path}'. Reason: {e.Message}", SeverityLevel.Error);
+
+        public static DeploymentStatus GetFailedToDelete(Exception e, string path)
+            => new ("Failed to serialize", $"Failed to delete '{path}'. Reason: {e.Message}", SeverityLevel.Error);
+
+        public static DeploymentStatus GetPartialDeploy(string details)
+            => new DeploymentStatus(
+                "Partially deployed",
+                details ?? "Some items were not successfully deployed, see sub-items for details",
+                SeverityLevel.Warning);
+
+        public static DeploymentStatus GetPartialFetch(string details)
+            => new DeploymentStatus(
+                "Partially deployed",
+                details ?? "Some items were not successfully fetched, see sub-items for details",
+                SeverityLevel.Warning);
     }
 }

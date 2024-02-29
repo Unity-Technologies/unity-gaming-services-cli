@@ -5,6 +5,28 @@ All notable changes to UGS CLI will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2024-02-29
+### Added
+- Added new service module Scheduler
+  - `new-file` for deployment
+  - `list` to see live schedules
+- Added support for support [Scheduler service](https://docs.unity.com/ugs/en-us/manual/cloud-code/manual/triggers#Scheduler) to Deploy and Fetch
+- Added fetch for [Triggers](https://docs.unity.com/ugs/en-us/manual/cloud-code/manual/triggers)
+- Added `--readiness` option to gsh build configuration create command
+- Added `--readiness` option to gsh build configuration update command
+- Added Game Server Hosting `core-dump` command to configure an external storage location for core dumps (GCS only)
+- Added `--build-version-name` option to gsh build create/create-version commands
+
+### Fixed
+- Fixed New-file command error for directory that is not exist.
+- Deploy no longer requires permissions for services not being deployed, unless reconcile is specified
+- Fixed Economy fetch issue making it not idempotent.
+- Fixed issue where issues after loading were not reported when deploying CloudCode modules
+- Fixed issue where deploying a solution as Cloud Code Module will be logged with the solution path and not the generated ccm
+
+### Changed
+- Improved the error description when failing to deploy a solution with no clear main entry project, for Cloud Code Modules deployment.
+
 ## [1.2.0] - 2023-11-14
 
 ### Added

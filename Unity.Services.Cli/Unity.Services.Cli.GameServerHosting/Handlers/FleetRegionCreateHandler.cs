@@ -46,7 +46,7 @@ static class FleetRegionCreateHandler
             Guid.Parse(input.CloudProjectId!),
             Guid.Parse(environmentId),
             fleetId,
-            new AddRegionRequest(
+            addRegionRequest: new AddRegionRequest(
                 maxServers,
                 minAvailableServers,
                 regionId

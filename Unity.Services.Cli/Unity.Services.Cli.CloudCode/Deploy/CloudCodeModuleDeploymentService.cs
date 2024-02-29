@@ -1,5 +1,3 @@
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
@@ -8,9 +6,6 @@ using Unity.Services.Cli.CloudCode.Authoring;
 using Unity.Services.Cli.CloudCode.Model;
 using Unity.Services.Cli.CloudCode.Utils;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment;
-using Unity.Services.CloudCode.Authoring.Editor.Core.Deployment.ModuleGeneration;
-using Unity.Services.CloudCode.Authoring.Editor.Core.Dotnet;
-using Unity.Services.CloudCode.Authoring.Editor.Core.IO;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Client;
@@ -72,7 +67,7 @@ class CloudCodeModuleDeploymentService : IDeploymentService
 
         loadingContext?.Status($"Loading {m_ServiceName} modules...");
 
-        var (loadedModules, failedModules) =
+        var (loadedModules, failedToLoadModules) =
             await CloudCodeModulesLoader.LoadModulesAsync(ccmFilePaths, slnFilePaths, cancellationToken);
 
         loadingContext?.Status($"Deploying {m_ServiceType}...");
@@ -84,7 +79,6 @@ class CloudCodeModuleDeploymentService : IDeploymentService
         try
         {
             result = await CloudCodeDeploymentHandler.DeployAsync(loadedModules, reconcile, dryrun);
-            failedModules.AddRange(result.Failed);
         }
         catch (ApiException)
         {
@@ -98,7 +92,7 @@ class CloudCodeModuleDeploymentService : IDeploymentService
             result = ex.Result;
         }
 
-        return ConstructResult(loadedModules, result, deployInput, failedModules);
+        return ConstructResult(loadedModules, result, deployInput, failedToLoadModules);
     }
 
     (List<string>, List<string>) ListFilesToDeploy(List<string> filePaths)
@@ -120,16 +114,17 @@ class CloudCodeModuleDeploymentService : IDeploymentService
         return (ccmFilePaths, slnFilePaths);
     }
 
-    static IDeploymentItem SetPathAsSolutionWhenAvailable(IScript item)
+    static void SetPathAsSolutionWhenAvailable(IReadOnlyList<IScript> items)
     {
-        return new CloudCodeModule(
-            item.Name.ToString(),
-            string.IsNullOrEmpty(((CloudCodeModule)item).SolutionPath) ? ((CloudCodeModule)item).Path : ((CloudCodeModule)item).SolutionPath,
-            ((CloudCodeModule)item).Progress,
-            ((CloudCodeModule)item).Status);
+        foreach (var item in items)
+        {
+            var ccm = (CloudCodeModule)item;
+            if (!string.IsNullOrEmpty(ccm.SolutionPath))
+                ccm.Path = ccm.SolutionPath;
+        }
     }
 
-    static DeploymentResult ConstructResult(List<IScript> loadResult, DeployResult? result, DeployInput deployInput, List<IScript> failedModules)
+    static DeploymentResult ConstructResult(List<IScript> loadResult, DeployResult? result, DeployInput deployInput, List<IScript> failedToLoad)
     {
         DeploymentResult deployResult;
         if (result == null)
@@ -138,12 +133,18 @@ class CloudCodeModuleDeploymentService : IDeploymentService
         }
         else
         {
+            var failed = result.Failed.Concat(failedToLoad).ToList();
+            SetPathAsSolutionWhenAvailable(result.Failed);
+            SetPathAsSolutionWhenAvailable(result.Created);
+            SetPathAsSolutionWhenAvailable(result.Updated);
+            SetPathAsSolutionWhenAvailable(failed);
+
             deployResult = new DeploymentResult(
-                result.Updated.Select(SetPathAsSolutionWhenAvailable).ToList() as IReadOnlyList<IDeploymentItem>,
+                result.Updated.Cast<IDeploymentItem>().ToList(),
                 ToDeleteDeploymentItems(result.Deleted, deployInput.DryRun),
-                result.Created.Select(SetPathAsSolutionWhenAvailable).ToList() as IReadOnlyList<IDeploymentItem>,
-                result.Deployed.Select(SetPathAsSolutionWhenAvailable).ToList() as IReadOnlyList<IDeploymentItem>,
-                failedModules.Select(SetPathAsSolutionWhenAvailable).ToList() as IReadOnlyList<IDeploymentItem>,
+                result.Created.Cast<IDeploymentItem>().ToList(),
+                result.Deployed.Cast<IDeploymentItem>().ToList(),
+                failed.Cast<IDeploymentItem>().ToList(),
                 deployInput.DryRun);
         }
 

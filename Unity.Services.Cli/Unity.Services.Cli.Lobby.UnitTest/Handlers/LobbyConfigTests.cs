@@ -28,14 +28,19 @@ public class LobbyConfigTests
         var success = LobbyConfig.TryParse(json, out var lobbyConfig);
         Assert.True(success);
         Assert.NotNull(lobbyConfig);
-        Assert.AreEqual(lobbyConfig.Id, configResponse.Configs.First().Id);
-        Assert.AreEqual(2, lobbyConfig.Config.Count);
-        Assert.True(lobbyConfig.Config.ContainsKey(nameof(MockLobbyConfig.StringSetting)));
-        Assert.AreEqual(k_DefaultStringSetting,
-            lobbyConfig.Config.GetValue(nameof(MockLobbyConfig.StringSetting)).Value<string>());
-        Assert.True(lobbyConfig.Config.ContainsKey(nameof(MockLobbyConfig.IntSetting)));
-        Assert.AreEqual(k_DefaultIntSetting,
-            lobbyConfig.Config.GetValue(nameof(MockLobbyConfig.IntSetting)).Value<int>());
+        Assert.AreEqual(lobbyConfig?.Id, configResponse.Configs.First().Id);
+        if (lobbyConfig != null)
+        {
+            Assert.AreEqual(2, lobbyConfig.Config.Count);
+            Assert.True(lobbyConfig.Config.ContainsKey(nameof(MockLobbyConfig.StringSetting)));
+            Assert.AreEqual(
+                k_DefaultStringSetting,
+                lobbyConfig.Config.GetValue(nameof(MockLobbyConfig.StringSetting))!.Value<string>());
+            Assert.True(lobbyConfig.Config.ContainsKey(nameof(MockLobbyConfig.IntSetting)));
+            Assert.AreEqual(
+                k_DefaultIntSetting,
+                lobbyConfig.Config.GetValue(nameof(MockLobbyConfig.IntSetting))!.Value<int>());
+        }
     }
 
     [Test]
@@ -73,11 +78,7 @@ public class LobbyConfigTests
     static RemoteConfigResponse NewDefaultConfig(bool includeMockConfig = true)
     {
         var mockConfigJson = includeMockConfig ? JsonConvert.SerializeObject(
-             new MockLobbyConfig()
-            {
-                StringSetting = k_DefaultStringSetting,
-                IntSetting = k_DefaultIntSetting,
-            }) : "{}";
+             new MockLobbyConfig(k_DefaultStringSetting, k_DefaultIntSetting)) : "{}";
 
         var now = DateTime.Now.ToString(k_TimestampFormat);
         var config = new RemoteConfigResponse.Config
@@ -110,6 +111,12 @@ public class LobbyConfigTests
 
     class MockLobbyConfig
     {
+        public MockLobbyConfig(string stringSetting, int intSetting)
+        {
+            StringSetting = stringSetting;
+            IntSetting = intSetting;
+        }
+
         public string StringSetting { get; set; }
         public int IntSetting { get; set; }
     }

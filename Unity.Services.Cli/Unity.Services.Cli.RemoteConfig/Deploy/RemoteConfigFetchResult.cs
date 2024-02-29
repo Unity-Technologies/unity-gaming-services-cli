@@ -6,7 +6,6 @@ namespace Unity.Services.Cli.RemoteConfig.Deploy;
 
 public class RemoteConfigFetchResult : FetchResult
 {
-
     public RemoteConfigFetchResult(
         IReadOnlyList<IDeploymentItem> updated,
         IReadOnlyList<IDeploymentItem> deleted,
@@ -22,12 +21,13 @@ public class RemoteConfigFetchResult : FetchResult
             failed,
             dryRun)
     { }
-    public RemoteConfigFetchResult(IReadOnlyList<AuthorResult> results) : base(results) { }
 
-    public override TableContent ToTable()
+    public override TableContent ToTable(string service = "")
     {
-        var baseTable = new TableContent();
-        baseTable.IsDryRun = DryRun;
+        var baseTable = new TableContent()
+        {
+            IsDryRun = DryRun
+        };
 
         foreach (var file in Authored)
         {

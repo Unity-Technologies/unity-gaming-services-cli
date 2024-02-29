@@ -11,6 +11,7 @@ class BuildOutput
         BuildName = build.BuildName;
         BuildId = build.BuildID;
         OsFamily = build.OsFamily;
+        BuildVersionName = build.BuildVersionName;
         Updated = build.Updated;
         BuildConfigurations = build.BuildConfigurations;
         SyncStatus = build.SyncStatus;
@@ -26,6 +27,7 @@ class BuildOutput
         BuildName = build.BuildName;
         BuildId = build.BuildID;
         OsFamily = (BuildListInner.OsFamilyEnum?)build.OsFamily;
+        BuildVersionName = build.BuildVersionName;
         Updated = build.Updated;
         SyncStatus = (BuildListInner.SyncStatusEnum)build.SyncStatus;
         // Ccd can be null, the codegen doesn't handle this case
@@ -34,6 +36,8 @@ class BuildOutput
         Container = build.Container;
         S3 = build.S3;
     }
+
+    public string BuildVersionName { get; }
 
     public string BuildName { get; }
 

@@ -12,6 +12,7 @@ class GameServerHostingFleetsApiV1Mock
         new FleetListItem(
             FleetListItem.AllocationTypeEnum.ALLOCATION,
             new List<BuildConfiguration1>(),
+            graceful: false,
             regions: new List<FleetRegion>(),
             id: new Guid(ValidFleetId),
             name: ValidFleetName,
@@ -23,6 +24,7 @@ class GameServerHostingFleetsApiV1Mock
         new FleetListItem(
             FleetListItem.AllocationTypeEnum.ALLOCATION,
             new List<BuildConfiguration1>(),
+            graceful: false,
             regions: new List<FleetRegion>(),
             id: new Guid(ValidFleetId2),
             name: ValidFleetName2,
@@ -66,6 +68,7 @@ class GameServerHostingFleetsApiV1Mock
             {
                 new(id: 1, name: "build config 1", buildName: "build 1", buildID: 1)
             },
+            graceful: false,
             fleetRegions: k_TestFleetRegions,
             id: new Guid(ValidFleetId),
             name: ValidFleetName,
@@ -81,6 +84,7 @@ class GameServerHostingFleetsApiV1Mock
         ),
         new Fleet(
             buildConfigurations: new List<BuildConfiguration2>(),
+            graceful: false,
             fleetRegions: new List<FleetRegion1>(),
             id: new Guid(ValidFleetId2),
             name: ValidFleetName2,
@@ -185,11 +189,12 @@ class GameServerHostingFleetsApiV1Mock
         DefaultFleetsClient.Setup(a =>
             a.CreateFleetAsync(
                 It.IsAny<Guid>(), // projectId
-                It.IsAny<Guid>(), // environmentId
+                It.IsAny<Guid>(), // environmentId,
+                It.IsAny<Guid?>(), // template fleet id
                 It.IsAny<FleetCreateRequest>(),
                 0,
                 CancellationToken.None
-            )).Returns((Guid projectId, Guid environmentId, FleetCreateRequest createReq, int _, CancellationToken _) =>
+            )).Returns((Guid projectId, Guid environmentId, Guid? _, FleetCreateRequest createReq, int _, CancellationToken _) =>
         {
             var validated = ValidateProjectEnvironment(projectId, environmentId);
             if (!validated) throw new HttpRequestException();
@@ -197,6 +202,7 @@ class GameServerHostingFleetsApiV1Mock
             var fleet = new Fleet(
                 buildConfigurations: new List<BuildConfiguration2>(),
                 fleetRegions: new List<FleetRegion1>(),
+                graceful: false,
                 id: new Guid(ValidFleetId),
                 name: createReq.Name,
                 osFamily: (Fleet.OsFamilyEnum)createReq.OsFamily!,
@@ -217,10 +223,11 @@ class GameServerHostingFleetsApiV1Mock
             a.CreateFleetAsync(
                 It.IsAny<Guid>(), // projectId
                 It.IsAny<Guid>(), // environmentId
+                It.IsAny<Guid?>(), // template Fleet id
                 It.IsAny<FleetCreateRequest>(),
                 0,
                 CancellationToken.None
-            )).Returns((Guid projectId, Guid environmentId, FleetCreateRequest createReq, int _, CancellationToken _) =>
+            )).Returns((Guid projectId, Guid environmentId, Guid? _, FleetCreateRequest createReq, int _, CancellationToken _) =>
         {
             var validated = ValidateProjectEnvironment(projectId, environmentId);
             if (!validated) throw new HttpRequestException();
@@ -229,6 +236,7 @@ class GameServerHostingFleetsApiV1Mock
                 buildConfigurations: new List<BuildConfiguration2>(),
                 fleetRegions: new List<FleetRegion1>(),
                 id: new Guid(ValidFleetId),
+                graceful: false,
                 name: createReq.Name,
                 osFamily: (Fleet.OsFamilyEnum)createReq.OsFamily!,
                 osName: OsNameLinux,
@@ -290,9 +298,10 @@ class GameServerHostingFleetsApiV1Mock
         DefaultFleetsClient.Setup(a => a.ListTemplateFleetRegionsAsync(
             It.IsAny<Guid>(), // projectId
             It.IsAny<Guid>(), // environmentId
+            It.IsAny<Guid?>(), // template Fleet id
             0,
             CancellationToken.None
-        )).Returns((Guid projectId, Guid environmentId, int _, CancellationToken _) =>
+        )).Returns((Guid projectId, Guid environmentId, Guid? _, int _, CancellationToken _) =>
         {
             var validated = ValidateProjectEnvironment(projectId, environmentId);
             if (!validated) throw new HttpRequestException();
@@ -303,9 +312,10 @@ class GameServerHostingFleetsApiV1Mock
             It.IsAny<Guid>(), // projectId
             It.IsAny<Guid>(), // environmentId
             It.IsAny<Guid>(), // fleetId
+            It.IsAny<Guid?>(), // template Fleet id
             0,
             CancellationToken.None
-        )).Returns((Guid projectId, Guid environmentId, Guid fleetId, int _, CancellationToken _) =>
+        )).Returns((Guid projectId, Guid environmentId, Guid fleetId, Guid? _, int _, CancellationToken _) =>
         {
             var validated = ValidateProjectEnvironment(projectId, environmentId);
             if (!validated) throw new HttpRequestException();
@@ -320,10 +330,11 @@ class GameServerHostingFleetsApiV1Mock
             It.IsAny<Guid>(), // projectId
             It.IsAny<Guid>(), // environmentId
             It.IsAny<Guid>(), // fleetId
+            It.IsAny<Guid?>(), // template Fleet id
             It.IsAny<AddRegionRequest>(),
             0,
             CancellationToken.None
-        )).Returns((Guid projectId, Guid environmentId, Guid fleetId, AddRegionRequest _, int _, CancellationToken _) =>
+        )).Returns((Guid projectId, Guid environmentId, Guid fleetId, Guid? _, AddRegionRequest _, int _, CancellationToken _) =>
         {
             var validated = ValidateProjectEnvironment(projectId, environmentId);
             if (!validated) throw new HttpRequestException();

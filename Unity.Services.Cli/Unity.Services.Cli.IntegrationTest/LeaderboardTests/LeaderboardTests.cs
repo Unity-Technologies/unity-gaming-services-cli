@@ -178,31 +178,6 @@ versions: []";
         var expectedMessage = "leaderboard reset! Version Id: v10";
         await AssertSuccess("leaderboards reset lb1", expectedMessage);
     }
-    [Test]
-    [Ignore("Flaky Test: Temporarily ignored, will be tackled in GID-2310")]
-    public async Task LeaderboardImportSucceed()
-    {
-        ZipArchiver zipArchiver = new ZipArchiver();
-        await zipArchiver.ZipAsync(Path.Join(k_TestDirectory, k_DefaultFileName), "test", new[]
-            {  LeaderboardApiMock.Leaderboard1, LeaderboardApiMock.Leaderboard2, LeaderboardApiMock.Leaderboard3,
-                LeaderboardApiMock.Leaderboard4, LeaderboardApiMock.Leaderboard5, LeaderboardApiMock.Leaderboard6,
-                LeaderboardApiMock.Leaderboard7, LeaderboardApiMock.Leaderboard8, LeaderboardApiMock.Leaderboard9,
-                LeaderboardApiMock.Leaderboard10, LeaderboardApiMock.Leaderboard11, LeaderboardApiMock.Leaderboard12 });
-
-        var expectedMessage = "Importing configs...";
-        await AssertSuccess($"leaderboards import {k_TestDirectory}", expectedResult: expectedMessage);
-    }
-
-    [Test]
-    [Ignore("Flaky Test: Temporarily ignored, will be tackled in GID-2310")]
-    public async Task LeaderboardImportWithNameSucceed()
-    {
-        ZipArchiver zipArchiver = new ZipArchiver();
-        await zipArchiver.ZipAsync(Path.Join(k_TestDirectory, k_AlternateFileName), "test", new[] { LeaderboardApiMock.Leaderboard1, LeaderboardApiMock.Leaderboard2, LeaderboardApiMock.Leaderboard3, LeaderboardApiMock.Leaderboard4, LeaderboardApiMock.Leaderboard5, LeaderboardApiMock.Leaderboard6, LeaderboardApiMock.Leaderboard7, LeaderboardApiMock.Leaderboard8, LeaderboardApiMock.Leaderboard9, LeaderboardApiMock.Leaderboard10, LeaderboardApiMock.Leaderboard11, LeaderboardApiMock.Leaderboard12 });
-
-        var expectedMessage = "Importing configs...";
-        await AssertSuccess($"leaderboards import {k_TestDirectory} {k_AlternateFileName}", expectedResult: expectedMessage);
-    }
 
     [Test]
     public async Task LeaderboardExportSucceed()

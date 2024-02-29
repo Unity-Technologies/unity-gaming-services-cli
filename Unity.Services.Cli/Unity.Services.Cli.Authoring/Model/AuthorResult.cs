@@ -1,6 +1,5 @@
 using System.Text;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using Unity.Services.Cli.Authoring.Model.TableOutput;
 using Unity.Services.DeploymentApi.Editor;
 
@@ -23,17 +22,6 @@ public abstract class AuthorResult
     internal string NoActionMessage => $"No content {Operation}ed";
 
     internal abstract string Operation { get; }
-
-    static AuthorResult()
-    {
-        JsonConvert.DefaultSettings = () =>
-        {
-            return new JsonSerializerSettings()
-            {
-                ContractResolver = new DeployContentContractResolver()
-            };
-        };
-    }
 
     /// <summary>
     /// All local resources modified by the fetch command (created, updated, and deleted).
@@ -120,17 +108,17 @@ public abstract class AuthorResult
         return result.ToString();
     }
 
-    public virtual TableContent ToTable()
+    public virtual TableContent ToTable(string service = "")
     {
          var table = new TableContent
          {
              IsDryRun = DryRun
          };
 
-         table.AddRows(Updated.Select(TableContent.ToTable).ToList());
-         table.AddRows(Deleted.Select(TableContent.ToTable).ToList());
-         table.AddRows(Created.Select(TableContent.ToTable).ToList());
-         table.AddRows(Failed.Select(TableContent.ToTable).ToList());
+         table.AddRows(Updated.Select(i=> new RowContent(i, service)).ToList());
+         table.AddRows(Deleted.Select(i=> new RowContent(i, service)).ToList());
+         table.AddRows(Created.Select(i=> new RowContent(i, service)).ToList());
+         table.AddRows(Failed.Select(i=> new RowContent(i, service)).ToList());
 
          return table;
     }
@@ -167,22 +155,5 @@ public abstract class AuthorResult
         }
 
         builder.AppendLine($"{resultHeader}:{joinedUpdated}");
-    }
-
-    public class DeployContentContractResolver : DefaultContractResolver
-    {
-        protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
-        {
-            if (!type.IsAssignableTo(typeof(IDeploymentItem)))
-                return base.CreateProperties(type, memberSerialization);
-
-            IList<JsonProperty> properties = base.CreateProperties(type, memberSerialization);
-            var propertiesToInclude = typeof(DeployContent).GetProperties().Select(p => p.Name).ToList();
-
-            properties =
-                properties.Where(p => propertiesToInclude.Contains( p.PropertyName!) ).ToList();
-
-            return properties;
-        }
     }
 }

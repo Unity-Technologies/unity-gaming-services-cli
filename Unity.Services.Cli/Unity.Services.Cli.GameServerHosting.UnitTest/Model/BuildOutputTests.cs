@@ -14,6 +14,7 @@ class BuildOutputTests
             buildID: 1,
             buildName: "Test Build 1",
             buildConfigurations: 1,
+            buildVersionName: ValidBuildVersionName,
             syncStatus: BuildListInner.SyncStatusEnum.SYNCED,
             ccd: new CCDDetails(
                 Guid.Parse(ValidBucketId),
@@ -26,6 +27,7 @@ class BuildOutputTests
             1,
             "Test Build 1",
             syncStatus: CreateBuild200Response.SyncStatusEnum.SYNCED,
+            buildVersionName: ValidBuildVersionName,
             ccd: new CCDDetails(
                 Guid.Parse(ValidBucketId),
                 Guid.Parse(ValidReleaseId)
@@ -42,31 +44,35 @@ class BuildOutputTests
     public void ConstructBuildOutputWithValidBuild()
     {
         BuildOutput output = new(m_BuildListItem!);
-        Assert.Multiple(() =>
-        {
-            Assert.That(output.BuildId, Is.EqualTo(m_BuildListItem!.BuildID));
-            Assert.That(output.BuildName, Is.EqualTo(m_BuildListItem!.BuildName));
-            Assert.That(output.BuildConfigurations, Is.EqualTo(m_BuildListItem!.BuildConfigurations));
-            Assert.That(output.SyncStatus, Is.EqualTo(m_BuildListItem!.SyncStatus));
-            Assert.That(output.Ccd?.BucketId, Is.EqualTo(m_BuildListItem!.Ccd.BucketID));
-            Assert.That(output.Ccd?.ReleaseId, Is.EqualTo(m_BuildListItem!.Ccd.ReleaseID));
-            Assert.That(output.Container, Is.EqualTo(m_BuildListItem!.Container));
-            Assert.That(output.OsFamily, Is.EqualTo(m_BuildListItem!.OsFamily));
-            Assert.That(output.Updated, Is.EqualTo(m_BuildListItem!.Updated));
-        });
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(output.BuildId, Is.EqualTo(m_BuildListItem!.BuildID));
+                Assert.That(output.BuildName, Is.EqualTo(m_BuildListItem!.BuildName));
+                Assert.That(output.BuildConfigurations, Is.EqualTo(m_BuildListItem!.BuildConfigurations));
+                Assert.That(output.SyncStatus, Is.EqualTo(m_BuildListItem!.SyncStatus));
+                Assert.That(output.Ccd?.BucketId, Is.EqualTo(m_BuildListItem!.Ccd.BucketID));
+                Assert.That(output.Ccd?.ReleaseId, Is.EqualTo(m_BuildListItem!.Ccd.ReleaseID));
+                Assert.That(output.Container, Is.EqualTo(m_BuildListItem!.Container));
+                Assert.That(output.OsFamily, Is.EqualTo(m_BuildListItem!.OsFamily));
+                Assert.That(output.Updated, Is.EqualTo(m_BuildListItem!.Updated));
+            });
         output = new BuildOutput(m_BuildCreateResponse!);
-        Assert.Multiple(() =>
-        {
-            Assert.That(output.BuildId, Is.EqualTo(m_BuildCreateResponse!.BuildID));
-            Assert.That(output.BuildName, Is.EqualTo(m_BuildCreateResponse!.BuildName));
-            Assert.That(output.BuildConfigurations, Is.Null);
-            Assert.That(output.SyncStatus, Is.EqualTo((BuildListInner.SyncStatusEnum)m_BuildCreateResponse!.SyncStatus));
-            Assert.That(output.Ccd?.BucketId, Is.EqualTo(m_BuildCreateResponse!.Ccd.BucketID));
-            Assert.That(output.Ccd?.ReleaseId, Is.EqualTo(m_BuildCreateResponse!.Ccd.ReleaseID));
-            Assert.That(output.Container, Is.EqualTo(m_BuildCreateResponse!.Container));
-            Assert.That(output.OsFamily, Is.EqualTo((BuildListInner.OsFamilyEnum?)m_BuildCreateResponse!.OsFamily));
-            Assert.That(output.Updated, Is.EqualTo(m_BuildCreateResponse!.Updated));
-        });
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(output.BuildId, Is.EqualTo(m_BuildCreateResponse!.BuildID));
+                Assert.That(output.BuildName, Is.EqualTo(m_BuildCreateResponse!.BuildName));
+                Assert.That(output.BuildConfigurations, Is.Null);
+                Assert.That(
+                    output.SyncStatus,
+                    Is.EqualTo((BuildListInner.SyncStatusEnum)m_BuildCreateResponse!.SyncStatus));
+                Assert.That(output.Ccd?.BucketId, Is.EqualTo(m_BuildCreateResponse!.Ccd.BucketID));
+                Assert.That(output.Ccd?.ReleaseId, Is.EqualTo(m_BuildCreateResponse!.Ccd.ReleaseID));
+                Assert.That(output.Container, Is.EqualTo(m_BuildCreateResponse!.Container));
+                Assert.That(output.OsFamily, Is.EqualTo((BuildListInner.OsFamilyEnum?)m_BuildCreateResponse!.OsFamily));
+                Assert.That(output.Updated, Is.EqualTo(m_BuildCreateResponse!.Updated));
+            });
     }
 
     [Test]
@@ -74,6 +80,7 @@ class BuildOutputTests
     {
         var sb = new StringBuilder();
         BuildOutput output = new(m_BuildListItem!);
+        sb.AppendLine($"buildVersionName: {ValidBuildVersionName}");
         sb.AppendLine("buildName: Test Build 1");
         sb.AppendLine("buildId: 1");
         sb.AppendLine("osFamily: LINUX");
@@ -86,6 +93,7 @@ class BuildOutputTests
         Assert.That(output.ToString(), Is.EqualTo(sb.ToString()));
         sb.Clear();
         output = new BuildOutput(m_BuildCreateResponse!);
+        sb.AppendLine($"buildVersionName: {ValidBuildVersionName}");
         sb.AppendLine("buildName: Test Build 1");
         sb.AppendLine("buildId: 1");
         sb.AppendLine("osFamily: LINUX");

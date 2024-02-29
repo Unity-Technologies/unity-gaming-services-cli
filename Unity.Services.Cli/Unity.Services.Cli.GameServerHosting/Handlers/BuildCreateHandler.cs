@@ -6,6 +6,8 @@ using Unity.Services.Cli.GameServerHosting.Exceptions;
 using Unity.Services.Cli.GameServerHosting.Input;
 using Unity.Services.Cli.GameServerHosting.Model;
 using Unity.Services.Cli.GameServerHosting.Service;
+using Unity.Services.Cli.GameServerHosting.Services;
+using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Client;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
 
 namespace Unity.Services.Cli.GameServerHosting.Handlers;
@@ -21,8 +23,15 @@ static class BuildCreateHandler
         CancellationToken cancellationToken
     )
     {
-        await loadingIndicator.StartLoadingAsync("Creating build...", _ =>
-            BuildCreateAsync(input, unityEnvironment, service, logger, cancellationToken));
+        await loadingIndicator.StartLoadingAsync(
+            "Creating build...",
+            _ =>
+                BuildCreateAsync(
+                    input,
+                    unityEnvironment,
+                    service,
+                    logger,
+                    cancellationToken));
     }
 
     internal static async Task BuildCreateAsync(
@@ -41,12 +50,29 @@ static class BuildCreateHandler
 
         await service.AuthorizeGameServerHostingService(cancellationToken);
 
-        var build = await service.BuildsApi.CreateBuildAsync(
-            Guid.Parse(input.CloudProjectId!),
-            Guid.Parse(environmentId),
-            new CreateBuildRequest(buildName, buildType, osFamily: buildOsFamily),
-            cancellationToken: cancellationToken);
+        try
+        {
+            var createBuildRequest = new CreateBuildRequest(
+                buildName,
+                buildType,
+                osFamily: buildOsFamily);
 
-        logger.LogResultValue(new BuildOutput(build));
+            if (input.BuildVersionName != null)
+            {
+                createBuildRequest.BuildVersionName = input.BuildVersionName;
+            }
+
+            var build = await service.BuildsApi.CreateBuildAsync(
+                Guid.Parse(input.CloudProjectId!),
+                Guid.Parse(environmentId),
+                createBuildRequest,
+                cancellationToken: cancellationToken);
+
+            logger.LogResultValue(new BuildOutput(build));
+        }
+        catch (ApiException e)
+        {
+            ApiExceptionConverter.Convert(e);
+        }
     }
 }

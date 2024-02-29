@@ -118,7 +118,7 @@ static class AuthoringHandlerCommon
     public static void PrintResult<T>(
         AuthoringInput input,
         ILogger logger,
-        Task<T>[] tasks,
+        AuthoringResultServiceTask<T>[] tasks,
         T totalResult,
         IDeploymentDefinitionFilteringResult ddefResult) where T : AuthorResult
     {
@@ -131,7 +131,7 @@ static class AuthoringHandlerCommon
 
             foreach (var task in tasks)
             {
-                tableResult.AddRows(task.Result.ToTable());
+                tableResult.AddRows(task.AuthorResultTask.Result.ToTable(task.ServiceType));
             }
 
             logger.LogResultValue(tableResult);
@@ -148,6 +148,7 @@ static class AuthoringHandlerCommon
 
         // Get Exceptions from faulted deployments
         var exceptions = tasks
+            .Select(t => t.AuthorResultTask)
             .Where(t => t.IsFaulted)
             .Select(t => t.Exception?.InnerException)
             .ToList();

@@ -33,5 +33,6 @@ static class Program
         //Replace these mock with your service mocks
         await mockApi.MockServiceAsync(new IdentityV1Mock());
         await mockApi.MockServiceAsync(new CloudCodeV1Mock());
+        await mockApi.MockServiceAsync(new CloudContentDeliveryApiMock());
     }
 }

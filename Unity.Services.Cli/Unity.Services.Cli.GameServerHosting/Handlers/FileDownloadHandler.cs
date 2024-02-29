@@ -45,7 +45,7 @@ static class FileDownloadHandler
 
         await service.AuthorizeGameServerHostingService(cancellationToken);
 
-        var request = new GenerateDownloadURLRequest(
+        var request = new GenerateContentURLRequest(
             path: input.Path!,
             serverId: long.Parse(input.ServerId!)
         );

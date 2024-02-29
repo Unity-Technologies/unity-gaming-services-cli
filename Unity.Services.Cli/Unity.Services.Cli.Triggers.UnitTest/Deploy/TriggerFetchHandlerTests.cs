@@ -1,4 +1,5 @@
 using Moq;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Triggers.Deploy;
 using Unity.Services.Triggers.Authoring.Core.Deploy;
@@ -10,7 +11,6 @@ using Unity.Services.Triggers.Authoring.Core.Service;
 namespace Unity.Services.Cli.Triggers.UnitTest.Deploy;
 
 [TestFixture]
-[Ignore("Fetch not in scope")]
 class TriggerFetchHandlerTests
 {
     [Test]
@@ -119,20 +119,23 @@ class TriggerFetchHandlerTests
             reconcile: true
         );
 
-        var expectedJson = "{\"Configs\":[{\"Id\":\"id1\",\"Name\":\"name1\",\"EventType\":\"eventType\",\"ActionType\":\"cloud-code\",\"ActionUrn\":\"actionUrn\"}]}";
+        var expectedFile1 = new TriggersConfigFile(
+            new List<TriggerConfig>(){(TriggerConfig)remoteTriggers[0]});
         mockFileSystem
             .Verify(f => f.WriteAllText(
                 "path1",
-                expectedJson,
+                JsonConvert.SerializeObject(expectedFile1, Formatting.Indented),
                 It.IsAny<CancellationToken>()),
                 Times.Once);
-        var expectedJson2 = "{\"Configs\":[{\"Id\":\"id2\",\"Name\":\"name2\",\"EventType\":\"eventType\",\"ActionType\":\"cloud-code\",\"ActionUrn\":\"actionUrn\"}]}";
+        var expectedFile2 = new TriggersConfigFile(
+            new List<TriggerConfig>(){(TriggerConfig)remoteTriggers[1]});
         mockFileSystem
             .Verify(f => f.WriteAllText(
                 Path.Combine("dir", "name2.tr"),
-                expectedJson2,
+                JsonConvert.SerializeObject(expectedFile2, Formatting.Indented),
                 It.IsAny<CancellationToken>()),
                 Times.Once);
+        mockFileSystem.Verify(f => f.Delete("path3", It.IsAny<CancellationToken>()));
     }
 
     [Test]
@@ -170,10 +173,10 @@ class TriggerFetchHandlerTests
     }
 
     [Test]
-    public async Task FetchAsync_DuplicateIdNotDeleted()
+    public async Task FetchAsync_DuplicateNameNotDeleted()
     {
         var localTriggers = GetLocalConfigs();
-        var triggerConfig = new TriggerConfig("id1", "changed name", "eventType", "cloud-code", "actionUrn") { Path = ""};
+        var triggerConfig = new TriggerConfig("otherId", "name1", "changedEventType", "cloud-code", "actionUrn") { Path = "" };
 
         localTriggers.Add(triggerConfig);
         var remoteTriggers = GetRemoteConfigs();
@@ -198,8 +201,8 @@ class TriggerFetchHandlerTests
                     It.IsAny<CancellationToken>()),
                 Times.Never);
 
-        Assert.Contains(localTriggers.FirstOrDefault(l => l.Name == "changed name"), actualRes.Failed);
-        Assert.Contains(localTriggers.FirstOrDefault(l => l.Name == "name1"), actualRes.Failed);
+        Assert.Contains(localTriggers.FirstOrDefault(l => l.Id == "otherId"), actualRes.Failed);
+        Assert.Contains(localTriggers.FirstOrDefault(l => l.Id == "id1"), actualRes.Failed);
     }
 
     static List<ITriggerConfig> GetLocalConfigs()

@@ -50,7 +50,7 @@ public class ConfigTests : UgsCliFixture
     [Test]
     public async Task ConfigGetJsonReturnsJson()
     {
-        var expected = JsonConvert.SerializeObject( "some-value");
+        var expected = JsonConvert.SerializeObject("some-value");
         await new UgsCliTestCase()
             .Command("config set environment-name some-value")
             .Command("config get environment-name -j")
@@ -84,7 +84,7 @@ public class ConfigTests : UgsCliFixture
     [Test]
     public async Task ConfigSetWithInvalidKeyErrorsOut()
     {
-        const string expectedError = "key 'invalid-key' not allowed. Allowed values: environment-name,project-id";
+        const string expectedError = "key 'invalid-key' not allowed. Allowed values: environment-name,project-id,bucket-id";
 
         await new UgsCliTestCase()
             .Command("config set invalid-key random-value")

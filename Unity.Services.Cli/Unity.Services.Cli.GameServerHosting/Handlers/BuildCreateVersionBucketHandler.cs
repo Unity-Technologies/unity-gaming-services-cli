@@ -3,6 +3,8 @@ using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.GameServerHosting.Exceptions;
 using Unity.Services.Cli.GameServerHosting.Input;
 using Unity.Services.Cli.GameServerHosting.Service;
+using Unity.Services.Cli.GameServerHosting.Services;
+using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Client;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
 
 namespace Unity.Services.Cli.GameServerHosting.Handlers;
@@ -19,16 +21,25 @@ static partial class BuildCreateVersionHandler
     )
     {
         ValidateBucketInput(input);
-        await service.BuildsApi.CreateNewBuildVersionAsync(
-            Guid.Parse(input.CloudProjectId!),
-            Guid.Parse(environmentId),
-            build.BuildID,
-            new CreateNewBuildVersionRequest(
-                s3: new AmazonS3Request(input.AccessKey!, input.BucketUrl!, input.SecretKey!)),
-            cancellationToken: cancellationToken
-        );
+        try
+        {
+            await service.BuildsApi.CreateNewBuildVersionAsync(
+                Guid.Parse(input.CloudProjectId!),
+                Guid.Parse(environmentId),
+                build.BuildID,
+                new CreateNewBuildVersionRequest(
+                    buildVersionName: input.BuildVersionName!,
+                    s3: new AmazonS3Request(input.AccessKey!, input.BucketUrl!, input.SecretKey!)
+                ),
+                cancellationToken: cancellationToken
+            );
 
-        logger.LogInformation("Build version created successfully");
+            logger.LogInformation("Build version created successfully");
+        }
+        catch (ApiException e)
+        {
+            ApiExceptionConverter.Convert(e);
+        }
     }
 
     // We need to apply our own conditional validation based on the build type

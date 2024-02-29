@@ -110,7 +110,7 @@ class FileDownloadHandlerTests : HandlerCommon
             api => api.GenerateDownloadURLAsync(
                 It.IsAny<Guid>(),
                 It.IsAny<Guid>(),
-                It.IsAny<GenerateDownloadURLRequest>(),
+                It.IsAny<GenerateContentURLRequest>(),
                 0,
                 It.IsAny<CancellationToken>()
             ),

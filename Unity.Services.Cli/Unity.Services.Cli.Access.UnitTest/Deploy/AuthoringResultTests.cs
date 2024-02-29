@@ -54,7 +54,7 @@ public class AuthoringResultTestsx
         var table = ar.ToTable();
         foreach (var (actual,expected) in table.Result.Zip(expectedTable))
         {
-            Assert.That(actual.Name, Is.EqualTo(expected.Name));;
+            Assert.That(actual.Name, Is.EqualTo(expected.Name));
         }
     }
 }

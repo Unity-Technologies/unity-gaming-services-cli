@@ -75,7 +75,8 @@ static class BuildConfigurationUpdateHandler
             memory: input.Memory ?? currentConfig.Memory,
             name: input.Name ?? currentConfig.Name,
             queryType: input.QueryType ?? currentConfig.QueryType,
-            speed: input.Speed ?? currentConfig.Speed
+            speed: input.Speed ?? currentConfig.Speed,
+            readiness: input.Readiness ?? currentConfig.Readiness
 #pragma warning restore CS0612 // Type or member is obsolete
         );
 

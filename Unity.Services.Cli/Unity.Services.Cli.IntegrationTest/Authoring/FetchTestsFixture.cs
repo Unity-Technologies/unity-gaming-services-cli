@@ -9,6 +9,7 @@ using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Cli.MockServer.ServiceMocks;
+using Unity.Services.DeploymentApi.Editor;
 
 namespace Unity.Services.Cli.IntegrationTest.Authoring;
 
@@ -51,7 +52,7 @@ public abstract class FetchTestsFixture : UgsCliFixture
         var type = testCase.DeployedContent.Type;
         testCase.DeployedContent =
             new DeployContent(
-                testCase.ConfigFileName, type, testCase.ConfigFilePath, 100, status, detail);
+                testCase.ConfigFileName, type, testCase.ConfigFilePath, 100, status, detail, SeverityLevel.Success);
         return testCase;
     }
 
@@ -270,7 +271,7 @@ public abstract class FetchTestsFixture : UgsCliFixture
     protected static string FormatJsonOutput(List<DeployContent> deployContentList, bool isDryRun)
     {
         var fetchResult = GetFetchResult(deployContentList, isDryRun);
-        return JsonConvert.SerializeObject(fetchResult.ToTable(), Formatting.Indented);
+        return JsonConvert.SerializeObject(fetchResult.ToTable("Economy"), Formatting.Indented);
     }
 
     static FetchResult GetFetchResult(List<DeployContent> deployContentList, bool isDryRun)

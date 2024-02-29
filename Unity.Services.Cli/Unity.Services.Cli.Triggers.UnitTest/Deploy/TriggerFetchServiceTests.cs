@@ -2,16 +2,11 @@ using NUnit.Framework;
 using Moq;
 using Newtonsoft.Json;
 using Unity.Services.Cli.Authoring.Input;
-using Unity.Services.Cli.Authoring.Model;
-using Unity.Services.Cli.Authoring.Service;
-using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Triggers.Deploy;
 using Unity.Services.Cli.Triggers.Fetch;
 using Unity.Services.Cli.Triggers.IO;
 using Unity.Services.DeploymentApi.Editor;
-using Unity.Services.Triggers.Authoring.Core.Deploy;
 using Unity.Services.Triggers.Authoring.Core.Fetch;
-using Unity.Services.Triggers.Authoring.Core.IO;
 using Unity.Services.Triggers.Authoring.Core.Model;
 using Unity.Services.Triggers.Authoring.Core.Service;
 using FetchResult = Unity.Services.Triggers.Authoring.Core.Fetch.FetchResult;
@@ -19,7 +14,6 @@ using FetchResult = Unity.Services.Triggers.Authoring.Core.Fetch.FetchResult;
 namespace Unity.Services.Cli.Triggers.UnitTest.Deploy;
 
 [TestFixture]
-[Ignore("Fetch not in scope")]
 public class TriggerFetchServiceTests
 {
     TriggersFetchService? m_FetchService;
@@ -36,11 +30,8 @@ public class TriggerFetchServiceTests
             m_MockTriggerClient.Object,
             m_MockLoader.Object);
 
-        var tr1 = new TriggerConfig("tr1", "tr1", "eventType", "cloud-code", "actionUrn");
-        var tr2 = new TriggerConfig("tr2", "tr2", "eventType", "cloud-code", "actionUrn");
-
-        var mockLoad = (IReadOnlyList<TriggerConfig>) new[] { tr1 };
-        var failedToLoad = (IReadOnlyList<TriggerConfig>)Array.Empty<TriggerConfig>();
+        var tr1 = new TriggerConfig("tr1", "Trigger1", "EventType1", "cloud-code", "urn:ugs:cloud-code:MyTestScript");
+        var tr2 = new TriggerConfig("tr2", "Trigger2", "EventType2", "cloud-code", "urn:ugs:cloud-code:MyTestScript");
 
         m_MockLoader
             .Setup(
@@ -49,21 +40,18 @@ public class TriggerFetchServiceTests
                         It.IsAny<string>(),
                         It.IsAny<CancellationToken>())
             )
-            .ReturnsAsync(
-                () =>
+            .ReturnsAsync(new TriggersFileItem(new TriggersConfigFile(new List<TriggerConfig>()
                 {
-                    var file = JsonConvert.DeserializeObject<TriggersConfigFile>(
-                        "{\"Configs\":[\n    {\"Id\":\"tr1\",\"Name\":\"Trigger1\",\"EventType\":\"EventType1\",\"ActionType\":\"cloud-code\",\"ActionUrn\":\"urn:ugs:cloud-code:MyTestScript\"},\n    {\"Id\":\"tr2\",\"Name\":\"Trigger2\",\"EventType\":\"EventType1\",\"ActionType\":\"cloud-code\",\"ActionUrn\":\"urn:ugs:cloud-code:MyTestScript\"},\n    ]}"
-                    );
-                    return new TriggersFileItem(file!, "samplePath");
-                });
+                    new("Trigger1", "EventType1", "cloud-code", "urn:ugs:cloud-code:MyTestScript"),
+                    new("Trigger2", "EventType2", "cloud-code", "urn:ugs:cloud-code:MyTestScript")
+                }), "samplePath"));
 
         var deployResult = new FetchResult()
         {
             Created = new List<ITriggerConfig> { tr2 },
             Updated = new List<ITriggerConfig>(),
             Deleted = new List<ITriggerConfig>(),
-            Fetched = new List<ITriggerConfig> { tr2 },
+            Fetched = new List<ITriggerConfig> { tr1, tr2 },
             Failed = new List<ITriggerConfig>()
         };
         var fromResult = Task.FromResult(deployResult);
@@ -98,7 +86,7 @@ public class TriggerFetchServiceTests
         Assert.AreEqual(1, res.Created.Count);
         Assert.AreEqual(0, res.Updated.Count);
         Assert.AreEqual(0, res.Deleted.Count);
-        Assert.AreEqual(1, res.Fetched.Count);
+        Assert.AreEqual(2, res.Fetched.Count);
         Assert.AreEqual(0, res.Failed.Count);
     }
 

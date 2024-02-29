@@ -1,3 +1,4 @@
+using System.Net;
 using Moq;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Api;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Client;
@@ -82,6 +83,7 @@ class GameServerHostingBuildsApiV1Mock
     readonly List<BuildListInner1> m_TestBuildInstalls = new()
     {
         new BuildListInner1(
+            ValidBuildVersionName,
             new CCDDetails(Guid.Parse(ValidBucketId), Guid.Parse(ValidReleaseId)),
             completedMachines: 1,
             container: new ContainerImage("tag"),
@@ -93,9 +95,14 @@ class GameServerHostingBuildsApiV1Mock
             pendingMachines: 1,
             regions: new List<RegionsInner>
             {
-                new(1, 1, 1, "region name")
+                new(
+                    1,
+                    1,
+                    1,
+                    "region name")
             }),
         new BuildListInner1(
+            ValidBuildVersionName,
             new CCDDetails(Guid.Parse(ValidBucketId), Guid.Parse(ValidReleaseId)),
             completedMachines: 3,
             container: new ContainerImage("tag"),
@@ -107,7 +114,11 @@ class GameServerHostingBuildsApiV1Mock
             pendingMachines: 2,
             regions: new List<RegionsInner>
             {
-                new(3, 1, 2, "another region name")
+                new(
+                    3,
+                    1,
+                    2,
+                    "another region name")
             })
     };
 
@@ -117,6 +128,7 @@ class GameServerHostingBuildsApiV1Mock
             ValidBuildIdBucket,
             "build2-bucket-build",
             CreateBuild200Response.BuildTypeEnum.S3,
+            buildVersionName: ValidBuildVersionName,
             s3: new AmazonS3Details("s3://bucket-name"),
             osFamily: CreateBuild200Response.OsFamilyEnum.LINUX,
             syncStatus: CreateBuild200Response.SyncStatusEnum.SYNCED,
@@ -125,6 +137,7 @@ class GameServerHostingBuildsApiV1Mock
             ValidBuildIdContainer,
             "build1-container-build",
             CreateBuild200Response.BuildTypeEnum.CONTAINER,
+            buildVersionName: ValidBuildVersionName,
             container: new ContainerImage(ValidContainerTag),
             osFamily: CreateBuild200Response.OsFamilyEnum.LINUX,
             syncStatus: CreateBuild200Response.SyncStatusEnum.SYNCED,
@@ -133,6 +146,7 @@ class GameServerHostingBuildsApiV1Mock
             ValidBuildIdFileUpload,
             "build3-file-upload-build",
             CreateBuild200Response.BuildTypeEnum.FILEUPLOAD,
+            buildVersionName: ValidBuildVersionName,
             ccd: new CCDDetails(Guid.Parse(ValidBucketId), Guid.Parse(ValidReleaseId)),
             osFamily: CreateBuild200Response.OsFamilyEnum.LINUX,
             syncStatus: CreateBuild200Response.SyncStatusEnum.SYNCED,
@@ -141,6 +155,7 @@ class GameServerHostingBuildsApiV1Mock
             BuildWithOneFileId,
             "Build3 (Build with one file test)",
             CreateBuild200Response.BuildTypeEnum.FILEUPLOAD,
+            ValidBuildVersionName,
             new CCDDetails(
                 new Guid(ValidBucketId),
                 new Guid(ValidReleaseId)),
@@ -151,6 +166,7 @@ class GameServerHostingBuildsApiV1Mock
             BuildWithTwoFilesId,
             "Build3 (Build with one file test)",
             CreateBuild200Response.BuildTypeEnum.FILEUPLOAD,
+            ValidBuildVersionName,
             new CCDDetails(
                 new Guid(ValidBucketId),
                 new Guid(ValidReleaseId)),
@@ -161,6 +177,7 @@ class GameServerHostingBuildsApiV1Mock
             SyncingBuildId,
             "Syncing Build",
             CreateBuild200Response.BuildTypeEnum.FILEUPLOAD,
+            buildVersionName: ValidBuildVersionName,
             ccd: new CCDDetails(),
             osFamily: CreateBuild200Response.OsFamilyEnum.LINUX,
             syncStatus: CreateBuild200Response.SyncStatusEnum.SYNCING,
@@ -173,6 +190,7 @@ class GameServerHostingBuildsApiV1Mock
             1,
             11,
             "Build1",
+            buildVersionName: ValidBuildVersionName,
             ccd: new CCDDetails(
                 new Guid(ValidBucketId),
                 new Guid(ValidReleaseId)),
@@ -183,6 +201,7 @@ class GameServerHostingBuildsApiV1Mock
             2,
             22,
             "Build2",
+            buildVersionName: ValidBuildVersionName,
             container: new ContainerImage("v1"),
             osFamily: BuildListInner.OsFamilyEnum.LINUX,
             syncStatus: BuildListInner.SyncStatusEnum.SYNCED,
@@ -206,137 +225,180 @@ class GameServerHostingBuildsApiV1Mock
         DefaultBuildsClient.Setup(a => a.Configuration)
             .Returns(new Configuration());
 
-        DefaultBuildsClient.Setup(a =>
-            a.CreateBuildAsync(
-                It.IsAny<Guid>(), // projectId
-                It.IsAny<Guid>(), // environmentId
-                It.IsAny<CreateBuildRequest>(), // build
-                0,
-                CancellationToken.None
-            )).Returns((Guid projectId, Guid environmentId, CreateBuildRequest req, int _, CancellationToken _) =>
-        {
-            var validated = ValidateProjectEnvironment(projectId, environmentId);
-            if (!validated) throw new HttpRequestException();
+        DefaultBuildsClient.Setup(
+                a =>
+                    a.CreateBuildAsync(
+                        It.IsAny<Guid>(), // projectId
+                        It.IsAny<Guid>(), // environmentId
+                        It.IsAny<CreateBuildRequest>(), // build
+                        0,
+                        CancellationToken.None
+                    ))
+            .Returns(
+                (Guid projectId, Guid environmentId, CreateBuildRequest req, int _, CancellationToken _) =>
+                {
+                    var validated = ValidateProjectEnvironment(projectId, environmentId);
+                    if (!validated) throw new HttpRequestException();
 
 
-            var buildExists = m_TestListBuilds.Find(b => b.BuildName == req.BuildName) != null;
-            if (buildExists) throw new ApiException();
+                    var buildExists = m_TestListBuilds.Find(b => b.BuildName == req.BuildName) != null;
+                    if (buildExists) throw new ApiException();
 
-            var osFamily = req.OsFamily switch
-            {
-                CreateBuildRequest.OsFamilyEnum.LINUX => CreateBuild200Response.OsFamilyEnum.LINUX,
-                _ => throw new ApiException()
-            };
+                    if (req.BuildVersionName is InValidBuildVersionName)
+                    {
+                        throw new ApiException(
+                            (int)HttpStatusCode.BadRequest,
+                            "Bad request",
+                            "{\"Detail\":\"Invalid build version name\"}"
+                        );
+                    }
 
-            var build = req.BuildType switch
-            {
-                CreateBuildRequest.BuildTypeEnum.CONTAINER => new CreateBuild200Response(
-                    1, req.BuildName, CreateBuild200Response.BuildTypeEnum.CONTAINER,
-                    cfv: 5, osFamily: osFamily, updated: DateTime.Now, container: new ContainerImage("v1")),
-                CreateBuildRequest.BuildTypeEnum.FILEUPLOAD => new CreateBuild200Response(
-                    1, req.BuildName, CreateBuild200Response.BuildTypeEnum.FILEUPLOAD,
-                    cfv: 5, osFamily: osFamily, updated: DateTime.Now,
-                    ccd: new CCDDetails(new Guid(ValidBucketId), new Guid(ValidReleaseId))),
-                CreateBuildRequest.BuildTypeEnum.S3 => new CreateBuild200Response(
-                    1, req.BuildName, CreateBuild200Response.BuildTypeEnum.FILEUPLOAD,
-                    cfv: 5, osFamily: osFamily, updated: DateTime.Now,
-                    ccd: new CCDDetails(new Guid(ValidBucketId), new Guid(ValidReleaseId))),
-                _ => throw new ApiException()
-            };
+                    var osFamily = req.OsFamily switch
+                    {
+                        CreateBuildRequest.OsFamilyEnum.LINUX => CreateBuild200Response.OsFamilyEnum.LINUX,
+                        _ => throw new ApiException()
+                    };
 
-            return Task.FromResult(build);
-        });
+                    var build = req.BuildType switch
+                    {
+                        CreateBuildRequest.BuildTypeEnum.CONTAINER => new CreateBuild200Response(
+                            1,
+                            req.BuildName,
+                            CreateBuild200Response.BuildTypeEnum.CONTAINER,
+                            buildVersionName: ValidBuildVersionName,
+                            cfv: 5,
+                            osFamily: osFamily,
+                            updated: DateTime.Now,
+                            container: new ContainerImage("v1")
+                        ),
+                        CreateBuildRequest.BuildTypeEnum.FILEUPLOAD => new CreateBuild200Response(
+                            1,
+                            req.BuildName,
+                            CreateBuild200Response.BuildTypeEnum.FILEUPLOAD,
+                            buildVersionName: ValidBuildVersionName,
+                            cfv: 5,
+                            osFamily:
+                            osFamily,
+                            updated: DateTime.Now,
+                            ccd: new CCDDetails(new Guid(ValidBucketId), new Guid(ValidReleaseId))
+                        ),
+                        CreateBuildRequest.BuildTypeEnum.S3 => new CreateBuild200Response(
+                            1,
+                            req.BuildName,
+                            CreateBuild200Response.BuildTypeEnum.FILEUPLOAD,
+                            buildVersionName: ValidBuildVersionName,
+                            cfv: 5,
+                            osFamily: osFamily,
+                            updated: DateTime.Now,
+                            ccd: new CCDDetails(new Guid(ValidBucketId), new Guid(ValidReleaseId))),
+                        _ => throw new ApiException()
+                    };
 
-        DefaultBuildsClient.Setup(a =>
-            a.ListBuildsAsync(
-                It.IsAny<Guid>(), // projectId
-                It.IsAny<Guid>(), // environmentId
-                It.IsAny<string>(), // limit
-                It.IsAny<Guid?>(), // lastVal
-                It.IsAny<Guid?>(), // lastId
-                It.IsAny<string>(), // sortBy
-                It.IsAny<string>(), // sortDir
-                It.IsAny<string>(), // partialFilter
-                0,
-                CancellationToken.None
-            )).Returns((
-            Guid projectId,
-            Guid environmentId,
-            string _,
-            Guid? _,
-            Guid? _,
-            string _,
-            string _,
-            string _,
-            int _,
-            CancellationToken _
-        ) =>
-        {
-            var validated = ValidateProjectEnvironment(projectId, environmentId);
-            if (!validated) throw new HttpRequestException();
-            return Task.FromResult(m_TestListBuilds);
-        });
+                    return Task.FromResult(build);
+                });
 
-        DefaultBuildsClient.Setup(a =>
-            a.GetBuildAsync(
-                It.IsAny<Guid>(), // projectId
-                It.IsAny<Guid>(), // environmentId
-                It.IsAny<long>(), // buildId
-                0,
-                CancellationToken.None
-            )).Returns((Guid projectId, Guid environmentId, long buildId, int _, CancellationToken _) =>
-        {
-            var validated = ValidateProjectEnvironment(projectId, environmentId);
-            if (!validated) throw new HttpRequestException();
+        DefaultBuildsClient.Setup(
+                a =>
+                    a.ListBuildsAsync(
+                        It.IsAny<Guid>(), // projectId
+                        It.IsAny<Guid>(), // environmentId
+                        It.IsAny<string>(), // limit
+                        It.IsAny<Guid?>(), // lastVal
+                        It.IsAny<Guid?>(), // lastId
+                        It.IsAny<string>(), // sortBy
+                        It.IsAny<string>(), // sortDir
+                        It.IsAny<string>(), // partialFilter
+                        0,
+                        CancellationToken.None
+                    ))
+            .Returns(
+                (
+                    Guid projectId,
+                    Guid environmentId,
+                    string _,
+                    Guid? _,
+                    Guid? _,
+                    string _,
+                    string _,
+                    string _,
+                    int _,
+                    CancellationToken _
+                ) =>
+                {
+                    var validated = ValidateProjectEnvironment(projectId, environmentId);
+                    if (!validated) throw new HttpRequestException();
+                    return Task.FromResult(m_TestListBuilds);
+                });
 
-            var build = m_TestBuilds.Find(b => b.BuildID == buildId);
-            if (build == null) throw new ApiException();
+        DefaultBuildsClient.Setup(
+                a =>
+                    a.GetBuildAsync(
+                        It.IsAny<Guid>(), // projectId
+                        It.IsAny<Guid>(), // environmentId
+                        It.IsAny<long>(), // buildId
+                        0,
+                        CancellationToken.None
+                    ))
+            .Returns(
+                (Guid projectId, Guid environmentId, long buildId, int _, CancellationToken _) =>
+                {
+                    var validated = ValidateProjectEnvironment(projectId, environmentId);
+                    if (!validated) throw new HttpRequestException();
 
-            return Task.FromResult(build);
-        });
-        DefaultBuildsClient.Setup(a =>
-            a.DeleteBuildAsync(
-                It.IsAny<Guid>(), // projectId
-                It.IsAny<Guid>(), // environmentId
-                It.IsAny<long>(), // buildId
-                null, // Dry Run
-                0,
-                CancellationToken.None
-            )).Returns((Guid projectId, Guid environmentId, long buildId, bool _, int _, CancellationToken _) =>
-        {
-            var validated = ValidateProjectEnvironment(projectId, environmentId);
-            if (!validated) throw new HttpRequestException();
+                    var build = m_TestBuilds.Find(b => b.BuildID == buildId);
+                    if (build == null) throw new ApiException();
 
-            var build = GetBuildById(buildId);
-            if (build is null) throw new HttpRequestException();
+                    return Task.FromResult(build);
+                });
+        DefaultBuildsClient.Setup(
+                a =>
+                    a.DeleteBuildAsync(
+                        It.IsAny<Guid>(), // projectId
+                        It.IsAny<Guid>(), // environmentId
+                        It.IsAny<long>(), // buildId
+                        null, // Dry Run
+                        0,
+                        CancellationToken.None
+                    ))
+            .Returns(
+                (Guid projectId, Guid environmentId, long buildId, bool _, int _, CancellationToken _) =>
+                {
+                    var validated = ValidateProjectEnvironment(projectId, environmentId);
+                    if (!validated) throw new HttpRequestException();
 
-            return Task.CompletedTask;
-        });
-        DefaultBuildsClient.Setup(a =>
-            a.UpdateBuildAsync(
-                It.IsAny<Guid>(), // projectId
-                It.IsAny<Guid>(), // environmentId
-                It.IsAny<long>(), // buildId
-                It.IsAny<UpdateBuildRequest>(), // update build request
-                0,
-                CancellationToken.None
-            )).Returns((
-            Guid projectId,
-            Guid environmentId,
-            long buildId,
-            UpdateBuildRequest _,
-            int _,
-            CancellationToken _
-        ) =>
-        {
-            var validated = ValidateProjectEnvironment(projectId, environmentId);
-            if (!validated) throw new HttpRequestException();
+                    var build = GetBuildById(buildId);
+                    if (build is null) throw new HttpRequestException();
 
-            var build = m_TestBuilds.Find(b => b.BuildID == buildId);
-            if (build == null) throw new ApiException();
+                    return Task.CompletedTask;
+                });
+        DefaultBuildsClient.Setup(
+                a =>
+                    a.UpdateBuildAsync(
+                        It.IsAny<Guid>(), // projectId
+                        It.IsAny<Guid>(), // environmentId
+                        It.IsAny<long>(), // buildId
+                        It.IsAny<UpdateBuildRequest>(), // update build request
+                        0,
+                        CancellationToken.None
+                    ))
+            .Returns(
+                (
+                    Guid projectId,
+                    Guid environmentId,
+                    long buildId,
+                    UpdateBuildRequest _,
+                    int _,
+                    CancellationToken _
+                ) =>
+                {
+                    var validated = ValidateProjectEnvironment(projectId, environmentId);
+                    if (!validated) throw new HttpRequestException();
 
-            return Task.FromResult(build);
-        });
+                    var build = m_TestBuilds.Find(b => b.BuildID == buildId);
+                    if (build == null) throw new ApiException();
+
+                    return Task.FromResult(build);
+                });
 
         DefaultBuildsClient.Setup(
                 a =>
@@ -353,12 +415,21 @@ class GameServerHostingBuildsApiV1Mock
                     Guid projectId,
                     Guid environmentId,
                     long buildId,
-                    CreateNewBuildVersionRequest _,
+                    CreateNewBuildVersionRequest request,
                     int _,
                     CancellationToken _) =>
                 {
                     var validated = ValidateProjectEnvironment(projectId, environmentId);
                     if (!validated) throw new HttpRequestException();
+
+                    if (request.BuildVersionName is InValidBuildVersionName)
+                    {
+                        throw new ApiException(
+                            (int)HttpStatusCode.BadRequest,
+                            "Bad request",
+                            "{\"Detail\":\"Invalid build version name\"}"
+                        );
+                    }
 
                     var build = m_TestBuilds.Find(b => b.BuildID == buildId);
                     if (build == null) throw new ApiException();
@@ -452,23 +523,26 @@ class GameServerHostingBuildsApiV1Mock
                 }
             );
 
-        DefaultBuildsClient.Setup(a =>
-            a.GetBuildInstallsAsync(
-                It.IsAny<Guid>(), // projectId
-                It.IsAny<Guid>(), // environmentId
-                It.IsAny<long>(), // BuildId
-                0,
-                CancellationToken.None
-            )).Returns((Guid projectId, Guid environmentId, long buildId, int _, CancellationToken _) =>
-        {
-            var validated = ValidateProjectEnvironment(projectId, environmentId);
-            if (!validated) throw new HttpRequestException();
+        DefaultBuildsClient.Setup(
+                a =>
+                    a.GetBuildInstallsAsync(
+                        It.IsAny<Guid>(), // projectId
+                        It.IsAny<Guid>(), // environmentId
+                        It.IsAny<long>(), // BuildId
+                        0,
+                        CancellationToken.None
+                    ))
+            .Returns(
+                (Guid projectId, Guid environmentId, long buildId, int _, CancellationToken _) =>
+                {
+                    var validated = ValidateProjectEnvironment(projectId, environmentId);
+                    if (!validated) throw new HttpRequestException();
 
-            var buildExists = m_TestListBuilds.Find(b => b.BuildID == buildId) != null;
-            if (!buildExists) throw new HttpRequestException();
+                    var buildExists = m_TestListBuilds.Find(b => b.BuildID == buildId) != null;
+                    if (!buildExists) throw new HttpRequestException();
 
-            return Task.FromResult(m_TestBuildInstalls);
-        });
+                    return Task.FromResult(m_TestBuildInstalls);
+                });
     }
 
     bool ValidateProjectEnvironment(Guid projectId, Guid environmentId)

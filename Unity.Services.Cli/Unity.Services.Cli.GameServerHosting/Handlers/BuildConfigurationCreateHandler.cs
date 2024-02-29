@@ -45,6 +45,7 @@ static class BuildConfigurationCreateHandler
         var name = input.Name ?? throw new MissingInputException(BuildConfigurationCreateInput.NameKey);
         var queryType = input.QueryType ?? throw new MissingInputException(BuildConfigurationCreateInput.QueryTypeKey);
         var speed = input.Speed ?? throw new MissingInputException(BuildConfigurationCreateInput.SpeedKey);
+        var readiness = input.Readiness ?? false;
 
         await service.AuthorizeGameServerHostingService(cancellationToken);
 
@@ -62,7 +63,8 @@ static class BuildConfigurationCreateHandler
                 memory: memory,
                 name: name,
                 queryType: queryType,
-                speed: speed
+                speed: speed,
+                readiness: readiness
             ),
             cancellationToken: cancellationToken);
         logger.LogResultValue(new BuildConfigurationOutput(buildConfiguration));

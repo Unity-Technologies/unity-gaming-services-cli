@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Unity.Services.DeploymentApi.Editor;
-using Unity.Services.Triggers.Authoring.Core.Deploy;
 using Unity.Services.Triggers.Authoring.Core.IO;
 using Unity.Services.Triggers.Authoring.Core.Model;
 using Unity.Services.Triggers.Authoring.Core.Serialization;
@@ -18,16 +17,16 @@ namespace Unity.Services.Triggers.Authoring.Core.Fetch
     {
         readonly ITriggersClient m_Client;
         readonly IFileSystem m_FileSystem;
-        readonly ITriggersSerializer m_LeaderboardsSerializer;
+        readonly ITriggersSerializer m_TriggersSerializer;
 
         public TriggersFetchHandler(
             ITriggersClient client,
             IFileSystem fileSystem,
-            ITriggersSerializer leaderboardsSerializer)
+            ITriggersSerializer triggersSerializer)
         {
             m_Client = client;
             m_FileSystem = fileSystem;
-            m_LeaderboardsSerializer = leaderboardsSerializer;
+            m_TriggersSerializer = triggersSerializer;
         }
 
         public async Task<FetchResult> FetchAsync(string rootDirectory,
@@ -77,12 +76,12 @@ namespace Unity.Services.Triggers.Authoring.Core.Fetch
             var deleteTasks = new List<(ITriggerConfig, Task)>();
             var createTasks = new List<(ITriggerConfig, Task)>();
 
-            var updatedFiles = toUpdate.GroupBy(r => r.Path);
+            var updatedFiles = toUpdate.GroupBy(r => r.Path).ToList();
             foreach (var file in updatedFiles)
             {
                 var task = m_FileSystem.WriteAllText(
                     file.Key,
-                    m_LeaderboardsSerializer.Serialize(file.ToList()),
+                    m_TriggersSerializer.Serialize(remoteResources.Intersect(file.ToList(), new TriggerComparer()).ToList()),
                     token);
                 file.ToList().ForEach(f => updateTasks.Add((f, task)));
             }
@@ -104,7 +103,7 @@ namespace Unity.Services.Triggers.Authoring.Core.Fetch
                 {
                     var task = m_FileSystem.WriteAllText(
                         resource.Path,
-                        m_LeaderboardsSerializer.Serialize(new List<ITriggerConfig>(){resource}),
+                        m_TriggersSerializer.Serialize(new List<ITriggerConfig>(){ resource }),
                         token);
                     createTasks.Add((resource, task));
                 }

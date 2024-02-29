@@ -17,6 +17,7 @@ class BuildConfigurationOutput
         BinaryPath = buildConfiguration.BinaryPath;
         CommandLine = buildConfiguration.CommandLine;
         QueryType = buildConfiguration.QueryType;
+        Readiness = buildConfiguration.Readiness;
         Configuration = buildConfiguration._Configuration;
 #pragma warning disable CS0612 // Type or member is obsolete
         Cores = buildConfiguration.Cores;
@@ -39,6 +40,7 @@ class BuildConfigurationOutput
     public string BinaryPath { get; }
     public string CommandLine { get; }
     public string QueryType { get; }
+    public bool Readiness { get; }
     public List<ConfigEntry> Configuration { get; }
     public long Cores { get; }
     public long Speed { get; }

@@ -33,6 +33,9 @@ class GameServerHostingServiceTests
         m_BuildConfigurationsApi = new GameServerHostingBuildConfigurationsApiV1Mock();
         m_BuildConfigurationsApi.SetUp();
 
+        m_CoreDumpApi = new GameServerHostingCoreDumpApiV1Mock();
+        m_CoreDumpApi.SetUp();
+
         m_GameServerHostingService = new GameServerHostingService(
             m_AuthenticationService.Object,
             m_BuildsApi.DefaultBuildsClient.Object,
@@ -40,6 +43,7 @@ class GameServerHostingServiceTests
             m_FilesApi.DefaultFilesClient.Object,
             m_FleetsApi.DefaultFleetsClient.Object,
             m_MachinesApi.DefaultMachinesClient.Object,
+            m_CoreDumpApi.DefaultCoreDumpClient.Object,
             m_ServersApi.DefaultServersClient.Object
         );
     }
@@ -52,6 +56,7 @@ class GameServerHostingServiceTests
     GameServerHostingServersApiV1Mock? m_ServersApi;
     GameServerHostingService? m_GameServerHostingService;
     GameServerHostingBuildConfigurationsApiV1Mock? m_BuildConfigurationsApi;
+    GameServerHostingCoreDumpApiV1Mock? m_CoreDumpApi;
 
     [Test]
     public async Task AuthorizeGameServerHostingService()
@@ -74,10 +79,14 @@ class GameServerHostingServiceTests
                     m_ServersApi!.DefaultServersClient.Object.Configuration.DefaultHeaders["Authorization"],
                     Is.EqualTo($"Basic {TestAccessToken}"));
                 Assert.That(
-                    m_BuildConfigurationsApi!.DefaultBuildConfigurationsClient.Object.Configuration.DefaultHeaders["Authorization"],
+                    m_BuildConfigurationsApi!.DefaultBuildConfigurationsClient.Object.Configuration.DefaultHeaders[
+                        "Authorization"],
                     Is.EqualTo($"Basic {TestAccessToken}"));
                 Assert.That(
                     m_MachinesApi!.DefaultMachinesClient.Object.Configuration.DefaultHeaders["Authorization"],
+                    Is.EqualTo($"Basic {TestAccessToken}"));
+                Assert.That(
+                    m_CoreDumpApi!.DefaultCoreDumpClient.Object.Configuration.DefaultHeaders["Authorization"],
                     Is.EqualTo($"Basic {TestAccessToken}"));
             });
     }

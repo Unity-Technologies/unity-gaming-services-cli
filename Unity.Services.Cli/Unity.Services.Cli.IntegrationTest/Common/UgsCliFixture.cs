@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -36,6 +38,7 @@ public abstract class UgsCliFixture
     protected readonly MockApi MockApi = new(NetworkTargetEndpoints.MockServer);
 
     readonly IntegrationConfig m_IntegrationConfig = new();
+    Stopwatch? m_Stopwatch;
 
     [OneTimeTearDown]
     public void DisposeMockServer()
@@ -46,6 +49,28 @@ public abstract class UgsCliFixture
     public void DisposeIntegrationConfig()
     {
         m_IntegrationConfig.Dispose();
+    }
+
+    [SetUp]
+    public void TestOutputTrackingSetup()
+    {
+        Console.WriteLine($"Running Test '{TestContext.CurrentContext.Test.Name}' ...");
+        m_Stopwatch = Stopwatch.StartNew();
+    }
+
+    [TearDown]
+    public void TestOutputTrackingTeardown()
+    {
+        string? timeElapsedStr = null;
+        if (m_Stopwatch != null)
+        {
+            m_Stopwatch!.Stop();
+            timeElapsedStr = $"in {m_Stopwatch.Elapsed.Milliseconds} ms";
+        }
+
+        var printLine =
+            $"Finished Test '{TestContext.CurrentContext.Test.Name}' {timeElapsedStr ?? string.Empty}";
+        Console.WriteLine(printLine);
     }
 
     [OneTimeSetUp]

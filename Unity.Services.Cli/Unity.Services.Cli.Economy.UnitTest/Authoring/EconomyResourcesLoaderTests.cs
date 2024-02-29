@@ -207,17 +207,16 @@ public class EconomyResourcesLoaderTests
         {
             m_MockEconomyJsonConverter!.Setup(
                     x => x.SerializeObject(
-                        It.IsAny<IEconomyResourceFile>(),
-                        It.IsAny<JsonSerializerSettings?>()
+                        It.IsAny<IEconomyResourceFile>()
                     ))
                 .Returns("");
 
             Assert.DoesNotThrow(
-                () => m_EconomyResourcesLoader!.ConstructResourceFile(
+                () => m_EconomyResourcesLoader!.CreateAndSerialize(
                     resource));
 
             m_MockEconomyJsonConverter.Verify(
-                x => x.SerializeObject(It.IsAny<IEconomyResourceFile>(), It.IsAny<JsonSerializerSettings?>()),
+                x => x.SerializeObject(It.IsAny<IEconomyResourceFile>()),
                 Times.Once);
 
             m_MockEconomyJsonConverter.Reset();

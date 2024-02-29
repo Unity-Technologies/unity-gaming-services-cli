@@ -73,7 +73,7 @@ class RemoteConfigFetchService : IFetchService
         return new RemoteConfigFetchResult(
             fetchResult.Updated.Select(rce => GetDeployContent(rce, "Updated")).ToList(),
             fetchResult.Deleted.Select(rce => GetDeployContent(rce, "Deleted")).ToList(),
-            fetchResult.Created.Select(rce => GetDeployContent(rce, "Updated")).ToList(),
+            fetchResult.Created.Select(rce => GetDeployContent(rce, "Created")).ToList(),
             fetchResult.Fetched.Select(ToFetchedFile).ToList(),
             failed,
             input.DryRun);

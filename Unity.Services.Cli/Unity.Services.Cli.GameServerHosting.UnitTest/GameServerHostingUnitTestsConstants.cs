@@ -13,6 +13,8 @@ public static class GameServerHostingUnitTestsConstants
     public const string InvalidBuildId = "1234";
     public const string ValidBucketId = "11111000-0000-0000-0000-000000000000";
     public const string ValidReleaseId = "00000000-1100-0000-0000-000000000000";
+    public const string ValidBuildVersionName = "11.23.45-beta.4";
+    public const string InValidBuildVersionName = "invalid";
     public const string ValidContainerTag = "v1";
 
     // Build File constants
@@ -70,7 +72,8 @@ public static class GameServerHostingUnitTestsConstants
     public const long ValidLocationId = 111111L;
     public const string ValidLocationName = "us-west1";
 
-    public const string ValidUsageSettingsJson = "{\"hardwareType\":\"CLOUD\", \"machineType\":\"GCP-N2\", \"maxServersPerMachine\":5}";
+    public const string ValidUsageSettingsJson =
+        "{\"hardwareType\":\"CLOUD\", \"machineType\":\"GCP-N2\", \"maxServersPerMachine\":5}";
 
     public const string ValidOutputDirectory = "test/output";
 
@@ -81,4 +84,13 @@ public static class GameServerHostingUnitTestsConstants
 
     public const string ValidMachineCpuSeriesShortname = "U1.Standard.3";
     public const string ValidMachineCpuType = "Cloud Intel 2nd Gen Scalable";
+
+    // Core Dump specific constants
+    public const string CoreDumpMockFleetIdWithoutConfig = "00000000-0000-0000-000c-000000000000";
+    public const string CoreDumpMockFleetIdWithEnabledConfig = "00000000-0000-0000-000c-000000000001";
+    public const string CoreDumpMockFleetIdWithDisabledConfig = "00000000-0000-0000-000c-000000000002";
+    public const string CoreDumpMockValidBucketName = "testBucket";
+    public const string CoreDumpMockValidAccessId = "testAccessId";
+    public const string CoreDumpMockValidPrivateKey = "testPrivateKey";
+    public const string CoreDumpMockValidCredentialsFilePath = "testFile.json";
 }

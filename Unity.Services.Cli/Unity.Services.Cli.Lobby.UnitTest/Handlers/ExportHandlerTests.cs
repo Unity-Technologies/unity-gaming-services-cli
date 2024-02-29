@@ -29,7 +29,7 @@ class ExportHandlerTests
     LobbyConfig m_Config = new()
     {
         Id = "mock_id",
-        Config = JsonConvert.DeserializeObject<JObject>("{ \"mock_key\": \"mock_value\" }")
+        Config = JsonConvert.DeserializeObject<JObject>("{ \"mock_key\": \"mock_value\" }")!
     };
 
     LobbyExporter m_LobbyExporter = null!;
@@ -44,7 +44,7 @@ class ExportHandlerTests
         m_MockRemoteConfigService.Reset();
 
         var configJson = JsonConvert.SerializeObject(m_Config);
-        var configElement = JsonConvert.DeserializeObject<JObject>(configJson);
+        var configElement = JsonConvert.DeserializeObject<JObject>(configJson)!;
 
         m_MockRemoteConfigService.Setup(
             rc => rc.GetAllConfigsFromEnvironmentAsync(It.IsAny<string>(),

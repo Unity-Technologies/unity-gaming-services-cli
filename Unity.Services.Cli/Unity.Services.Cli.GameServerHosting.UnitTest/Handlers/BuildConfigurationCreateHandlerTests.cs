@@ -47,7 +47,8 @@ class BuildConfigurationCreateHandlerTests : HandlerCommon
             Memory = 100,
             Name = "test-build-config",
             QueryType = "none",
-            Speed = 100
+            Speed = 100,
+            Readiness = true
         };
 
         await BuildConfigurationCreateHandler.BuildConfigurationCreateAsync(
@@ -71,6 +72,7 @@ class BuildConfigurationCreateHandlerTests : HandlerCommon
         ValidBuildConfigurationName,
         ValidBuildConfigurationQueryType,
         100,
+        true,
         TestName = "Missing BinaryPath")]
     [TestCase(
         ValidBuildConfigurationBinaryPath,
@@ -82,6 +84,7 @@ class BuildConfigurationCreateHandlerTests : HandlerCommon
         ValidBuildConfigurationName,
         ValidBuildConfigurationQueryType,
         100,
+        true,
         TestName = "Missing BuildId")]
     [TestCase(
         ValidBuildConfigurationBinaryPath,
@@ -93,6 +96,7 @@ class BuildConfigurationCreateHandlerTests : HandlerCommon
         ValidBuildConfigurationName,
         ValidBuildConfigurationQueryType,
         100,
+        true,
         TestName = "Missing CommandLine")]
     [TestCase(
         ValidBuildConfigurationBinaryPath,
@@ -104,6 +108,7 @@ class BuildConfigurationCreateHandlerTests : HandlerCommon
         ValidBuildConfigurationName,
         ValidBuildConfigurationQueryType,
         100,
+        true,
         TestName = "Missing Configuration")]
     [TestCase(
         ValidBuildConfigurationBinaryPath,
@@ -115,6 +120,7 @@ class BuildConfigurationCreateHandlerTests : HandlerCommon
         ValidBuildConfigurationName,
         ValidBuildConfigurationQueryType,
         100,
+        true,
         TestName = "Missing Cores")]
     [TestCase(
         ValidBuildConfigurationBinaryPath,
@@ -126,6 +132,7 @@ class BuildConfigurationCreateHandlerTests : HandlerCommon
         ValidBuildConfigurationName,
         ValidBuildConfigurationQueryType,
         100,
+        true,
         TestName = "Missing Memory")]
     [TestCase(
         ValidBuildConfigurationBinaryPath,
@@ -137,6 +144,7 @@ class BuildConfigurationCreateHandlerTests : HandlerCommon
         null,
         ValidBuildConfigurationQueryType,
         100,
+        true,
         TestName = "Missing Name")]
     [TestCase(
         ValidBuildConfigurationBinaryPath,
@@ -148,6 +156,7 @@ class BuildConfigurationCreateHandlerTests : HandlerCommon
         ValidBuildConfigurationName,
         null,
         100,
+        true,
         TestName = "Missing QueryType")]
     [TestCase(
         ValidBuildConfigurationBinaryPath,
@@ -159,7 +168,9 @@ class BuildConfigurationCreateHandlerTests : HandlerCommon
         ValidBuildConfigurationName,
         ValidBuildConfigurationQueryType,
         null,
-        TestName = "Missing Speed")]
+        true,
+        TestName = "Missing Speed"),
+        ]
     public Task BuildConfigurationCreateAsync_NullInputThrowsException(
         string? binaryPath,
         long? buildId,
@@ -169,7 +180,8 @@ class BuildConfigurationCreateHandlerTests : HandlerCommon
         long? memory,
         string? name,
         string? queryType,
-        long? speed)
+        long? speed,
+        bool? readiness)
     {
         BuildConfigurationCreateInput input = new()
         {
@@ -188,7 +200,8 @@ class BuildConfigurationCreateHandlerTests : HandlerCommon
             Memory = memory,
             Name = name,
             QueryType = queryType,
-            Speed = speed
+            Speed = speed,
+            Readiness = readiness
         };
 
         Assert.ThrowsAsync<MissingInputException>(
@@ -227,7 +240,8 @@ class BuildConfigurationCreateHandlerTests : HandlerCommon
             Memory = 100,
             Name = ValidBuildConfigurationName,
             QueryType = ValidBuildConfigurationQueryType,
-            Speed = 100
+            Speed = 100,
+            Readiness = true
         };
 
         Assert.ThrowsAsync<InvalidKeyValuePairException>(

@@ -89,7 +89,8 @@ public class FetchHandlerTests
                     new DeploymentDefinitionFiles(),
                     new Dictionary<string, IReadOnlyList<string>>
                     {
-                        { ".test", new List<string>() }
+                        { ".test", new List<string> { "path.test"} },
+                        { ".test1", new List<string> { "path1.test1"} }
                     }));
     }
 

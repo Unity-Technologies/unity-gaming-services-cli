@@ -1,6 +1,5 @@
 using Newtonsoft.Json;
 using Unity.Services.Cli.Common.Exceptions;
-using Unity.Services.Cli.Economy.Authoring.IO;
 using Unity.Services.Cli.Economy.Templates;
 using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.Economy.Editor.Authoring.Core.IO;
@@ -22,7 +21,7 @@ class EconomyResourcesLoader : IEconomyResourcesLoader
         m_FileSystem = fileSystem;
     }
 
-    public string ConstructResourceFile(IEconomyResource resource)
+    public string CreateAndSerialize(IEconomyResource resource)
     {
         EconomyResourceFile? resourceFile = null;
 
@@ -79,7 +78,7 @@ class EconomyResourcesLoader : IEconomyResourcesLoader
             throw new JsonSerializationException($"Error - {resource.Id} is not a valid resource.");
         }
 
-        return m_EconomyJsonConverter.SerializeObject(resourceFile, EconomyResourceFile.GetSerializationSettings());
+        return m_EconomyJsonConverter.SerializeObject(resourceFile);
     }
 
     public async Task<IEconomyResource> LoadResourceAsync(
@@ -126,7 +125,6 @@ class EconomyResourcesLoader : IEconomyResourcesLoader
 
         return resource;
     }
-
     IEconomyResource LoadEconomyRealMoneyPurchaseResource(string path, string fileId, string resourceFileText)
     {
         var economyFile = m_EconomyJsonConverter.DeserializeObject<EconomyRealMoneyPurchaseFile>(resourceFileText);

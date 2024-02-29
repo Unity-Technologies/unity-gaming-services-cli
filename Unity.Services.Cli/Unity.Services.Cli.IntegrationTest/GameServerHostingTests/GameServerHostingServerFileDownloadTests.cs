@@ -1,14 +1,22 @@
+using System;
+using System.IO;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using SharpYaml.Tokens;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.IntegrationTest.Common;
 using Unity.Services.Cli.MockServer.Common;
+using Unity.Services.Cli.MockServer.ServiceMocks.GameServerHosting;
 
 namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 
 public partial class GameServerHostingTests
 {
-    static readonly string k_ServerFilesDownloadCommand = "gsh server files download --server-id 1212 --path /logs/error.log --output server.log";
+    // Get the operating system's temporary directory
+    static string tempDirectory = Path.GetTempPath();
+    static string outputArgPath = $"{tempDirectory}/server.log";
+
+    static readonly string k_ServerFilesDownloadCommand = $"gsh server files download --server-id {Keys.ValidServerId} --path {Keys.ValidErrorLogPath} --output {outputArgPath}";
 
     [Test]
     [Category("gsh")]
@@ -23,6 +31,14 @@ public partial class GameServerHostingTests
                 {
                     Assert.IsTrue(str.Contains("Downloading file..."));
                 })
+            .AssertStandardError(
+                str =>
+                {
+                    Assert.IsTrue(str.Contains($"File downloaded to {outputArgPath}"));
+                    string fileContents = File.ReadAllText(outputArgPath);
+                    Assert.AreEqual(Keys.MockFileContent, fileContents);
+                }
+                )
             .ExecuteAsync();
     }
 

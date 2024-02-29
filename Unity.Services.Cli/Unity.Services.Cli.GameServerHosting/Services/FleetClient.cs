@@ -45,7 +45,7 @@ class FleetClient : IFleetApi
                 maxServers: r.Value.MaxServers)).ToList(),
             osID: Guid.Empty, // Must be set in order to avoid breaking the API
             osFamily: FleetCreateRequest.OsFamilyEnum.LINUX);
-        var res = await m_FleetsApiAsync.CreateFleetAsync(m_ApiConfig.ProjectId, m_ApiConfig.EnvironmentId, fleet, cancellationToken: cancellationToken);
+        var res = await m_FleetsApiAsync.CreateFleetAsync(m_ApiConfig.ProjectId, m_ApiConfig.EnvironmentId, fleetCreateRequest: fleet, cancellationToken: cancellationToken);
         return new FleetId { Id = res.Id };
     }
 
@@ -74,7 +74,7 @@ class FleetClient : IFleetApi
                     regionID: regions[regionName],
                     minAvailableServers: region.MinAvailable,
                     maxServers: region.MaxServers);
-                await m_FleetsApiAsync.AddFleetRegionAsync(m_ApiConfig.ProjectId, m_ApiConfig.EnvironmentId, id.ToGuid(), regionDefinition, cancellationToken: cancellationToken);
+                await m_FleetsApiAsync.AddFleetRegionAsync(m_ApiConfig.ProjectId, m_ApiConfig.EnvironmentId, id.ToGuid(), addRegionRequest: regionDefinition, cancellationToken: cancellationToken);
             }
             else
             {

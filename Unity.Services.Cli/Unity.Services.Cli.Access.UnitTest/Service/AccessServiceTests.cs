@@ -7,6 +7,7 @@ using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.ServiceAccountAuthentication;
 using Unity.Services.Cli.ServiceAccountAuthentication.Token;
 using Unity.Services.Gateway.AccessApiV1.Generated.Api;
+using Unity.Services.Gateway.AccessApiV1.Generated.Client;
 using Unity.Services.Gateway.AccessApiV1.Generated.Model;
 
 namespace Unity.Services.Cli.Access.UnitTest.Service;
@@ -89,6 +90,17 @@ public class AccessServiceTests
     }
 
     [Test]
+    public void GetPolicy_Invalid_ApiThrowsError()
+    {
+        m_ProjectPolicyApi.Setup(a => a.GetPolicyAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), CancellationToken.None))
+            .Throws<ApiException>();
+
+        Assert.ThrowsAsync<CliException>(
+            () => m_AccessService!.GetPolicyAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId,
+                CancellationToken.None));
+    }
+
+    [Test]
     public async Task GetPlayerPolicy_Valid()
     {
         await m_AccessService!.GetPlayerPolicyAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId,
@@ -102,6 +114,17 @@ public class AccessServiceTests
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Test]
+    public void GetPlayerPolicy_Invalid_ApiThrowsError()
+    {
+        m_PlayerPolicyApi.Setup(a => a.GetPlayerPolicyAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), CancellationToken.None))
+            .Throws<ApiException>();
+
+        Assert.ThrowsAsync<CliException>(
+            () => m_AccessService!.GetPlayerPolicyAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId,
+                CancellationToken.None));
     }
 
     [Test]
@@ -126,6 +149,17 @@ public class AccessServiceTests
     }
 
     [Test]
+    public void GetAllPlayerPolicies_Invalid_ApiThrowsError()
+    {
+        m_PlayerPolicyApi.Setup(a => a.GetAllPlayerPoliciesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(),
+            It.IsAny<string>(), It.IsAny<int>(), CancellationToken.None)).Throws<ApiException>();
+
+        Assert.ThrowsAsync<CliException>(
+            () => m_AccessService!.GetAllPlayerPoliciesAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId,
+                CancellationToken.None));
+    }
+
+    [Test]
     public async Task UpsertPolicyAsync_Valid()
     {
         m_ProjectPolicyApi.Setup(a => a.UpsertPolicyAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Policy>(),
@@ -145,6 +179,17 @@ public class AccessServiceTests
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Test]
+    public void UpsertPolicyAsync_Invalid_ApiThrowsError()
+    {
+        m_ProjectPolicyApi.Setup(a => a.UpsertPolicyAsync(It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<Policy>(), It.IsAny<int>(), CancellationToken.None)).Throws<ApiException>();
+
+        Assert.ThrowsAsync<CliException>(
+            () => m_AccessService!.UpsertPolicyAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, m_PolicyFile!,
+                CancellationToken.None));
     }
 
     [Test]
@@ -183,6 +228,17 @@ public class AccessServiceTests
     }
 
     [Test]
+    public void UpsertPlayerPolicyAsync_Invalid_ApiThrowsError()
+    {
+        m_PlayerPolicyApi.Setup(a => a.UpsertPlayerPolicyAsync(It.IsAny<string>(), It.IsAny<string>(),
+            It.IsAny<string>(), It.IsAny<Policy>(), It.IsAny<int>(), CancellationToken.None)).Throws<ApiException>();
+
+        Assert.ThrowsAsync<CliException>(
+            () => m_AccessService!.UpsertPlayerPolicyAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId,
+                m_PolicyFile!, CancellationToken.None));
+    }
+
+    [Test]
     public void UpsertPlayerPolicyAsync_InvalidInput()
     {
         Assert.ThrowsAsync<CliException>(
@@ -216,6 +272,17 @@ public class AccessServiceTests
     }
 
     [Test]
+    public void DeletePolicyStatementsAsync_Invalid_ApiThrowsError()
+    {
+        m_ProjectPolicyApi.Setup(a => a.DeletePolicyStatementsAsync(It.IsAny<string>(), It.IsAny<string>(),
+            It.IsAny<DeleteOptions>(), It.IsAny<int>(), CancellationToken.None)).Throws<ApiException>();
+
+        Assert.ThrowsAsync<CliException>(
+            () => m_AccessService!.DeletePolicyStatementsAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId,
+                m_PolicyFile!, CancellationToken.None));
+    }
+
+    [Test]
     public void DeletePolicyStatementsAsync_InvalidInput()
     {
         Assert.ThrowsAsync<CliException>(
@@ -229,7 +296,8 @@ public class AccessServiceTests
     [Test]
     public async Task DeletePlayerPolicyStatementsAsync_Valid()
     {
-        m_PlayerPolicyApi.Setup(a => a.DeletePlayerPolicyStatementsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DeleteOptions>(), It.IsAny<int>(), CancellationToken.None));
+        m_PlayerPolicyApi.Setup(a => a.DeletePlayerPolicyStatementsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+            It.IsAny<DeleteOptions>(), It.IsAny<int>(), CancellationToken.None));
 
         await m_AccessService!.DeletePlayerPolicyStatementsAsync(
             TestValues.ValidProjectId,
@@ -247,6 +315,17 @@ public class AccessServiceTests
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Test]
+    public void DeletePlayerPolicyStatementsAsync_Invalid_ApiThrowsError()
+    {
+        m_PlayerPolicyApi.Setup(a => a.DeletePlayerPolicyStatementsAsync(It.IsAny<string>(), It.IsAny<string>(),
+            It.IsAny<string>(), It.IsAny<DeleteOptions>(), It.IsAny<int>(), CancellationToken.None)).Throws<ApiException>();
+
+        Assert.ThrowsAsync<CliException>(
+            () => m_AccessService!.DeletePlayerPolicyStatementsAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId,
+                m_PolicyFile!, CancellationToken.None));
     }
 
     [Test]
@@ -285,6 +364,17 @@ public class AccessServiceTests
     }
 
     [Test]
+    public void UpsertProjectAccessCaCAsync_Invalid_ApiThrowsError()
+    {
+        m_ProjectPolicyApi.Setup(a => a.UpsertPolicyAsync(It.IsAny<string>(), It.IsAny<string>(),
+            It.IsAny<Policy>(), It.IsAny<int>(), CancellationToken.None)).Throws<ApiException>();
+
+        Assert.ThrowsAsync<CliException>(
+            () => m_AccessService!.UpsertProjectAccessCaCAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, It.IsAny<Policy>(),
+                CancellationToken.None));
+    }
+
+    [Test]
     public async Task DeleteProjectAccessCaCAsync_Valid()
     {
         var statementIDs = new List<string>(){"statement-1"};
@@ -301,5 +391,16 @@ public class AccessServiceTests
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Test]
+    public void DeleteProjectAccessCaCAsync_Invalid_ApiThrowsError()
+    {
+        m_ProjectPolicyApi.Setup(a => a.DeletePolicyStatementsAsync(It.IsAny<string>(), It.IsAny<string>(),
+            It.IsAny<DeleteOptions>(), It.IsAny<int>(), CancellationToken.None)).Throws<ApiException>();
+
+        Assert.ThrowsAsync<CliException>(
+            () => m_AccessService!.DeleteProjectAccessCaCAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, It.IsAny<DeleteOptions>(),
+                CancellationToken.None));
     }
 }

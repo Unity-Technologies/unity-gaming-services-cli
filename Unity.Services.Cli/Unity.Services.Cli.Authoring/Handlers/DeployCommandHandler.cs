@@ -75,27 +75,39 @@ static class DeployCommandHandler
         var projectId = input.CloudProjectId!;
         var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
 
-        var tasks = deploymentServices
-            .Select(
+        var authoringResultServiceTask = deploymentServices
+                .Select<IDeploymentService, AuthoringResultServiceTask<DeploymentResult>>(
                 service =>
                 {
                     var filePaths = service.FileExtensions
                         .SelectMany(extension => ddefResult.AllFilesByExtension[extension])
                         .ToArray();
 
-                    return service.Deploy(
-                        input,
-                        filePaths,
-                        projectId,
-                        environmentId,
-                        loadingContext,
-                        cancellationToken);
+                    if (!input.Reconcile && !filePaths.Any())
+                    {
+                        // nothing to do for this service
+                        return new AuthoringResultServiceTask<DeploymentResult>(
+                            Task.FromResult(new DeploymentResult(Array.Empty<AuthorResult>())),
+                            service.ServiceType);
+                    }
+
+                    return new AuthoringResultServiceTask<DeploymentResult>(
+                        service.Deploy(
+                            input,
+                            filePaths,
+                            projectId,
+                            environmentId,
+                            loadingContext,
+                            cancellationToken),
+                        service.ServiceType);
                 })
             .ToArray();
 
         try
         {
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(
+                authoringResultServiceTask
+                    .Select(t => t.AuthorResultTask));
         }
         catch
         {
@@ -105,7 +117,8 @@ static class DeployCommandHandler
         }
 
         // Get Results from successfully ran deployments
-        var deploymentResults = tasks
+        var deploymentResults = authoringResultServiceTask
+            .Select(t => t.AuthorResultTask)
             .Where(t => t.IsCompletedSuccessfully)
             .Select(t => t.Result)
             .ToArray();
@@ -115,7 +128,7 @@ static class DeployCommandHandler
         AuthoringHandlerCommon.PrintResult(
             input,
             logger,
-            tasks,
+            authoringResultServiceTask,
             totalResult,
             ddefResult);
     }

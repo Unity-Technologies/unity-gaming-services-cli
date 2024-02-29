@@ -415,7 +415,6 @@ public partial class GameServerHostingTests
     [Category("gsh")]
     [Category("gsh fleet")]
     [Category("gsh fleet list")]
-    [Ignore("Breaks on windows - Task to fix: https://jira.unity3d.com/browse/GID-2370")]
     public async Task FleetList_SucceedsWithValidInput()
     {
         await GetFullySetCli()

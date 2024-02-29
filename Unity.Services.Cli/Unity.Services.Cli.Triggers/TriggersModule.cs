@@ -60,7 +60,7 @@ public class TriggersModule : ICommandModule
         // Register the command handler
         serviceCollection.AddTransient<IDeploymentService, TriggersDeploymentService>();
         serviceCollection.AddTransient<ITriggersDeploymentHandler, TriggersDeploymentHandler>();
-
+        serviceCollection.AddTransient<IFetchService, TriggersFetchService>();
         serviceCollection.AddTransient<ITriggersFetchHandler, TriggersFetchHandler>();
         serviceCollection.AddTransient<IFileSystem, FileSystem>();
         serviceCollection.AddTransient<ITriggersResourceLoader, TriggersResourceLoader>();

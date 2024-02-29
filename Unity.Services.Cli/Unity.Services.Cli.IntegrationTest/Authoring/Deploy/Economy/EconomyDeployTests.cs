@@ -69,11 +69,12 @@ public class EconomyDeployTests : DeployTestsFixture
                 "Remote",
                 100.0f,
                 Statuses.Deployed,
-                "Deleted remotely");
+                "Deleted remotely",
+                SeverityLevel.Success);
         var createdContentList = await CreateDeployTestFilesAsync(DeployedTestCases);
 
         //TODO: remove this after message details will be adjusted in other services or removed from Economy module
-        createdContentList[0].Status = new DeploymentStatus(Statuses.Deployed, "Created remotely");
+        createdContentList[0].Status = new DeploymentStatus(Statuses.Deployed, "Created remotely", SeverityLevel.Success);
         // deployed content list has the same as the created + the content economy content deployed
         var deployedContentList = createdContentList.ToList();
         deployedContentList.Add(content);
@@ -88,7 +89,7 @@ public class EconomyDeployTests : DeployTestsFixture
             deployedContentList,
             Array.Empty<DeployContent>());
 
-        var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
+        var resultString = JsonConvert.SerializeObject(logResult.ToTable("Economy"), Formatting.Indented);
 
         await GetFullySetCli()
             .Command($"deploy {TestDirectory} -j --reconcile -s economy")

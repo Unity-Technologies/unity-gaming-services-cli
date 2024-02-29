@@ -34,13 +34,17 @@ public class RemoteConfigDeploymentResultTests
     public void SetUp()
     {
         m_RemoteConfigDeploymentResult = new RemoteConfigDeploymentResult(
-            m_UpdatedItems, m_DeletedItems, m_CreatedItems, m_AuthoredItems, m_FailedItems);
+            m_UpdatedItems,
+            m_DeletedItems,
+            m_CreatedItems,
+            m_AuthoredItems,
+            m_FailedItems);
     }
 
     [Test]
     public void ToTableHasCorrectAmountRows()
     {
-        var tableResult = m_RemoteConfigDeploymentResult.ToTable();
+        var tableResult = m_RemoteConfigDeploymentResult.ToTable("Remote Config");
 
         var itemsCount = m_AuthoredItems.Count + m_UpdatedItems.Count + m_CreatedItems.Count + m_DeletedItems.Count + m_FailedItems.Count;
 

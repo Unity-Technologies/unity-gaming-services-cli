@@ -54,7 +54,11 @@ static class FetchCommandHandler
 
         var services = host.Services.GetServices<IFetchService>().ToList();
 
-        if (!AuthoringHandlerCommon.PreActionValidation(input, logger, services, inputPaths))
+        if (!AuthoringHandlerCommon.PreActionValidation(
+                input,
+                logger,
+                services,
+                inputPaths))
         {
             return;
         }
@@ -81,27 +85,39 @@ static class FetchCommandHandler
         var projectId = input.CloudProjectId!;
         var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
 
-        var tasks = fetchServices
-            .Select(
+        var authoringResultServiceTask = fetchServices
+            .Select<IFetchService, AuthoringResultServiceTask<FetchResult>>(
                 service =>
                 {
                     var filePaths = service.FileExtensions
                         .SelectMany(extension => ddefResult.AllFilesByExtension[extension])
                         .ToArray();
 
-                    return service.FetchAsync(
-                        input,
-                        filePaths,
-                        projectId,
-                        environmentId,
-                        loadingContext,
-                        cancellationToken);
+                    if (!input.Reconcile && !filePaths.Any())
+                    {
+                        // nothing to do for this service
+                        return new AuthoringResultServiceTask<FetchResult>(
+                            Task.FromResult(new FetchResult(Array.Empty<AuthorResult>())),
+                            service.ServiceType);
+                    }
+
+                    return new AuthoringResultServiceTask<FetchResult>(
+                        service.FetchAsync(
+                            input,
+                            filePaths,
+                            projectId,
+                            environmentId,
+                            loadingContext,
+                            cancellationToken),
+                        service.ServiceType);
                 })
             .ToArray();
 
         try
         {
-            fetchResult = await Task.WhenAll(tasks);
+            fetchResult = await Task.WhenAll(
+                authoringResultServiceTask
+                    .Select(t => t.AuthorResultTask));
         }
         catch
         {
@@ -115,7 +131,7 @@ static class FetchCommandHandler
         AuthoringHandlerCommon.PrintResult(
             input,
             logger,
-            tasks,
+            authoringResultServiceTask,
             totalResult,
             ddefResult);
     }

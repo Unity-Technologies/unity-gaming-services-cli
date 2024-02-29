@@ -1,5 +1,4 @@
 using System.Net;
-using SystemFile = System.IO.File;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
@@ -10,6 +9,7 @@ using Unity.Services.Cli.GameServerHosting.Handlers;
 using Unity.Services.Cli.GameServerHosting.Input;
 using Unity.Services.Cli.TestUtils;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
+using SystemFile = System.IO.File;
 
 namespace Unity.Services.Cli.GameServerHosting.UnitTest.Handlers;
 
@@ -49,7 +49,8 @@ partial class BuildCreateVersionHandlerTests
             TargetEnvironmentName = ValidEnvironmentName,
             BuildId = buildId.HasValue ? buildId.ToString() : null,
             FileDirectory = directory,
-            RemoveOldFiles = removeOldFiles
+            RemoveOldFiles = removeOldFiles,
+            BuildVersionName = ValidBuildVersionName
         };
 
         Assert.ThrowsAsync<MissingInputException>(

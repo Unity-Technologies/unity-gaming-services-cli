@@ -38,6 +38,7 @@ public class GameServerHostingModule : ICommandModule
             BuildCreateInput.BuildNameOption,
             BuildCreateInput.BuildOsFamilyOption,
             BuildCreateInput.BuildTypeOption,
+            BuildCreateInput.BuildVersionNameOption,
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption
         };
@@ -61,7 +62,8 @@ public class GameServerHostingModule : ICommandModule
             BuildCreateVersionInput.ContainerTagOption,
             BuildCreateVersionInput.FileDirectoryOption,
             BuildCreateVersionInput.SecretKeyOption,
-            BuildCreateVersionInput.RemoveOldFilesOption
+            BuildCreateVersionInput.RemoveOldFilesOption,
+            BuildCreateVersionInput.BuildVersionNameOption
         };
         BuildCreateVersionCommand.SetHandler<
             BuildCreateVersionInput,
@@ -185,6 +187,7 @@ public class GameServerHostingModule : ICommandModule
             BuildConfigurationCreateInput.NameOption,
             BuildConfigurationCreateInput.QueryTypeOption,
             BuildConfigurationCreateInput.SpeedOption,
+            BuildConfigurationCreateInput.ReadinessOption,
         };
         BuildConfigurationCreateCommand.SetHandler<
             BuildConfigurationCreateInput,
@@ -239,6 +242,7 @@ public class GameServerHostingModule : ICommandModule
             BuildConfigurationCreateInput.MemoryOption,
             BuildConfigurationCreateInput.NameOption,
             BuildConfigurationCreateInput.QueryTypeOption,
+            BuildConfigurationCreateInput.ReadinessOption,
             BuildConfigurationCreateInput.SpeedOption,
         };
         BuildConfigurationUpdateCommand.SetHandler<
@@ -548,6 +552,88 @@ public class GameServerHostingModule : ICommandModule
             ServerFilesCommand,
         };
 
+        CoreDumpGetCommand = new Command("get", "Get a Game Server Hosting core dump configuration.")
+        {
+            CommonInput.EnvironmentNameOption,
+            CommonInput.CloudProjectIdOption,
+            FleetIdInput.FleetIdArgument,
+        };
+
+        CoreDumpDeleteCommand = new Command("delete", "Delete a Game Server Hosting core dump configuration.")
+        {
+            CommonInput.EnvironmentNameOption,
+            CommonInput.CloudProjectIdOption,
+            FleetIdInput.FleetIdArgument,
+        };
+
+        CoreDumpCreateCommand = new Command("create", "Create a Game Server Hosting core dump configuration.")
+        {
+            CommonInput.EnvironmentNameOption,
+            CommonInput.CloudProjectIdOption,
+            FleetIdInput.FleetIdArgument,
+            CoreDumpCreateInput.StorageTypeOption,
+            CoreDumpCreateInput.GcsBucketOption,
+            CoreDumpCreateInput.GcsCredentialsFileOption,
+            CoreDumpCreateInput.StateOption,
+        };
+
+        CoreDumpUpdateCommand = new Command("update", "Update a Game Server Hosting core dump configuration.")
+        {
+            CommonInput.EnvironmentNameOption,
+            CommonInput.CloudProjectIdOption,
+            FleetIdInput.FleetIdArgument,
+            CoreDumpUpdateInput.StorageTypeOption,
+            CoreDumpUpdateInput.GcsBucketOption,
+            CoreDumpUpdateInput.GcsCredentialsFileOption,
+            CoreDumpUpdateInput.StateOption,
+        };
+
+        CoreDumpGetCommand.SetHandler<
+            FleetIdInput,
+            IUnityEnvironment,
+            IGameServerHostingService,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken
+        >(CoreDumpGetHandler.CoreDumpGetAsync);
+
+        CoreDumpDeleteCommand.SetHandler<
+            FleetIdInput,
+            IUnityEnvironment,
+            IGameServerHostingService,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken
+        >(CoreDumpDeleteHandler.CoreDumpDeleteAsync);
+
+        CoreDumpCreateCommand.SetHandler<
+            CoreDumpCreateInput,
+            IUnityEnvironment,
+            IGameServerHostingService,
+            ILogger,
+            ILoadingIndicator,
+            GcsCredentialParser,
+            CancellationToken
+        >(CoreDumpCreateHandler.CoreDumpCreateAsync);
+
+        CoreDumpUpdateCommand.SetHandler<
+            CoreDumpUpdateInput,
+            IUnityEnvironment,
+            IGameServerHostingService,
+            ILogger,
+            ILoadingIndicator,
+            GcsCredentialParser,
+            CancellationToken
+        >(CoreDumpUpdateHandler.CoreDumpUpdateAsync);
+
+        CoreDumpCommand = new Command("core-dump", "Manage Game Server Hosting core dump configurations.")
+        {
+            CoreDumpGetCommand,
+            CoreDumpDeleteCommand,
+            CoreDumpCreateCommand,
+            CoreDumpUpdateCommand
+        };
+
         ModuleRootCommand = new Command("game-server-hosting", "Manage Game Sever Hosting resources.")
         {
             BuildCommand,
@@ -555,7 +641,8 @@ public class GameServerHostingModule : ICommandModule
             FleetCommand,
             FleetRegionCommand,
             MachineCommand,
-            ServerCommand
+            CoreDumpCommand,
+            ServerCommand,
         };
 
         ModuleRootCommand.AddAlias("gsh");
@@ -565,6 +652,7 @@ public class GameServerHostingModule : ICommandModule
         FleetRegionCommand.AddAlias("fr");
         MachineCommand.AddAlias("m");
         ServerCommand.AddAlias("s");
+        CoreDumpCommand.AddAlias("cd");
     }
 
     internal Command BuildCommand { get; }
@@ -573,6 +661,8 @@ public class GameServerHostingModule : ICommandModule
     internal Command FleetRegionCommand { get; }
     internal Command MachineCommand { get; }
     internal Command ServerCommand { get; }
+
+    internal Command CoreDumpCommand { get; }
 
     // Build Commands
     internal Command BuildCreateCommand { get; }
@@ -614,7 +704,6 @@ public class GameServerHostingModule : ICommandModule
     internal Command ServerFilesListCommand { get; }
     internal Command ServerFilesDownloadCommand { get; }
 
-
     internal static ExceptionFactory ExceptionFactory => (method, response) =>
     {
         // Handle errors from the backend
@@ -645,6 +734,12 @@ public class GameServerHostingModule : ICommandModule
 
         string Message(string text) => $"Error calling {method}: {text}";
     };
+
+    // Core Dump Commands
+    internal Command CoreDumpGetCommand { get; }
+    internal Command CoreDumpCreateCommand { get; }
+    internal Command CoreDumpUpdateCommand { get; set; }
+    internal Command CoreDumpDeleteCommand { get; set; }
 
     // GSH Module Command
     public Command ModuleRootCommand { get; }
@@ -684,6 +779,10 @@ public class GameServerHostingModule : ICommandModule
         {
             ExceptionFactory = ExceptionFactory
         };
+        ICoreDumpApi coreDumpApi = new CoreDumpApi(gameServerHostingConfiguration)
+        {
+            ExceptionFactory = ExceptionFactory
+        };
 
         GameServerHostingService service = new(
             authenticationService,
@@ -692,6 +791,7 @@ public class GameServerHostingModule : ICommandModule
             filesApi,
             fleetsApi,
             machinesApi,
+            coreDumpApi,
             serversApi
         );
 
@@ -699,7 +799,7 @@ public class GameServerHostingModule : ICommandModule
 
         serviceCollection.AddTransient<IFile>(_ => new FileSystem().File);
         serviceCollection.AddTransient<IDirectory>(_ => new FileSystem().Directory);
-
+        serviceCollection.AddTransient<GcsCredentialParser>();
         RegisterApiClients(serviceCollection);
         RegisterAuthoringServices(serviceCollection);
     }
@@ -715,6 +815,7 @@ public class GameServerHostingModule : ICommandModule
         serviceCollection.AddSingleton<IBuildConfigurationsApiAsync>(
             new BuildConfigurationsApi(gameServerHostingConfig));
         serviceCollection.AddSingleton<IFleetsApiAsync>(new FleetsApi(gameServerHostingConfig));
+        serviceCollection.AddSingleton<ICoreDumpApiAsync>(new CoreDumpApi(gameServerHostingConfig));
 
         var cloudContentDeliveryConfiguration = new CloudContentDeliveryConfiguration
         {
@@ -745,4 +846,5 @@ public class GameServerHostingModule : ICommandModule
         serviceCollection.AddScoped<IGameServerHostingConfigLoader, GameServerHostingConfigLoader>();
         serviceCollection.AddTransient<IDeployFileService, DeployFileService>();
     }
+
 }

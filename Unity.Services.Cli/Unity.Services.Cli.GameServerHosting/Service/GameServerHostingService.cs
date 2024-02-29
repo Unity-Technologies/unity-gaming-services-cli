@@ -14,6 +14,7 @@ public class GameServerHostingService : IGameServerHostingService
         IFilesApi filesApi,
         IFleetsApi fleetsApi,
         IMachinesApi machinesApi,
+        ICoreDumpApi coreDumpApi,
         IServersApi serversApi
     )
     {
@@ -24,6 +25,7 @@ public class GameServerHostingService : IGameServerHostingService
         FleetsApi = fleetsApi;
         MachinesApi = machinesApi;
         ServersApi = serversApi;
+        CoreDumpApi = coreDumpApi;
     }
 
     public IBuildsApi BuildsApi { get; }
@@ -38,6 +40,8 @@ public class GameServerHostingService : IGameServerHostingService
 
     public IServersApi ServersApi { get; }
 
+    public ICoreDumpApi CoreDumpApi { get; }
+
 
     public async Task AuthorizeGameServerHostingService(CancellationToken cancellationToken = default)
     {
@@ -48,5 +52,6 @@ public class GameServerHostingService : IGameServerHostingService
         FleetsApi.Configuration.DefaultHeaders.Add("Authorization", $"Basic {token}");
         MachinesApi.Configuration.DefaultHeaders.Add("Authorization", $"Basic {token}");
         ServersApi.Configuration.DefaultHeaders.Add("Authorization", $"Basic {token}");
+        CoreDumpApi.Configuration.DefaultHeaders.Add("Authorization", $"Basic {token}");
     }
 }

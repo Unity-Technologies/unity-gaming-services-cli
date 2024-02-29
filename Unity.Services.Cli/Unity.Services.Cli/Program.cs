@@ -37,6 +37,7 @@ using Unity.Services.Cli.Triggers;
 #endif
 using Unity.Services.Cli.Player;
 using Unity.Services.Cli.Access;
+using Unity.Services.Cli.Scheduler;
 
 namespace Unity.Services.Cli;
 
@@ -70,10 +71,12 @@ public static partial class Program
                     telemetrySender = CommonModule.CreateTelemetrySender(systemEnvironmentProvider);
 
                     host.ConfigureServices(ConfigurationModule.RegisterServices);
+
                     host.ConfigureServices(AuthenticationModule.RegisterServices);
                     host.ConfigureServices(EnvironmentModule.RegisterServices);
                     host.ConfigureServices(DeployModule.RegisterServices);
                     host.ConfigureServices(CloudCodeModule.RegisterServices);
+                    host.ConfigureServices(SchedulerModule.RegisterServices);
                     host.ConfigureServices(RemoteConfigModule.RegisterServices);
                     host.ConfigureServices(AccessModule.RegisterServices);
                     host.ConfigureServices(GameServerHostingModule.RegisterServices);
@@ -140,6 +143,7 @@ public static partial class Program
             .AddCliServicesMiddleware(services)
             .AddModule(new AuthenticationModule())
             .AddModule(new CloudCodeModule())
+            .AddModule(new SchedulerModule())
             .AddModule(new ConfigurationModule())
             .AddModule(new DeployModule())
             .AddModule(new FetchModule())

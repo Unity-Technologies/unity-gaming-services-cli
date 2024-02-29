@@ -14,9 +14,7 @@ public class DeploymentResult : AuthorResult
         IReadOnlyList<IDeploymentItem> authored,
         IReadOnlyList<IDeploymentItem> failed,
         bool dryRun = false)
-        : base(updated, deleted, created, authored, failed, dryRun)
-    {
-    }
+        : base(updated, deleted, created, authored, failed, dryRun) { }
 
     public DeploymentResult(IReadOnlyList<AuthorResult> results, bool dryRun = false) : base(results, dryRun) { }
 

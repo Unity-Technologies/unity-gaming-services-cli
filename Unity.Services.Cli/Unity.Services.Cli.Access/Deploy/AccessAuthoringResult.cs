@@ -24,7 +24,7 @@ class AccessDeploymentResult : DeploymentResult
     {
     }
 
-    public override TableContent ToTable()
+    public override TableContent ToTable(string service = "")
     {
         return AccessControlResToTable(this);
     }
@@ -79,7 +79,7 @@ class AccessFetchResult : FetchResult
     {
     }
 
-    public override TableContent ToTable()
+    public override TableContent ToTable(string service)
     {
         return AccessDeploymentResult.AccessControlResToTable(this);
     }

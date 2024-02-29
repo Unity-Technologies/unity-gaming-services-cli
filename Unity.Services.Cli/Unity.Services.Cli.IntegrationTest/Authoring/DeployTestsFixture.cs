@@ -133,7 +133,7 @@ public abstract class DeployTestsFixture : UgsCliFixture
     {
         var deployedContents = await CreateDeployTestFilesAsync(DeployedTestCases);
 
-        deployedContents[0].Status = new DeploymentStatus(Statuses.Deployed, "Created remotely");
+        deployedContents[0].Status = new DeploymentStatus(Statuses.Deployed, "Created remotely", SeverityLevel.Success);
 
         var logResult = CreateResult(
             deployedContents,
@@ -142,7 +142,7 @@ public abstract class DeployTestsFixture : UgsCliFixture
             deployedContents,
             Array.Empty<DeployContent>());
 
-        var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
+        var resultString = JsonConvert.SerializeObject(logResult.ToTable("Economy"), Formatting.Indented);
         await GetFullySetCli()
             .Command($"deploy {TestDirectory} -j")
             .AssertStandardOutputContains(resultString)
@@ -168,7 +168,7 @@ public abstract class DeployTestsFixture : UgsCliFixture
             Array.Empty<DeployContent>(),
             Array.Empty<DeployContent>(),
             true);
-        var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
+        var resultString = JsonConvert.SerializeObject(logResult.ToTable("Economy"), Formatting.Indented);
         await GetFullySetCli()
             .Command($"deploy {TestDirectory} -j --dry-run")
             .AssertStandardOutputContains(resultString)
@@ -193,7 +193,7 @@ public abstract class DeployTestsFixture : UgsCliFixture
             Array.Empty<DeployContent>(),
             contentList,
             Array.Empty<DeployContent>());
-        var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
+        var resultString = JsonConvert.SerializeObject(logResult.ToTable("Economy"), Formatting.Indented);
 
         await GetFullySetCli()
             .Command($"deploy {TestDirectory} -j")
@@ -204,7 +204,7 @@ public abstract class DeployTestsFixture : UgsCliFixture
 
     #endregion
 
-    protected async Task<List<DeployContent>> CreateDeployTestFilesAsync(
+    protected static async Task<List<DeployContent>> CreateDeployTestFilesAsync(
         IReadOnlyList<AuthoringTestCase> testCases)
     {
         List<DeployContent> deployedContentList = new();

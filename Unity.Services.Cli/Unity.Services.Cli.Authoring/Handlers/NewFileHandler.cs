@@ -36,6 +36,13 @@ public static class NewFileHandler
     {
         input.File = Path.ChangeExtension(input.File ?? defaultFileName, template.Extension);
 
+        var directoryPath = Path.GetDirectoryName(input.File);
+        if (!Directory.Exists(directoryPath) && !string.IsNullOrEmpty(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+            logger.LogInformation("Directory {directoryPath} created successfully!", directoryPath);
+        }
+
         if (file.Exists(input.File) && !input.UseForce)
         {
             logger.LogError($"A file with the name '{input.File}' already exists." +

@@ -7,6 +7,9 @@ namespace Unity.Services.Cli.Triggers.Deploy;
 
 public class TriggersConfigFile : IFileTemplate
 {
+    [JsonProperty("$schema")]
+    public string Value => "https://ugs-config-schemas.unity3d.com/v1/triggers.schema.json";
+
     public IList<TriggerConfig> Configs { get; set; }
 
     [JsonIgnore]

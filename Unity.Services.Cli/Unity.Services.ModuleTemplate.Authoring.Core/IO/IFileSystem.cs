@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Unity.Services.ModuleTemplate.Authoring.Core.IO
 {
-    public interface IFileSystem
+    public interface IFileSystem //Abstracted away - delete
     {
         Task<string> ReadAllText(
             string path,

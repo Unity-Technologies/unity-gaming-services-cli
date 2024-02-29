@@ -65,7 +65,7 @@ class RegionAvailableHandlerTests : HandlerCommon
 
         FleetsApi!.DefaultFleetsClient.Verify(api => api.GetAvailableFleetRegionsAsync(
             new Guid(input.CloudProjectId), new Guid(ValidEnvironmentId),
-            new Guid(ValidFleetId), 0, CancellationToken.None
+            new Guid(ValidFleetId), null, 0, CancellationToken.None
         ), Times.Once);
     }
 

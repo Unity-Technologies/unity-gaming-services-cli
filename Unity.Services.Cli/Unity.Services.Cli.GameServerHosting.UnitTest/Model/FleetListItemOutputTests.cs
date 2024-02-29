@@ -13,6 +13,7 @@ public class FleetListItemOutputTests
         m_Fleet = new FleetListItem(
             allocationType: FleetListItem.AllocationTypeEnum.ALLOCATION,
             new List<BuildConfiguration1>(),
+            graceful: false,
             regions: new List<FleetRegion>(),
             id: new Guid(ValidFleetId),
             name: ValidFleetName,

@@ -7,7 +7,8 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Deploy
 {
     public interface IModuleTemplateDeploymentHandler
     {
-        Task<DeployResult> DeployAsync(IReadOnlyList<IResource> localResources,
+        Task<DeployResult> DeployAsync(
+            IReadOnlyList<IResourceDeploymentItem> localResources,
             bool dryRun = false,
             bool reconcile = false,
             CancellationToken token = default);

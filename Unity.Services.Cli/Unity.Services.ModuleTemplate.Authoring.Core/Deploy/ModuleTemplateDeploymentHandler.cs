@@ -10,62 +10,58 @@ using Unity.Services.ModuleTemplate.Authoring.Core.Validations;
 
 namespace Unity.Services.ModuleTemplate.Authoring.Core.Deploy
 {
-    public class ModuleTemplateDeploymentHandler : IModuleTemplateDeploymentHandler
+    public class ModuleTemplateDeploymentHandler : ModuleTemplateFetchDeployBase, IModuleTemplateDeploymentHandler
     {
-        readonly IModuleTemplateClient m_Client;
-        readonly object m_ResultLock = new();
-
         public ModuleTemplateDeploymentHandler(IModuleTemplateClient client)
-        {
-            m_Client = client;
-        }
+            : base(client) { }
 
         public async Task<DeployResult> DeployAsync(
-            IReadOnlyList<IResource> localResources,
+            IReadOnlyList<IResourceDeploymentItem> localResources,
             bool dryRun = false,
             bool reconcile = false,
             CancellationToken token = default)
         {
             var res = new DeployResult();
 
-            localResources = DuplicateResourceValidation.FilterDuplicateResources(
+            var filteredLocalResources = DuplicateResourceValidation.FilterDuplicateResources(
                 localResources, out var duplicateGroups);
 
-            var remoteResources = await m_Client.List();
+            UpdateDuplicateResourceStatus(duplicateGroups);
 
-            var toCreate = localResources
-                .Except(remoteResources)
+            var remoteResources = await GetRemoteItems(cancellationToken: token);
+
+            SetupMaps(filteredLocalResources, remoteResources);
+
+            var toCreate = filteredLocalResources
+                .Where(DoesNotExistRemotely)
                 .ToList();
 
-            var toUpdate = localResources
-                .Except(toCreate)
+            var toUpdate = filteredLocalResources
+                .Where(ExistsRemotely)
                 .ToList();
 
-            var toDelete = new List<IResource>();
+            var toDelete = new List<IResourceDeploymentItem>();
             if (reconcile)
             {
                 toDelete = remoteResources
-                    .Except(localResources)
+                    .Where(DoesNotExistLocally)
                     .ToList();
             }
 
-            res.Created = toCreate;
-            res.Deleted = toDelete;
-            res.Updated = toUpdate;
-            res.Deployed = new List<IResource>();
-            res.Failed = new List<IResource>();
-
-            UpdateDuplicateResourceStatus(res, duplicateGroups);
+            res.Deployed = localResources.Concat(toDelete).ToList();
 
             if (dryRun)
             {
+                UpdateDryRunResult(toUpdate, toDelete, toCreate);
                 return res;
             }
 
-            var createTasks = GetTasks(toCreate, m_Client.Create, res);
-            var updateTasks = GetTasks(toUpdate, m_Client.Update, res);
+            filteredLocalResources.ForEach(l => l.Progress = 50);
+
+            var createTasks = GetTasks(toCreate, Client.Create, Constants.Created, token);
+            var updateTasks = GetTasks(toUpdate, Client.Update, Constants.Updated, token);
             var deleteTasks = reconcile
-                ? GetTasks(toDelete, m_Client.Delete, res)
+                ? GetTasks(toDelete, Client.Delete, Constants.Deleted, token)
                 : new List<Task>();
 
             var allTasks = createTasks.Concat(updateTasks).Concat(deleteTasks);
@@ -75,60 +71,42 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Deploy
             return res;
         }
 
-        // TODO: Add support for CancellationToken in m_Client.Create, m_Client.Update, m_Client.Delete
-        IEnumerable<Task> GetTasks(List<IResource> resources, Func<IResource, Task> func, DeployResult res)
-            => resources.Select(i => DeployResource(func, i, res));
-
-        protected virtual void UpdateStatus(
-            IResource resource,
-            DeploymentStatus status)
+        static IEnumerable<Task> GetTasks(
+            List<IResourceDeploymentItem> resources,
+            Func<IResource, CancellationToken, Task> func,
+            string taskAction,
+            CancellationToken token)
         {
-            // clients can override this to provide user feedback on progress
-            resource.Status = status;
+            return resources.Select(i => DeployResource(func, i, taskAction, token));
         }
 
-        protected virtual void UpdateProgress(
-            IResource resource,
-            float progress)
-        {
-            // clients can override this to provide user feedback on progress
-            resource.Progress = progress;
-        }
-
-        void UpdateDuplicateResourceStatus(
-            DeployResult result,
-            IReadOnlyList<IGrouping<string, IResource>> duplicateGroups)
-        {
-            foreach (var group in duplicateGroups)
-            {
-                foreach (var res in group)
-                {
-                    result.Failed.Add(res);
-                    var (message, shortMessage) = DuplicateResourceValidation.GetDuplicateResourceErrorMessages(res, group.ToList());
-                    UpdateStatus(res, Statuses.GetFailedToDeploy(shortMessage));
-                }
-            }
-        }
-
-        async Task DeployResource(
-            Func<IResource, Task> task,
-            IResource resource,
-            DeployResult res)
+        static async Task DeployResource(
+            Func<IResource, CancellationToken, Task> task,
+            IResourceDeploymentItem resource,
+            string taskAction,
+            CancellationToken token)
         {
             try
             {
-                await task(resource);
-                lock (m_ResultLock)
-                    res.Deployed.Add(resource);
-                UpdateStatus(resource, Statuses.Deployed);
-                UpdateProgress(resource, 100);
+                resource.Status = Statuses.GetDeploying();
+                await task(resource.Resource, token);
+                resource.Status = Statuses.GetDeployed(taskAction);
+                resource.Progress = 100f;
             }
             catch (Exception e)
             {
-                lock (m_ResultLock)
-                    res.Failed.Add(resource);
-                UpdateStatus(resource, Statuses.GetFailedToDeploy(e.Message));
+                resource.Status = Statuses.GetFailedToDeploy(e.Message);
             }
+        }
+
+        protected override DeploymentStatus GetSuccessStatus(string message)
+        {
+            return Statuses.GetDeployed(message);
+        }
+
+        protected override DeploymentStatus GetFailedStatus(string message)
+        {
+            return Statuses.GetFailedToDeploy(message);
         }
     }
 }

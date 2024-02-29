@@ -128,7 +128,6 @@ public class RemoteConfigFetchTests : UgsCliFixture
             .AssertStandardOutput(
                 output =>
                 {
-                    Console.WriteLine(output);
                     StringAssert.Contains($"Successfully fetched the following files:{Environment.NewLine}", output);
                     foreach (var file in m_FetchedTestCases)
                     {
@@ -175,8 +174,7 @@ public class RemoteConfigFetchTests : UgsCliFixture
             m_FetchedKeysTestCases,
             Array.Empty<DeployContent>(),
             fetchedPaths,
-            Array.Empty<DeployContent>(),
-            false);
+            Array.Empty<DeployContent>());
         var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
         await GetLoggedInCli()
             .Command($"fetch {k_TestDirectory} -j -s remote-config")

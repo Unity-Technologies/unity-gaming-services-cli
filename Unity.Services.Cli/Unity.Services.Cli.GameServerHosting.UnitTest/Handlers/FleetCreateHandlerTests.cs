@@ -102,7 +102,7 @@ class FleetCreateHandlerTests : HandlerCommon
             buildConfigurations: buildConfigurations.ToList(), regions: regionList, usageSettings: new List<FleetUsageSetting> { usageSetting! });
 
         FleetsApi!.DefaultFleetsClient.Verify(api => api.CreateFleetAsync(
-            new Guid(input.CloudProjectId), new Guid(ValidEnvironmentId),
+            new Guid(input.CloudProjectId), new Guid(ValidEnvironmentId), null,
             createRequest, 0, CancellationToken.None
         ), Times.Once);
     }

@@ -26,8 +26,8 @@ public static class Keys
         public const string EnvironmentName = "environment-name";
         // Environment Id is currently not stored/retrieved but the key is used for validation purposes
         public const string EnvironmentId = "environment-id";
-
-        public static readonly IReadOnlyList<string> Keys = new List<string> { ProjectId, EnvironmentName };
+        public const string BucketId = "bucket-id";
+        public static readonly IReadOnlyList<string> Keys = new List<string> { ProjectId, EnvironmentName, BucketId };
     }
 
     /// <summary>
@@ -37,6 +37,7 @@ public static class Keys
     {
         public const string ProjectId = "UGS_CLI_PROJECT_ID";
         public const string EnvironmentName = "UGS_CLI_ENVIRONMENT_NAME";
+        public const string BucketId = "UGS_CLI_BUCKET_ID";
         public const string TelemetryDisabled = "UGS_CLI_TELEMETRY_DISABLED";
         // Env variables used for identifying the cicd platform being used
         public const string RunningOnDocker = "DOTNET_RUNNING_IN_CONTAINER";

@@ -57,8 +57,7 @@ public class DeployHandlerTests
                     new List<DeployContent>(),
                     new List<DeployContent>(),
                     new List<DeployContent>(),
-                    new List<DeployContent>(),
-                    false));
+                    new List<DeployContent>()));
         }
     }
 
@@ -90,8 +89,7 @@ public class DeployHandlerTests
                 new List<DeployContent>()
                 {
                     new ("failure", "type", "path_2")
-                },
-                false));
+                }));
         }
     }
 
@@ -99,7 +97,7 @@ public class DeployHandlerTests
     {
         string m_ServiceType = "Test";
         string m_ServiceName = "test";
-        string m_DeployFileExtension = ".test";
+        string m_DeployFileExtension = ".test1";
 
         public string ServiceType => m_ServiceType;
         public string ServiceName => m_ServiceName;
@@ -113,7 +111,6 @@ public class DeployHandlerTests
             StatusContext? loadingContext, CancellationToken cancellationToken)
         {
             return Task.FromException<DeploymentResult>(new NotImplementedException());
-
         }
     }
 
@@ -172,7 +169,8 @@ public class DeployHandlerTests
                     new DeploymentDefinitionFiles(),
                     new Dictionary<string, IReadOnlyList<string>>
                     {
-                        { ".test", new List<string>() }
+                        { ".test", new List<string> { "path.test"} },
+                        { ".test1", new List<string> { "path1.test1"} }
                     }));
     }
 

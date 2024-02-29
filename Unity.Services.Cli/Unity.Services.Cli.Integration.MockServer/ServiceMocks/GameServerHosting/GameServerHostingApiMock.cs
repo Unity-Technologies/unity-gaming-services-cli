@@ -1,18 +1,21 @@
 using System.Net;
+using System.Text;
 using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
-using File = Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model.File;
-using Machine = Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model.Machine1;
 using WireMock.Admin.Mappings;
 using WireMock.Net.OpenApiParser.Settings;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
+using File = Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model.File;
+using Machine = Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model.Machine1;
 
 namespace Unity.Services.Cli.MockServer.ServiceMocks.GameServerHosting;
 
 public class GameServerHostingApiMock : IServiceApiMock
 {
+    public const string TempFileName = "temp-file.txt";
+
     public async Task<IReadOnlyList<MappingModel>> CreateMappingModels()
     {
         var models = await MappingModelUtils.ParseMappingModelsAsync(
@@ -46,6 +49,7 @@ public class GameServerHostingApiMock : IServiceApiMock
         MockBuildConfigurationUpdate(mockServer);
         MockBuildConfigurationList(mockServer);
         MockMachineList(mockServer);
+        MockFilesDownload(mockServer);
     }
 
     static void MockFleetGet(WireMockServer mockServer)
@@ -97,8 +101,22 @@ public class GameServerHostingApiMock : IServiceApiMock
             machineID: 123,
             machineName: "test machine",
             machineSpec: new MachineSpec1(
-                contractEndDate: new DateTime(2020, 12, 31, 12, 0, 0, DateTimeKind.Utc),
-                contractStartDate: new DateTime(2020, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+                contractEndDate: new DateTime(
+                    2020,
+                    12,
+                    31,
+                    12,
+                    0,
+                    0,
+                    DateTimeKind.Utc),
+                contractStartDate: new DateTime(
+                    2020,
+                    1,
+                    1,
+                    12,
+                    0,
+                    0,
+                    DateTimeKind.Utc),
                 cpuName: "test-cpu",
                 cpuShortname: "tc"
             ),
@@ -134,8 +152,22 @@ public class GameServerHostingApiMock : IServiceApiMock
                 machineID: 123,
                 machineName: "test machine",
                 machineSpec: new MachineSpec1(
-                    contractEndDate: new DateTime(2020, 12, 31, 12, 0,0, DateTimeKind.Utc),
-                    contractStartDate: new DateTime(2020, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+                    contractEndDate: new DateTime(
+                        2020,
+                        12,
+                        31,
+                        12,
+                        0,
+                        0,
+                        DateTimeKind.Utc),
+                    contractStartDate: new DateTime(
+                        2020,
+                        1,
+                        1,
+                        12,
+                        0,
+                        0,
+                        DateTimeKind.Utc),
                     cpuName: "test-cpu",
                     cpuShortname: "tc"
                 ),
@@ -196,6 +228,7 @@ public class GameServerHostingApiMock : IServiceApiMock
                 1,
                 11,
                 "Build1",
+                buildVersionName: "v1",
                 ccd: new CCDDetails(
                     new Guid(Keys.ValidBucketId),
                     new Guid(Keys.ValidRegionId)),
@@ -206,6 +239,7 @@ public class GameServerHostingApiMock : IServiceApiMock
                 2,
                 22,
                 "Build2",
+                buildVersionName: "v1",
                 container: new ContainerImage("v1"),
                 osFamily: BuildListInner.OsFamilyEnum.LINUX,
                 syncStatus: BuildListInner.SyncStatusEnum.SYNCED,
@@ -228,6 +262,7 @@ public class GameServerHostingApiMock : IServiceApiMock
             1,
             "name1",
             CreateBuild200Response.BuildTypeEnum.S3,
+            "v1",
             ccd: new CCDDetails()
         );
         var request = Request.Create()
@@ -251,6 +286,7 @@ public class GameServerHostingApiMock : IServiceApiMock
             Keys.ValidBuildIdBucket,
             "Bucket Build",
             CreateBuild200Response.BuildTypeEnum.S3,
+            "v1",
             s3: new AmazonS3Details("bucket-url")
         );
 
@@ -271,6 +307,7 @@ public class GameServerHostingApiMock : IServiceApiMock
             Keys.ValidBuildIdContainer,
             "Container Build",
             CreateBuild200Response.BuildTypeEnum.CONTAINER,
+            "v1",
             container: new ContainerImage("v1")
         );
 
@@ -291,6 +328,7 @@ public class GameServerHostingApiMock : IServiceApiMock
             Keys.ValidBuildIdFileUpload,
             "File Upload Build",
             CreateBuild200Response.BuildTypeEnum.FILEUPLOAD,
+            "v1",
             ccd: new CCDDetails()
         );
 
@@ -337,6 +375,7 @@ public class GameServerHostingApiMock : IServiceApiMock
         var buildInstalls = new List<BuildListInner1>
         {
             new BuildListInner1(
+                Keys.ValidBuildVersionName,
                 new CCDDetails(
                     Guid.Parse(Keys.ValidBucketId),
                     Guid.Parse(Keys.ValidReleaseId)
@@ -381,6 +420,8 @@ public class GameServerHostingApiMock : IServiceApiMock
         var build = new CreateBuild200Response(
             1,
             "Build1",
+            CreateBuild200Response.BuildTypeEnum.FILEUPLOAD,
+            "v1",
             ccd: new CCDDetails(
                 new Guid(Keys.ValidBucketId),
                 new Guid(Keys.ValidReleaseId)
@@ -576,8 +617,6 @@ public class GameServerHostingApiMock : IServiceApiMock
         mockServer.Given(request).RespondWith(response);
     }
 
-    public const string TempFileName = "temp-file.txt";
-
     static void MockMachineList(WireMockServer mockServer)
     {
         var machines = new List<Machine>
@@ -618,6 +657,41 @@ public class GameServerHostingApiMock : IServiceApiMock
 
         var response = Response.Create()
             .WithBodyAsJson(machines)
+            .WithStatusCode(HttpStatusCode.OK);
+
+        mockServer.Given(request).RespondWith(response);
+    }
+
+    static void MockFilesDownload(WireMockServer mockServer)
+    {
+        var contentUrl = new GenerateContentURLResponse(
+            url: $"{mockServer.Url}{Keys.MockedSignedUrlPath}"
+        );
+
+        var requestSignedUrlJson = new GenerateContentURLRequest(
+            path: Keys.ValidErrorLogPath,
+            serverId: long.Parse(Keys.ValidServerId)
+        );
+
+        var requestSignedUrl = Request.Create()
+            .WithPath(Keys.GenerateDownloadUrlPath)
+            .WithBodyAsJson(requestSignedUrlJson)
+            .UsingPost();
+
+        var responseSignedUrl = Response.Create()
+            .WithBodyAsJson(contentUrl)
+            .WithStatusCode(HttpStatusCode.OK);
+
+        mockServer.Given(requestSignedUrl).RespondWith(responseSignedUrl);
+
+        var fileContentBytes = Encoding.UTF8.GetBytes(Keys.MockFileContent);
+
+        var request = Request.Create()
+            .WithPath(Keys.MockedSignedUrlPath)
+            .UsingGet();
+
+        var response = Response.Create()
+            .WithBody(fileContentBytes)
             .WithStatusCode(HttpStatusCode.OK);
 
         mockServer.Given(request).RespondWith(response);

@@ -11,6 +11,7 @@ class BuildInstallsItemOutputTests
     public void SetUp()
     {
         m_Install = new BuildListInner1(
+            ValidBuildVersionName,
             new CCDDetails(
                 Guid.Parse(ValidBucketId),
                 Guid.Parse(ValidReleaseId)
@@ -47,30 +48,33 @@ class BuildInstallsItemOutputTests
     public void ConstructBuildInstallsItemOutputWithValidInstalls()
     {
         BuildInstallsItemOutput output = new(m_Install!);
-        Assert.Multiple(() =>
-        {
-            Assert.That(output.FleetName, Is.EqualTo(m_Install!.FleetName));
-            Assert.That(output.Ccd?.BucketId, Is.EqualTo(m_Install!.Ccd.BucketID));
-            Assert.That(output.Ccd?.ReleaseId, Is.EqualTo(m_Install!.Ccd.ReleaseID));
-            Assert.That(output.Container, Is.EqualTo(m_Install!.Container));
-            Assert.That(output.PendingMachines, Is.EqualTo(m_Install!.PendingMachines));
-            Assert.That(output.CompletedMachines, Is.EqualTo(m_Install!.CompletedMachines));
-
-            for (var i = 0; i < m_Install!.Failures.Count; i++)
+        Assert.Multiple(
+            () =>
             {
-                Assert.That(output.Failures[i].MachineId, Is.EqualTo(m_Install!.Failures[i].MachineID));
-                Assert.That(output.Failures[i].Reason, Is.EqualTo(m_Install!.Failures[i].Reason));
-                Assert.That(output.Failures[i].Updated, Is.EqualTo(m_Install!.Failures[i].Updated));
-            }
+                Assert.That(output.FleetName, Is.EqualTo(m_Install!.FleetName));
+                Assert.That(output.Ccd?.BucketId, Is.EqualTo(m_Install!.Ccd.BucketID));
+                Assert.That(output.Ccd?.ReleaseId, Is.EqualTo(m_Install!.Ccd.ReleaseID));
+                Assert.That(output.Container, Is.EqualTo(m_Install!.Container));
+                Assert.That(output.PendingMachines, Is.EqualTo(m_Install!.PendingMachines));
+                Assert.That(output.CompletedMachines, Is.EqualTo(m_Install!.CompletedMachines));
 
-            for (var i = 0; i < m_Install!.Regions.Count; i++)
-            {
-                Assert.That(output.Regions[i].RegionName, Is.EqualTo(m_Install!.Regions[i].RegionName));
-                Assert.That(output.Regions[i].PendingMachines, Is.EqualTo(m_Install!.Regions[i].PendingMachines));
-                Assert.That(output.Regions[i].CompletedMachines, Is.EqualTo(m_Install!.Regions[i].CompletedMachines));
-                Assert.That(output.Regions[i].Failures, Is.EqualTo(m_Install!.Regions[i].Failures));
-            }
-        });
+                for (var i = 0; i < m_Install!.Failures.Count; i++)
+                {
+                    Assert.That(output.Failures[i].MachineId, Is.EqualTo(m_Install!.Failures[i].MachineID));
+                    Assert.That(output.Failures[i].Reason, Is.EqualTo(m_Install!.Failures[i].Reason));
+                    Assert.That(output.Failures[i].Updated, Is.EqualTo(m_Install!.Failures[i].Updated));
+                }
+
+                for (var i = 0; i < m_Install!.Regions.Count; i++)
+                {
+                    Assert.That(output.Regions[i].RegionName, Is.EqualTo(m_Install!.Regions[i].RegionName));
+                    Assert.That(output.Regions[i].PendingMachines, Is.EqualTo(m_Install!.Regions[i].PendingMachines));
+                    Assert.That(
+                        output.Regions[i].CompletedMachines,
+                        Is.EqualTo(m_Install!.Regions[i].CompletedMachines));
+                    Assert.That(output.Regions[i].Failures, Is.EqualTo(m_Install!.Regions[i].Failures));
+                }
+            });
     }
 
     [Test]

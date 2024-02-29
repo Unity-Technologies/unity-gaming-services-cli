@@ -39,6 +39,8 @@ public class ConfigurationValidator : IConfigurationValidator
                 return IsEnvironmentNameValid(value, out errorMessage);
             case Keys.ConfigKeys.ProjectId:
                 return IsProjectIdValid(value, out errorMessage);
+            case Keys.ConfigKeys.BucketId:
+                return IsProjectIdValid(value, out errorMessage);
             default:
                 errorMessage = InvalidKeyMsg;
                 return false;

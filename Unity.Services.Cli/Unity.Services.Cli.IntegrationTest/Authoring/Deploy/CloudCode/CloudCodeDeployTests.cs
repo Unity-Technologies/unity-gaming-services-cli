@@ -117,7 +117,7 @@ public class CloudCodeDeployTests : UgsCliFixture
             Array.Empty<DeployContent>(),
             m_DeployedContents,
             Array.Empty<DeployContent>());
-        var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
+        var resultString = JsonConvert.SerializeObject(logResult.ToTable("Cloud Code Scripts"), Formatting.Indented);
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory} -j -s cloud-code-scripts -s cloud-code-modules")
             .AssertStandardOutputContains(resultString)
@@ -139,7 +139,8 @@ public class CloudCodeDeployTests : UgsCliFixture
             Array.Empty<DeployContent>(),
             Array.Empty<DeployContent>(),
             true);
-        var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
+
+        var resultString = JsonConvert.SerializeObject(logResult.ToTable("Cloud Code Scripts"), Formatting.Indented);
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory} -j --dry-run -s cloud-code-scripts -s cloud-code-modules")
             .AssertStandardOutputContains(resultString)
@@ -205,8 +206,8 @@ public class CloudCodeDeployTests : UgsCliFixture
             Array.Empty<DeployContent>());
 
         var finalResult = new TableContent();
-        finalResult.AddRows(logResultCc.ToTable());
-        finalResult.AddRows(logResultCcm.ToTable());
+        finalResult.AddRows(logResultCc.ToTable("Cloud Code Scripts"));
+        finalResult.AddRows(logResultCcm.ToTable("Cloud Code Modules"));
 
         var resultString = JsonConvert.SerializeObject(finalResult, Formatting.Indented);
         await GetLoggedInCli()
@@ -229,7 +230,7 @@ public class CloudCodeDeployTests : UgsCliFixture
             Array.Empty<DeployContent>(),
             m_DeployedContents,
             Array.Empty<DeployContent>());
-        var resultString = JsonConvert.SerializeObject(logResult.ToTable(), Formatting.Indented);
+        var resultString = JsonConvert.SerializeObject(logResult.ToTable("Cloud Code Scripts"), Formatting.Indented);
         await GetLoggedInCli()
             .Command($"deploy {k_TestDirectory} -j -s cloud-code-scripts -s cloud-code-modules")
             .AssertStandardOutputContains(resultString)

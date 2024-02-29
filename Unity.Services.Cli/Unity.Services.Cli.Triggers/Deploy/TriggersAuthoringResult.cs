@@ -19,11 +19,9 @@ class TriggersDeploymentResult : DeploymentResult
             created,
             authored,
             failed,
-            dryRun)
-    {
-    }
+            dryRun) { }
 
-    public override TableContent ToTable()
+    public override TableContent ToTable(string service = "")
     {
         return AccessControlResToTable(this);
     }
@@ -74,11 +72,9 @@ public class TriggersFetchResult : FetchResult
         created,
         authored,
         failed,
-        dryRun)
-    {
-    }
+        dryRun) { }
 
-    public override TableContent ToTable()
+    public override TableContent ToTable(string service = "")
     {
         return TriggersDeploymentResult.AccessControlResToTable(this);
     }

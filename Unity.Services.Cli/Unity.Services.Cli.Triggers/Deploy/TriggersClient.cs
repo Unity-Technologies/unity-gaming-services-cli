@@ -98,7 +98,7 @@ class TriggersClient : ITriggersClient
     {
         return new TriggerConfig()
         {
-            ActionType = JsonConvert.SerializeObject(responseConfig.ActionType),
+            ActionType = JsonConvert.SerializeObject(responseConfig.ActionType).Replace("\"", ""),
             ActionUrn = responseConfig.ActionUrn,
             EventType = responseConfig.EventType,
             Id = responseConfig.Id.ToString(),

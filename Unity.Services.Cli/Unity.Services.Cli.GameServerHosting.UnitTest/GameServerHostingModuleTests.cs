@@ -178,6 +178,7 @@ public class GameServerHostingModuleTests
     [TestCase(typeof(IMultiplayBuildAuthoring))]
     [TestCase(typeof(IBinaryBuilder))]
     [TestCase(typeof(IBuildFileManagement))]
+    [TestCase(typeof(ICoreDumpApiAsync))]
     public void GameServerHostingModule_RegistersServices(Type serviceType)
     {
         var types = new List<TypeInfo>

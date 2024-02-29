@@ -7,12 +7,8 @@ public class TableTests
 {
     TableContent m_Table = new TableContent();
 
-    const string k_StartEntryResource = "Test";
-    const string k_UpdatedEntryLocation = "NewDataValue";
-
-
-    readonly RowContent m_StartTableRow = new RowContent(k_StartEntryResource);
-    readonly RowContent m_UpdatedTableRow = new RowContent(k_StartEntryResource, k_UpdatedEntryLocation);
+    readonly RowContent m_StartTableRow = new RowContent();
+    readonly RowContent m_UpdatedTableRow = new RowContent();
 
     [Test]
     public void UpdateRowsWorksCorrectly()

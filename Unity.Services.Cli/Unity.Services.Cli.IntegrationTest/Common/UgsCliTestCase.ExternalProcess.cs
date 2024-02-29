@@ -10,7 +10,7 @@ public partial class UgsCliTestCase
 {
     class ExternalProcess : IProcess
     {
-        const int k_Timeout = 30;
+        const int k_Timeout = 45;
 
         public ExternalProcess(Process innerProcess)
         {

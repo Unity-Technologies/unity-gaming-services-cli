@@ -1,9 +1,9 @@
-using Microsoft.Extensions.FileProviders;
 using Newtonsoft.Json;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.ServiceAccountAuthentication;
 using Unity.Services.Cli.ServiceAccountAuthentication.Token;
 using Unity.Services.Gateway.AccessApiV1.Generated.Api;
+using Unity.Services.Gateway.AccessApiV1.Generated.Client;
 using Unity.Services.Gateway.AccessApiV1.Generated.Model;
 
 namespace Unity.Services.Cli.Access.Service;
@@ -48,9 +48,16 @@ class AccessService : IAccessService
         CancellationToken cancellationToken = default)
     {
         await AuthorizeServiceAsync(cancellationToken);
-        var response =
-            await m_ProjectPolicyApi.GetPolicyAsync(projectId, environmentId, cancellationToken: cancellationToken);
-        return response;
+        try
+        {
+            var response =
+                await m_ProjectPolicyApi.GetPolicyAsync(projectId, environmentId, cancellationToken: cancellationToken);
+            return response;
+        }
+        catch (ApiException e)
+        {
+            throw new CliException(e.Message, ExitCode.HandledError);
+        }
     }
 
     public async Task<PlayerPolicy> GetPlayerPolicyAsync(string projectId, string environmentId, string playerId,
@@ -58,9 +65,16 @@ class AccessService : IAccessService
     {
         await AuthorizeServiceAsync(cancellationToken);
 
-        var response =
-            await m_PlayerPolicyApi.GetPlayerPolicyAsync(projectId, environmentId, playerId, cancellationToken: cancellationToken);
-        return response;
+        try
+        {
+            var response =
+                await m_PlayerPolicyApi.GetPlayerPolicyAsync(projectId, environmentId, playerId, cancellationToken: cancellationToken);
+            return response;
+        }
+        catch (ApiException e)
+        {
+            throw new CliException(e.Message, ExitCode.HandledError);
+        }
     }
 
     public async Task<List<PlayerPolicy>> GetAllPlayerPoliciesAsync(string projectId, string environmentId,
@@ -68,17 +82,32 @@ class AccessService : IAccessService
     {
         await AuthorizeServiceAsync(cancellationToken);
 
-        var response =
-            await m_PlayerPolicyApi.GetAllPlayerPoliciesAsync(projectId, environmentId, 100, cancellationToken: cancellationToken);
-        List<PlayerPolicy> results = response!.Results;
-
-        while (response.Next != null)
+        try
         {
-            response = await m_PlayerPolicyApi.GetAllPlayerPoliciesAsync(projectId, environmentId, next: response.Next, cancellationToken: cancellationToken);
-            results = results.Concat(response.Results).ToList();
-        }
+            var response =
+                await m_PlayerPolicyApi.GetAllPlayerPoliciesAsync(
+                    projectId,
+                    environmentId,
+                    100,
+                    cancellationToken: cancellationToken);
+            List<PlayerPolicy> results = response!.Results;
 
-        return results;
+            while (response.Next != null)
+            {
+                response = await m_PlayerPolicyApi.GetAllPlayerPoliciesAsync(
+                    projectId,
+                    environmentId,
+                    next: response.Next,
+                    cancellationToken: cancellationToken);
+                results = results.Concat(response.Results).ToList();
+            }
+
+            return results;
+        }
+        catch (ApiException e)
+        {
+            throw new CliException(e.Message, ExitCode.HandledError);
+        }
     }
 
     public async Task UpsertPolicyAsync(string projectId, string environmentId, FileInfo file,
@@ -100,7 +129,15 @@ class AccessService : IAccessService
         {
             throw new CliException(k_JsonIncorrectFormatExceptionMessage, ExitCode.HandledError);
         }
-        await m_ProjectPolicyApi.UpsertPolicyAsync(projectId, environmentId, policy, cancellationToken: cancellationToken);
+
+        try
+        {
+            await m_ProjectPolicyApi.UpsertPolicyAsync(projectId, environmentId, policy, cancellationToken: cancellationToken);
+        }
+        catch (ApiException e)
+        {
+            throw new CliException(e.Message, ExitCode.HandledError);
+        }
     }
 
     public async Task UpsertPlayerPolicyAsync(string projectId, string environmentId, string playerId, FileInfo file,
@@ -123,7 +160,14 @@ class AccessService : IAccessService
             throw new CliException(k_JsonIncorrectFormatExceptionMessage, ExitCode.HandledError);
         }
 
-        await m_PlayerPolicyApi.UpsertPlayerPolicyAsync(projectId, environmentId, playerId, policy, cancellationToken: cancellationToken);
+        try
+        {
+            await m_PlayerPolicyApi.UpsertPlayerPolicyAsync(projectId, environmentId, playerId, policy, cancellationToken: cancellationToken);
+        }
+        catch (ApiException e)
+        {
+            throw new CliException(e.Message, ExitCode.HandledError);
+        }
     }
 
     public async Task DeletePolicyStatementsAsync(string projectId, string environmentId, FileInfo file,
@@ -146,7 +190,14 @@ class AccessService : IAccessService
             throw new CliException(k_JsonIncorrectFormatExceptionMessage, ExitCode.HandledError);
         }
 
-        await m_ProjectPolicyApi.DeletePolicyStatementsAsync(projectId, environmentId, deleteOptions, cancellationToken: cancellationToken);
+        try
+        {
+            await m_ProjectPolicyApi.DeletePolicyStatementsAsync(projectId, environmentId, deleteOptions, cancellationToken: cancellationToken);
+        }
+        catch (ApiException e)
+        {
+            throw new CliException(e.Message, ExitCode.HandledError);
+        }
     }
 
     public async Task DeletePlayerPolicyStatementsAsync(string projectId, string environmentId, string playerId, FileInfo file,
@@ -169,7 +220,14 @@ class AccessService : IAccessService
             throw new CliException(k_JsonIncorrectFormatExceptionMessage, ExitCode.HandledError);
         }
 
-        await m_PlayerPolicyApi.DeletePlayerPolicyStatementsAsync(projectId, environmentId, playerId, deleteOptions, cancellationToken: cancellationToken);
+        try
+        {
+            await m_PlayerPolicyApi.DeletePlayerPolicyStatementsAsync(projectId, environmentId, playerId, deleteOptions, cancellationToken: cancellationToken);
+        }
+        catch (ApiException e)
+        {
+            throw new CliException(e.Message, ExitCode.HandledError);
+        }
     }
 
     public async Task UpsertProjectAccessCaCAsync(
@@ -179,7 +237,15 @@ class AccessService : IAccessService
         CancellationToken cancellationToken = default)
     {
         await AuthorizeServiceAsync(cancellationToken);
-        await m_ProjectPolicyApi.UpsertPolicyAsync(projectId, environmentId, policy, cancellationToken: cancellationToken);
+
+        try
+        {
+            await m_ProjectPolicyApi.UpsertPolicyAsync(projectId, environmentId, policy, cancellationToken: cancellationToken);
+        }
+        catch (ApiException e)
+        {
+            throw new CliException(e.Message, ExitCode.HandledError);
+        }
     }
 
     public async Task DeleteProjectAccessCaCAsync(
@@ -189,6 +255,13 @@ class AccessService : IAccessService
         CancellationToken cancellationToken = default)
     {
         await AuthorizeServiceAsync(cancellationToken);
-        await m_ProjectPolicyApi.DeletePolicyStatementsAsync(projectId, environmentId, options, cancellationToken: cancellationToken);
+        try
+        {
+            await m_ProjectPolicyApi.DeletePolicyStatementsAsync(projectId, environmentId, options, cancellationToken: cancellationToken);
+        }
+        catch (ApiException e)
+        {
+            throw new CliException(e.Message, ExitCode.HandledError);
+        }
     }
 }

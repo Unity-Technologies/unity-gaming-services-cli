@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.CloudCode.Authoring;
 using Unity.Services.Cli.CloudCode.Deploy;
@@ -288,5 +289,88 @@ public class CloudCodeModuleDeploymentServiceTests
                 TestValues.ValidEnvironmentId,
                 null!,
                 CancellationToken.None));
+    }
+
+    [Test]
+    public async Task DeployAsync_ErrorsBubbledUp()
+    {
+        CloudCodeInput input = new()
+        {
+            CloudProjectId = TestValues.ValidProjectId,
+            Paths = k_ValidCcmFilePaths,
+        };
+
+        IScript myModule = new Unity.Services.Cli.CloudCode.Deploy.CloudCodeModule(
+            new ScriptName("module.ccm"),
+            Language.CS,
+            "modules");
+
+        m_MockCloudCodeModulesLoader.Reset();
+
+        m_MockDeployFileService.Setup(
+                c => c.ListFilesToDeploy(
+                    k_ValidCcmFilePaths,
+                    CloudCodeConstants.FileExtensionModulesCcm,
+                    false))
+            .Returns(k_ValidCcmFilePaths);
+
+        m_MockDeployFileService.Setup(
+                c => c.ListFilesToDeploy(
+                    It.IsAny<List<string>>(),
+                    CloudCodeConstants.FileExtensionModulesSln,
+                    false))
+            .Returns(new Collection<string>());
+
+        var loadedResult = new List<IScript>
+        {
+            myModule
+        };
+
+        m_MockCloudCodeModulesLoader
+            .Setup(
+                c => c.LoadModulesAsync(
+                    k_ValidCcmFilePaths,
+                    It.IsAny<List<string>>(),
+                    It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                () =>
+                {
+                    return (loadedResult, new List<IScript>());
+                });
+
+        var expectedResult = new DeployResult(
+            Array.Empty<CloudCodeModuleScript>(),
+            Array.Empty<CloudCodeModuleScript>(),
+            Array.Empty<CloudCodeModuleScript>(),
+            Array.Empty<CloudCodeModuleScript>(),
+            new [] { new CloudCodeModuleScript("a.ccm") {Status = DeploymentStatus.FailedToDeploy } }
+            );
+
+        m_DeploymentHandler.Setup(
+                d => d.DeployAsync(
+                    It.IsAny<IEnumerable<IScript>>(),
+                    It.IsAny<bool>(),
+                    false))
+            .ThrowsAsync(
+                new DeploymentException(
+                    new[] { new Exception() },
+                    expectedResult));
+
+        var result = await m_DeploymentService!.Deploy(
+            input,
+            k_ValidCcmFilePaths,
+            TestValues.ValidProjectId,
+            TestValues.ValidEnvironmentId,
+            null!,
+            CancellationToken.None);
+
+        m_DeploymentHandler.Verify(d => d.DeployAsync(
+            It.IsAny<IEnumerable<IScript>>(),
+            It.IsAny<bool>(),
+            false),
+            Times.Once);
+
+        Assert.AreEqual( 1, result.Failed.Count);
+        Assert.AreEqual( SeverityLevel.Error, result.Failed[0].Status.MessageSeverity);
     }
 }

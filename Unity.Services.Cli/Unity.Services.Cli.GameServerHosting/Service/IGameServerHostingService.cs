@@ -10,6 +10,7 @@ public interface IGameServerHostingService
     public IFleetsApi FleetsApi { get; }
     public IMachinesApi MachinesApi { get; }
     public IServersApi ServersApi { get; }
+    public ICoreDumpApi CoreDumpApi { get; }
 
     public Task AuthorizeGameServerHostingService(CancellationToken cancellationToken = default);
 }

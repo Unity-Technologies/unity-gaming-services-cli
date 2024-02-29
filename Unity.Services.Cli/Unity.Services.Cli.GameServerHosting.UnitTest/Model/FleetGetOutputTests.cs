@@ -13,6 +13,7 @@ public class FleetGetOutputTests
         m_Fleet = new Fleet(
             buildConfigurations: new List<BuildConfiguration2>(),
             fleetRegions: new List<FleetRegion1>(),
+            graceful: false,
             id: new Guid(ValidFleetId),
             name: ValidFleetName,
             osFamily: Fleet.OsFamilyEnum.LINUX,

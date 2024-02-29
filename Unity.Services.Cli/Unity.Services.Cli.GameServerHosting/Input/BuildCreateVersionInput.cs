@@ -12,6 +12,7 @@ class BuildCreateVersionInput : CommonInput
     public const string FileDirectoryKey = "--directory";
     public const string RemoveOldFilesKey = "--remove-old-files";
     public const string SecretKeyKey = "--secret-key";
+    public const string BuildVersionNameKey = "--build-version-name";
 
     public static readonly Option<string> AccessKeyOption = new(
         AccessKeyKey,
@@ -41,6 +42,10 @@ class BuildCreateVersionInput : CommonInput
         SecretKeyKey,
         "The Amazon Web Services (AWS) secret key, for s3 bucket builds");
 
+    public static readonly Option<string> BuildVersionNameOption = new(
+        BuildVersionNameKey,
+        "The name of the build version to create");
+
     [InputBinding(nameof(AccessKeyOption))]
     public string? AccessKey { get; init; }
 
@@ -61,4 +66,7 @@ class BuildCreateVersionInput : CommonInput
 
     [InputBinding(nameof(SecretKeyOption))]
     public string? SecretKey { get; init; }
+
+    [InputBinding(nameof(BuildVersionNameOption))]
+    public string? BuildVersionName { get; init; }
 }

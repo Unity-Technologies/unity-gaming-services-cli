@@ -51,17 +51,19 @@ class BuildConfigurationOutputTests
             Assert.That(output.BuildId, Is.EqualTo(m_BuildConfiguration!.BuildID));
             Assert.That(output.BuildName, Is.EqualTo(m_BuildConfiguration!.BuildName));
             Assert.That(output.CommandLine, Is.EqualTo(m_BuildConfiguration!.CommandLine));
-            Assert.That(output.Cores, Is.EqualTo(m_BuildConfiguration!.Cores));
             Assert.That(output.CreatedAt, Is.EqualTo(m_BuildConfiguration!.CreatedAt));
             Assert.That(output.FleetId, Is.EqualTo(m_BuildConfiguration!.FleetID));
             Assert.That(output.FleetName, Is.EqualTo(m_BuildConfiguration!.FleetName));
             Assert.That(output.Id, Is.EqualTo(m_BuildConfiguration!.Id));
-            Assert.That(output.Memory, Is.EqualTo(m_BuildConfiguration!.Memory));
             Assert.That(output.Name, Is.EqualTo(m_BuildConfiguration!.Name));
             Assert.That(output.QueryType, Is.EqualTo(m_BuildConfiguration!.QueryType));
-            Assert.That(output.Speed, Is.EqualTo(m_BuildConfiguration!.Speed));
             Assert.That(output.UpdatedAt, Is.EqualTo(m_BuildConfiguration!.UpdatedAt));
             Assert.That(output.Version, Is.EqualTo(m_BuildConfiguration!._Version));
+#pragma warning disable CS0612 // Type or member is obsolete
+            Assert.That(output.Cores, Is.EqualTo(m_BuildConfiguration!.Cores));
+            Assert.That(output.Memory, Is.EqualTo(m_BuildConfiguration!.Memory));
+            Assert.That(output.Speed, Is.EqualTo(m_BuildConfiguration!.Speed));
+#pragma warning disable CS0612 // Type or member is obsolete
 
             for (var i = 0; i < m_BuildConfiguration!._Configuration.Count; i++)
             {
