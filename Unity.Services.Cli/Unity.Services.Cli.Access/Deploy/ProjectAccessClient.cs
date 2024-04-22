@@ -1,11 +1,11 @@
-using Unity.Services.Access.Authoring.Core.Model;
-using Unity.Services.Access.Authoring.Core.Service;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Model;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Service;
 using Unity.Services.Cli.Access.Service;
 using Unity.Services.Gateway.AccessApiV1.Generated.Model;
 
 namespace Unity.Services.Cli.Access.Deploy;
 
-public class ProjectAccessClient : IProjectAccessClient
+class ProjectAccessClient : IProjectAccessClient
 {
     public string ProjectId { get; private set; }
     public string EnvironmentId { get; private set; }

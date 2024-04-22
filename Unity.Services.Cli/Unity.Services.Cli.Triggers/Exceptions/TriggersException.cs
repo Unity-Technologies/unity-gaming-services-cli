@@ -3,11 +3,8 @@ using Unity.Services.Cli.Common.Exceptions;
 
 namespace Unity.Services.Cli.Triggers.Exceptions;
 
-[Serializable]
 public class TriggersException : CliException
 {
-    protected TriggersException(SerializationInfo info, StreamingContext context) : base(info, context) { }
-
     public TriggersException(int exitCode = Common.Exceptions.ExitCode.HandledError)
         : base(exitCode) { }
 

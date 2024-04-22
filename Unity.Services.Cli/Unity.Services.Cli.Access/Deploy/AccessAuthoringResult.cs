@@ -1,4 +1,4 @@
-using Unity.Services.Access.Authoring.Core.Model;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Model;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Model.TableOutput;
 using Unity.Services.DeploymentApi.Editor;

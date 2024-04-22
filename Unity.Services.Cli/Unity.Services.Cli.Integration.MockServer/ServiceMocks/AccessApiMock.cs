@@ -16,9 +16,9 @@ public class AccessApiMock : IServiceApiMock
     readonly string m_PlayerId;
     readonly string k_AccessModulePath = "/access/v1";
 
-    readonly string projectPolicyUrl;
-    readonly string playerPolicyUrl;
-    readonly string allPlayerPoliciesUrl;
+    readonly string m_ProjectPolicyUrl;
+    readonly string m_PlayerPolicyUrl;
+    readonly string m_AllPlayerPoliciesUrl;
 
     public const string PlayerId = "j0oM0dnufzxgtwGqoH0zIpSyWUV7XUgy";
 
@@ -27,10 +27,10 @@ public class AccessApiMock : IServiceApiMock
         m_ProjectId = CommonKeys.ValidProjectId;
         m_EnvironmentId = CommonKeys.ValidEnvironmentId;
         m_PlayerId = PlayerId;
-        projectPolicyUrl = $"{k_AccessModulePath}/projects/{m_ProjectId}/environments/{m_EnvironmentId}/resource-policy";
-        playerPolicyUrl =
+        m_ProjectPolicyUrl = $"{k_AccessModulePath}/projects/{m_ProjectId}/environments/{m_EnvironmentId}/resource-policy";
+        m_PlayerPolicyUrl =
             $"{k_AccessModulePath}/projects/{m_ProjectId}/environments/{m_EnvironmentId}/players/{m_PlayerId}/resource-policy";
-        allPlayerPoliciesUrl = $"{k_AccessModulePath}/projects/{m_ProjectId}/environments/{m_EnvironmentId}/players/resource-policy";
+        m_AllPlayerPoliciesUrl = $"{k_AccessModulePath}/projects/{m_ProjectId}/environments/{m_EnvironmentId}/players/resource-policy";
     }
 
     static Policy GetPolicy()
@@ -44,7 +44,7 @@ public class AccessApiMock : IServiceApiMock
             "Deny",
             "Player",
             "urn:ugs:*");
-        List<Statement> statementLists = new List<Statement>(){statement};
+        List<Statement> statementLists = new List<Statement>() { statement };
         var policy = new Policy(statementLists);
 
         return policy;
@@ -80,7 +80,7 @@ public class AccessApiMock : IServiceApiMock
 
     void MockGetProjectPolicy(WireMockServer mockServer)
     {
-        mockServer.Given(Request.Create().WithPath(projectPolicyUrl).UsingGet())
+        mockServer.Given(Request.Create().WithPath(m_ProjectPolicyUrl).UsingGet())
             .RespondWith(Response.Create()
                 .WithHeaders(new Dictionary<string, string> { { "Content-Type", "application/json" } })
                 .WithBodyAsJson(GetPolicy())
@@ -89,7 +89,7 @@ public class AccessApiMock : IServiceApiMock
 
     void MockGetPlayerPolicy(WireMockServer mockServer)
     {
-        mockServer.Given(Request.Create().WithPath(playerPolicyUrl).UsingGet())
+        mockServer.Given(Request.Create().WithPath(m_PlayerPolicyUrl).UsingGet())
             .RespondWith(Response.Create()
                 .WithHeaders(new Dictionary<string, string> { { "Content-Type", "application/json" } })
                 .WithBodyAsJson(GetPlayerPolicy())
@@ -98,7 +98,7 @@ public class AccessApiMock : IServiceApiMock
 
     void MockGetAllPlayerPolicies(WireMockServer mockServer)
     {
-        mockServer.Given(Request.Create().WithPath(allPlayerPoliciesUrl).UsingGet())
+        mockServer.Given(Request.Create().WithPath(m_AllPlayerPoliciesUrl).UsingGet())
             .RespondWith(Response.Create()
                 .WithHeaders(new Dictionary<string, string> { { "Content-Type", "application/json" } })
                 .WithBodyAsJson(GetPlayerPolicies())
@@ -107,28 +107,28 @@ public class AccessApiMock : IServiceApiMock
 
     void MockUpsertProjectPolicy(WireMockServer mockServer)
     {
-        mockServer.Given(Request.Create().WithPath(projectPolicyUrl).UsingPatch())
+        mockServer.Given(Request.Create().WithPath(m_ProjectPolicyUrl).UsingPatch())
             .RespondWith(Response.Create()
                 .WithStatusCode(HttpStatusCode.NoContent));
     }
 
     void MockUpsertPlayerPolicy(WireMockServer mockServer)
     {
-        mockServer.Given(Request.Create().WithPath(playerPolicyUrl).UsingPatch())
+        mockServer.Given(Request.Create().WithPath(m_PlayerPolicyUrl).UsingPatch())
             .RespondWith(Response.Create()
                 .WithStatusCode(HttpStatusCode.NoContent));
     }
 
     void MockDeleteProjectPolicyStatements(WireMockServer mockServer)
     {
-        mockServer.Given(Request.Create().WithPath($"{projectPolicyUrl}:delete-statements").UsingPost())
+        mockServer.Given(Request.Create().WithPath($"{m_ProjectPolicyUrl}:delete-statements").UsingPost())
             .RespondWith(Response.Create()
                 .WithStatusCode(HttpStatusCode.NoContent));
     }
 
     void MockDeletePlayerPolicyStatements(WireMockServer mockServer)
     {
-        mockServer.Given(Request.Create().WithPath($"{playerPolicyUrl}:delete-statements").UsingPost())
+        mockServer.Given(Request.Create().WithPath($"{m_PlayerPolicyUrl}:delete-statements").UsingPost())
             .RespondWith(Response.Create()
                 .WithStatusCode(HttpStatusCode.NoContent));
     }

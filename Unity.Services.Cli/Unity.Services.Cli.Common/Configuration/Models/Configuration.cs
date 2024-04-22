@@ -12,8 +12,8 @@ public class Configuration
     [JsonProperty(Keys.ConfigKeys.ProjectId)]
     public string? CloudProjectId { get; set; }
 
-    [JsonProperty(Keys.ConfigKeys.BucketId)]
-    public string? CloudBucketId { get; set; }
+    [JsonProperty(Keys.ConfigKeys.BucketName)]
+    public string? CloudBucketName { get; set; }
 
     public string? GetValue(string key)
     {
@@ -50,8 +50,13 @@ public class Configuration
     /// Get the supported configuration keys
     /// </summary>
     /// <returns></returns>
-    public static IList<string?> GetKeys() => typeof(Configuration)
-        .GetProperties().Select(GetJsonPropertyName).ToList();
+    public static IList<string?> GetKeys()
+    {
+        return typeof(Configuration)
+            .GetProperties()
+            .Select(GetJsonPropertyName)
+            .ToList();
+    }
 
     static string? GetJsonPropertyName(PropertyInfo propertyInfo)
     {

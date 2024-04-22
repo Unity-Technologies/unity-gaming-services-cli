@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Unity.Services.Access.Authoring.Core.Model;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Model;
 using Unity.Services.Cli.Access.UnitTest.Utils;
 using JsonConverter = Unity.Services.Cli.Access.Deploy.JsonConverter;
 

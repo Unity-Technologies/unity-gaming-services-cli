@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
-using Unity.Services.Access.Authoring.Core.Json;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Json;
 
 namespace Unity.Services.Cli.Access.Deploy;
 

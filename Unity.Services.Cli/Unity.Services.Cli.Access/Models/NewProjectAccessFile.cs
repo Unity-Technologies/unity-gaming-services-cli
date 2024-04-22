@@ -1,11 +1,11 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Unity.Services.Access.Authoring.Core.Model;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Model;
 using Unity.Services.Cli.Authoring.Templates;
 
 namespace Unity.Services.Cli.Access.Models;
 
-public class NewProjectAccessFile : IFileTemplate
+class NewProjectAccessFile : IFileTemplate
 {
     [JsonProperty("$schema")]
     public string Value { get; set; }

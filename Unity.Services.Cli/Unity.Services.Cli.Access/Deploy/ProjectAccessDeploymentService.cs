@@ -1,14 +1,14 @@
 using Spectre.Console;
-using Unity.Services.Access.Authoring.Core.Deploy;
-using Unity.Services.Access.Authoring.Core.Model;
-using Unity.Services.Access.Authoring.Core.Service;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Deploy;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Model;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Service;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Service;
 
 namespace Unity.Services.Cli.Access.Deploy;
 
-public class ProjectAccessDeploymentService : IDeploymentService
+class ProjectAccessDeploymentService : IDeploymentService
 {
     readonly string m_ServiceType;
     readonly string m_ServiceName;

@@ -1,9 +1,9 @@
 using Moq;
 using NUnit.Framework;
-using Unity.Services.Access.Authoring.Core.Deploy;
-using Unity.Services.Access.Authoring.Core.Model;
-using Unity.Services.Access.Authoring.Core.Results;
-using Unity.Services.Access.Authoring.Core.Service;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Deploy;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Model;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Results;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Service;
 using Unity.Services.Cli.Access.Deploy;
 using Unity.Services.Cli.Access.UnitTest.Utils;
 using Unity.Services.Cli.Authoring.Input;
@@ -66,7 +66,8 @@ public class ProjectAccessDeploymentServiceTests
                 handler => handler.DeployAsync(
                     It.IsAny<IReadOnlyList<IProjectAccessFile>>(),
                     It.IsAny<bool>(),
-                    It.IsAny<bool>()
+                    It.IsAny<bool>(),
+                    It.IsAny<CancellationToken>()
                 ))
             .Returns(fromResult);
     }

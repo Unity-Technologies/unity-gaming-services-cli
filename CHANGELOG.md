@@ -5,6 +5,14 @@ All notable changes to UGS CLI will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2024-04-22
+### Fixed
+- Improve Cloud Code script in-script parameter wrong argument type parsing error
+- Cloud Content Delivery Module Service commands. Run `ugs ccd -h` to show usage.
+
+### Changed
+- The env list command now outputs as a table
+
 ## [1.3.0] - 2024-02-29
 ### Added
 - Added new service module Scheduler

@@ -4,16 +4,16 @@ namespace Unity.Services.Cli.Common.Console;
 
 public class LoadingIndicator : ILoadingIndicator
 {
-    internal readonly IAnsiConsole? k_AnsiConsole;
+    internal readonly IAnsiConsole? AnsiConsole;
 
     public LoadingIndicator(IAnsiConsole? console)
     {
-        k_AnsiConsole = console;
+        AnsiConsole = console;
     }
 
     public async Task StartLoadingAsync(string description, Func<StatusContext?, Task> callback)
     {
-        await (k_AnsiConsole is null ? callback(null) : StartAnsiConsoleStatusAsync(k_AnsiConsole, description, callback));
+        await (AnsiConsole is null ? callback(null) : StartAnsiConsoleStatusAsync(AnsiConsole, description, callback));
     }
 
     static async Task StartAnsiConsoleStatusAsync(IAnsiConsole console, string description, Func<StatusContext?, Task> callback) =>

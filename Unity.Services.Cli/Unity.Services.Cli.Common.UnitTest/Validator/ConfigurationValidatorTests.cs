@@ -97,6 +97,7 @@ class ConfigurationValidatorTests
     [TestCase(Models.Keys.ConfigKeys.ProjectId, "invalid-value")]
     [TestCase(Models.Keys.ConfigKeys.EnvironmentId, "invalid-value")]
     [TestCase(Models.Keys.ConfigKeys.EnvironmentName, " ")]
+    [TestCase(Models.Keys.ConfigKeys.BucketName, " ")]
     public void InvalidConfigThrowTest(string key, string value)
     {
         Assert.Throws<ConfigValidationException>(() => m_ConfigurationValidator.ThrowExceptionIfConfigInvalid(key, value));

@@ -43,7 +43,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Leaderboards.UnitTest", "Unity.Services.Cli.Leaderboards.UnitTest\Unity.Services.Cli.Leaderboards.UnitTest.csproj", "{64C6D8E5-4396-419A-94F6-2B221E9B7860}"
 EndProject
 EndProject
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Authoring", "Unity.Services.Cli.Authoring\Unity.Services.Cli.Authoring.csproj", "{43B27EA4-45B0-4346-BBE9-920D090CF477}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Authoring.UnitTest", "Unity.Services.Cli.Authoring.UnitTest\Unity.Services.Cli.Authoring.UnitTest.csproj", "{55A7BF2B-3919-45A7-9B6F-7EAF6A81B047}"
@@ -68,13 +67,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Integration.MockServerApp", "Unity.Services.Cli.Integration.MockServerApp\Unity.Services.Cli.Integration.MockServerApp.csproj", "{27BBE31C-43CE-45AA-9DE4-BF3D097DC1A3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.CloudContentDelivery", "Unity.Services.Cli.CloudContentDelivery\Unity.Services.Cli.CloudContentDelivery.csproj", "{88AAA89D-F8E5-46CF-B1A8-E8B5AEB00D07}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.CloudContentDelivery.Authoring.Core", "Unity.Services.CloudContentDelivery.Authoring.Core\Unity.Services.CloudContentDelivery.Authoring.Core.csproj", "{63F6A8B5-EAA7-462C-B9F3-B1AEADC09933}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configuration", "Configuration", "{ECED14B5-7FD3-4C82-8417-3C6E4A0FC054}"
 	ProjectSection(SolutionItems) = preProject
 		features-definition.json = features-definition.json
 	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Access.Authoring.Core", "Unity.Services.Access.Authoring.Core\Unity.Services.Access.Authoring.Core.csproj", "{E37321BA-9520-46D7-A775-E3C834468B55}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Triggers", "Unity.Services.Cli.Triggers\Unity.Services.Cli.Triggers.csproj", "{C46FA417-CF83-4DBB-8B31-1C6156FB0D4D}"
 EndProject
@@ -82,6 +82,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Triggers.Aut
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Triggers.UnitTest", "Unity.Services.Cli.Triggers.UnitTest\Unity.Services.Cli.Triggers.UnitTest.csproj", "{BA3B69BA-FEF9-4F71-A73F-B4BE717CC392}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.CloudContentDelivery.UnitTest", "Unity.Services.Cli.CloudContentDelivery.UnitTest\Unity.Services.Cli.CloudContentDelivery.UnitTest.csproj", "{025F0D8D-97A2-4698-87FA-7FB40FF1E515}"
 EndProject
 EndProject
 EndProject
@@ -91,6 +92,49 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Scheduler.Authoring.Core", "Unity.Services.Scheduler.Authoring.Core\Unity.Services.Scheduler.Authoring.Core.csproj", "{9ECC7DF3-EDA2-4036-B175-52073E43335A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Scheduler.UnitTest", "Unity.Services.Cli.Scheduler.UnitTest\Unity.Services.Cli.Scheduler.UnitTest.csproj", "{D511207A-820C-4AA9-AF46-D76F1027F105}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Latest", "Latest", "{210148BF-92DB-4EC2-9C1D-DB10E8ED7BB4}"
+EndProject
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Badges", "Badges", "{2BA93646-8046-4B05-BB54-39D3F8975DFA}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Badges\create.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Badges\create.mdx
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Badges\delete.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Badges\delete.mdx
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Badges\list.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Badges\list.mdx
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Buckets", "Buckets", "{F63CC5ED-B3B8-4ACF-BB5F-72FAE0850134}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Buckets\create.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Buckets\create.mdx
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Buckets\delete.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Buckets\delete.mdx
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Buckets\info.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Buckets\info.mdx
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Buckets\list.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Buckets\list.mdx
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Buckets\permissions-update.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Buckets\permissions-update.mdx
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Releases", "Releases", "{0FAACE60-269C-4269-939A-D7FB022276AE}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Releases\create.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Releases\create.mdx
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Releases\info.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Releases\info.mdx
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Releases\list.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Releases\list.mdx
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Releases\promote.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Releases\promote.mdx
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Releases\Promotions\status.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Releases\Promotions\status.mdx
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Releases\update.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Releases\update.mdx
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Entries", "Entries", "{43EC69B3-778B-441D-82A8-1868530E2B15}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Entries\copy.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Entries\copy.mdx
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Entries\delete.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Entries\delete.mdx
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Entries\download.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Entries\download.mdx
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Entries\info.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Entries\info.mdx
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Entries\list.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Entries\list.mdx
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Entries\sync.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Entries\sync.mdx
+		..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Entries\update.mdx = ..\docs\ugs-cli\latest\cloud-content-delivery\Cloud Content Delivery Command Line\Commands\Entries\update.mdx
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CCD", "CCD", "{44AEB9D3-CDE4-4C0C-AE4E-07605839E89D}"
+EndProject
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -216,10 +260,14 @@ Global
 		{27BBE31C-43CE-45AA-9DE4-BF3D097DC1A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{27BBE31C-43CE-45AA-9DE4-BF3D097DC1A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{27BBE31C-43CE-45AA-9DE4-BF3D097DC1A3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E37321BA-9520-46D7-A775-E3C834468B55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E37321BA-9520-46D7-A775-E3C834468B55}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E37321BA-9520-46D7-A775-E3C834468B55}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E37321BA-9520-46D7-A775-E3C834468B55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88AAA89D-F8E5-46CF-B1A8-E8B5AEB00D07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88AAA89D-F8E5-46CF-B1A8-E8B5AEB00D07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88AAA89D-F8E5-46CF-B1A8-E8B5AEB00D07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88AAA89D-F8E5-46CF-B1A8-E8B5AEB00D07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63F6A8B5-EAA7-462C-B9F3-B1AEADC09933}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63F6A8B5-EAA7-462C-B9F3-B1AEADC09933}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63F6A8B5-EAA7-462C-B9F3-B1AEADC09933}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63F6A8B5-EAA7-462C-B9F3-B1AEADC09933}.Release|Any CPU.Build.0 = Release|Any CPU
 		{829A8ADF-6608-48B2-B7E5-47DFADB991ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{829A8ADF-6608-48B2-B7E5-47DFADB991ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{829A8ADF-6608-48B2-B7E5-47DFADB991ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -240,6 +288,10 @@ Global
 		{D8E319B8-E411-4A68-B2EA-39D3B65C745C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D8E319B8-E411-4A68-B2EA-39D3B65C745C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D8E319B8-E411-4A68-B2EA-39D3B65C745C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{025F0D8D-97A2-4698-87FA-7FB40FF1E515}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{025F0D8D-97A2-4698-87FA-7FB40FF1E515}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{025F0D8D-97A2-4698-87FA-7FB40FF1E515}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{025F0D8D-97A2-4698-87FA-7FB40FF1E515}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7BA75DA5-852E-4B13-AA6A-C79B7E268418}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7BA75DA5-852E-4B13-AA6A-C79B7E268418}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7BA75DA5-852E-4B13-AA6A-C79B7E268418}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -252,5 +304,16 @@ Global
 		{D511207A-820C-4AA9-AF46-D76F1027F105}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D511207A-820C-4AA9-AF46-D76F1027F105}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D511207A-820C-4AA9-AF46-D76F1027F105}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77576293-7E51-4A9C-8DDA-F2D75C8C59ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77576293-7E51-4A9C-8DDA-F2D75C8C59ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77576293-7E51-4A9C-8DDA-F2D75C8C59ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77576293-7E51-4A9C-8DDA-F2D75C8C59ED}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{44AEB9D3-CDE4-4C0C-AE4E-07605839E89D} = {210148BF-92DB-4EC2-9C1D-DB10E8ED7BB4}
+		{43EC69B3-778B-441D-82A8-1868530E2B15} = {44AEB9D3-CDE4-4C0C-AE4E-07605839E89D}
+		{0FAACE60-269C-4269-939A-D7FB022276AE} = {44AEB9D3-CDE4-4C0C-AE4E-07605839E89D}
+		{F63CC5ED-B3B8-4ACF-BB5F-72FAE0850134} = {44AEB9D3-CDE4-4C0C-AE4E-07605839E89D}
+		{2BA93646-8046-4B05-BB54-39D3F8975DFA} = {44AEB9D3-CDE4-4C0C-AE4E-07605839E89D}
 	EndGlobalSection
 EndGlobal

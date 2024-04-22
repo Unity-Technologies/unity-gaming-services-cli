@@ -25,7 +25,7 @@ namespace Unity.Services.Cli.Common;
 
 public static class CommonModule
 {
-    public const string m_CliProductName = "com.unity.ugs-cli";
+    public const string cliProductName = "com.unity.ugs-cli";
     public static CommandLineBuilder UseTreePrinter(this CommandLineBuilder builder)
     {
         var printTreeFlag = new Option<bool>("--print-tree")
@@ -60,8 +60,8 @@ public static class CommonModule
         IAnsiConsole ansiConsole, IAnalyticEventFactory analyticEventFactory)
     {
         var parseResult = hostBuilder.GetInvocationContext().ParseResult;
-        bool silentAnsiConsole = parseResult.GetValueForOption(CommonInput.QuietOption) ||
-                       parseResult.GetValueForOption(CommonInput.JsonOutputOption);
+        bool outputIsJson = parseResult.GetValueForOption(CommonInput.JsonOutputOption);
+        bool silentAnsiConsole = parseResult.GetValueForOption(CommonInput.QuietOption) || outputIsJson;
         var allDefinedTypesInDomain = AppDomain.CurrentDomain
             .GetAssemblies()
             .SelectMany(x => x.DefinedTypes);
@@ -76,7 +76,8 @@ public static class CommonModule
             CreateAndRegisterProgressBarService(serviceCollection, usedConsole));
         hostBuilder.ConfigureServices(serviceCollection =>
             CreateAndRegisterLoadingIndicatorService(serviceCollection, usedConsole));
-        hostBuilder.ConfigureServices(CreateAndRegisterCliPromptService);
+        hostBuilder.ConfigureServices(serviceCollection =>
+            CreateAndRegisterCliPromptService(serviceCollection, ansiConsole, outputIsJson));
         hostBuilder.ConfigureServices(CreateAndRegisterCliAnalyticsSenderService);
         hostBuilder.ConfigureServices(CreateAndRegisterCliProcessService);
     }
@@ -134,14 +135,14 @@ public static class CommonModule
         serviceCollection.AddSingleton<ILoadingIndicator>(new LoadingIndicator(ansiConsole));
     }
 
-    internal static void CreateAndRegisterCliPromptService(IServiceCollection serviceCollection)
+    internal static void CreateAndRegisterCliPromptService(
+        IServiceCollection serviceCollection,
+        IAnsiConsole ansiConsole,
+        bool outputIsJson)
     {
-        var settings = new AnsiConsoleSettings
-        {
-            Interactive = InteractionSupport.Yes
-        };
-        var console = AnsiConsole.Create(settings);
-        serviceCollection.AddSingleton<ICliPrompt>(new CliPrompt(console, System.Console.IsInputRedirected));
+        serviceCollection.AddSingleton<IConsolePrompt>(new ConsolePrompt(ansiConsole, System.Console.IsInputRedirected));
+        serviceCollection.AddTransient<IConsoleTable>(
+            _ => new ConsoleTable(ansiConsole, System.Console.IsInputRedirected, outputIsJson));
     }
 
     public static TelemetrySender CreateTelemetrySender(ISystemEnvironmentProvider systemEnvironmentProvider)
@@ -156,7 +157,7 @@ public static class CommonModule
         };
         var productTags = new Dictionary<string, string>
         {
-            [TagKeys.ProductName] = m_CliProductName,
+            [TagKeys.ProductName] = cliProductName,
             [TagKeys.CliVersion] = TelemetryConfigurationProvider.GetCliVersion()
         };
 
@@ -173,7 +174,7 @@ public static class CommonModule
     internal static void CreateAndRegisterCliAnalyticsSenderService(IServiceCollection serviceCollection)
     {
         serviceCollection.AddAnalytics(((x, _) =>
-                x.WithSourceName(m_CliProductName)
+                x.WithSourceName(cliProductName)
                     .WithDefaultUnityBigQueryExporter()
                     .WithCommonHeader(new Dictionary<string, string>
                     {

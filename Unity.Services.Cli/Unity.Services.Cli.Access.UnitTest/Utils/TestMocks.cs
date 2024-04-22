@@ -1,9 +1,9 @@
-using Unity.Services.Access.Authoring.Core.Model;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Model;
 using Unity.Services.Gateway.AccessApiV1.Generated.Model;
 
 namespace Unity.Services.Cli.Access.UnitTest.Utils;
 
-public class TestMocks
+class TestMocks
 {
     public static Statement GetStatement(string sid = "statement-1")
     {

@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <LangVersion>10</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -25,7 +25,7 @@
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Unity.Services.Economy.Authoring.Editor.Core" Version="0.0.6-beta.1" />
+    <PackageReference Include="Unity.Services.Economy.Authoring.Editor.Core" Version="0.0.7" />
     <PackageReference Include="Unity.Services.Gateway.EconomyApiV2.Generated" Version="2.0.2" />
   </ItemGroup>
   <PropertyGroup>

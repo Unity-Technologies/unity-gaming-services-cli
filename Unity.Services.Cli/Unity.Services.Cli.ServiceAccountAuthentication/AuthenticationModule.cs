@@ -55,7 +55,7 @@ public class AuthenticationModule : ICommandModule
         var persister = new JsonFilePersister<string>(credentialsPath);
         var environmentProvider = new SystemEnvironmentProvider();
         var serviceProvider = serviceCollection.BuildServiceProvider();
-        var cliPrompt = serviceProvider.GetRequiredService<ICliPrompt>();
+        var cliPrompt = serviceProvider.GetRequiredService<IConsolePrompt>();
         var authenticator = new AuthenticatorV1(persister, cliPrompt);
         serviceCollection.AddSingleton<IAuthenticator>(authenticator);
 

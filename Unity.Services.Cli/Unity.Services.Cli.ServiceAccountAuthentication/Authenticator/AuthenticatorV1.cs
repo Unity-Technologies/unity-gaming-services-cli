@@ -25,9 +25,9 @@ class AuthenticatorV1 : IAuthenticator
         .Validate(s => s.Any(char.IsWhiteSpace) ? ValidationResult.Error("secret-key should not contain white space.") : ValidationResult.Success());
 
     readonly IPersister<string> m_Persister;
-    readonly ICliPrompt m_CliPrompt;
+    readonly IConsolePrompt m_CliPrompt;
 
-    public AuthenticatorV1(IPersister<string> persister, ICliPrompt cliPrompt)
+    public AuthenticatorV1(IPersister<string> persister, IConsolePrompt cliPrompt)
     {
         m_Persister = persister;
         m_CliPrompt = cliPrompt;
@@ -45,7 +45,7 @@ class AuthenticatorV1 : IAuthenticator
         }
         else
         {
-            if (m_CliPrompt.IsStandardInputRedirected)
+            if (!m_CliPrompt.InteractiveEnabled)
             {
                 throw new InvalidLoginInputException($"Standard Input is redirected, please use the " +
                     $"\"{LoginInput.ServiceKeyIdAlias}\" and \"{LoginInput.ServiceSecretKeyAlias}\" options to login.");
@@ -59,7 +59,7 @@ class AuthenticatorV1 : IAuthenticator
     }
 
     internal static async Task<(string, string)> PromptForServiceAccountKeysAsync(
-        ICliPrompt cliPrompt, CancellationToken cancellationToken)
+        IConsolePrompt cliPrompt, CancellationToken cancellationToken)
     {
         var keyId = await cliPrompt.PromptAsync(KeyIdPrompt, cancellationToken);
         var secretKey = await cliPrompt.PromptAsync(SecretKeyPrompt, cancellationToken);

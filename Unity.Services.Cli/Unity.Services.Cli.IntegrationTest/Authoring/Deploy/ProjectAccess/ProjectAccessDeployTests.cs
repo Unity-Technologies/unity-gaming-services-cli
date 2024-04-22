@@ -3,7 +3,6 @@ using System.Linq;
 using NUnit.Framework;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using Unity.Services.Access.Authoring.Core.Model;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.Cli.Common.Exceptions;

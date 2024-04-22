@@ -1,4 +1,4 @@
-using Unity.Services.Access.Authoring.Core.IO;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.IO;
 
 namespace Unity.Services.Cli.Access.IO;
 

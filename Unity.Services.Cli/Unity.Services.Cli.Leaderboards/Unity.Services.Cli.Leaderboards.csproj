@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -29,7 +29,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Unity.Services.Gateway.LeaderboardApiV1.Generated" Version="1.0.7-beta" />
-    <PackageReference Include="Unity.Services.Leaderboards.Authoring.Editor.Core" Version="0.0.2" />
+    <PackageReference Include="Unity.Services.Leaderboards.Authoring.Editor.Core" Version="0.0.3" />
     <PackageReference Include="YamlDotNet" Version="13.1.0" />
   </ItemGroup>
 </Project>

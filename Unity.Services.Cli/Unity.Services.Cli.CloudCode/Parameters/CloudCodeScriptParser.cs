@@ -81,7 +81,7 @@ class CloudCodeScriptParser : ICloudCodeScriptParser
             var paramString = await m_CliProcess.ExecuteAsync("node", Directory.GetCurrentDirectory(), new[]
             {
                 $"--max-old-space-size={k_MemorySizeLimitInMB}",
-                k_ParameterScriptFile
+                $"\"{k_ParameterScriptFile}\"",
             }, parseTimeoutTokenSource.Token, writeToStandardInput: WriteToProcessStandardInput);
 
             paramString = paramString.Replace(System.Environment.NewLine, "");

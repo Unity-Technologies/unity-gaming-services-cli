@@ -14,14 +14,14 @@ namespace Unity.Services.Cli.Scheduler.Deploy;
 class SchedulerClient : ISchedulerClient
 {
     readonly ISchedulerApiAsync m_SchedulerApi;
-    readonly IServiceAccountAuthenticationService  m_AuthenticationService;
+    readonly IServiceAccountAuthenticationService m_AuthenticationService;
     readonly IConfigurationValidator m_Validator;
     internal Guid ProjectId { get; set; }
     internal Guid EnvironmentId { get; set; }
     internal CancellationToken CancellationToken { get; set; }
 
     public SchedulerClient(ISchedulerApiAsync schedulerApi,
-        IServiceAccountAuthenticationService  authenticationService,
+        IServiceAccountAuthenticationService authenticationService,
         IConfigurationValidator validator)
     {
         m_SchedulerApi = schedulerApi;

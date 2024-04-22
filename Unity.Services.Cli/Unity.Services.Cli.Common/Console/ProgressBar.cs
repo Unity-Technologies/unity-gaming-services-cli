@@ -4,9 +4,9 @@ namespace Unity.Services.Cli.Common.Console;
 
 public class ProgressBar : IProgressBar
 {
-    internal readonly IAnsiConsole? k_AnsiConsole;
+    internal readonly IAnsiConsole? AnsiConsole;
 
-    readonly ProgressColumn[] k_ProgressColumns =
+    readonly ProgressColumn[] m_ProgressColumns =
     {
         new TaskDescriptionColumn(),
         new ProgressBarColumn(),
@@ -16,14 +16,14 @@ public class ProgressBar : IProgressBar
 
     public ProgressBar(IAnsiConsole? console)
     {
-        k_AnsiConsole = console;
+        AnsiConsole = console;
     }
 
     public async Task StartProgressAsync(Func<ProgressContext?, Task> callback)
     {
-        await (k_AnsiConsole is null ? callback(null) : StartAnsiConsoleProgressAsync(k_AnsiConsole, callback));
+        await (AnsiConsole is null ? callback(null) : StartAnsiConsoleProgressAsync(AnsiConsole, callback));
     }
 
     async Task StartAnsiConsoleProgressAsync(IAnsiConsole console, Func<ProgressContext?, Task> callback) =>
-        await console.Progress().Columns(k_ProgressColumns).StartAsync(callback);
+        await console.Progress().Columns(m_ProgressColumns).StartAsync(callback);
 }

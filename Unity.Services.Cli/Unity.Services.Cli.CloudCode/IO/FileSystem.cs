@@ -96,4 +96,9 @@ class FileSystem : Common.IO.FileSystem, IFileSystem
     {
         File.Move(sourceFileName, destFileName);
     }
+
+    public void MoveDirectory(string sourceDirName, string destDirName)
+    {
+        Directory.Move(sourceDirName, destDirName);
+    }
 }

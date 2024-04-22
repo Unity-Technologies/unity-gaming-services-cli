@@ -14,7 +14,7 @@ public class CloudCodeV1Mock : IServiceApiMock
     const string k_CloudCodeV1Config = "cloud-code-api-v1-generator-config.yaml";
     public const string ValidScriptName = "test-3";
     public const string ValidModuleName = "test_3";
-    const string sampleURL = "https://google.com";
+    const string k_SampleUrl = "https://google.com";
 
     public async Task<IReadOnlyList<MappingModel>> CreateMappingModels()
     {
@@ -41,14 +41,14 @@ public class CloudCodeV1Mock : IServiceApiMock
                     "ExistingModule",
                     Language.CS,
                     null,
-                    sampleURL
+                    k_SampleUrl
 
                 ),
                 new(
                     "AnotherExistingModule",
                     Language.CS,
                     null,
-                    sampleURL
+                    k_SampleUrl
                 )
             },
             ""
@@ -68,7 +68,7 @@ public class CloudCodeV1Mock : IServiceApiMock
     {
         const string testFile
             = "../../../../Unity.Services.Cli.CloudCode.UnitTest/ModuleTestCases/test.ccmzip";
-        mockServer?.Given(Request.Create().WithUrl(sampleURL).UsingGet())
+        mockServer?.Given(Request.Create().WithUrl(k_SampleUrl).UsingGet())
             .RespondWith(Response.Create().WithHeaders(new Dictionary<string, string>
             {
                 {

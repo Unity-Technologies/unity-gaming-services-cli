@@ -38,9 +38,9 @@ public class CliProcess : ICliProcess
 
             return output;
         }
-        catch (Win32Exception)
+        catch (Win32Exception e)
         {
-            throw new ProcessException($"Can not find {process.StartInfo.FileName}, please ensure its path is configured in PATH environment variable");
+            throw new ProcessException($"Can not find {process.StartInfo.FileName}, please ensure its path is configured in PATH environment variable", e, Exceptions.ExitCode.HandledError);
         }
     }
 }

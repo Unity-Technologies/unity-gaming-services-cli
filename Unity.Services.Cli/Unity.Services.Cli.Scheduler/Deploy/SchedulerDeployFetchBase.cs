@@ -45,12 +45,12 @@ abstract class SchedulerDeployFetchBase
         }
     }
 
-    protected async Task<(IReadOnlyList<ScheduleFileItem>,IReadOnlyList<ScheduleFileItem>)> GetResourcesFromFiles(
+    protected async Task<(IReadOnlyList<ScheduleFileItem>, IReadOnlyList<ScheduleFileItem>)> GetResourcesFromFiles(
         IReadOnlyCollection<string> filePaths,
         CancellationToken token)
     {
-        var resources  = await Task.WhenAll(
-            filePaths.Select(f => m_ResourceLoader.LoadResource(f,token)));
+        var resources = await Task.WhenAll(
+            filePaths.Select(f => m_ResourceLoader.LoadResource(f, token)));
         var deserializedFiles = resources
             .Where(r => r.Status.MessageSeverity != SeverityLevel.Error)
             .ToList();

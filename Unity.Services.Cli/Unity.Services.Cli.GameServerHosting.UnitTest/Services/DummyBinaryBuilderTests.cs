@@ -18,7 +18,7 @@ public class DummyBinaryBuilderTests
     {
         Assert.DoesNotThrow(() =>
         {
-            new DummyBinaryBuilder().RevertToOriginalBuildTarget();
+            new DummyBinaryBuilder().WarnBuildTargetChanged();
         });
     }
 }

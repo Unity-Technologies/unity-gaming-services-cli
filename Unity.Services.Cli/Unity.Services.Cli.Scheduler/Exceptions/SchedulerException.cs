@@ -6,11 +6,8 @@ namespace Unity.Services.Cli.Scheduler.Exceptions;
 /// <summary>
 /// Example of custom exception for incorrect user operation.
 /// </summary>
-[Serializable]
 public class SchedulerException : CliException
 {
-    protected SchedulerException(SerializationInfo info, StreamingContext context) : base(info, context) { }
-
     public SchedulerException(int exitCode = Common.Exceptions.ExitCode.HandledError)
         : base(exitCode) { }
 

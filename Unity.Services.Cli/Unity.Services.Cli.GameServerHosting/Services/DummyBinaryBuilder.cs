@@ -10,8 +10,5 @@ class DummyBinaryBuilder : IBinaryBuilder
         return new ServerBuild(Path.Combine(outDir, executable));
     }
 
-    public void RevertToOriginalBuildTarget()
-    {
-
-    }
+    public void WarnBuildTargetChanged() { }
 }

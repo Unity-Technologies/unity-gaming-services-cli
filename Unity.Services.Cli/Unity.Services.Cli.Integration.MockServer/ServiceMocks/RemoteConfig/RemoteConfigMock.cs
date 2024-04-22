@@ -17,9 +17,9 @@ public class RemoteConfigMock : IServiceApiMock
     public const string ConfigTypeDefaultValue = "settings";
     const string k_RemoteConfigPath = "/remote-config/v1";
 
-    readonly string UpdateConfigUrl;
-    readonly string GetAllConfigsUrl;
-    readonly string DeleteConfigUrl;
+    readonly string m_UpdateConfigUrl;
+    readonly string m_GetAllConfigsUrl;
+    readonly string m_DeleteConfigUrl;
 
     readonly string m_ProjectId;
     readonly string m_EnvironmentId;
@@ -31,9 +31,9 @@ public class RemoteConfigMock : IServiceApiMock
     {
         m_ProjectId = CommonKeys.ValidProjectId;
         m_EnvironmentId = CommonKeys.ValidEnvironmentId;
-        UpdateConfigUrl = $"{k_RemoteConfigPath}/projects/{m_ProjectId}/configs";
-        GetAllConfigsUrl = $"{k_RemoteConfigPath}/projects/{m_ProjectId}/environments/{m_EnvironmentId}/configs";
-        DeleteConfigUrl = $"{k_RemoteConfigPath}/projects/{m_ProjectId}/configs";
+        m_UpdateConfigUrl = $"{k_RemoteConfigPath}/projects/{m_ProjectId}/configs";
+        m_GetAllConfigsUrl = $"{k_RemoteConfigPath}/projects/{m_ProjectId}/environments/{m_EnvironmentId}/configs";
+        m_DeleteConfigUrl = $"{k_RemoteConfigPath}/projects/{m_ProjectId}/configs";
         m_Config = new()
         {
             ProjectId = m_ProjectId,
@@ -110,7 +110,7 @@ public class RemoteConfigMock : IServiceApiMock
     public void MockGetAllConfigsFromEnvironmentAsync(WireMockServer mockServer, string configId)
     {
         m_Config.Id = configId;
-        mockServer.Given(Request.Create().WithPath(GetAllConfigsUrl).UsingGet())
+        mockServer.Given(Request.Create().WithPath(m_GetAllConfigsUrl).UsingGet())
             .RespondWith(Response.Create()
                 .WithHeaders(new Dictionary<string, string> { { "Content-Type", "application/json" } })
                 .WithBodyAsJson(m_GetResponse)
@@ -120,14 +120,14 @@ public class RemoteConfigMock : IServiceApiMock
     public void MockUpdateConfigAsync(WireMockServer mockServer, string configId)
     {
         mockServer
-            .Given(Request.Create().WithPath($"{UpdateConfigUrl}/{configId}").UsingPut())
+            .Given(Request.Create().WithPath($"{m_UpdateConfigUrl}/{configId}").UsingPut())
             .RespondWith(Response.Create().WithStatusCode(HttpStatusCode.NoContent));
     }
 
     public void MockDeleteConfigAsync(WireMockServer mockServer, string configId)
     {
         mockServer
-            .Given(Request.Create().WithPath($"{DeleteConfigUrl}/{configId}").UsingDelete())
+            .Given(Request.Create().WithPath($"{m_DeleteConfigUrl}/{configId}").UsingDelete())
             .RespondWith(Response.Create().WithStatusCode(HttpStatusCode.NoContent));
     }
 }

@@ -8,16 +8,16 @@ namespace Unity.Services.Cli.Common.Handlers;
 
 static class DeleteHandler
 {
-    internal const string k_DeletedAllKeysMsg = "All keys were deleted from local configuration.";
-    internal const string k_DeletedSpecifiedKeysMsg = "Specified keys were deleted from local configuration.";
-    internal const string k_UnsupportedOptionCombinationErrorMsg =
+    internal const string deletedAllKeysMsg = "All keys were deleted from local configuration.";
+    internal const string deletedSpecifiedKeysMsg = "Specified keys were deleted from local configuration.";
+    internal const string unsupportedOptionCombinationErrorMsg =
         $"Having both {ConfigurationInput.KeysLongAlias} and {ConfigurationInput.TargetAllKeysLongAlias} options " +
         "simultaneously is unsupported.";
-    internal const string k_NoOptionErrorMsg =
+    internal const string noOptionErrorMsg =
         $"Specify configuration keys to delete by using the {ConfigurationInput.KeysLongAlias} option. To delete " +
         $"all keys, use the {ConfigurationInput.TargetAllKeysLongAlias} option.";
     // Temporary, will be changed with EDX-1435
-    internal const string k_ForceRequiredErrorMsg =
+    internal const string forceRequiredErrorMsg =
         "This is a destructive operation, use the --force option to continue.";
 
     public static async Task DeleteAsync(
@@ -26,19 +26,19 @@ static class DeleteHandler
     {
         if (input.TargetAllKeys is true && input.Keys is not null && input.Keys.Length is not 0)
         {
-            throw new CliException(k_UnsupportedOptionCombinationErrorMsg, ExitCode.HandledError);
+            throw new CliException(unsupportedOptionCombinationErrorMsg, ExitCode.HandledError);
         }
 
         if (input.TargetAllKeys is null or false && (input.Keys is null || input.Keys.Length is 0))
         {
-            throw new CliException(k_NoOptionErrorMsg, ExitCode.HandledError);
+            throw new CliException(noOptionErrorMsg, ExitCode.HandledError);
 
         }
 
         // Temporary, will be changed with EDX-1435
         if (!input.UseForce)
         {
-            throw new CliException(k_ForceRequiredErrorMsg, ExitCode.HandledError);
+            throw new CliException(forceRequiredErrorMsg, ExitCode.HandledError);
         }
 
         if (input.TargetAllKeys is true)
@@ -46,13 +46,13 @@ static class DeleteHandler
             string[] keys = Keys.ConfigKeys.Keys.ToArray();
             await service.DeleteConfigArgumentsAsync(keys, cancellationToken);
             NotifyWhenKeysSetInEnvironmentVariables(environmentProvider, logger, keys);
-            logger.LogInformation(k_DeletedAllKeysMsg);
+            logger.LogInformation(deletedAllKeysMsg);
         }
         else
         {
             await service.DeleteConfigArgumentsAsync(input.Keys!, cancellationToken);
             NotifyWhenKeysSetInEnvironmentVariables(environmentProvider, logger, input.Keys!);
-            logger.LogInformation(k_DeletedSpecifiedKeysMsg);
+            logger.LogInformation(deletedSpecifiedKeysMsg);
         }
     }
 

@@ -1,11 +1,11 @@
 using Moq;
 using NUnit.Framework;
-using Unity.Services.Access.Authoring.Core.Deploy;
-using Unity.Services.Access.Authoring.Core.Model;
-using Unity.Services.Access.Authoring.Core.Service;
-using Unity.Services.Access.Authoring.Core.Validations;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Deploy;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Model;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Service;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Validations;
 using Unity.Services.Cli.Access.UnitTest.Utils;
-using InvalidDataException = Unity.Services.Access.Authoring.Core.ErrorHandling.InvalidDataException;
+using InvalidDataException = Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.ErrorHandling.InvalidDataException;
 
 namespace Unity.Services.Cli.Access.UnitTest.Deploy;
 

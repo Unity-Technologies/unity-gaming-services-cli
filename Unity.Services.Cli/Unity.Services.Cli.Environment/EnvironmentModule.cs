@@ -35,8 +35,15 @@ public class EnvironmentModule : ICommandModule
         {
             CommonInput.CloudProjectIdOption
         };
-        ListCommand.SetHandler<EnvironmentInput, IEnvironmentService, ILogger, ILoadingIndicator, CancellationToken>(
-            ListHandler.ListAsync);
+        ListCommand.SetHandler<
+            EnvironmentInput,
+            IEnvironmentService,
+            IConfigurationService,
+            IConsoleTable,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken>
+            (ListHandler.ListAsync);
 
         AddCommand = new(
             "add",

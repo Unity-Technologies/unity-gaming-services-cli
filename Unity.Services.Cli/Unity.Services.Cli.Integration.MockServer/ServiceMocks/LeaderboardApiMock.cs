@@ -20,7 +20,7 @@ public class LeaderboardApiMock : IServiceApiMock
         UpdateType.Aggregate,
         10,
         new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
-        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>() { new TieringConfigTiersInner("tier1", 2) }),
         versions: new List<LeaderboardVersion>()
         );
     public static readonly UpdatedLeaderboardConfig Leaderboard2 = new(
@@ -38,7 +38,7 @@ public class LeaderboardApiMock : IServiceApiMock
         UpdateType.Aggregate,
         10,
         new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
-        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>() { new TieringConfigTiersInner("tier1", 2) }),
         versions: new List<LeaderboardVersion>()
     );
     public static readonly UpdatedLeaderboardConfig Leaderboard4 = new(
@@ -48,7 +48,7 @@ public class LeaderboardApiMock : IServiceApiMock
         UpdateType.Aggregate,
         10,
         new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
-        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>() { new TieringConfigTiersInner("tier1", 2) }),
         versions: new List<LeaderboardVersion>()
     );
     public static readonly UpdatedLeaderboardConfig Leaderboard5 = new(
@@ -58,7 +58,7 @@ public class LeaderboardApiMock : IServiceApiMock
         UpdateType.Aggregate,
         10,
         new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
-        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>() { new TieringConfigTiersInner("tier1", 2) }),
         versions: new List<LeaderboardVersion>()
     );
     public static readonly UpdatedLeaderboardConfig Leaderboard6 = new(
@@ -68,7 +68,7 @@ public class LeaderboardApiMock : IServiceApiMock
         UpdateType.Aggregate,
         10,
         new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
-        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>() { new TieringConfigTiersInner("tier1", 2) }),
         versions: new List<LeaderboardVersion>()
     );
     public static readonly UpdatedLeaderboardConfig Leaderboard7 = new(
@@ -78,7 +78,7 @@ public class LeaderboardApiMock : IServiceApiMock
         UpdateType.Aggregate,
         10,
         new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
-        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>() { new TieringConfigTiersInner("tier1", 2) }),
         versions: new List<LeaderboardVersion>()
     );
     public static readonly UpdatedLeaderboardConfig Leaderboard8 = new(
@@ -88,7 +88,7 @@ public class LeaderboardApiMock : IServiceApiMock
         UpdateType.Aggregate,
         10,
         new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
-        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>() { new TieringConfigTiersInner("tier1", 2) }),
         versions: new List<LeaderboardVersion>()
     );
     public static readonly UpdatedLeaderboardConfig Leaderboard9 = new(
@@ -98,7 +98,7 @@ public class LeaderboardApiMock : IServiceApiMock
         UpdateType.Aggregate,
         10,
         new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
-        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>() { new TieringConfigTiersInner("tier1", 2) }),
         versions: new List<LeaderboardVersion>()
     );
     public static readonly UpdatedLeaderboardConfig Leaderboard10 = new(
@@ -108,7 +108,7 @@ public class LeaderboardApiMock : IServiceApiMock
         UpdateType.Aggregate,
         10,
         new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
-        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>() { new TieringConfigTiersInner("tier1", 2) }),
         versions: new List<LeaderboardVersion>()
     );
     public static readonly UpdatedLeaderboardConfig Leaderboard11 = new(
@@ -118,7 +118,7 @@ public class LeaderboardApiMock : IServiceApiMock
         UpdateType.Aggregate,
         10,
         new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
-        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>() { new TieringConfigTiersInner("tier1", 2) }),
         versions: new List<LeaderboardVersion>()
     );
     public static readonly UpdatedLeaderboardConfig Leaderboard12 = new(
@@ -128,19 +128,20 @@ public class LeaderboardApiMock : IServiceApiMock
         UpdateType.Aggregate,
         10,
         new ResetConfig(new DateTime(2023, 1, 1), "@1d", true),
-        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>(){new TieringConfigTiersInner("tier1", 2)}),
+        new TieringConfig(TieringConfig.StrategyEnum.Percent, new List<TieringConfigTiersInner>() { new TieringConfigTiersInner("tier1", 2) }),
         versions: new List<LeaderboardVersion>()
     );
 
-    readonly string BaseUrl;
+    readonly string m_BaseUrl;
 
-    readonly Dictionary<string, string> RequestHeader = new ()
+    readonly Dictionary<string, string> m_RequestHeader = new()
     {
         { "Content-Type", "application/json" }
     };
 
-    public LeaderboardApiMock() {
-        BaseUrl = $"{k_LeaderboardPath}/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/leaderboards";
+    public LeaderboardApiMock()
+    {
+        m_BaseUrl = $"{k_LeaderboardPath}/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/leaderboards";
     }
 
     public Task<IReadOnlyList<MappingModel>> CreateMappingModels()
@@ -173,53 +174,53 @@ public class LeaderboardApiMock : IServiceApiMock
             Results = leaderboardConfigs
         };
 
-        mockServer.Given(Request.Create().WithPath(BaseUrl).UsingGet())
+        mockServer.Given(Request.Create().WithPath(m_BaseUrl).UsingGet())
             .RespondWith(Response.Create()
-                .WithHeaders(RequestHeader)
+                .WithHeaders(m_RequestHeader)
                 .WithBodyAsJson(response)
                 .WithStatusCode(code));
     }
 
     void MockGetLeaderboard(WireMockServer mockServer, UpdatedLeaderboardConfig leaderboardConfig, HttpStatusCode code = HttpStatusCode.OK)
     {
-        mockServer.Given(Request.Create().WithPath(BaseUrl + "/" + leaderboardConfig.Id).UsingGet())
+        mockServer.Given(Request.Create().WithPath(m_BaseUrl + "/" + leaderboardConfig.Id).UsingGet())
             .RespondWith(Response.Create()
-                .WithHeaders(RequestHeader)
+                .WithHeaders(m_RequestHeader)
                 .WithBodyAsJson(leaderboardConfig)
                 .WithStatusCode(code));
     }
 
     void MockCreateLeaderboard(WireMockServer mockServer, UpdatedLeaderboardConfig leaderboardConfig, HttpStatusCode code = HttpStatusCode.Created)
     {
-        mockServer.Given(Request.Create().WithPath(BaseUrl).UsingPost())
+        mockServer.Given(Request.Create().WithPath(m_BaseUrl).UsingPost())
             .RespondWith(Response.Create()
-                .WithHeaders(RequestHeader)
+                .WithHeaders(m_RequestHeader)
                 .WithBodyAsJson(leaderboardConfig)
                 .WithStatusCode(code));
     }
 
     public void MockUpdateLeaderboard(WireMockServer mockServer, UpdatedLeaderboardConfig leaderboardConfig, HttpStatusCode code = HttpStatusCode.NoContent)
     {
-        mockServer.Given(Request.Create().WithPath(BaseUrl + "/" + leaderboardConfig.Id).UsingPatch())
+        mockServer.Given(Request.Create().WithPath(m_BaseUrl + "/" + leaderboardConfig.Id).UsingPatch())
             .RespondWith(Response.Create()
-                .WithHeaders(RequestHeader)
+                .WithHeaders(m_RequestHeader)
                 .WithBodyAsJson(leaderboardConfig)
                 .WithStatusCode(code));
     }
 
     void MockDeleteLeaderboard(WireMockServer mockServer, string leaderboardId, HttpStatusCode code = HttpStatusCode.NoContent)
     {
-        mockServer.Given(Request.Create().WithPath(BaseUrl + "/" + leaderboardId).UsingDelete())
+        mockServer.Given(Request.Create().WithPath(m_BaseUrl + "/" + leaderboardId).UsingDelete())
             .RespondWith(Response.Create()
-                .WithHeaders(RequestHeader)
+                .WithHeaders(m_RequestHeader)
                 .WithStatusCode(code));
     }
 
     void MockResetLeaderboard(WireMockServer mockServer, string leaderboardId, string versionId, HttpStatusCode code = HttpStatusCode.OK)
     {
-        mockServer.Given(Request.Create().WithPath(BaseUrl+ "/" + leaderboardId + "/scores").UsingDelete())
+        mockServer.Given(Request.Create().WithPath(m_BaseUrl + "/" + leaderboardId + "/scores").UsingDelete())
             .RespondWith(Response.Create()
-                .WithHeaders(RequestHeader)
+                .WithHeaders(m_RequestHeader)
                 .WithBodyAsJson(new LeaderboardVersionId(versionId))
                 .WithStatusCode(code));
     }

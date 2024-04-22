@@ -55,12 +55,15 @@ public class EnvTests : UgsCliFixture
     [Test]
     public async Task EnvironmentListReturnsZeroExitCode()
     {
-        var expectedReturn = $"\"{CommonKeys.ValidEnvironmentName}\": \"{CommonKeys.ValidEnvironmentId}\"";
-
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         await GetLoggedInCli()
             .Command("env list")
-            .AssertStandardOutputContains(expectedReturn)
+            .AssertStandardOutput(
+                output =>
+                {
+                    StringAssert.Contains(CommonKeys.ValidEnvironmentName, output);
+                    StringAssert.Contains(CommonKeys.ValidEnvironmentId, output);
+                })
             .ExecuteAsync();
     }
 

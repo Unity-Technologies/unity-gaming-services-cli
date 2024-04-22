@@ -7,6 +7,8 @@ namespace Unity.Services.Cli.CloudCode.Parameters;
 
 class CloudScriptParametersParser : ICloudScriptParametersParser
 {
+    static string ParamTypePossibleValues => string.Join(", ", Enum.GetNames(typeof(ScriptParameter.TypeEnum)));
+
     struct EvaluatedParam
     {
         public ScriptParameter.TypeEnum Type = ScriptParameter.TypeEnum.ANY;
@@ -61,11 +63,11 @@ class CloudScriptParametersParser : ICloudScriptParametersParser
         }
         catch (JsonSerializationException ex)
         {
-            throw new ScriptEvaluationException(ex.Message);
+            throw new ScriptEvaluationException(ex.Message, ex);
         }
         catch (ArgumentException ex)
         {
-            throw new ScriptEvaluationException(ex.Message);
+            throw new ScriptEvaluationException($"Impossible to convert '{param}' to enum. Possible values are: {ParamTypePossibleValues}.", ex);
         }
     }
 
@@ -79,6 +81,10 @@ class CloudScriptParametersParser : ICloudScriptParametersParser
         }
         catch (JsonSerializationException ex)
         {
+            if (ex.Path?.EndsWith(".type") ?? false)
+            {
+                throw new ScriptEvaluationException($"Impossible to convert '{jParamData.GetValue("type")}' to enum. Possible values are: {ParamTypePossibleValues}.", ex);
+            }
             throw new ScriptEvaluationException(ex.Message);
         }
     }

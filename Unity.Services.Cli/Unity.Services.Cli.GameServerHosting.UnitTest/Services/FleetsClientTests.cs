@@ -5,6 +5,7 @@ using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Api;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
 using Unity.Services.Multiplay.Authoring.Core.Assets;
 using Unity.Services.Multiplay.Authoring.Core.MultiplayApi;
+using ServerStatus = Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model.ServerStatus;
 
 namespace Unity.Services.Cli.GameServerHosting.UnitTest.Services;
 
@@ -59,57 +60,13 @@ public class FleetsClientTests
                         all: new FleetServerBreakdown(new ServerStatus()),
                         cloud: new FleetServerBreakdown(new ServerStatus()),
                         metal: new FleetServerBreakdown(new ServerStatus())
-                    )
+                    ), status: FleetListItem.StatusEnum.ONLINE
                 )
             });
 
         var res = await m_Client!.FindByName("test");
 
         Assert.That(res, Is.Not.Null);
-    }
-
-    [Test]
-    public void FindByName_WithMultipleResults_ThrowsDuplicateException()
-    {
-        m_MockApi!.Setup(a =>
-                a.ListFleetsAsync(
-                    Guid.Empty,
-                    Guid.Empty,
-                    default,
-                    default))
-            .ReturnsAsync(new List<FleetListItem>
-            {
-                new FleetListItem(
-                    allocationType: FleetListItem.AllocationTypeEnum.ALLOCATION,
-                    new List<BuildConfiguration1>(),
-                    graceful: false,
-                    Guid.Empty,
-                    name: "test",
-                    osName: string.Empty,
-                    regions: new List<FleetRegion>(),
-                    servers: new Servers(
-                        all: new FleetServerBreakdown(new ServerStatus()),
-                        cloud: new FleetServerBreakdown(new ServerStatus()),
-                        metal: new FleetServerBreakdown(new ServerStatus())
-                    )
-                ),
-                new FleetListItem(
-                    allocationType: FleetListItem.AllocationTypeEnum.ALLOCATION,
-                    new List<BuildConfiguration1>(),
-                    graceful: false,
-                    Guid.Empty,
-                    name: "test",
-                    osName: string.Empty,
-                    regions: new List<FleetRegion>(),
-                    servers: new Servers(
-                        all: new FleetServerBreakdown(new ServerStatus()),
-                        cloud: new FleetServerBreakdown(new ServerStatus()),
-                        metal: new FleetServerBreakdown(new ServerStatus())
-                    )
-                )
-            });
-
-        Assert.ThrowsAsync<DuplicateResourceException>(async () => await m_Client!.FindByName("test"));
     }
 
     [Test]
@@ -130,9 +87,10 @@ public class FleetsClientTests
                     all: new FleetServerBreakdown(new ServerStatus()),
                     cloud: new FleetServerBreakdown(new ServerStatus()),
                     metal: new FleetServerBreakdown(new ServerStatus())
-                )));
+                ),
+                status: Fleet.StatusEnum.ONLINE));
 
-        await m_Client!.Create("test", new List<BuildConfigurationId>(), new MultiplayConfig.FleetDefinition());
+        await m_Client!.Create("test", new List<BuildConfigurationId>(), new MultiplayConfig.FleetDefinition(), CancellationToken.None);
 
         m_MockApi.Verify(a =>
             a.CreateFleetAsync(Guid.Empty, Guid.Empty, null, It.IsAny<FleetCreateRequest>(), default, default));
@@ -158,7 +116,7 @@ public class FleetsClientTests
                     metal: new FleetServerBreakdown(new ServerStatus())
                 )));
 
-        await m_Client!.Update(new FleetId(), "test", new List<BuildConfigurationId>(), new MultiplayConfig.FleetDefinition());
+        await m_Client!.Update(new FleetId(), "test", new List<BuildConfigurationId>(), new MultiplayConfig.FleetDefinition(), Guid.Empty);
 
         m_MockApi.Verify(a =>
             a.UpdateFleetAsync(Guid.Empty, Guid.Empty, Guid.Empty, It.IsAny<FleetUpdateRequest>(), default, default));
@@ -188,7 +146,7 @@ public class FleetsClientTests
                     metal: new FleetServerBreakdown(new ServerStatus())
                 )));
 
-        await m_Client!.Update(new FleetId(), "test", new List<BuildConfigurationId>(), new MultiplayConfig.FleetDefinition());
+        await m_Client!.Update(new FleetId(), "test", new List<BuildConfigurationId>(), new MultiplayConfig.FleetDefinition(), Guid.Empty);
 
         m_MockApi.Verify(f => f.UpdateFleetRegionAsync(Guid.Empty, Guid.Empty, Guid.Empty, regionId, null, default, default));
     }
@@ -223,7 +181,7 @@ public class FleetsClientTests
             {
                 {"North-America", new MultiplayConfig.ScalingDefinition()}
             }
-        });
+        }, Guid.Empty);
 
         m_MockApi.Verify(f =>
             f.AddFleetRegionAsync(Guid.Empty, Guid.Empty, Guid.Empty, null, It.IsAny<AddRegionRequest>(), default, default));
@@ -262,7 +220,7 @@ public class FleetsClientTests
             {
                 {"North-America", new MultiplayConfig.ScalingDefinition()}
             }
-        });
+        }, Guid.Empty);
 
         m_MockApi.Verify(f => f.UpdateFleetRegionAsync(Guid.Empty, Guid.Empty, Guid.Empty, regionId, It.IsAny<UpdateRegionRequest>(), default, default));
     }

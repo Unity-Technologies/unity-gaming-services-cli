@@ -64,7 +64,7 @@ public class ProjectAccessFetchTests : UgsCliFixture
     }
 
     static async Task CreateDeployTestFilesAsync(
-        IReadOnlyList<AuthoringTestCase> testCases ,ICollection<DeployContent> contents)
+        IReadOnlyList<AuthoringTestCase> testCases, ICollection<DeployContent> contents)
     {
         foreach (var testCase in testCases)
         {

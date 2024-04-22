@@ -36,12 +36,12 @@ public class LeaderboardFetchTests : UgsCliFixture
         await MockApi.MockServiceAsync(new LeaderboardApiMock());
         await MockApi.MockServiceAsync(new IdentityV1Mock());
         Directory.CreateDirectory(k_TestDirectory);
-        m_LocalLeaderboards = new  LeaderboardConfig[]
+        m_LocalLeaderboards = new LeaderboardConfig[]
         {
             new ("lb1", "leaderboard 1") { Path = Path.Combine(k_TestDirectory, "lb1.lb") }
         };
 
-        m_RemoteLeaderboards = new  LeaderboardConfig[]
+        m_RemoteLeaderboards = new LeaderboardConfig[]
         {
             new ("lb1", "leaderboard 1") { Path = Path.Combine(k_TestDirectory, "lb1.lb") },
             new ("lb2", "leaderboard 2") { Path = Path.Combine(k_TestDirectory, "lb2.lb") }
@@ -76,10 +76,10 @@ public class LeaderboardFetchTests : UgsCliFixture
         var localLeaderboards = m_LocalLeaderboards!;
         await CreateDeployTestFilesAsync(localLeaderboards);
         var expectedResult = new FetchResult(
-                updated: new IDeploymentItem[]{ localLeaderboards[0] },
+                updated: new IDeploymentItem[] { localLeaderboards[0] },
                 deleted: Array.Empty<IDeploymentItem>(),
                 created: Array.Empty<IDeploymentItem>(),
-                authored: new IDeploymentItem[]{ localLeaderboards[0] },
+                authored: new IDeploymentItem[] { localLeaderboards[0] },
                 failed: Array.Empty<IDeploymentItem>()
             );
         await GetFullySetCli()
@@ -95,10 +95,10 @@ public class LeaderboardFetchTests : UgsCliFixture
         var localLeaderboards = m_LocalLeaderboards!;
         await CreateDeployTestFilesAsync(localLeaderboards);
         var expectedResult = new FetchResult(
-            updated: new IDeploymentItem[]{ localLeaderboards[0] },
+            updated: new IDeploymentItem[] { localLeaderboards[0] },
             deleted: Array.Empty<IDeploymentItem>(),
-            created: new IDeploymentItem[]{ m_RemoteLeaderboards![1] },
-            authored: new IDeploymentItem[]{ localLeaderboards[0], m_RemoteLeaderboards![1] },
+            created: new IDeploymentItem[] { m_RemoteLeaderboards![1] },
+            authored: new IDeploymentItem[] { localLeaderboards[0], m_RemoteLeaderboards![1] },
             failed: Array.Empty<IDeploymentItem>()
         );
         await GetFullySetCli()
@@ -114,7 +114,7 @@ public class LeaderboardFetchTests : UgsCliFixture
         var localLeaderboards = m_LocalLeaderboards!;
         await CreateDeployTestFilesAsync(localLeaderboards);
         var expectedResult = new FetchResult(
-            updated: new IDeploymentItem[]{ localLeaderboards[0] },
+            updated: new IDeploymentItem[] { localLeaderboards[0] },
             deleted: Array.Empty<IDeploymentItem>(),
             created: Array.Empty<IDeploymentItem>(),
             authored: Array.Empty<IDeploymentItem>(),
@@ -134,9 +134,9 @@ public class LeaderboardFetchTests : UgsCliFixture
         var localLeaderboards = m_LocalLeaderboards!;
         await CreateDeployTestFilesAsync(localLeaderboards);
         var expectedResult = new FetchResult(
-            updated: new IDeploymentItem[]{ localLeaderboards[0] },
+            updated: new IDeploymentItem[] { localLeaderboards[0] },
             deleted: Array.Empty<IDeploymentItem>(),
-            created: new IDeploymentItem[]{ m_RemoteLeaderboards![1] },
+            created: new IDeploymentItem[] { m_RemoteLeaderboards![1] },
             authored: Array.Empty<IDeploymentItem>(),
             failed: Array.Empty<IDeploymentItem>(),
             dryRun: true
@@ -172,7 +172,7 @@ public class LeaderboardFetchTests : UgsCliFixture
             deleted: Array.Empty<IDeploymentItem>(),
             created: Array.Empty<IDeploymentItem>(),
             authored: Array.Empty<IDeploymentItem>(),
-            failed: new IDeploymentItem[]{ localLeaderboards[0], localLeaderboards[1] }
+            failed: new IDeploymentItem[] { localLeaderboards[0], localLeaderboards[1] }
         );
         await GetFullySetCli()
             .Command($"fetch {k_TestDirectory} -s leaderboards")

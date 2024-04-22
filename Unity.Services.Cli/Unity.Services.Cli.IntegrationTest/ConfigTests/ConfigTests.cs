@@ -84,7 +84,7 @@ public class ConfigTests : UgsCliFixture
     [Test]
     public async Task ConfigSetWithInvalidKeyErrorsOut()
     {
-        const string expectedError = "key 'invalid-key' not allowed. Allowed values: environment-name,project-id,bucket-id";
+        const string expectedError = "key 'invalid-key' not allowed. Allowed values: environment-name,project-id,bucket-name";
 
         await new UgsCliTestCase()
             .Command("config set invalid-key random-value")

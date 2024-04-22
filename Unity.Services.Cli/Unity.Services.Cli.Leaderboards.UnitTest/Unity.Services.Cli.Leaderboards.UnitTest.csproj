@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -16,15 +16,10 @@
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
     <PackageReference Include="coverlet.collector" Version="3.2.0" />
-    <PackageReference Include="Unity.Services.Leaderboards.Authoring.Editor.Core" Version="0.0.2" />
+    <PackageReference Include="Unity.Services.Leaderboards.Authoring.Editor.Core" Version="0.0.3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Unity.Services.Cli.Leaderboards\Unity.Services.Cli.Leaderboards.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.TestUtils\Unity.Services.Cli.TestUtils.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Unity.Services.Cli.Leaderboards">
-      <HintPath>..\Unity.Services.Cli\bin\Debug\net6.0\Unity.Services.Cli.Leaderboards.dll</HintPath>
-    </Reference>
   </ItemGroup>
 </Project>

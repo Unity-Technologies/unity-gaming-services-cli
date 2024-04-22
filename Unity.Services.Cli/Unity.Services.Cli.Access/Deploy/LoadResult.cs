@@ -1,8 +1,8 @@
-using Unity.Services.Access.Authoring.Core.Model;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Model;
 
 namespace Unity.Services.Cli.Access.Deploy;
 
-public class LoadResult
+class LoadResult
 {
     public IReadOnlyList<IProjectAccessFile> Loaded { get; }
     public IReadOnlyList<IProjectAccessFile> Failed { get; }

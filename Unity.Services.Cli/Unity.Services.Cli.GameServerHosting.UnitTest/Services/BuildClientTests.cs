@@ -42,7 +42,8 @@ public class BuildClientTests
                     0,
                     "test",
                     buildVersionName: ValidBuildVersionName,
-                    ccd: new CCDDetails())
+                    ccd: new CCDDetails(),
+                    syncStatus: BuildListInner.SyncStatusEnum.SYNCED)
             });
 
         var res = await m_Client!.FindByName("test");

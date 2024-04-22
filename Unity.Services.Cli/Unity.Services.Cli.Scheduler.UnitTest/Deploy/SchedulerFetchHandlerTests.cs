@@ -157,16 +157,16 @@ class SchedulerFetchHandlerTests
         );
 
         var expectedCreatedSchedule = actualRes.Fetched.FirstOrDefault(l => l.Name == "schedule4");
-        Assert.IsTrue(expectedCreatedSchedule.Status.Message == "Fetched");
-        Assert.IsTrue(expectedCreatedSchedule.Status.MessageDetail == "Created");
+        Assert.IsTrue(expectedCreatedSchedule?.Status.Message == "Fetched");
+        Assert.IsTrue(expectedCreatedSchedule?.Status.MessageDetail == "Created");
 
         var expectedUpdatedSchedule = actualRes.Fetched.FirstOrDefault(l => l.Name == "schedule1");
-        Assert.IsTrue(expectedUpdatedSchedule.Status.Message == "Fetched");
-        Assert.IsTrue(expectedUpdatedSchedule.Status.MessageDetail == "Updated");
+        Assert.IsTrue(expectedUpdatedSchedule?.Status.Message == "Fetched");
+        Assert.IsTrue(expectedUpdatedSchedule?.Status.MessageDetail == "Updated");
 
         var expectedDeletedSchedule = actualRes.Fetched.FirstOrDefault(l => l.Name == "schedule2");
-        Assert.IsTrue(expectedDeletedSchedule.Status.Message == "Fetched");
-        Assert.IsTrue(expectedDeletedSchedule.Status.MessageDetail == "Deleted");
+        Assert.IsTrue(expectedDeletedSchedule?.Status.Message == "Fetched");
+        Assert.IsTrue(expectedDeletedSchedule?.Status.MessageDetail == "Deleted");
     }
 
 
@@ -214,7 +214,8 @@ class SchedulerFetchHandlerTests
             "recurring",
             "0 * * * *",
             1,
-            "{}") { Path = "otherpath"});
+            "{}")
+        { Path = "otherpath" });
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulerClient = new();

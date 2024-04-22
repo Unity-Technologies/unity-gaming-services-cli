@@ -6,11 +6,8 @@ namespace Unity.Services.Cli.Authoring.Exceptions;
 /// <summary>
 /// Exception caused by user operation during deploy
 /// </summary>
-[Serializable]
 public class DeployException : CliException
 {
-    protected DeployException(SerializationInfo info, StreamingContext context) : base(info, context) { }
-
     public DeployException(int exitCode = Common.Exceptions.ExitCode.HandledError)
         : base(exitCode)
     {

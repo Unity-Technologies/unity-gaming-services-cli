@@ -2,8 +2,8 @@ using System.IO.Abstractions;
 using Moq;
 using NUnit.Framework;
 using Unity.Services.Cli.Access.Deploy;
-using Unity.Services.Access.Authoring.Core.Json;
-using IFileSystem = Unity.Services.Access.Authoring.Core.IO.IFileSystem;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Json;
+using IFileSystem = Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.IO.IFileSystem;
 
 namespace Unity.Services.Cli.Access.UnitTest.Deploy;
 

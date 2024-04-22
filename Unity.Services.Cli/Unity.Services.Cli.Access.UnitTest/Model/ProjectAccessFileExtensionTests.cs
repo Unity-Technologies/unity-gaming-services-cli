@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using Unity.Services.Access.Authoring.Core.Model;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Model;
 
 namespace Unity.Services.Cli.Access.UnitTest.Model;
 

@@ -103,7 +103,7 @@ namespace Unity.Services.Scheduler.Authoring.Core.Fetch
                 {
                     var task = m_FileSystem.WriteAllText(
                         resource.Path,
-                        m_ScheduleSerializer.Serialize(new List<IScheduleConfig>(){resource}),
+                        m_ScheduleSerializer.Serialize(new List<IScheduleConfig>() { resource }),
                         token);
                     createTasks.Add((resource, task));
                 }

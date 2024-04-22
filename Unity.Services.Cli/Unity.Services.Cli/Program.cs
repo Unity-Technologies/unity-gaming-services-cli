@@ -39,6 +39,9 @@ using Unity.Services.Cli.Player;
 using Unity.Services.Cli.Access;
 using Unity.Services.Cli.Scheduler;
 
+using Unity.Services.Cli.CloudContentDelivery;
+
+
 namespace Unity.Services.Cli;
 
 public static partial class Program
@@ -89,6 +92,8 @@ public static partial class Program
 #endif
                     host.ConfigureServices(LeaderboardsModule.RegisterServices);
                     host.ConfigureServices(PlayerModule.RegisterServices);
+
+                    host.ConfigureServices(CloudContentDeliveryModule.RegisterServices);
                     host.ConfigureServices(serviceCollection => serviceCollection
                         .AddSingleton<ISystemEnvironmentProvider>(systemEnvironmentProvider));
 
@@ -162,6 +167,8 @@ public static partial class Program
             .AddModule(new GameServerHostingModule())
             .AddModule(new PlayerModule())
             .AddModule(new RemoteConfigModule())
+
+            .AddModule(new CloudContentDeliveryModule())
             .Build();
 
         return await parser

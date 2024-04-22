@@ -1,7 +1,7 @@
 using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
-using Unity.Services.Access.Authoring.Core.Model;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Model;
 using Unity.Services.Cli.Access.Deploy;
 using Unity.Services.Cli.Access.Service;
 using Unity.Services.Cli.Access.UnitTest.Utils;

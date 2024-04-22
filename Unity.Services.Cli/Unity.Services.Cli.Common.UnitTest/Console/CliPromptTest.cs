@@ -22,7 +22,7 @@ public class CliPromptTest
     public async Task PromptAsyncSucceed()
     {
         const string expectedString = "foo";
-        var prompt = new CliPrompt(m_MockAnsiConsole.Object, false);
+        var prompt = new ConsolePrompt(m_MockAnsiConsole.Object, false);
         m_MockPrompt.Setup(p => p.ShowAsync(m_MockAnsiConsole.Object, CancellationToken.None))
             .ReturnsAsync(expectedString);
 

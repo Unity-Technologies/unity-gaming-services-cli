@@ -10,5 +10,5 @@ public interface ILoadingIndicator
     /// <param name="description">Description of the loading indicator</param>
     /// <param name="callback">The callback that the status will be tracking</param>
     /// <returns></returns>
-    public Task StartLoadingAsync(string description, Func<StatusContext?, Task> callback);
+    Task StartLoadingAsync(string description, Func<StatusContext?, Task> callback);
 }

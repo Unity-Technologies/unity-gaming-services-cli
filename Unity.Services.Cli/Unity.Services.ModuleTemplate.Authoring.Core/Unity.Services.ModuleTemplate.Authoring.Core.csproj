@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>disable</Nullable>
     <Version>0.0.1</Version>
     <ImplicitUsings>disable</ImplicitUsings>
@@ -21,6 +21,6 @@
     </AssemblyAttribute>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Unity.Services.DeploymentApi" Version="1.0.0-beta.1" />
+    <PackageReference Include="Unity.Services.DeploymentApi" Version="1.0.0-beta.5" />
   </ItemGroup>
 </Project>

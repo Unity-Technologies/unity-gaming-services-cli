@@ -26,6 +26,7 @@ using GameServerHostingConfiguration = Unity.Services.Gateway.GameServerHostingA
 using CloudContentDeliveryConfiguration =
     Unity.Services.Gateway.ContentDeliveryManagementApiV1.Generated.Client.Configuration;
 using IBuildsApi = Unity.Services.Gateway.GameServerHostingApiV1.Generated.Api.IBuildsApi;
+using IServersApi = Unity.Services.Gateway.GameServerHostingApiV1.Generated.Api.IServersApi;
 
 namespace Unity.Services.Cli.GameServerHosting;
 

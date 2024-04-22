@@ -2,7 +2,7 @@
   <RunConfiguration>  
     <ResultsDirectory>./TestResults</ResultsDirectory>
     <SolutionDirectory>./TestResults</SolutionDirectory>
-    <TestSessionTimeout>1800000</TestSessionTimeout>
+    <TestSessionTimeout>3600000</TestSessionTimeout>
   </RunConfiguration>  
   <LoggerRunSettings>
     <Loggers>

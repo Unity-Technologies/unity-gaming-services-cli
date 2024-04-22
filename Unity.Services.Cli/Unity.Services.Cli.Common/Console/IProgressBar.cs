@@ -9,5 +9,5 @@ public interface IProgressBar
     /// </summary>
     /// <param name="callback">The callback that the progress bars will be tracking</param>
     /// <returns></returns>
-    public Task StartProgressAsync(Func<ProgressContext?, Task> callback);
+    Task StartProgressAsync(Func<ProgressContext?, Task> callback);
 }

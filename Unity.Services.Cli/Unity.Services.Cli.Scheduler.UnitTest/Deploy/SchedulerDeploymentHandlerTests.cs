@@ -111,16 +111,16 @@ class SchedulerDeploymentHandlerTests
                     It.Is<IScheduleConfig>(l => l.Id == "foo")),
                 Times.Once);
         var expectedCreatedSchedule = actualRes.Deployed.FirstOrDefault(l => l.Id == "bar");
-        Assert.IsTrue(expectedCreatedSchedule.Status.Message == "Deployed");
-        Assert.IsTrue(expectedCreatedSchedule.Status.MessageDetail == "Created");
+        Assert.IsTrue(expectedCreatedSchedule?.Status.Message == "Deployed");
+        Assert.IsTrue(expectedCreatedSchedule?.Status.MessageDetail == "Created");
 
         var expectedUpdatedSchedule = actualRes.Deployed.FirstOrDefault(l => l.Id == "foo");
-        Assert.IsTrue(expectedUpdatedSchedule.Status.Message == "Deployed");
-        Assert.IsTrue(expectedUpdatedSchedule.Status.MessageDetail == "Updated");
+        Assert.IsTrue(expectedUpdatedSchedule?.Status.Message == "Deployed");
+        Assert.IsTrue(expectedUpdatedSchedule?.Status.MessageDetail == "Updated");
 
         var expectedDeletedSchedule = actualRes.Deployed.FirstOrDefault(l => l.Id == "echo");
-        Assert.IsTrue(expectedDeletedSchedule.Status.Message == "Deployed");
-        Assert.IsTrue(expectedDeletedSchedule.Status.MessageDetail == "Deleted");
+        Assert.IsTrue(expectedDeletedSchedule?.Status.Message == "Deployed");
+        Assert.IsTrue(expectedDeletedSchedule?.Status.MessageDetail == "Deleted");
     }
 
     [Test]

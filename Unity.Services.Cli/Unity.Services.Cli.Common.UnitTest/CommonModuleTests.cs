@@ -88,8 +88,8 @@ class CommonModuleTests
     [Test]
     public void CreateAndRegisterCliPromptServiceSucceeds()
     {
-        CommonModule.CreateAndRegisterCliPromptService(m_MockedServiceCollection!.Object);
-        Assert.AreEqual(1, m_Services!.Count);
+        CommonModule.CreateAndRegisterCliPromptService(m_MockedServiceCollection!.Object, null!, false);
+        Assert.AreEqual(2, m_Services!.Count);
     }
 
     [Test]
@@ -108,7 +108,7 @@ class CommonModuleTests
         var console = AnsiConsole.Create(new AnsiConsoleSettings());
         CommonModule.CreateAndRegisterProgressBarService(m_MockedServiceCollection!.Object, console);
         ProgressBar progressBar = (ProgressBar)m_Services![0].ImplementationInstance!;
-        Assert.IsNotNull(progressBar.k_AnsiConsole);
+        Assert.IsNotNull(progressBar.AnsiConsole);
     }
 
     [Test]
@@ -117,7 +117,7 @@ class CommonModuleTests
         IAnsiConsole? console = null;
         CommonModule.CreateAndRegisterProgressBarService(m_MockedServiceCollection!.Object, console);
         ProgressBar progressBar = (ProgressBar)m_Services![0].ImplementationInstance!;
-        Assert.IsNull(progressBar.k_AnsiConsole);
+        Assert.IsNull(progressBar.AnsiConsole);
     }
 
 
@@ -145,7 +145,7 @@ class CommonModuleTests
     public void CreateTelemetrySender_SetsBaseProductTags()
     {
         var telemetrySender = CommonModule.CreateTelemetrySender(m_MockSystemEnvironmentProvider.Object);
-        StringAssert.AreEqualIgnoringCase(telemetrySender.ProductTags[TagKeys.ProductName], CommonModule.m_CliProductName);
+        StringAssert.AreEqualIgnoringCase(telemetrySender.ProductTags[TagKeys.ProductName], CommonModule.cliProductName);
         StringAssert.AreEqualIgnoringCase(telemetrySender.ProductTags[TagKeys.CliVersion], TelemetryConfigurationProvider.GetCliVersion());
     }
 }

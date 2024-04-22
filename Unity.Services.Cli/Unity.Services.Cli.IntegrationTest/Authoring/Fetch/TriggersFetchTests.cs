@@ -92,10 +92,10 @@ public class TriggersFetchTests : UgsCliFixture
         var localTriggers = m_LocalTriggers!;
         await CreateDeployFileAsync(localTriggers);
         var expectedResult = new TriggersFetchResult(
-                updated: new IDeploymentItem[]{ localTriggers[0] },
+                updated: new IDeploymentItem[] { localTriggers[0] },
                 deleted: Array.Empty<IDeploymentItem>(),
                 created: Array.Empty<IDeploymentItem>(),
-                authored: new IDeploymentItem[]{new TriggersFileItem(null!, localTriggers[0].Path)},
+                authored: new IDeploymentItem[] { new TriggersFileItem(null!, localTriggers[0].Path) },
                 failed: Array.Empty<IDeploymentItem>()
             );
         await GetFullySetCli()
@@ -111,9 +111,9 @@ public class TriggersFetchTests : UgsCliFixture
         var localTriggers = m_LocalTriggers!;
         await CreateDeployFileAsync(localTriggers);
         var expectedResult = new TriggersFetchResult(
-            updated: new IDeploymentItem[]{ localTriggers[0] },
+            updated: new IDeploymentItem[] { localTriggers[0] },
             deleted: Array.Empty<IDeploymentItem>(),
-            created: new IDeploymentItem[]{ m_RemoteTriggers![1] },
+            created: new IDeploymentItem[] { m_RemoteTriggers![1] },
             authored: new IDeploymentItem[]
             {
                 new TriggersFileItem(null!, localTriggers[0].Path),
@@ -134,10 +134,10 @@ public class TriggersFetchTests : UgsCliFixture
         var localTriggers = m_LocalTriggers!;
         await CreateDeployFileAsync(localTriggers);
         var expectedResult = new TriggersFetchResult(
-            updated: new IDeploymentItem[]{ localTriggers[0] },
+            updated: new IDeploymentItem[] { localTriggers[0] },
             deleted: Array.Empty<IDeploymentItem>(),
             created: Array.Empty<IDeploymentItem>(),
-            authored: new IDeploymentItem[]{new TriggersFileItem(null!, localTriggers[0].Path)},
+            authored: new IDeploymentItem[] { new TriggersFileItem(null!, localTriggers[0].Path) },
             failed: Array.Empty<IDeploymentItem>(),
             dryRun: true
         );
@@ -156,9 +156,9 @@ public class TriggersFetchTests : UgsCliFixture
         var localTriggers = m_LocalTriggers!;
         await CreateDeployFileAsync(localTriggers);
         var expectedResult = new TriggersFetchResult(
-            updated: new IDeploymentItem[]{ localTriggers[0] },
+            updated: new IDeploymentItem[] { localTriggers[0] },
             deleted: Array.Empty<IDeploymentItem>(),
-            created: new IDeploymentItem[]{ m_RemoteTriggers![1] },
+            created: new IDeploymentItem[] { m_RemoteTriggers![1] },
             authored: new IDeploymentItem[]
             {
                 new TriggersFileItem(null!, localTriggers[0].Path),
@@ -198,7 +198,7 @@ public class TriggersFetchTests : UgsCliFixture
             deleted: Array.Empty<IDeploymentItem>(),
             created: Array.Empty<IDeploymentItem>(),
             authored: Array.Empty<IDeploymentItem>(),
-            failed: new IDeploymentItem[]{ localTriggers[0], localTriggers[1] }
+            failed: new IDeploymentItem[] { localTriggers[0], localTriggers[1] }
         );
         await GetFullySetCli()
             .DebugCommand($"fetch {k_TestDirectory} -s triggers")

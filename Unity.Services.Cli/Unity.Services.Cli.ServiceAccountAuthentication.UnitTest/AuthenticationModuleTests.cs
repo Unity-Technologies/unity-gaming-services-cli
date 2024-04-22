@@ -39,7 +39,7 @@ class AuthenticationModuleTests
     public void RegistersServicesRegisteredExpectedService(Type serviceType)
     {
         var collection = new ServiceCollection();
-        collection.AddSingleton(new Mock<ICliPrompt>().Object);
+        collection.AddSingleton(new Mock<IConsolePrompt>().Object);
         var context = new HostBuilderContext(new Dictionary<object, object>());
 
         AuthenticationModule.RegisterServices(context, collection);

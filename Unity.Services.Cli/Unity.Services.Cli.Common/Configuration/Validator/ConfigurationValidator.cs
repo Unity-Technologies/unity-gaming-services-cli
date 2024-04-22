@@ -7,9 +7,15 @@ namespace Unity.Services.Cli.Common.Validator;
 public class ConfigurationValidator : IConfigurationValidator
 {
     const string k_EnvironmentNameRegexPattern = "^[a-z0-9_-]*$";
+    const string k_BucketNameRegexPattern = "^\\s*[^ \\s]+.*$";
     const string k_GuidRegexPattern = "^[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?$";
 
-    public const string EnvironmentNameInvalidMessage = "Valid input should have only lowercase alphanumerical and dash (-) characters.";
+    public const string EnvironmentNameInvalidMessage =
+        "Valid input should have only lowercase alphanumerical and dash (-) characters.";
+
+    public const string BucketNameInvalidMessage =
+        "Valid input should have at least one character.";
+
     public const string GuidInvalidMessage =
         "Valid input should have characters 0-9, a-f, A-F and follow the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX.";
 
@@ -39,8 +45,8 @@ public class ConfigurationValidator : IConfigurationValidator
                 return IsEnvironmentNameValid(value, out errorMessage);
             case Keys.ConfigKeys.ProjectId:
                 return IsProjectIdValid(value, out errorMessage);
-            case Keys.ConfigKeys.BucketId:
-                return IsProjectIdValid(value, out errorMessage);
+            case Keys.ConfigKeys.BucketName:
+                return IsBucketNameValid(value, out errorMessage);
             default:
                 errorMessage = InvalidKeyMsg;
                 return false;
@@ -68,10 +74,7 @@ public class ConfigurationValidator : IConfigurationValidator
 
     public void ThrowExceptionIfConfigInvalid(string key, string value)
     {
-        if (!IsConfigValid(key, value, out var envError))
-        {
-            throw new ConfigValidationException(key, value, envError);
-        }
+        if (!IsConfigValid(key, value, out var envError)) throw new ConfigValidationException(key, value, envError);
     }
 
     static bool IsEnvironmentIdValid(string value, out string errorMessage)
@@ -106,6 +109,19 @@ public class ConfigurationValidator : IConfigurationValidator
         if (value.Any(char.IsWhiteSpace) || !guidRegex.IsMatch(value))
         {
             errorMessage = GuidInvalidMessage;
+            return false;
+        }
+
+        errorMessage = "";
+        return true;
+    }
+
+    static bool IsBucketNameValid(string value, out string errorMessage)
+    {
+        var nameRegex = new Regex(k_BucketNameRegexPattern, RegexOptions.None, TimeSpan.FromSeconds(1));
+        if (!nameRegex.IsMatch(value))
+        {
+            errorMessage = BucketNameInvalidMessage;
             return false;
         }
 

@@ -1,10 +1,10 @@
 using Newtonsoft.Json;
 using System.IO.Abstractions;
-using Unity.Services.Access.Authoring.Core.Json;
-using Unity.Services.Access.Authoring.Core.Model;
-using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Json;
+using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Model;
 using Unity.Services.DeploymentApi.Editor;
-using IFileSystem = Unity.Services.Access.Authoring.Core.IO.IFileSystem;
+using IFileSystem = Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.IO.IFileSystem;
+using Statuses = Unity.Services.Cli.Authoring.Model.Statuses;
 
 namespace Unity.Services.Cli.Access.Deploy;
 

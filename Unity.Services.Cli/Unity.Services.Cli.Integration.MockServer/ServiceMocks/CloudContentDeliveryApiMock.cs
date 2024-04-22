@@ -17,8 +17,8 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
     static readonly string k_Uuid = "00000000-0000-0000-0000-000000000000";
 
     static readonly CcdGetAllByBucket200ResponseInner k_Permission = new(
-        "1",
-        "1",
+        "write",
+        "allow",
         "bucket/00000000-0000-0000-0000-000000000000",
         "user"
     );
@@ -72,7 +72,7 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
         PromotedFromRelease = new Guid(k_Uuid)
     };
 
-    static readonly CcdGetEntries200ResponseInner k_Entry = new()
+    static readonly CcdCreateOrUpdateEntryBatch200ResponseInner k_Entry = new()
     {
         Complete = true,
         ContentHash = "ac043a397e20f96d5ddffb8b16d5defd",
@@ -101,7 +101,7 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
         Private = true
     };
 
-    static readonly List<CcdGetEntries200ResponseInner> k_Entries = new()
+    static readonly List<CcdCreateOrUpdateEntryBatch200ResponseInner> k_Entries = new()
     {
         k_Entry
     };
@@ -148,6 +148,7 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
         MockGetEntry(mockServer, responseHeaders);
         MockGetAllEntries(mockServer, responseHeaders);
         MockPutEntry(mockServer, responseHeaders);
+        MockCreateOrUpdateEntries(mockServer, responseHeaders);
         MockCreateOrUpdateEntry(mockServer, responseHeaders);
         MockDeleteEntry(mockServer, responseHeaders);
 
@@ -164,7 +165,7 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
             new CcdGetBucket200Response()
             {
                 Id = new Guid("00000000-0000-0000-0000-000000000000"),
-                Name = "test abc",
+                Name = CommonKeys.ValidBucketName,
                 Description = "my description",
                 EnvironmentName = "production",
                 Projectguid = new Guid(CommonKeys.ValidProjectId),
@@ -175,7 +176,7 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
             new CcdGetBucket200Response()
             {
                 Id = new Guid("00000000-0000-0000-0000-000000000000"),
-                Name = "test abc",
+                Name = "android",
                 Description = "my description",
                 EnvironmentName = "production",
                 Projectguid = new Guid(CommonKeys.ValidProjectId),
@@ -470,7 +471,7 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
             .RespondWith(
                 Response.Create()
                     .WithHeaders(responseHeaders)
-                    .WithBodyAsJson(new List<CcdGetEntries200ResponseInner>())
+                    .WithBodyAsJson(new List<CcdCreateOrUpdateEntryBatch200ResponseInner>())
                     .WithStatusCode(200));
 
         mockServer
@@ -521,6 +522,24 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
                     .WithStatusCode(200));
     }
 
+    static void MockCreateOrUpdateEntries(
+        WireMockServer mockServer,
+        Dictionary<string, WireMockList<string>> responseHeaders)
+    {
+
+        mockServer
+            .Given(
+                Request.Create()
+                    .WithPath(
+                        $"/ccd/management/v1/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/buckets/*/batch/entries")
+                    .UsingPost())
+            .RespondWith(
+                Response.Create()
+                    .WithHeaders(responseHeaders)
+                    .WithBodyAsJson(k_Entries)
+                    .WithStatusCode(200));
+    }
+
     static void MockPutEntry(
         WireMockServer mockServer,
         Dictionary<string, WireMockList<string>> responseHeaders)
@@ -546,7 +565,7 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
             .Given(
                 Request.Create()
                     .WithPath(
-                        $"/ccd/management/v1/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/buckets/*/entries/*")
+                        $"/ccd/management/v1/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/buckets/*/batch/delete/entries")
                     .UsingDelete())
             .RespondWith(
                 Response.Create()

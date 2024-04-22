@@ -19,7 +19,7 @@ class AuthenticatorV1Tests
     static readonly string k_AccessToken = Convert.ToBase64String(
         Encoding.UTF8.GetBytes($"{k_ValidServiceKeyId}:{k_ValidServiceSecretKey}"));
 
-    readonly Mock<ICliPrompt> m_MockPrompt = new();
+    readonly Mock<IConsolePrompt> m_MockPrompt = new();
     readonly Mock<IPersister<string>> m_MockPersister = new();
 
     TextReader? m_PreviousConsoleInput;
@@ -54,8 +54,8 @@ class AuthenticatorV1Tests
             .ReturnsAsync(k_ValidServiceKeyId);
         m_MockPrompt.Setup(p => p.PromptAsync(AuthenticatorV1.SecretKeyPrompt, CancellationToken.None))
             .ReturnsAsync(k_ValidServiceSecretKey);
-        m_MockPrompt.Setup(p => p.IsStandardInputRedirected)
-            .Returns(false);
+        m_MockPrompt.Setup(p => p.InteractiveEnabled)
+            .Returns(true);
 
         var authenticatorV1 = new AuthenticatorV1(m_MockPersister.Object, m_MockPrompt.Object);
 
@@ -68,8 +68,8 @@ class AuthenticatorV1Tests
     public void LoginAsyncWithoutArgumentAndRedirectedStandardInputThrows()
     {
         var input = new LoginInput();
-        m_MockPrompt.Setup(p => p.IsStandardInputRedirected)
-            .Returns(true);
+        m_MockPrompt.Setup(p => p.InteractiveEnabled)
+            .Returns(false);
 
         var authenticatorV1 = new AuthenticatorV1(m_MockPersister.Object, m_MockPrompt.Object);
 

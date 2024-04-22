@@ -16,9 +16,9 @@ public class CloudSaveApiMock : IServiceApiMock
     const string k_CloudSaveDataPath = "data";
     const string k_BaseUrl = $"{k_CloudSavePath}/{k_CloudSaveDataPath}/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}";
 
-     static readonly GetIndexIdsResponse k_GetIndexIdsResponse = new GetIndexIdsResponse(
-        new List<LiveIndexConfigInner>
-        {
+    static readonly GetIndexIdsResponse k_GetIndexIdsResponse = new GetIndexIdsResponse(
+       new List<LiveIndexConfigInner>
+       {
             new LiveIndexConfigInner(
                 "testIndex1",
                 LiveIndexConfigInner.EntityTypeEnum.Player,
@@ -39,11 +39,26 @@ public class CloudSaveApiMock : IServiceApiMock
                     new IndexField("testIndexKey2", false)
                 }
             ),
-        }
-    );
+       }
+   );
 
     static readonly GetCustomIdsResponse k_GetCustomIdsResponse = new(
         new List<GetCustomIdsResponseResultsInner>
+        {
+            new(
+                "testId1",
+                new AccessClassesWithMetadata(
+                    null, new AccessClassMetadata(1, 100), null, new AccessClassMetadata(2, 200))),
+            new(
+                "testId1",
+                new AccessClassesWithMetadata(
+                    null, new AccessClassMetadata(1, 100), null, new AccessClassMetadata(2, 200))),
+        },
+        new GetPlayersWithDataResponseLinks("someLink")
+    );
+
+    static readonly GetPlayersWithDataResponse k_GetPlayerIdsResponse = new(
+        new List<GetPlayersWithDataResponseResultsInner>
         {
             new(
                 "testId1",
@@ -84,11 +99,11 @@ public class CloudSaveApiMock : IServiceApiMock
         new IndexField("key2", false)
     };
 
-    static readonly CreateIndexBody k_ValidCreatePlayerIndexBody = new CreateIndexBody (
+    static readonly CreateIndexBody k_ValidCreateIndexBody = new CreateIndexBody(
         new CreateIndexBodyIndexConfig(k_ValidIndexFields));
 
     static readonly CreateIndexResponse k_ValidCreateIndexResponse = new CreateIndexResponse("id", IndexStatus.READY);
-    
+
     public async Task<IReadOnlyList<MappingModel>> CreateMappingModels()
     {
         var cloudsaveServiceModels = await MappingModelUtils.ParseMappingModelsFromGeneratorConfigAsync("cloud-save-api-v1-generator-config.yaml", new());
@@ -114,6 +129,18 @@ public class CloudSaveApiMock : IServiceApiMock
             .RespondWith(Response.Create()
                 .WithHeaders(new Dictionary<string, string> { { "Content-Type", "application/json" } })
                 .WithBodyAsJson(k_GetCustomIdsResponse)
+                .WithStatusCode(HttpStatusCode.OK));
+    }
+
+
+    static void MockListPlayerIds(WireMockServer mockServer)
+    {
+        mockServer.Given(Request.Create()
+                .WithPath($"{k_BaseUrl}/players")
+                .UsingGet())
+            .RespondWith(Response.Create()
+                .WithHeaders(new Dictionary<string, string> { { "Content-Type", "application/json" } })
+                .WithBodyAsJson(k_GetPlayerIdsResponse)
                 .WithStatusCode(HttpStatusCode.OK));
     }
 
@@ -160,6 +187,7 @@ public class CloudSaveApiMock : IServiceApiMock
                 .WithStatusCode(HttpStatusCode.OK));
     }
 
+
     static void MockCreatePlayerIndexes(WireMockServer mockServer)
     {
         mockServer.Given(Request.Create()
@@ -185,12 +213,32 @@ public class CloudSaveApiMock : IServiceApiMock
                 .WithStatusCode(HttpStatusCode.OK));
     }
 
+    static void MockCreateCustomIndexes(WireMockServer mockServer)
+    {
+        mockServer.Given(Request.Create()
+                .WithPath($"{k_BaseUrl}/indexes/custom")
+                .UsingPost())
+            .RespondWith(Response.Create()
+                .WithHeaders(new Dictionary<string, string> { { "Content-Type", "application/json" } })
+                .WithBodyAsJson(k_ValidCreateIndexResponse)
+                .WithStatusCode(HttpStatusCode.OK));
+        mockServer.Given(Request.Create()
+                .WithPath($"{k_BaseUrl}/indexes/custom/private")
+                .UsingPost())
+            .RespondWith(Response.Create()
+                .WithHeaders(new Dictionary<string, string> { { "Content-Type", "application/json" } })
+                .WithBodyAsJson(k_ValidCreateIndexResponse)
+                .WithStatusCode(HttpStatusCode.OK));
+    }
+
     public void CustomMock(WireMockServer mockServer)
     {
         MockListIndexes(mockServer);
         MockListCustomIds(mockServer);
+        MockListPlayerIds(mockServer);
         MockPlayerQueries(mockServer);
         MockCustomDataQueries(mockServer);
+        MockCreateCustomIndexes(mockServer);
         MockCreatePlayerIndexes(mockServer);
         mockServer.AllowPartialMapping();
     }

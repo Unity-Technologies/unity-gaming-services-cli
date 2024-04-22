@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -30,6 +31,13 @@ class ListHandlerTests
         m_MockHelper.MockConfiguration
             .Setup(c => c.GetConfigArgumentsAsync(Models.Keys.ConfigKeys.ProjectId, CancellationToken.None))
             .Returns(Task.FromResult(k_ValidProjectId)!);
+        m_MockHelper.MockConsoleTable.Setup(t => t.GetColumns())
+            .Returns(
+                new List<TableColumn>()
+                {
+                    new(""),
+                    new("")
+                });
     }
 
     [Test]
@@ -41,11 +49,16 @@ class ListHandlerTests
             CloudProjectId = null
         };
 
-        await ListHandler.ListAsync(input, m_MockHelper.MockEnvironment.Object, m_MockHelper.MockLogger.Object,
-            mockLoadingIndicator.Object, CancellationToken.None);
+        await ListHandler.ListAsync(input,
+            m_MockHelper.MockEnvironment.Object,
+            m_MockHelper.MockConfiguration.Object,
+            m_MockHelper.MockConsoleTable.Object,
+            m_MockHelper.MockLogger.Object,
+            mockLoadingIndicator.Object,
+            CancellationToken.None);
 
         mockLoadingIndicator.Verify(ex => ex
-            .StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?,Task>>()), Times.Once);
+            .StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?, Task>>()), Times.Once);
     }
 
     [Test]
@@ -60,6 +73,8 @@ class ListHandlerTests
             ListHandler.ListAsync(
                 input,
                 m_MockHelper.MockEnvironment.Object,
+                m_MockHelper.MockConfiguration.Object,
+                m_MockHelper.MockConsoleTable.Object,
                 m_MockHelper.MockLogger.Object,
                 CancellationToken.None
             ));
@@ -76,20 +91,45 @@ class ListHandlerTests
     }
 
     [TestCase(k_ValidProjectId)]
-    public async Task ListAsync_ProjectIdOptionDoNotRunConfiguration(string projectId)
+    public async Task ListAsync_ProjectIdOptionRunsConfiguration(string projectId)
     {
         var input = new EnvironmentInput
         {
             CloudProjectId = projectId
         };
 
-        await ListHandler.ListAsync(input,
-            m_MockHelper.MockEnvironment.Object, m_MockHelper.MockLogger.Object, CancellationToken.None);
+        await ListHandler.ListAsync(
+            input,
+            m_MockHelper.MockEnvironment.Object,
+            m_MockHelper.MockConfiguration.Object,
+            m_MockHelper.MockConsoleTable.Object,
+            m_MockHelper.MockLogger.Object,
+            CancellationToken.None);
 
-        Assert.AreEqual(0, m_MockHelper.MockConfiguration.Invocations.Count);
+        Assert.AreEqual(1, m_MockHelper.MockConfiguration.Invocations.Count);
+
         m_MockHelper.MockEnvironment.Verify(e =>
             e.ListAsync(input.CloudProjectId, CancellationToken.None));
-        TestsHelper.VerifyLoggerWasCalled(m_MockHelper.MockLogger, LogLevel.Critical, LoggerExtension.ResultEventId);
+    }
+
+    [Test]
+    public async Task ListAsync_CallsDrawTable()
+    {
+        Mock<ILoadingIndicator> mockLoadingIndicator = new Mock<ILoadingIndicator>();
+        var input = new EnvironmentInput
+        {
+            CloudProjectId = null
+        };
+
+        await ListHandler.ListAsync(input,
+            m_MockHelper.MockEnvironment.Object,
+            m_MockHelper.MockConfiguration.Object,
+            m_MockHelper.MockConsoleTable.Object,
+            m_MockHelper.MockLogger.Object,
+            mockLoadingIndicator.Object,
+            CancellationToken.None);
+
+        m_MockHelper.MockConsoleTable.Verify(t => t.DrawTable(), Times.Once);
     }
 
     [Test]
@@ -107,10 +147,80 @@ class ListHandlerTests
             .ListAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
-        await ListHandler.ListAsync(input,
-            m_MockHelper.MockEnvironment.Object, m_MockHelper.MockLogger.Object, CancellationToken.None);
+        await ListHandler.ListAsync(
+            input,
+            m_MockHelper.MockEnvironment.Object,
+            m_MockHelper.MockConfiguration.Object,
+            m_MockHelper.MockConsoleTable.Object,
+            m_MockHelper.MockLogger.Object,
+            CancellationToken.None);
 
         TestsHelper.VerifyLoggerWasCalled(m_MockHelper.MockLogger, LogLevel.Critical, LoggerExtension.ResultEventId,
             Times.Once, response.ToString());
+    }
+
+    [Test]
+    public async Task ListAsync_TableOutputNullRowIfNoEnvironments()
+    {
+        var input = new EnvironmentInput
+        {
+            CloudProjectId = k_ValidProjectId
+        };
+
+        m_MockHelper.MockEnvironment.Setup(ex => ex
+                .ListAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<EnvironmentResponse>());
+
+        await ListHandler.ListAsync(
+            input,
+            m_MockHelper.MockEnvironment.Object,
+            m_MockHelper.MockConfiguration.Object,
+            m_MockHelper.MockConsoleTable.Object,
+            m_MockHelper.MockLogger.Object,
+            CancellationToken.None);
+
+        var nullText = new Text("Ø");
+
+        m_MockHelper.MockConsoleTable.Verify(t => t.AddRow(
+            It.Is<Text>(text => text.ToString() == nullText.ToString()),
+            It.Is<Text>(text => text.ToString() == nullText.ToString())),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task ListAsync_TableOutputAddsRowForEachEnvironment()
+    {
+        var input = new EnvironmentInput
+        {
+            CloudProjectId = k_ValidProjectId
+        };
+
+        EnvironmentResponse[] response =
+        {
+            new()
+            {
+                Name = "env1",
+                Id = new Guid("00000000-0000-0000-0000-000000000001")
+            },
+            new()
+            {
+                Name = "env2",
+                Id = new Guid("00000000-0000-0000-0000-000000000002")
+            }
+        };
+
+        m_MockHelper.MockEnvironment.Setup(ex => ex
+                .ListAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(response);
+
+        await ListHandler.ListAsync(
+            input,
+            m_MockHelper.MockEnvironment.Object,
+            m_MockHelper.MockConfiguration.Object,
+            m_MockHelper.MockConsoleTable.Object,
+            m_MockHelper.MockLogger.Object,
+            CancellationToken.None);
+
+        m_MockHelper.MockConsoleTable.Verify(t => t.AddRow(It.IsAny<Text[]>()), Times.Exactly(2));
     }
 }
