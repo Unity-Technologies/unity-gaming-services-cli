@@ -8,7 +8,7 @@ namespace Unity.Services.Cli.CloudCode.Model;
 class GetModuleResponseOutput
 {
     public string Name { get; }
-    public Language Language { get; }
+    public string Language { get; }
     public String DateModified { get; }
     public String DateCreated { get; }
 

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://ugs-config-schemas.unity3d.com/v1/matchmaker/matchmaker-queue.schema.json",
+  "name": "default-queue",
+  "enabled": true,
+  "maxPlayersPerTicket": 2,
+  "defaultPool": {
+    "variants": [],
+    "name": "default-pool",
+    "enabled": true,
+    "timeoutSeconds": 90,
+    "matchLogic": {
+      "matchDefinition": {
+        "teams": [
+          {
+            "name": "Team",
+            "teamCount": {
+              "min": 2,
+              "max": 2,
+              "relaxations": []
+            },
+            "playerCount": {
+              "min": 1,
+              "max": 2,
+              "relaxations": []
+            },
+            "teamRules": []
+          }
+        ],
+        "matchRules": [
+          {
+            "source": "Players.ExternalData.CloudSave.Skill",
+            "name": "skill-diff",
+            "type": "Difference",
+            "reference": 500,
+            "overlap": 0.0,
+            "enableRule": false,
+            "not": false,
+            "relaxations": []
+          },
+          {
+            "source": "Players.QosResults.Latency",
+            "name": "QoS",
+            "type": "LessThanEqual",
+            "reference": 100,
+            "overlap": 0.0,
+            "enableRule": false,
+            "not": false,
+            "relaxations": [
+              {
+                "type": "ReferenceControl.Replace",
+                "ageType": "Oldest",
+                "atSeconds": 30.0,
+                "value": 200
+              }
+            ]
+          }
+        ]
+      },
+      "name": "Default Pool Rules",
+      "backfillEnabled": false
+    },
+    "matchHosting": {
+      "type": "MatchId",
+    }
+  },
+  "filteredPools": []
+}

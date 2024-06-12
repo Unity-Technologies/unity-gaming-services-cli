@@ -10,7 +10,6 @@ using Unity.Services.Cli.CloudCode.UnitTest.Utils;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Client;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
-using APILanguage = Unity.Services.Gateway.CloudCodeApiV1.Generated.Model.Language;
 using CoreLanguage = Unity.Services.CloudCode.Authoring.Editor.Core.Model.Language;
 
 namespace Unity.Services.Cli.CloudCode.UnitTest.Authoring;
@@ -100,7 +99,7 @@ class CloudCodeModuleClientTests
     {
         var apiResponse = new GetModuleResponse(
             name: k_ModuleName,
-            language: APILanguage.JS);
+            language: "JS");
         m_MockService.Setup(c => c.GetModuleAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_ModuleName, CancellationToken.None))
             .ReturnsAsync(apiResponse);
         var moduleName = new ScriptName(k_ModuleName);

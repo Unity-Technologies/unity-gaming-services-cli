@@ -8,7 +8,7 @@ namespace Unity.Services.Cli.GameServerHosting.Services;
 
 class GameServerHostingConfigLoader : IGameServerHostingConfigLoader
 {
-    const string k_Extension = ".gsh";
+    internal const string k_Extension = ".gsh";
 
     readonly IDeployFileService m_DeployFileService;
     readonly IMultiplayConfigValidator m_ConfigValidator;

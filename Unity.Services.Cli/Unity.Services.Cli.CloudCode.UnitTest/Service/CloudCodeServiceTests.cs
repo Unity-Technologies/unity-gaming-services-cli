@@ -54,8 +54,8 @@ class CloudCodeServiceTests
         {
             new(
                 k_TestScriptName,
-                ScriptType.API,
-                Language.JS,
+                "API",
+                "JS",
                 lastPublishedDate: DateTime.Now,
                 published: false,
                 lastPublishedVersion: 0)
@@ -65,7 +65,7 @@ class CloudCodeServiceTests
         {
             new(
                 k_TestModuleName,
-                Language.CS,
+                "CS",
                 null,
                 "url",
                 DateTime.Now,
@@ -77,8 +77,8 @@ class CloudCodeServiceTests
 
         m_ExpectedGetScript = new GetScriptResponse(
             "foo",
-            ScriptType.API,
-            Language.JS,
+            "API",
+            "JS",
             new GetScriptResponseActiveScript("bar", 1, DateTime.Now, new List<ScriptParameter>()),
             _params: new List<ScriptParameter>(),
             versions: new List<GetScriptResponseVersionsInner>
@@ -89,7 +89,7 @@ class CloudCodeServiceTests
 
         m_ExpectedGetModule = new GetModuleResponse(
             "bar",
-            Language.CS,
+            "CS",
             null,
             "url",
             DateTime.Now,
@@ -144,7 +144,7 @@ class CloudCodeServiceTests
             a => a.ListScriptsAsync(
                 TestValues.ValidProjectId,
                 TestValues.ValidEnvironmentId,
-                CloudCodeService.k_ListLimit,
+                CloudCodeService.ListLimit,
                 It.IsAny<string?>(),
                 0,
                 CancellationToken.None),
@@ -156,8 +156,8 @@ class CloudCodeServiceTests
     {
         var withinLimitScriptPattern = new ListScriptsResponseResultsInner(
             "a",
-            ScriptType.API,
-            Language.JS,
+            "API",
+            "JS",
             lastPublishedDate: DateTime.Now,
             published: false,
             lastPublishedVersion: 0);
@@ -165,21 +165,21 @@ class CloudCodeServiceTests
         const string limitName = "b";
         var limitScriptPattern = new ListScriptsResponseResultsInner(
             limitName,
-            ScriptType.API,
-            Language.JS,
+            "API",
+            "JS",
             lastPublishedDate: DateTime.Now,
             published: false,
             lastPublishedVersion: 0);
 
         var withinLimitScripts = new List<ListScriptsResponseResultsInner>();
-        withinLimitScripts.AddRange(Enumerable.Repeat(withinLimitScriptPattern, CloudCodeService.k_ListLimit - 1));
+        withinLimitScripts.AddRange(Enumerable.Repeat(withinLimitScriptPattern, CloudCodeService.ListLimit - 1));
         withinLimitScripts.Add(limitScriptPattern);
         var withinLimitResponse = new ListScriptsResponse(withinLimitScripts, new ListScriptsResponseLinks(""));
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Setup(
                 a => a.ListScriptsAsync(
                     TestValues.ValidProjectId,
                     TestValues.ValidEnvironmentId,
-                    CloudCodeService.k_ListLimit,
+                    CloudCodeService.ListLimit,
                     null,
                     0,
                     CancellationToken.None))
@@ -187,8 +187,8 @@ class CloudCodeServiceTests
 
         var exceedLimitScriptPattern = new ListScriptsResponseResultsInner(
             "c",
-            ScriptType.API,
-            Language.JS,
+            "API",
+            "JS",
             lastPublishedDate: DateTime.Now,
             published: false,
             lastPublishedVersion: 0);
@@ -205,7 +205,7 @@ class CloudCodeServiceTests
                 a => a.ListScriptsAsync(
                     TestValues.ValidProjectId,
                     TestValues.ValidEnvironmentId,
-                    CloudCodeService.k_ListLimit,
+                    CloudCodeService.ListLimit,
                     limitName,
                     0,
                     CancellationToken.None))
@@ -224,7 +224,7 @@ class CloudCodeServiceTests
                 a.ListScriptsAsync(
                     TestValues.ValidProjectId,
                     TestValues.ValidEnvironmentId,
-                    CloudCodeService.k_ListLimit,
+                    CloudCodeService.ListLimit,
                     It.IsAny<string?>(),
                     0,
                     CancellationToken.None),
@@ -741,8 +741,8 @@ class CloudCodeServiceTests
                 k_InvalidProjectId,
                 It.IsAny<string>(),
                 It.IsAny<string>(),
-                It.IsAny<ScriptType>(),
-                It.IsAny<Language>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
                 It.IsAny<string>(),
                 k_Parameters,
                 CancellationToken.None));
@@ -760,8 +760,8 @@ class CloudCodeServiceTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 scriptName,
-                It.IsAny<ScriptType>(),
-                It.IsAny<Language>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
                 code,
                 k_Parameters,
                 CancellationToken.None));
@@ -779,15 +779,15 @@ class CloudCodeServiceTests
         };
 
         var createRequest = new CreateScriptRequest(
-            k_TestScriptName, ScriptType.API, scriptParamList, k_NonEmptyCode, Language.JS);
+            k_TestScriptName, "API", scriptParamList, k_NonEmptyCode, "JS");
 
         Assert.DoesNotThrowAsync(
             () => m_CloudCodeService!.CreateAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 k_TestScriptName,
-                ScriptType.API,
-                Language.JS,
+                "API",
+                "JS",
                 k_NonEmptyCode,
                 scriptParamList,
                 CancellationToken.None));
@@ -960,7 +960,7 @@ class CloudCodeServiceTests
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             ex => ex.CreateModuleAsync(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Language>(), stream, 0, CancellationToken.None),
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), stream, 0, CancellationToken.None),
             Times.Once);
 
     }
@@ -988,7 +988,7 @@ class CloudCodeServiceTests
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             ex => ex.CreateModuleAsync(
-                It.IsAny<string>(), It.IsAny<string>(), "", Language.CS, stream,0, CancellationToken.None),
+                It.IsAny<string>(), It.IsAny<string>(), "", "CS", stream,0, CancellationToken.None),
             Times.Never);
     }
 
@@ -1025,7 +1025,7 @@ class CloudCodeServiceTests
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             ex => ex.CreateModuleAsync(
-                It.IsAny<string>(), It.IsAny<string>(), "", Language.CS, stream, 0, CancellationToken.None),
+                It.IsAny<string>(), It.IsAny<string>(), "", "CS", stream, 0, CancellationToken.None),
             Times.Never);
     }
 
@@ -1053,7 +1053,7 @@ class CloudCodeServiceTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<Language>(),
+                    It.IsAny<string>(),
                     stream,
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()))
@@ -1075,7 +1075,7 @@ class CloudCodeServiceTests
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             ex => ex.CreateModuleAsync(
-                It.IsAny<string>(), It.IsAny<string>(), k_TestModuleName, It.IsAny<Language>(), stream, 0, CancellationToken.None),
+                It.IsAny<string>(), It.IsAny<string>(), k_TestModuleName, It.IsAny<string>(), stream, 0, CancellationToken.None),
             Times.Once);
     }
 

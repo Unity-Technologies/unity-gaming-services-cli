@@ -13,8 +13,8 @@ class OutputScriptTests
 {
     GetScriptResponse m_GetScriptResponse = new(
         "",
-        ScriptType.API,
-        Language.JS,
+        "API",
+        "JS",
         new GetScriptResponseActiveScript("", 0, _params: new List<ScriptParameter>()),
         new List<GetScriptResponseVersionsInner>(),
         new List<ScriptParameter>());
@@ -23,8 +23,8 @@ class OutputScriptTests
     public void SetUp()
     {
         const string scriptName = "Test";
-        const ScriptType scriptType = ScriptType.API;
-        const Language language = Language.JS;
+        const string scriptType = "API";
+        const string language = "JS";
         const string code = "";
         const int version = 0;
         var dateTime = new DateTime();

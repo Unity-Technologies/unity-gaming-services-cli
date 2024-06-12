@@ -2,7 +2,6 @@ using System.Net.Http.Json;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using Unity.Services.Cli.Authoring.Compression;
 using Unity.Services.Cli.Authoring.Import;
 using Unity.Services.Cli.Authoring.Model;
@@ -12,8 +11,6 @@ using Unity.Services.Cli.CloudCode.Utils;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Client;
-using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
-using Language = Unity.Services.Gateway.CloudCodeApiV1.Generated.Model.Language;
 
 namespace Unity.Services.Cli.CloudCode.Handlers.ImportExport.Scripts;
 
@@ -86,8 +83,8 @@ class CloudCodeScriptsImporter : BaseImporter<CloudCodeScript>
                 projectId,
                 environmentId,
                 script.Name.ToString(),
-                ScriptType.API,
-                Language.JS,
+                "API",
+                "JS",
                 script.Body,
                 parameters,
                 cancellationToken);

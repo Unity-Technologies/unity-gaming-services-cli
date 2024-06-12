@@ -7,7 +7,7 @@ public class SyncEntry
         string environmentId = "",
         string bucketId = "",
         string projectId = "",
-        long? contentSize = null,
+        long contentSize = 0L,
         string contentType = "",
         string contentHash = "",
         string? entryId = "",
@@ -19,7 +19,7 @@ public class SyncEntry
         EnvironmentId = environmentId;
         BucketId = bucketId;
         ProjectId = projectId;
-        ContentSize = contentSize!;
+        ContentSize = contentSize;
         ContentType = contentType;
         ContentHash = contentHash;
         Labels = labels;
@@ -29,7 +29,7 @@ public class SyncEntry
     }
 
     public string Path { get; }
-    public long? ContentSize { get; }
+    public long ContentSize { get; }
     public string ContentType { get; }
     public string ContentHash { get; }
     public string EnvironmentId { get; }

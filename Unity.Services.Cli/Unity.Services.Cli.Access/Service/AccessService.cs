@@ -147,10 +147,10 @@ class AccessService : IAccessService
 
         var jsonString = ReadFile(file);
 
-        Policy? policy;
+        PlayerPolicyUpsert? policy;
         try
         {
-            policy = JsonConvert.DeserializeObject<Policy>(jsonString, new JsonSerializerSettings
+            policy = JsonConvert.DeserializeObject<PlayerPolicyUpsert>(jsonString, new JsonSerializerSettings
             {
                 MissingMemberHandling = MissingMemberHandling.Error,
             });

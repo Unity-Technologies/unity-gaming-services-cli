@@ -1,5 +1,4 @@
 using System.Net;
-using OpenTelemetry.Trace;
 using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
 using WireMock.Admin.Mappings;
@@ -39,14 +38,14 @@ public class CloudCodeV1Mock : IServiceApiMock
             {
                 new(
                     "ExistingModule",
-                    Language.CS,
+                    "CS",
                     null,
                     k_SampleUrl
 
                 ),
                 new(
                     "AnotherExistingModule",
-                    Language.CS,
+                    "CS",
                     null,
                     k_SampleUrl
                 )

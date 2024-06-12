@@ -22,22 +22,22 @@ public class CloudCodeFetchMock : IServiceApiMock
         {
             new(
                 "remoteScript1",
-                ScriptType.API,
-                Language.JS,
+                "API",
+                "JS",
                 true,
                 DateTime.MinValue,
                 1),
             new(
                 "remoteScript2",
-                ScriptType.API,
-                Language.JS,
+                "API",
+                "JS",
                 true,
                 DateTime.MinValue,
                 1),
             new(
                 "remoteScript3",
-                ScriptType.API,
-                Language.JS,
+                "API",
+                "JS",
                 true,
                 DateTime.MinValue,
                 1)

@@ -48,26 +48,26 @@ class ImportScriptsHandlerTests
     readonly Mock<IZipArchiver> m_MockArchiver = new();
     readonly Mock<ILoadingIndicator> m_MockLoadingIndicator = new();
 
-    readonly static DateTime DateNow = DateTime.Now;
+    readonly static DateTime k_DateNow = DateTime.Now;
 
     readonly IEnumerable<ListScriptsResponseResultsInner> m_ScriptsListSingleScriptResponse =
         new List<ListScriptsResponseResultsInner>()
         {
-            new("test1", ScriptType.API, Gateway.CloudCodeApiV1.Generated.Model.Language.JS, true, DateNow, 1),
+            new("test1", "API", "JS", true, k_DateNow, 1),
 
         };
 
 
-    readonly CloudCodeScript m_MockNonDuplicateScript = new(new ScriptName("test"), Language.JS, "", "{}", new List<CloudCodeParameter>(), DateNow.ToString());
+    readonly CloudCodeScript m_MockNonDuplicateScript = new(new ScriptName("test"), Language.JS, "", "{}", new List<CloudCodeParameter>(), k_DateNow.ToString());
     // This mock script updates the existing script in m_MockScripts if used within tests
-    readonly CloudCodeScript m_MockScript = new(new ScriptName("test1"), Language.JS, "", "{}", new List<CloudCodeParameter>(), DateNow.ToString());
+    readonly CloudCodeScript m_MockScript = new(new ScriptName("test1"), Language.JS, "", "{}", new List<CloudCodeParameter>(), k_DateNow.ToString());
 
     readonly List<CloudCodeScript> m_MockScripts = new()
     {
-        new(new ScriptName("test1"), Language.JS, "", "{}", new List<CloudCodeParameter>(), DateNow.ToString()),
-        new(new ScriptName("test2"), Language.JS, "","{}", new List<CloudCodeParameter>(), DateNow.ToString()),
-        new(new ScriptName("test3"), Language.JS, "","{}", new List<CloudCodeParameter>(), DateNow.ToString()),
-        new(new ScriptName("test4"), Language.JS, "","{}", new List<CloudCodeParameter>(), DateNow.ToString()),
+        new(new ScriptName("test1"), Language.JS, "", "{}", new List<CloudCodeParameter>(), k_DateNow.ToString()),
+        new(new ScriptName("test2"), Language.JS, "","{}", new List<CloudCodeParameter>(), k_DateNow.ToString()),
+        new(new ScriptName("test3"), Language.JS, "","{}", new List<CloudCodeParameter>(), k_DateNow.ToString()),
+        new(new ScriptName("test4"), Language.JS, "","{}", new List<CloudCodeParameter>(), k_DateNow.ToString()),
     };
 
     CloudCodeScriptsImporter? m_CloudCodeScriptsImporter;
@@ -247,7 +247,7 @@ class ImportScriptsHandlerTests
                 Array.Empty<ScriptParameter>())));
 
 
-        SetupList(new List<ListScriptsResponseResultsInner>() { new(m_MockNonDuplicateScript.Name.ToString(), ScriptType.API, Gateway.CloudCodeApiV1.Generated.Model.Language.JS, true, DateNow, 1), });
+        SetupList(new List<ListScriptsResponseResultsInner>() { new(m_MockNonDuplicateScript.Name.ToString(), "API", "JS", true, k_DateNow, 1), });
         SetupGet(new List<CloudCodeScript>() { m_MockNonDuplicateScript });
 
         SetupDelete();
@@ -335,8 +335,8 @@ class ImportScriptsHandlerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
-                ScriptType.API,
-                Gateway.CloudCodeApiV1.Generated.Model.Language.JS,
+                "API",
+                "JS",
                 It.IsAny<string>(),
                 It.IsAny<IReadOnlyList<ScriptParameter>>(),
                 It.IsAny<CancellationToken>()));
@@ -379,12 +379,12 @@ class ImportScriptsHandlerTests
         foreach (var script in scripts)
         {
             var getScriptResponse = new GetScriptResponse(script.Name.ToString(),
-                ScriptType.API,
-                Gateway.CloudCodeApiV1.Generated.Model.Language.JS,
+                "API",
+                "JS",
                 activeScript: new GetScriptResponseActiveScript(
                     script.Body,
                     1,
-                    DateNow,
+                    k_DateNow,
                     new List<ScriptParameter>()),
                 new List<GetScriptResponseVersionsInner>(),
                 new List<ScriptParameter>());
@@ -440,8 +440,8 @@ class ImportScriptsHandlerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
-                ScriptType.API,
-                Gateway.CloudCodeApiV1.Generated.Model.Language.JS,
+                "API",
+                "JS",
                 It.IsAny<string>(),
                 It.IsAny<IReadOnlyList<ScriptParameter>>(),
                 It.IsAny<CancellationToken>()),

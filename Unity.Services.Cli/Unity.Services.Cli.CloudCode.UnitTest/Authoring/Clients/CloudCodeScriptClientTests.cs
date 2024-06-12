@@ -16,7 +16,6 @@ using Unity.Services.Cli.CloudCode.UnitTest.Utils;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Client;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
-using Language = Unity.Services.Gateway.CloudCodeApiV1.Generated.Model.Language;
 
 namespace Unity.Services.Cli.CloudCode.UnitTest.Authoring;
 
@@ -93,8 +92,8 @@ class CloudCodeScriptClientTests
                 TestValues.ValidProjectId,
                 TestValues.ValidEnvironmentId,
                 k_ScriptName,
-                ScriptType.API,
-                Language.JS,
+                "API",
+                "JS",
                 k_Script,
                 It.IsAny<List<ScriptParameter>>(),
                 CancellationToken.None),
@@ -121,8 +120,8 @@ class CloudCodeScriptClientTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string?>(),
-                It.IsAny<ScriptType>(),
-                It.IsAny<Language>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
                 It.IsAny<string?>(),
                 It.IsAny<List<ScriptParameter>>(),
                 It.IsAny<CancellationToken>()),
@@ -159,8 +158,8 @@ class CloudCodeScriptClientTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string?>(),
-                It.IsAny<ScriptType>(),
-                It.IsAny<Language>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
                 It.IsAny<string?>(),
                 It.IsAny<List<ScriptParameter>>(),
                 It.IsAny<CancellationToken>()),
@@ -174,8 +173,8 @@ class CloudCodeScriptClientTests
         {
             new(
                 k_ScriptName,
-                ScriptType.API,
-                Language.JS,
+                "API",
+                "JS",
                 lastPublishedDate: DateTime.Now,
                 published: false,
                 lastPublishedVersion: 0)
@@ -378,6 +377,7 @@ class CloudCodeScriptClientTests
     {
         var expectedResponse = new GetScriptResponse(
             name: k_ScriptName,
+            type: "API",
             activeScript: new GetScriptResponseActiveScript(
                 k_Script, _params: new List<ScriptParameter>
                 {

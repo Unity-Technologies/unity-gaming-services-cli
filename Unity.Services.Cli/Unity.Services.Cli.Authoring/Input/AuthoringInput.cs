@@ -31,7 +31,11 @@ public class AuthoringInput : CommonInput
             "--services",
             "-s"
         },
-        "The name(s) of the service(s) to perform the command on.");
+        "The name(s) of the service(s) to perform the command on.")
+    {
+        Arity = ArgumentArity.OneOrMore,
+        AllowMultipleArgumentsPerToken = true
+    };
 
     [InputBinding(nameof(ServiceOptions))]
     public IReadOnlyList<string> Services { get; set; } = new List<string>();

@@ -14,7 +14,7 @@ public class AccessApiMock : IServiceApiMock
     readonly string m_ProjectId;
     readonly string m_EnvironmentId;
     readonly string m_PlayerId;
-    readonly string k_AccessModulePath = "/access/v1";
+    const string k_AccessModulePath = "/access/resource-policy/v1";
 
     readonly string m_ProjectPolicyUrl;
     readonly string m_PlayerPolicyUrl;
@@ -35,7 +35,7 @@ public class AccessApiMock : IServiceApiMock
 
     static Policy GetPolicy()
     {
-        var statement = new Statement(
+        var statement = new ProjectStatement(
             "statement-1",
             new List<string>()
             {
@@ -44,14 +44,14 @@ public class AccessApiMock : IServiceApiMock
             "Deny",
             "Player",
             "urn:ugs:*");
-        List<Statement> statementLists = new List<Statement>() { statement };
+        List<ProjectStatement> statementLists = new List<ProjectStatement>() { statement };
         var policy = new Policy(statementLists);
 
         return policy;
     }
     PlayerPolicy GetPlayerPolicy()
     {
-        List<Statement> statementLists = new List<Statement>();
+        List<PlayerStatement> statementLists = new List<PlayerStatement>();
         var policy = new PlayerPolicy(playerId: m_PlayerId, statementLists);
 
         return policy;

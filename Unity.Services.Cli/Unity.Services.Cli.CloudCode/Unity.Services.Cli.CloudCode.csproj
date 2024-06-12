@@ -21,8 +21,8 @@
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.3.0" />
     <PackageReference Include="Unity.Services.CloudCode.Authoring.Editor.Core" Version="0.5.3" />
-    <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.2.0" />
     <PackageReference Include="YamlDotNet" Version="13.1.0" />
   </ItemGroup>
   <ItemGroup>

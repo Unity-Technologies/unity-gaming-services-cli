@@ -10,7 +10,9 @@ public class UploadContentClient : IUploadContentClient
     public UploadContentClient(HttpClient httpClient)
     {
         m_HttpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        m_HttpClient.Timeout = TimeSpan.FromSeconds(900);
+
+        // Because very large upload can take hours due to a poor connection, we have opted not to impose a timeout to give a chance to anyone to upload their content irrespective of the time it takes.
+        m_HttpClient.Timeout = Timeout.InfiniteTimeSpan;
     }
 
     public string GetContentType(string localPath)

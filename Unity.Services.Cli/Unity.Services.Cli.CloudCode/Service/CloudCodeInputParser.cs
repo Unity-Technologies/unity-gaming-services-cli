@@ -1,8 +1,6 @@
 using Unity.Services.Cli.CloudCode.Input;
 using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.Common.Exceptions;
-using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
-using Language = Unity.Services.Gateway.CloudCodeApiV1.Generated.Model.Language;
 using CloudCodeAuthoringLanguage = Unity.Services.CloudCode.Authoring.Editor.Core.Model.Language;
 
 namespace Unity.Services.Cli.CloudCode.Service;
@@ -20,42 +18,24 @@ class CloudCodeInputParser : ICloudCodeInputParser
     {
         [CloudCodeAuthoringLanguage.JS] = "js"
     };
-    public Language ParseLanguage(CloudCodeInput input)
+    public string ParseLanguage(CloudCodeInput input)
     {
         if (string.IsNullOrEmpty(input.ScriptLanguage))
         {
-            return Language.JS;
+            return "JS";
         }
 
-        try
-        {
-            return Enum.Parse<Language>(input.ScriptLanguage);
-        }
-        catch (ArgumentException)
-        {
-            var languages = String.Join(",", Enum.GetNames<Language>());
-            throw new CliException($"'{input.ScriptLanguage}' is not a valid {nameof(Language)}." +
-                                   $" Valid {nameof(Language)}: " + languages + ".", ExitCode.HandledError);
-        }
+        return input.ScriptLanguage;
     }
 
-    public ScriptType ParseScriptType(CloudCodeInput input)
+    public string ParseScriptType(CloudCodeInput input)
     {
         if (string.IsNullOrEmpty(input.ScriptType))
         {
-            return ScriptType.API;
+            return "API";
         }
 
-        try
-        {
-            return Enum.Parse<ScriptType>(input.ScriptType);
-        }
-        catch (ArgumentException)
-        {
-            var types = String.Join(",", Enum.GetNames<ScriptType>());
-            throw new CliException($"'{input.ScriptType}' is not a valid {nameof(ScriptType)}." +
-                                   $" Valid {nameof(ScriptType)}: " + types + ".", ExitCode.HandledError);
-        }
+        return input.ScriptType;
     }
 
     public async Task<string> LoadScriptCodeAsync(CloudCodeInput input, CancellationToken cancellationToken)

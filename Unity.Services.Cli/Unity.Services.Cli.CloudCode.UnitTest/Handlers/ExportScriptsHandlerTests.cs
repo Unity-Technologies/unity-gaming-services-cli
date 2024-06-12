@@ -40,10 +40,10 @@ class ExportScriptsHandlerTests
     readonly static DateTime DateNow = DateTime.Now;
     readonly IEnumerable<ListScriptsResponseResultsInner> m_ScriptsListResponse = new List<ListScriptsResponseResultsInner>()
     {
-       new("test1", ScriptType.API, Gateway.CloudCodeApiV1.Generated.Model.Language.JS, true, DateNow, 1),
-       new("test2", ScriptType.API, Gateway.CloudCodeApiV1.Generated.Model.Language.JS, true, DateNow, 1),
-       new("test3", ScriptType.API, Gateway.CloudCodeApiV1.Generated.Model.Language.JS, true, DateNow, 1),
-       new("test4", ScriptType.API, Gateway.CloudCodeApiV1.Generated.Model.Language.JS, true, DateNow, 1),
+       new("test1", "API", "JS", true, DateNow, 1),
+       new("test2", "API", "JS", true, DateNow, 1),
+       new("test3", "API", "JS", true, DateNow, 1),
+       new("test4", "API", "JS", true, DateNow, 1),
     };
     readonly IEnumerable<CloudCodeScript> m_Scripts = new List<CloudCodeScript>()
     {
@@ -128,8 +128,8 @@ class ExportScriptsHandlerTests
                     cs => cs.GetAsync(It.IsAny<string>(), It.IsAny<string>(), script.Name.ToString(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(
                     new GetScriptResponse(script.Name.ToString(),
-                        ScriptType.API,
-                        Gateway.CloudCodeApiV1.Generated.Model.Language.JS,
+                        "API",
+                        "JS",
                         activeScript: new GetScriptResponseActiveScript(
                             script.Body,
                             1,

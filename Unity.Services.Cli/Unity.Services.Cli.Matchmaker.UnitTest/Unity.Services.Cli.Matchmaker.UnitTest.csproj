@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.msbuild" Version="3.2.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
+    <PackageReference Include="Moq" Version="4.18.4" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
+    <PackageReference Include="coverlet.collector" Version="3.2.0" />
+    <PackageReference Include="CompareNETObjects" Version="4.83.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Unity.Services.Cli.Common\Unity.Services.Cli.Common.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.Matchmaker\Unity.Services.Cli.Matchmaker.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.TestUtils\Unity.Services.Cli.TestUtils.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SampleConfigs\TemplateQueueConfig.json" />
+    <EmbeddedResource Include="SampleConfigs\TestQueueConfig.json" />
+    <EmbeddedResource Include="SampleConfigs\TestEmptyQueueConfig.json" />
+    <EmbeddedResource Include="SampleConfigs\TestEnvironmentConfig.json" />
+  </ItemGroup>
+</Project>

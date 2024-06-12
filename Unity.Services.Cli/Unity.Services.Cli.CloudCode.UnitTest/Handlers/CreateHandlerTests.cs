@@ -22,8 +22,8 @@ namespace Unity.Services.Cli.CloudCode.UnitTest.Handlers;
 [TestFixture]
 class CreateHandlerTests
 {
-    static readonly string k_ValidScriptType = ScriptType.API.ToString();
-    static readonly string k_ValidScriptLanguage = Language.JS.ToString();
+    static readonly string k_ValidScriptType = "API";
+    static readonly string k_ValidScriptLanguage = "JS";
     static readonly List<ScriptParameter> k_Parameters = new();
     readonly Mock<IUnityEnvironment> m_MockUnityEnvironment = new();
     readonly Mock<ICloudCodeService> m_MockCloudCode = new();
@@ -67,9 +67,9 @@ class CreateHandlerTests
         m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
             .ReturnsAsync(TestValues.ValidEnvironmentId);
         m_MockInputParseService.Setup(x => x.ParseScriptType(input))
-            .Returns(ScriptType.API);
+            .Returns("API");
         m_MockInputParseService.Setup(x => x.ParseLanguage(input))
-            .Returns(Language.JS);
+            .Returns("JS");
         m_MockInputParseService.Setup(x => x.LoadScriptCodeAsync(input, CancellationToken.None))
             .ReturnsAsync(TestValues.ValidCode);
         m_MockInputParseService.SetupGet(x => x.CloudCodeScriptParser)
@@ -94,8 +94,8 @@ class CreateHandlerTests
                 TestValues.ValidProjectId,
                 TestValues.ValidEnvironmentId,
                 TestValues.ValidScriptName,
-                ScriptType.API,
-                Language.JS,
+                "API",
+                "JS",
                 TestValues.ValidCode,
                 k_Parameters,
                 CancellationToken.None),

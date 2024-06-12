@@ -38,7 +38,7 @@ class GetModuleHandlerTests
             .ReturnsAsync(
                 new GetModuleResponse(
                     "foo",
-                    Language.CS,
+                    "CS",
                     null,
                     "url",
                     dateTime,
@@ -86,7 +86,7 @@ class GetModuleHandlerTests
 
         var output = new GetModuleResponseOutput(new GetModuleResponse(
             cloudCodeInput.ModuleName,
-            Language.CS,
+            "CS",
             null,
             "url",
             dateTime,

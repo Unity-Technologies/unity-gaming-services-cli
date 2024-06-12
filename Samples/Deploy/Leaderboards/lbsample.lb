@@ -4,7 +4,7 @@
   "UpdateType": "keepBest",
   "Name": "My Leaderboard",
   "ResetConfig": {
-    "Start": "2023-08-25T00:00:00-04:00",
+    "Start": "2033-08-25T00:00:00-04:00",
     "Schedule": "0 12 1 * *"
   },
   "TieringConfig": {

@@ -320,38 +320,6 @@ public class CloudCodeScriptTests : UgsCliFixture
             .ExecuteAsync();
     }
 
-    [Test]
-    public async Task CloudCodeCreateThrowsErrorWhenScriptTypeIsInvalid()
-    {
-        const string invalidScriptType = "invalidtype";
-        var expectedMsg = $"'{invalidScriptType}' is not a valid {nameof(ScriptType)}."
-            + $" Valid {nameof(ScriptType)}: " + string.Join(",", Enum.GetNames<ScriptType>()) + ".";
-        SetConfigValue("project-id", CommonKeys.ValidProjectId);
-        SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-
-        await GetLoggedInCli()
-            .Command($"cloud-code scripts create scriptname invalidpath -t {invalidScriptType}")
-            .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardErrorContains(expectedMsg)
-            .ExecuteAsync();
-    }
-
-    [Test]
-    public async Task CloudCodeCreateThrowsErrorWhenScriptLanguageIsInvalid()
-    {
-        const string invalidScriptLanguage = "invalidlanguage";
-        var expectedMsg = $"'{invalidScriptLanguage}' is not a valid {nameof(Language)}."
-            + $" Valid {nameof(Language)}: " + string.Join(",", Enum.GetNames<Language>()) + ".";
-        SetConfigValue("project-id", CommonKeys.ValidProjectId);
-        SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-
-        await GetLoggedInCli()
-            .Command($"cloud-code scripts create scriptname invalidpath -l {invalidScriptLanguage}")
-            .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardErrorContains(expectedMsg)
-            .ExecuteAsync();
-    }
-
     [TestCase("\"\"")]
     public async Task CloudCodeCreateThrowsErrorWhenFilepathIsInvalid(string? filepath)
     {

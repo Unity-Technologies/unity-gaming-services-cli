@@ -7,8 +7,8 @@ namespace Unity.Services.Cli.CloudCode.Model;
 class GetScriptResponseOutput
 {
     public string Name { get; }
-    public Language Language { get; }
-    public ScriptType Type { get; }
+    public string Language { get; }
+    public string Type { get; }
 
     public List<int?> Versions { get; }
 

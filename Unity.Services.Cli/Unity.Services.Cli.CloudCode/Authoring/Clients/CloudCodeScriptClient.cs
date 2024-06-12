@@ -7,7 +7,6 @@ using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Client;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
-using Language = Unity.Services.Gateway.CloudCodeApiV1.Generated.Model.Language;
 
 namespace Unity.Services.Cli.CloudCode.Authoring;
 
@@ -72,8 +71,8 @@ class CloudCodeScriptClient : IJavaScriptClient
                 ProjectId,
                 EnvironmentId,
                 scriptNameWithoutExt,
-                ScriptType.API,
-                Language.JS,
+                "API",
+                "JS",
                 code,
                 parametersParsingResult.Parameters,
                 CancellationToken);
@@ -139,7 +138,7 @@ class CloudCodeScriptClient : IJavaScriptClient
 
         ScriptInfo ConvertToScriptInfo(ListScriptsResponseResultsInner result)
         {
-            var extension = result.Language == Language.JS ? ".js" : "";
+            var extension = result.Language == "JS" ? ".js" : "";
             var scriptInfo = new ScriptInfo(result.Name, extension, result.LastPublishedDate.ToString());
             return scriptInfo;
         }

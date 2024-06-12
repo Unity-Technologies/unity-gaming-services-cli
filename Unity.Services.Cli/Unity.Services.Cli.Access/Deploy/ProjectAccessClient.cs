@@ -90,7 +90,7 @@ class ProjectAccessClient : IProjectAccessClient
     static Policy GetPolicyFromAuthoringStatements(IReadOnlyList<AccessControlStatement> authoringStatements)
     {
         var statements = authoringStatements.Select(
-                s => new Statement(
+                s => new ProjectStatement(
                     sid: s.Sid,
                     action: s.Action,
                     effect: s.Effect,

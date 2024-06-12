@@ -206,7 +206,7 @@ public class AccessServiceTests
     [Test]
     public async Task UpsertPlayerPolicyAsync_Valid()
     {
-        m_PlayerPolicyApi.Setup(a => a.UpsertPlayerPolicyAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Policy>(),
+        m_PlayerPolicyApi.Setup(a => a.UpsertPlayerPolicyAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<PlayerPolicyUpsert>(),
             It.IsAny<int>(), CancellationToken.None));
 
         await m_AccessService!.UpsertPlayerPolicyAsync(
@@ -221,7 +221,7 @@ public class AccessServiceTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
-                It.IsAny<Policy>(),
+                It.IsAny<PlayerPolicyUpsert>(),
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
@@ -231,7 +231,7 @@ public class AccessServiceTests
     public void UpsertPlayerPolicyAsync_Invalid_ApiThrowsError()
     {
         m_PlayerPolicyApi.Setup(a => a.UpsertPlayerPolicyAsync(It.IsAny<string>(), It.IsAny<string>(),
-            It.IsAny<string>(), It.IsAny<Policy>(), It.IsAny<int>(), CancellationToken.None)).Throws<ApiException>();
+            It.IsAny<string>(), It.IsAny<PlayerPolicyUpsert>(), It.IsAny<int>(), CancellationToken.None)).Throws<ApiException>();
 
         Assert.ThrowsAsync<CliException>(
             () => m_AccessService!.UpsertPlayerPolicyAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId,
@@ -343,9 +343,9 @@ public class AccessServiceTests
     [Test]
     public async Task UpsertProjectAccessCaCAsync_Valid()
     {
-        var statements = new List<Statement>()
+        var statements = new List<ProjectStatement>()
         {
-            TestMocks.GetStatement()
+            TestMocks.GetProjectStatement()
         };
         m_ProjectPolicyApi.Setup(a => a.UpsertPolicyAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Policy>(),
             It.IsAny<int>(), CancellationToken.None));

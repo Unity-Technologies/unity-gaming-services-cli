@@ -1,5 +1,4 @@
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
-using Language = Unity.Services.Gateway.CloudCodeApiV1.Generated.Model.Language;
 
 namespace Unity.Services.Cli.CloudCode.Service;
 
@@ -62,7 +61,7 @@ public interface ICloudCodeService
     /// <param name="cancellationToken">token to cancel the task</param>
     /// <returns></returns>
     public Task CreateAsync(string projectId, string environmentId, string? scriptName,
-        ScriptType scriptType, Language scriptLanguage, string? code,
+        string scriptType, string scriptLanguage, string? code,
         IReadOnlyList<ScriptParameter> scriptParameters, CancellationToken cancellationToken);
 
     /// <summary>

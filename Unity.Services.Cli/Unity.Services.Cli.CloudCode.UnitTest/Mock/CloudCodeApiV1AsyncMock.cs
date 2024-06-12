@@ -19,10 +19,10 @@ class CloudCodeApiV1AsyncMock
 
     public ListModulesResponse ListModulesResponse { get; } = new(new List<ListModulesResponseResultsInner>(), "");
     public GetScriptResponse GetResponse { get; set; } = new(
-        "", ScriptType.API, Language.JS, new GetScriptResponseActiveScript("", 1, _params: new()), new());
+        "", "API", "JS", new GetScriptResponseActiveScript("", 1, _params: new()), new());
 
     public GetModuleResponse GetModuleResponse { get; set; } =
-        new("", Language.CS);
+        new("", "CS");
     public PublishScriptResponse PublishScriptAsyncResponse { get; } = new(1);
 
     public readonly PublishScriptRequest PublishScriptAsyncRequestPayload = new()
@@ -109,7 +109,7 @@ class CloudCodeApiV1AsyncMock
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
-                It.IsAny<Language>(),
+                It.IsAny<string>(),
                 It.IsAny<Stream>(),
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()))

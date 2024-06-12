@@ -5,17 +5,27 @@ namespace Unity.Services.Cli.Access.UnitTest.Utils;
 
 class TestMocks
 {
-    public static Statement GetStatement(string sid = "statement-1")
+    public static ProjectStatement GetProjectStatement(string sid = "statement-1")
     {
         List<string> action = new List<string>();
         action.Add("*");
 
-        Statement statement = new Statement(sid: sid, action: action, effect: "Deny", principal: "Player",
+        ProjectStatement statement = new ProjectStatement(sid: sid, action: action, effect: "Deny", principal: "Player",
             resource: "urn:ugs:*");
         return statement;
     }
 
-    public static Policy GetPolicy(List<Statement> statements)
+    public static PlayerStatement GetPlayerStatement(string sid = "statement-1")
+    {
+        List<string> action = new List<string>();
+        action.Add("*");
+
+        PlayerStatement statement = new PlayerStatement(sid: sid, action: action, effect: "Deny", principal: "Player",
+            resource: "urn:ugs:*");
+        return statement;
+    }
+
+    public static Policy GetPolicy(List<ProjectStatement> statements)
     {
         var policy = new Policy(statements);
         return policy;
@@ -47,8 +57,8 @@ class TestMocks
 
     public static PlayerPolicy GetPlayerPolicy()
     {
-        List<Statement> statements = new List<Statement>();
-        statements.Add(GetStatement());
+        List<PlayerStatement> statements = new List<PlayerStatement>();
+        statements.Add(GetPlayerStatement());
 
         PlayerPolicy playerPolicy = new PlayerPolicy(playerId: TestValues.ValidPlayerId, statements);
         return playerPolicy;

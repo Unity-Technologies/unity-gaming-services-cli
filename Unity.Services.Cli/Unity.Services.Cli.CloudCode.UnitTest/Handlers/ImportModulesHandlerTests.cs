@@ -16,13 +16,11 @@ using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.Cli.CloudCode.UnitTest.Utils;
 using Unity.Services.Cli.CloudCode.Utils;
 using Unity.Services.Cli.Common.Console;
-using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Client;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
 using AuthoringLanguage = Unity.Services.CloudCode.Authoring.Editor.Core.Model.Language;
-using Language = Unity.Services.Gateway.CloudCodeApiV1.Generated.Model.Language;
 using Module = Unity.Services.Cli.CloudCode.Deploy.CloudCodeModule;
 
 namespace Unity.Services.Cli.CloudCode.UnitTest.Handlers;
@@ -48,32 +46,32 @@ class ImportModuleHandlerTests
     readonly Mock<IZipArchiver> m_MockArchiver = new();
     readonly Mock<ILoadingIndicator> m_MockLoadingIndicator = new();
 
-    readonly static DateTime DateNow = DateTime.Now;
+    readonly static DateTime k_DateNow = DateTime.Now;
 
     readonly IEnumerable<ListModulesResponseResultsInner> m_ModulesListSingleModuleResponse =
         new List<ListModulesResponseResultsInner>()
         {
-            new("test1", Language.JS, new Dictionary<string, string>(), "url", DateNow, DateNow),
+            new("test1", "JS", new Dictionary<string, string>(), "url", k_DateNow, k_DateNow),
         };
 
 
     readonly Module m_MockNonDuplicateModule = new(new ScriptName("test"), AuthoringLanguage.JS, "test_3.ccm", "{}",
-        new List<CloudCodeParameter>(), DateNow.ToString());
+        new List<CloudCodeParameter>(), k_DateNow.ToString());
 
     // This mock script updates the existing script in m_MockModules if used within tests
     readonly Module m_MockModule = new(new ScriptName("test1"), AuthoringLanguage.JS, "test_3.ccm", "{}",
-        new List<CloudCodeParameter>(), DateNow.ToString());
+        new List<CloudCodeParameter>(), k_DateNow.ToString());
 
     readonly List<Module> m_MockModules = new()
     {
         new(new ScriptName("test1"), AuthoringLanguage.JS, "path", "{}", new List<CloudCodeParameter>(),
-            DateNow.ToString()),
+            k_DateNow.ToString()),
         new(new ScriptName("test2"), AuthoringLanguage.JS, "path", "{}", new List<CloudCodeParameter>(),
-            DateNow.ToString()),
+            k_DateNow.ToString()),
         new(new ScriptName("test3"), AuthoringLanguage.JS, "path", "{}", new List<CloudCodeParameter>(),
-            DateNow.ToString()),
+            k_DateNow.ToString()),
         new(new ScriptName("test4"), AuthoringLanguage.JS, "path", "{}", new List<CloudCodeParameter>(),
-            DateNow.ToString()),
+            k_DateNow.ToString()),
     };
 
     CloudCodeModulesImporter? m_CloudCodeModulesImporter;
@@ -190,7 +188,7 @@ class ImportModuleHandlerTests
             .ReturnsAsync(new List<Module>()
             {
                 new(new ScriptName("test1"), AuthoringLanguage.JS, "", "{}",
-                    new List<CloudCodeParameter>(), DateNow.ToString())
+                    new List<CloudCodeParameter>(), k_DateNow.ToString())
             });
 
 
@@ -370,7 +368,7 @@ class ImportModuleHandlerTests
 
         SetupList(new List<ListModulesResponseResultsInner>()
         {
-            new(m_MockNonDuplicateModule.Name.ToString(), Language.JS, new Dictionary<string, string>(), "url", DateNow, DateNow)
+            new(m_MockNonDuplicateModule.Name.ToString(), "JS", new Dictionary<string, string>(), "url", k_DateNow, k_DateNow)
         }, new List<Module>() { m_MockNonDuplicateModule });
 
         SetupDelete();
@@ -412,7 +410,7 @@ class ImportModuleHandlerTests
 
         SetupList(new List<ListModulesResponseResultsInner>()
         {
-            new(m_MockNonDuplicateModule.Name.ToString(), Language.JS, new Dictionary<string, string>(), "url", DateNow, DateNow)
+            new(m_MockNonDuplicateModule.Name.ToString(), "JS", new Dictionary<string, string>(), "url", k_DateNow, k_DateNow)
         }, new List<Module>() { m_MockNonDuplicateModule });
 
         SetupDelete(true);
@@ -469,7 +467,7 @@ class ImportModuleHandlerTests
         }
 
         var getModuleResponse = new GetModuleResponse(module.Name.ToString(),
-            Language.JS);
+            "JS");
 
         setup.ReturnsAsync(getModuleResponse);
     }

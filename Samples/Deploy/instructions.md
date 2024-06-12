@@ -11,6 +11,7 @@
 [Deploy Economy](#deploy-economy)<br>
 [Deploy Leaderboards](#deploy-leaderboards)<br>
 [Deploy Access](#deploy-access)<br>
+[Deploy Matchmaker](#deploy-matchmaker)<br>
 
 ## Deploy Cloud Code Script
 
@@ -176,6 +177,29 @@ To create a deployable access file, you need a `.ac` file with the following pat
 }
 ```
 Please take [sample-policy.ac] as an example. For more details, please check [Access Control Documentation Portal] and/or [Access Control schema].
+
+## Deploy Matchmaker
+
+Run command from [Samples/Deploy] directory:
+```
+ugs deploy ./Matchmaker
+```
+
+You will find the resource from [environment-config.mme] and [queue.mmq] published in your dashboard
+for the configured project and environment.
+
+### Create Matchmaker Files
+
+To create a deployable access file,
+you need `.mme` and `.mmq` files, each containing a json with the required information for the specific resource.
+
+File Schemas:
+- [Matchmaker Environment Config resource schema]
+- [Matchmaker Queue resource schema]
+
+Please take [environment-config.mme] and [queue.mmq] as examples.
+For more details, please check the [Matchmaker Admin API].
+
 ## Deploy all Samples
 Run command from [Samples/Deploy] directory:
 ```
@@ -217,6 +241,9 @@ You will find all the contents deployed in your dashboard for the configured pro
 [Leaderboards API]: https://services.docs.unity.com/leaderboards-admin/
 [Leaderboards schema]: https://ugs-config-schemas.unity3d.com/v1/leaderboards.schema.json
 [Economy resource schemas]: https://services.docs.unity.com/economy-admin/v2#tag/Economy-Admin/operation/addConfigResource
+[Matchmaker Admin API]: https://services.docs.unity.com/matchmaker-admin/
+[Matchmaker Environment Config resource schema]: https://ugs-config-schemas.unity3d.com/v1/matchmaker/matchmaker-environment-config.schema.json
+[Matchmaker Queue resource schema]: https://ugs-config-schemas.unity3d.com/v1/matchmaker/matchmaker-queue.schema.json
 [Declare parameters in the script]: https://docs.unity.com/cloud-code/authoring-scripts-editor.html#Declare_parameters_in_the_script
 [Module.ccm]: /Samples/Deploy/CloudCode/Module/Module.ccm
 [Script.js]: /Samples/Deploy/CloudCode/Script/Script.js
@@ -237,3 +264,5 @@ You will find all the contents deployed in your dashboard for the configured pro
 [Triggers Documentation Portal]: https://docs.unity.com/ugs/en-us/manual/cloud-code/manual/triggers
 [Triggers Schema]: https://ugs-config-schemas.unity3d.com/v1/triggers.schema.json
 [my-triggers.tr]: /Samples/Deploy/Triggers/my-triggers.tr
+[environment-config.mme]: /Samples/Deploy/Matchmaker/environment-config.mme
+[queue.mmq]: /Samples/Deploy/Matchmaker/queue.mmq

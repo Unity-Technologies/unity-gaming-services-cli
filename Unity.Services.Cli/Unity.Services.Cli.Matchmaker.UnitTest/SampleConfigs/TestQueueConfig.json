@@ -1,0 +1,289 @@
+{
+  "$schema": "https://ugs-config-schemas.unity3d.com/v1/matchmaker/matchmaker-queue.schema.json",
+  "name": "DefaultQueueTest",
+  "enabled": true,
+  "maxPlayersPerTicket": 1,
+  "defaultPool": {
+    "variants": [
+      {
+        "name": "VariantOfDefault",
+        "enabled": true,
+        "timeoutSeconds": 15,
+        "matchLogic": {
+          "matchDefinition": {
+            "teams": [
+              {
+                "name": "rule",
+                "teamCount": {
+                  "min": 2,
+                  "max": 2,
+                  "relaxations": []
+                },
+                "playerCount": {
+                  "min": 1,
+                  "max": 10,
+                  "relaxations": []
+                },
+                "teamRules": []
+              }
+            ],
+            "matchRules": []
+          },
+          "name": "VariantMatchLogic",
+          "backfillEnabled": true
+        },
+        "matchHosting": {
+          "type": "MatchId"
+        }
+      }
+    ],
+    "name": "TestPool",
+    "enabled": true,
+    "timeoutSeconds": 0,
+    "matchLogic": {
+      "matchDefinition": {
+        "teams": [],
+        "matchRules": [
+          {
+            "source": "Player.Skill",
+            "name": "Skill",
+            "type": "Difference",
+            "reference": [
+              "test_string"
+            ],
+            "overlap": 0.0,
+            "enableRule": true,
+            "not": true,
+            "relaxations": [
+              {
+                "type": "ReferenceControl.Replace",
+                "ageType": "Oldest",
+                "atSeconds": 30.0,
+                "value": 100
+              }
+            ]
+          },
+          {
+            "source": "ExternalData.CloudSave.myObject",
+            "name": "CloudSaveElo",
+            "type": "GreaterThan",
+            "reference": "value",
+            "overlap": 0.0,
+            "enableRule": false,
+            "not": false,
+            "relaxations": [],
+            "externalData": {
+              "cloudSave": {
+                "accessClass": "Private",
+                "default": {
+                  "myObject": "defaultValue"
+                }
+              }
+            }
+          },
+          {
+            "source": "ExternalData.Leaderboard.Tiers",
+            "name": "LeaderboardTiers",
+            "type": "GreaterThanEqual",
+            "reference": 156,
+            "overlap": 0.0,
+            "enableRule": false,
+            "not": false,
+            "relaxations": [],
+            "externalData": {
+              "leaderboard": {
+                "id": "MyLeaderboardId"
+              }
+            }
+          },
+          {
+            "source": "attribute",
+            "name": "LessThan",
+            "type": "LessThan",
+            "reference": 2,
+            "overlap": 0.0,
+            "enableRule": false,
+            "not": false,
+            "relaxations": [
+              {
+                "type": "RuleControl.Disable",
+                "ageType": "Youngest",
+                "atSeconds": 2.0
+              },
+              {
+                "type": "RuleControl.Enable",
+                "ageType": "Average",
+                "atSeconds": 4.0,
+                "value": 2
+              }
+            ],
+            "externalData": {
+              "cloudSave": {
+                "accessClass": "Public",
+                "default": 3
+              }
+            }
+          },
+          {
+            "source": "attribute",
+            "name": "LessThanEqual",
+            "type": "LessThanEqual",
+            "reference": 2,
+            "overlap": 0.0,
+            "enableRule": false,
+            "not": false,
+            "relaxations": [],
+            "externalData": {
+              "cloudSave": {
+                "accessClass": "Protected",
+                "default": 3
+              }
+            }
+          },
+          {
+            "source": "attribute",
+            "name": "Equality",
+            "type": "Equality",
+            "reference": 2,
+            "overlap": 0.0,
+            "enableRule": false,
+            "not": false,
+            "relaxations": []
+          },
+          {
+            "source": "attribute",
+            "name": "InList",
+            "type": "InList",
+            "reference": [
+              2,
+              3
+            ],
+            "overlap": 0.0,
+            "enableRule": false,
+            "not": false,
+            "relaxations": []
+          },
+          {
+            "source": "attribute",
+            "name": "Intersection",
+            "type": "Intersection",
+            "reference": [
+              2,
+              3
+            ],
+            "overlap": 0.0,
+            "enableRule": false,
+            "not": false,
+            "relaxations": []
+          }
+        ]
+      },
+      "name": "TestMatchLogic",
+      "backfillEnabled": false
+    },
+    "matchHosting": {
+      "type": "Multiplay",
+      "fleetName": "TestFleet",
+      "buildConfigurationName": "TestBuildConfig",
+      "defaultQoSRegionName": "NorthAmerica"
+    }
+  },
+  "filteredPools": [
+    {
+      "filters": [
+        {
+          "attribute": "Game-mode-eq",
+          "operator": "Equal",
+          "value": "TDM"
+        },
+        {
+          "attribute": "Game-mode-number-lt",
+          "operator": "LessThan",
+          "value": 10.5
+        },
+        {
+          "attribute": "Game-mode-number-gt",
+          "operator": "GreaterThan",
+          "value": 10.5
+        },
+        {
+          "attribute": "Game-mode-number-ne",
+          "operator": "NotEqual",
+          "value": 10.5
+        }
+      ],
+      "variants": [
+        {
+          "name": "VariantPool",
+          "enabled": false,
+          "timeoutSeconds": 5,
+          "matchLogic": {
+            "matchDefinition": {
+              "teams": [],
+              "matchRules": []
+            },
+            "name": "logic",
+            "backfillEnabled": false
+          },
+          "matchHosting": {
+            "type": "MatchId"
+          }
+        }
+      ],
+      "name": "FilteredPool",
+      "enabled": false,
+      "timeoutSeconds": 0,
+      "matchLogic": {
+        "matchDefinition": {
+          "teams": [
+            {
+              "name": "matchSize",
+              "teamCount": {
+                "min": 2,
+                "max": 2,
+                "relaxations": [
+                  {
+                    "type": "RangeControl.ReplaceMin",
+                    "ageType": "Youngest",
+                    "atSeconds": 23.0,
+                    "value": 1.0
+                  }
+                ]
+              },
+              "playerCount": {
+                "min": 7,
+                "max": 10,
+                "relaxations": [
+                  {
+                    "type": "RangeControl.ReplaceMin",
+                    "ageType": "Oldest",
+                    "atSeconds": 30.0,
+                    "value": 2.0
+                  }
+                ]
+              },
+              "teamRules": [
+                {
+                  "source": "QoS.Latency",
+                  "name": "Latency",
+                  "type": "LessThan",
+                  "reference": 250.7,
+                  "overlap": 0.0,
+                  "enableRule": false,
+                  "not": false,
+                  "relaxations": []
+                }
+              ]
+            }
+          ],
+          "matchRules": []
+        },
+        "name": "TestFilteredMatchLogic",
+        "backfillEnabled": true
+      },
+      "matchHosting": {
+        "type": "MatchId"
+      }
+    }
+  ]
+}

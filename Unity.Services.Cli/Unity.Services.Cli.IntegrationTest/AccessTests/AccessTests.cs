@@ -109,7 +109,7 @@ public class AccessTests : UgsCliFixture
         var playerPolicy = new
         {
             playerId = AccessApiMock.PlayerId,
-            statements = new List<Statement>()
+            statements = new List<PlayerStatement>()
         };
 
         await AssertSuccess($"access get-player-policy {AccessApiMock.PlayerId}", expectedStdOut: JsonConvert.SerializeObject(playerPolicy, Formatting.Indented));
@@ -125,7 +125,7 @@ public class AccessTests : UgsCliFixture
         var playerPolicy = new
         {
             playerId = AccessApiMock.PlayerId,
-            statements = new List<Statement>()
+            statements = new List<PlayerStatement>()
         };
 
         List<object> obj = new List<object>();

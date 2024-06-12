@@ -16,7 +16,7 @@
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
     <PackageReference Include="coverlet.collector" Version="3.2.0" />
-    <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.2.0" />
+    <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.3.0" />
     <PackageReference Include="Unity.Services.Gateway.LeaderboardApiV1.Generated" Version="1.0.7-beta" />
     <PackageReference Include="Unity.Services.Gateway.CloudSaveApiV1.Generated" Version="1.0.7" />
   </ItemGroup>
@@ -27,6 +27,7 @@
     <ProjectReference Include="..\Unity.Services.Cli.Player\Unity.Services.Cli.Player.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.GameServerHosting\Unity.Services.Cli.GameServerHosting.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.RemoteConfig\Unity.Services.Cli.RemoteConfig.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.CloudSave\Unity.Services.Cli.CloudSave.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli\Unity.Services.Cli.csproj" />
   </ItemGroup>
 </Project>

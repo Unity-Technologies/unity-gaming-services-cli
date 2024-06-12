@@ -2,7 +2,6 @@ using Unity.Services.Cli.CloudCode.Authoring;
 using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
-using Language = Unity.Services.Gateway.CloudCodeApiV1.Generated.Model.Language;
 
 namespace Unity.Services.Cli.CloudCode.Deploy;
 
@@ -76,7 +75,7 @@ class CloudCodeModuleClient : ICSharpClient
 
         ScriptInfo ConvertToScriptInfo(ListModulesResponseResultsInner result)
         {
-            var extension = result.Language == Language.CS ? ".ccm" : "";
+            var extension = result.Language == "CS" ? ".ccm" : "";
             var scriptInfo = new ScriptInfo(result.Name, extension);
             return scriptInfo;
         }

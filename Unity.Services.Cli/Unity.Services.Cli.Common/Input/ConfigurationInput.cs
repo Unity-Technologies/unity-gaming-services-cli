@@ -43,6 +43,7 @@ public class ConfigurationInput : CommonInput
     )
     {
         Arity = ArgumentArity.OneOrMore,
+        AllowMultipleArgumentsPerToken = true
     };
 
     static ConfigurationInput()

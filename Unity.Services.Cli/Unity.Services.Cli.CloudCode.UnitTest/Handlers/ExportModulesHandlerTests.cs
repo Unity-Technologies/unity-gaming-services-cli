@@ -21,7 +21,6 @@ using Unity.Services.Cli.Common.Utils;
 using Unity.Services.CloudCode.Authoring.Editor.Core.Model;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
 using AuthoringLanguage = Unity.Services.CloudCode.Authoring.Editor.Core.Model.Language;
-using Language = Unity.Services.Gateway.CloudCodeApiV1.Generated.Model.Language;
 using Module = Unity.Services.Cli.CloudCode.Deploy.CloudCodeModule;
 
 namespace Unity.Services.Cli.CloudCode.UnitTest.Handlers;
@@ -36,19 +35,19 @@ class ExportModulesHandlerTests
     readonly Mock<ILogger> m_MockLogger = new();
     readonly Mock<IZipArchiver> m_MockArchiver = new();
     readonly Mock<ILoadingIndicator> m_MockLoadingIndicator = new();
-    readonly static DateTime DateNow = DateTime.Now;
+    readonly static DateTime k_DateNow = DateTime.Now;
     readonly IEnumerable<ListModulesResponseResultsInner> m_ModulesListResponse = new List<ListModulesResponseResultsInner>()
     {
-       new("test1",  Language.JS, new Dictionary<string, string>(), "url", DateNow),
-       new("test2", Language.JS, new Dictionary<string, string>(), "url", DateNow),
-       new("test3",  Language.JS, new Dictionary<string, string>(),"url", DateNow),
+       new("test1",  "JS", new Dictionary<string, string>(), "url", k_DateNow),
+       new("test2", "JS", new Dictionary<string, string>(), "url", k_DateNow),
+       new("test3",  "JS", new Dictionary<string, string>(),"url", k_DateNow),
     };
 
     readonly IEnumerable<Module> m_Modules = new List<Module>()
     {
-        new(new ScriptName("test1"), AuthoringLanguage.JS, "test1","{}", new List<CloudCodeParameter>(), DateNow.ToString()),
-        new(new ScriptName("test2"), AuthoringLanguage.JS, "test2","{}", new List<CloudCodeParameter>(), DateNow.ToString()),
-        new(new ScriptName("test3"), AuthoringLanguage.JS, "test3","{}", new List<CloudCodeParameter>(), DateNow.ToString()),
+        new(new ScriptName("test1"), AuthoringLanguage.JS, "test1","{}", new List<CloudCodeParameter>(), k_DateNow.ToString()),
+        new(new ScriptName("test2"), AuthoringLanguage.JS, "test2","{}", new List<CloudCodeParameter>(), k_DateNow.ToString()),
+        new(new ScriptName("test3"), AuthoringLanguage.JS, "test3","{}", new List<CloudCodeParameter>(), k_DateNow.ToString()),
     };
 
     CloudCodeModulesExporter? m_CloudCodeModulesExporter;

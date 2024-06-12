@@ -8,7 +8,6 @@ using Unity.Services.Cli.ServiceAccountAuthentication.Token;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Api;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Client;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
-using Language = Unity.Services.Gateway.CloudCodeApiV1.Generated.Model.Language;
 
 namespace Unity.Services.Cli.CloudCode.Service;
 
@@ -18,8 +17,8 @@ class CloudCodeService : ICloudCodeService
     readonly ICloudCodeApiAsync m_CloudCodeAsyncApi;
     readonly IConfigurationValidator m_ConfigValidator;
 
-    internal const int k_ListLimit = 100;
-    internal const int k_MaxFileSizeLimitInMB = 10;
+    internal const int ListLimit = 100;
+    internal const int MaxFileSizeLimitInMb = 10;
 
     public CloudCodeService(ICloudCodeApiAsync cloudCodeAsyncApi, IConfigurationValidator validator,
         IServiceAccountAuthenticationService authenticationService)
@@ -43,11 +42,11 @@ class CloudCodeService : ICloudCodeService
 
         do
         {
-            var response = await m_CloudCodeAsyncApi.ListScriptsAsync(projectId, environmentId, k_ListLimit,
+            var response = await m_CloudCodeAsyncApi.ListScriptsAsync(projectId, environmentId, ListLimit,
                 afterScript?.Name, cancellationToken: cancellationToken);
             var responseList = response.Results.ToList();
             resultsCount = responseList.Count;
-            if (resultsCount < k_ListLimit)
+            if (resultsCount < ListLimit)
             {
                 results.AddRange(responseList);
                 break;
@@ -55,7 +54,7 @@ class CloudCodeService : ICloudCodeService
 
             afterScript = responseList[^1];
             results.AddRange(responseList.SkipLast(1));
-        } while (resultsCount == k_ListLimit);
+        } while (resultsCount == ListLimit);
 
         return results;
     }
@@ -107,7 +106,7 @@ class CloudCodeService : ICloudCodeService
 
     /// <inheritdoc cref="ICloudCodeService.CreateAsync" />
     public async Task CreateAsync(string projectId, string environmentId, string? scriptName,
-        ScriptType scriptType, Language scriptLanguage, string? code, IReadOnlyList<ScriptParameter> scriptParameters,
+        string scriptType, string scriptLanguage, string? code, IReadOnlyList<ScriptParameter> scriptParameters,
         CancellationToken cancellationToken)
     {
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
@@ -193,7 +192,7 @@ class CloudCodeService : ICloudCodeService
                 projectId,
                 environmentId,
                 moduleName,
-                Language.CS,
+                "CS",
                 moduleStream,
                 cancellationToken: cancellationToken);
         }
@@ -296,9 +295,9 @@ class CloudCodeService : ICloudCodeService
                 ExitCode.HandledError);
         }
 
-        if (stream.Length > 1024 * 1024 * k_MaxFileSizeLimitInMB)
+        if (stream.Length > 1024 * 1024 * MaxFileSizeLimitInMb)
         {
-            throw new CliException($"Module could not be updated because the file provided is over the size limit of {k_MaxFileSizeLimitInMB}MB.",
+            throw new CliException($"Module could not be updated because the file provided is over the size limit of {MaxFileSizeLimitInMb}MB.",
                 ExitCode.HandledError);
         }
     }

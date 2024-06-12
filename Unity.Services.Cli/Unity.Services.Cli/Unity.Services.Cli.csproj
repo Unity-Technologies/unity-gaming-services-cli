@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <LangVersion>10</LangVersion>
     <AssemblyName>ugs</AssemblyName>
-    <VersionPrefix>1.4.0</VersionPrefix>
+    <VersionPrefix>1.5.0</VersionPrefix>
     <VersionSuffix></VersionSuffix>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
@@ -22,6 +22,7 @@
     <PackageReference Include="Polly.Extensions.Http" Version="3.0.0" />
     <PackageReference Include="System.CommandLine.Hosting" Version="0.4.0-alpha.22272.1" />
     <ProjectReference Include="..\Unity.Services.Cli.CloudContentDelivery\Unity.Services.Cli.CloudContentDelivery.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.Matchmaker\Unity.Services.Cli.Matchmaker.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Player\Unity.Services.Cli.Player.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Access\Unity.Services.Cli.Access.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.CloudCode\Unity.Services.Cli.CloudCode.csproj" />
@@ -36,6 +37,7 @@
     <ProjectReference Include="..\Unity.Services.Cli.RemoteConfig\Unity.Services.Cli.RemoteConfig.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Lobby\Unity.Services.Cli.Lobby.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Triggers\Unity.Services.Cli.Triggers.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.CloudSave\Unity.Services.Cli.CloudSave.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="../../CHANGELOG.md">

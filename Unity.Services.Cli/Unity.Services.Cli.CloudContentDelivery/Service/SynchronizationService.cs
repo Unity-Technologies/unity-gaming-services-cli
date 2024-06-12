@@ -243,7 +243,7 @@ public class SynchronizationService : ISynchronizationService
                         environmentId,
                         bucketId,
                         projectId,
-                        null,
+                        0L,
                         "",
                         "",
                         remoteEntry.Entryid.ToString(),
@@ -421,7 +421,7 @@ public class SynchronizationService : ISynchronizationService
                 var ccdCreateOrUpdateEntryBatchRequestInner = entryBatch.Select(
                         entry => new CcdCreateOrUpdateEntryBatchRequestInner(
                             entry.ContentHash,
-                            (int)entry.ContentSize!,
+                            entry.ContentSize,
                             entry.ContentType,
                             entry.Labels ?? new List<string>(),
                             entry.Metadata ?? "",
@@ -582,7 +582,7 @@ public class SynchronizationService : ISynchronizationService
             var totalFilesUploaded = 0;
             foreach (var entry in syncResult.EntriesToAdd.Concat(syncResult.EntriesToUpdate))
             {
-                totalUploadedSizeInBytes += entry.ContentSize ?? 0;
+                totalUploadedSizeInBytes += entry.ContentSize;
                 totalFilesUploaded++;
             }
 

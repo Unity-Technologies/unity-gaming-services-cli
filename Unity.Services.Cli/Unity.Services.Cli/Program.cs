@@ -26,6 +26,7 @@ using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
 using Unity.Services.Cli.Common.Telemetry.AnalyticEvent.AnalyticEventFactory;
 using Unity.Services.Cli.Authoring;
 using Unity.Services.Cli.GameServerHosting;
+using Unity.Services.Cli.Matchmaker;
 #if FEATURE_ECONOMY
 using Unity.Services.Cli.Economy;
 #endif
@@ -38,6 +39,7 @@ using Unity.Services.Cli.Triggers;
 using Unity.Services.Cli.Player;
 using Unity.Services.Cli.Access;
 using Unity.Services.Cli.Scheduler;
+using Unity.Services.Cli.CloudSave;
 
 using Unity.Services.Cli.CloudContentDelivery;
 
@@ -90,10 +92,12 @@ public static partial class Program
 #if FEATURE_TRIGGERS
                     host.ConfigureServices(TriggersModule.RegisterServices);
 #endif
+                    host.ConfigureServices(CloudSaveModule.RegisterServices);
                     host.ConfigureServices(LeaderboardsModule.RegisterServices);
                     host.ConfigureServices(PlayerModule.RegisterServices);
 
                     host.ConfigureServices(CloudContentDeliveryModule.RegisterServices);
+                    host.ConfigureServices(MatchmakerModule.RegisterServices);
                     host.ConfigureServices(serviceCollection => serviceCollection
                         .AddSingleton<ISystemEnvironmentProvider>(systemEnvironmentProvider));
 
@@ -163,12 +167,13 @@ public static partial class Program
 #if FEATURE_TRIGGERS
             .AddModule(new TriggersModule())
 #endif
+            .AddModule(new CloudSaveModule())
             .AddModule(new LobbyModule())
             .AddModule(new GameServerHostingModule())
             .AddModule(new PlayerModule())
             .AddModule(new RemoteConfigModule())
-
             .AddModule(new CloudContentDeliveryModule())
+            .AddModule(new MatchmakerModule())
             .Build();
 
         return await parser

@@ -68,7 +68,7 @@ public class ProjectAccessClientTests
     [Test]
     public async Task GetAsyncForPolicyWithStatements()
     {
-        var policy = TestMocks.GetPolicy(new List<Statement>(){TestMocks.GetStatement()});
+        var policy = TestMocks.GetPolicy(new List<ProjectStatement>(){TestMocks.GetProjectStatement()});
         m_MockAccessService.Setup(r => r.GetPolicyAsync(k_TestProjectId, k_TestEnvironmentId, CancellationToken.None)).ReturnsAsync(policy);
 
         var authoringStatements = new List<AccessControlStatement>()
@@ -86,7 +86,7 @@ public class ProjectAccessClientTests
     public async Task UpsertAsyncSuccessfully()
     {
         var authoringStatements = new List<AccessControlStatement>(){TestMocks.GetAuthoringStatement("sid-1"), TestMocks.GetAuthoringStatement("sid-2")};
-        var policy = TestMocks.GetPolicy(new List<Statement>(){TestMocks.GetStatement("sid-1"), TestMocks.GetStatement("sid-2")});
+        var policy = TestMocks.GetPolicy(new List<ProjectStatement>(){TestMocks.GetProjectStatement("sid-1"), TestMocks.GetProjectStatement("sid-2")});
         await m_ProjectAccessClient!.UpsertAsync(authoringStatements);
         m_MockAccessService.Verify(ac => ac.UpsertProjectAccessCaCAsync(k_TestProjectId, k_TestEnvironmentId, policy, CancellationToken.None), Times.Once);
     }

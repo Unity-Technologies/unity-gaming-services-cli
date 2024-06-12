@@ -37,8 +37,8 @@ class GetHandlerTests
             .ReturnsAsync(
                 new GetScriptResponse(
                     "foo",
-                    ScriptType.API,
-                    Language.JS,
+                    "API",
+                    "JS",
                     new GetScriptResponseActiveScript("bar", 1, DateTime.Now, new List<ScriptParameter>()),
                     _params: new List<ScriptParameter>(),
                     versions: new List<GetScriptResponseVersionsInner>

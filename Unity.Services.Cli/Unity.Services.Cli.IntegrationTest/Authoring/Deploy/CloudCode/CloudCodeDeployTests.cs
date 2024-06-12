@@ -99,7 +99,7 @@ public class CloudCodeDeployTests : UgsCliFixture
         await CreateDeployTestFilesAsync(m_DeployedTestCases, m_DeployedContents);
         var deployedConfigFileString = string.Join(Environment.NewLine + "    ", m_DeployedTestCases.Select(a => $"'{a.ConfigFilePath}'"));
         await GetLoggedInCli()
-            .Command($"deploy {k_TestDirectory} -s cloud-code-scripts -s cloud-code-modules")
+            .Command($"deploy {k_TestDirectory} -s cloud-code-scripts cloud-code-modules")
             .AssertStandardOutputContains($"Successfully deployed the following files:{Environment.NewLine}    {deployedConfigFileString}")
             .AssertNoErrors()
             .ExecuteAsync();

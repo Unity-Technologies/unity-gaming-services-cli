@@ -131,11 +131,16 @@ public class ConfigTests : UgsCliFixture
     {
         const string expectedError = "Specified keys were deleted from local configuration.";
         SetConfigValue(Keys.ConfigKeys.EnvironmentName, "test-123");
+        SetConfigValue(Keys.ConfigKeys.ProjectId, "00000000-0000-0000-0000-000000000000");
 
         await new UgsCliTestCase()
-            .Command($"config delete -k {Keys.ConfigKeys.EnvironmentName} -f")
+            .Command($"config delete -k {Keys.ConfigKeys.EnvironmentName} {Keys.ConfigKeys.ProjectId} -f")
             .AssertStandardErrorContains(expectedError)
-            .WaitForExit(() => AssertConfigValue(Keys.ConfigKeys.EnvironmentName, null))
+            .WaitForExit(() =>
+            {
+                AssertConfigValue(Keys.ConfigKeys.EnvironmentName, null);
+                AssertConfigValue(Keys.ConfigKeys.ProjectId, null);
+            })
             .ExecuteAsync();
     }
 

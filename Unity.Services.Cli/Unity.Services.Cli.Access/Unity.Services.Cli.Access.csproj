@@ -20,7 +20,7 @@
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Unity.Services.Gateway.AccessApiV1.Generated" Version="1.0.1" />
+    <PackageReference Include="Unity.Services.Gateway.AccessApiV1.Generated" Version="1.1.0" />
     <PackageReference Include="Unity.Services.Tooling.Editor.AccessControl.Authoring.Core" Version="0.0.3" />
   </ItemGroup>
   <ItemGroup>

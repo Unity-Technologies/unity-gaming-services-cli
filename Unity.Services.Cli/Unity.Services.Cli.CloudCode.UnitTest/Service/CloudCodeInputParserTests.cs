@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,9 +7,6 @@ using Unity.Services.Cli.CloudCode.Input;
 using Unity.Services.Cli.CloudCode.Parameters;
 using Unity.Services.Cli.CloudCode.Service;
 using Unity.Services.Cli.Common.Exceptions;
-using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
-using Language = Unity.Services.Gateway.CloudCodeApiV1.Generated.Model.Language;
-using CloudCodeAuthoringLanguage = Unity.Services.CloudCode.Authoring.Editor.Core.Model.Language;
 
 namespace Unity.Services.Cli.CloudCode.UnitTest.Service;
 
@@ -50,7 +46,7 @@ class CloudCodeInputParserTests
     [Test]
     public void ParseLanguageSucceed()
     {
-        const Language expectedLanguage = Language.JS;
+        const string expectedLanguage = "JS";
         var input = new CloudCodeInput
         {
             ScriptLanguage = expectedLanguage.ToString()
@@ -63,7 +59,7 @@ class CloudCodeInputParserTests
     [TestCase("")]
     public void ParseLanguageNullOrEmptySucceed(string language)
     {
-        const Language expectedLanguage = Language.JS;
+        const string expectedLanguage = "JS";
         var input = new CloudCodeInput
         {
             ScriptLanguage = language,
@@ -73,19 +69,9 @@ class CloudCodeInputParserTests
     }
 
     [Test]
-    public void ParseInvalidLanguageFailed()
-    {
-        var input = new CloudCodeInput
-        {
-            ScriptLanguage = "Invalid Language"
-        };
-        Assert.Throws<CliException>(() => m_CloudCodeInputParser.ParseLanguage(input));
-    }
-
-    [Test]
     public void ParseScriptTypeSucceed()
     {
-        const ScriptType expected = ScriptType.API;
+        const string expected = "API";
         var input = new CloudCodeInput
         {
             ScriptType = expected.ToString()
@@ -98,23 +84,13 @@ class CloudCodeInputParserTests
     [TestCase("")]
     public void ParseScriptTypeNullOrEmptySucceed(string type)
     {
-        const ScriptType expected = ScriptType.API;
+        const string expected = "API";
         var input = new CloudCodeInput
         {
             ScriptType = type
         };
         var result = m_CloudCodeInputParser.ParseScriptType(input);
         Assert.AreEqual(expected, result);
-    }
-
-    [Test]
-    public void ParseInvalidScriptTypeFail()
-    {
-        var input = new CloudCodeInput
-        {
-            ScriptType = "Invalid Type"
-        };
-        Assert.Throws<CliException>(() => m_CloudCodeInputParser.ParseScriptType(input));
     }
 
     [Test]
