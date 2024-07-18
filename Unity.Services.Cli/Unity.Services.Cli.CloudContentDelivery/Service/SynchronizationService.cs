@@ -2,6 +2,7 @@ using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Unity.Services.Cli.CloudContentDelivery.Model;
+using Unity.Services.Cli.CloudContentDelivery.Utils;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.ServiceAccountAuthentication;
 using Unity.Services.Cli.ServiceAccountAuthentication.Token;
@@ -192,11 +193,12 @@ public class SynchronizationService : ISynchronizationService
 
         foreach (var remoteEntry in remoteEntries)
         {
-            var path = remoteEntry.Path;
+            var path = CcdUtils.ConvertPathToForwardSlashes(remoteEntry.Path);
 
             if (localFiles.Contains(path))
             {
                 var filePath = Path.Combine(localFolder, path);
+                filePath = CcdUtils.AdjustPathForPlatform(filePath);
                 try
                 {
                     using (var filestream = m_FileSystem.File.OpenRead(filePath))
@@ -268,6 +270,7 @@ public class SynchronizationService : ISynchronizationService
         foreach (var path in localFiles)
         {
             var filePath = Path.Combine(localFolder, path);
+            filePath = CcdUtils.AdjustPathForPlatform(filePath);
             using var filestream = m_FileSystem.File.OpenRead(filePath);
             var contentSize = m_UploadContentClient.GetContentSize(filestream);
             var contentType = m_UploadContentClient.GetContentType(filePath);
@@ -452,6 +455,7 @@ public class SynchronizationService : ISynchronizationService
                         try
                         {
                             var filePath = Path.Combine(localFolder, createdEntry.Path);
+                            filePath = CcdUtils.AdjustPathForPlatform(filePath);
                             await using var filestream = m_FileSystem.File.OpenRead(filePath);
                             var response = await m_UploadContentClient.UploadContentToCcd(
                                 createdEntry.SignedUrl,
@@ -631,7 +635,7 @@ public class SynchronizationService : ISynchronizationService
         }
 
         return new HashSet<string>(
-            files.Select(filePath => m_FileSystem.Path.GetRelativePath(directoryPath, filePath)));
+            files.Select(filePath => CcdUtils.ConvertPathToForwardSlashes(m_FileSystem.Path.GetRelativePath(directoryPath, filePath))));
     }
 
     public async Task AuthorizeServiceAsync(CancellationToken cancellationToken = default)

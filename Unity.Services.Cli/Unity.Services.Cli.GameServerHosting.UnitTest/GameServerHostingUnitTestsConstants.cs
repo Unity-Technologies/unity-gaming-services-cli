@@ -23,6 +23,7 @@ public static class GameServerHostingUnitTestsConstants
     public const long ValidBuildIdBucket = 201;
     public const long ValidBuildIdContainer = 202;
     public const long ValidBuildIdFileUpload = 203;
+    public const long ValidBuildIdGcs = 204;
     public const long SyncingBuildId = 333;
 
     // Filenames

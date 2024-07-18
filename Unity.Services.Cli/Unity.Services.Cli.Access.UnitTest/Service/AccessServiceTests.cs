@@ -377,7 +377,7 @@ public class AccessServiceTests
     [Test]
     public async Task DeleteProjectAccessCaCAsync_Valid()
     {
-        var statementIDs = new List<string>(){"statement-1"};
+        var statementIDs = new List<string>() { "statement-1" };
         m_ProjectPolicyApi.Setup(a => a.DeletePolicyStatementsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DeleteOptions>(), It.IsAny<int>(), CancellationToken.None));
 
         await m_AccessService!.DeleteProjectAccessCaCAsync(TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestMocks.GetDeleteOptions(statementIDs),

@@ -44,7 +44,7 @@ class ProjectAccessClient : IProjectAccessClient
     {
         var policy = await m_Service.GetPolicyAsync(ProjectId, EnvironmentId, CancellationToken);
 
-        return (policy.Statements == null || policy.Statements?.Count == 0)  ? new List<AccessControlStatement>() : GetAuthoringStatementsFromPolicy(policy);
+        return (policy.Statements == null || policy.Statements?.Count == 0) ? new List<AccessControlStatement>() : GetAuthoringStatementsFromPolicy(policy);
     }
 
     public async Task UpsertAsync(IReadOnlyList<AccessControlStatement> authoringStatements)

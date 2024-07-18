@@ -79,11 +79,20 @@ static partial class BuildCreateVersionHandler
                 );
                 break;
             case S3:
-                await CreateBucketUploadBuildVersion(
+                await CreateS3UploadBuildVersion(
                     logger,
                     service,
                     input,
                     environmentId,
+                    build,
+                    cancellationToken);
+                break;
+            case GCS:
+                await CreateGcsUploadBuildVersion(
+                    service,
+                    input,
+                    environmentId,
+                    logger,
                     build,
                     cancellationToken);
                 break;

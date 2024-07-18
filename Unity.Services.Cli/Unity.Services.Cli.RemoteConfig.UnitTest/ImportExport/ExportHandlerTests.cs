@@ -55,6 +55,12 @@ class ExportHandlerTests
                     It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult((IEnumerable<RemoteConfigEntryDTO>)m_LocalEntries));
 
+        var dir = new Mock<IDirectory>();
+        var file = new Mock<IFile>();
+        file.Setup(f => f.Exists(It.IsAny<string>())).Returns(false);
+        m_FileSystemMock.Setup(fs => fs.Directory).Returns(dir.Object);
+        m_FileSystemMock.Setup(fs => fs.File).Returns(file.Object);
+
         m_RemoteConfigExporter = new RemoteConfigExporter(
             m_MockRemoteConfigClient.Object,
             m_MockArchiver.Object,
@@ -165,5 +171,27 @@ class ExportHandlerTests
         m_MockRemoteConfigClient.Verify(
             c => c.UpdateAsync(It.IsAny<IReadOnlyList<RemoteConfigEntry>>()),
             updateCallsTimes);
+    }
+
+    [Test]
+    public void ExportAsync_SucceedsOnEmptyEnv()
+    {
+        var importInput = new ExportInput()
+        {
+            OutputDirectory = "mock_input_directory",
+            FileName = "file.rczip"
+        };
+
+        m_MockRemoteConfigClient.Setup(c => c.GetAsync())
+            .ReturnsAsync(new GetConfigsResult(false, null));
+
+        Assert.DoesNotThrowAsync(
+            async () =>
+            {
+                await m_RemoteConfigExporter.ExportAsync(
+                    importInput,
+                    CancellationToken.None
+                );
+            });
     }
 }

@@ -24,7 +24,7 @@ public partial class GameServerHostingTests
                     StringAssert.Contains("Creating build config...", v);
                     StringAssert.Contains("binaryPath: ", v);
                 })
-            .AssertNoErrors()
+            .AssertStandardErrorContains("The '--cores', '--memory' and '--speed' options are deprecated and will be removed in a future release.")
             .ExecuteAsync();
     }
 
@@ -124,7 +124,7 @@ public partial class GameServerHostingTests
         await GetFullySetCli()
             .Command(k_BuildConfigurationCreatePrefix + k_BuildConfigurationCreateOrUpdateCommandMissingCores)
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardErrorContains("Option '--cores' is required.")
+            .AssertStandardErrorContains("Build Configuration usage settings are invalid. Missing value for input: '--cores'")
             .ExecuteAsync();
     }
 
@@ -137,7 +137,7 @@ public partial class GameServerHostingTests
         await GetFullySetCli()
             .Command(k_BuildConfigurationCreatePrefix + k_BuildConfigurationCreateOrUpdateCommandMissingMemory)
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardErrorContains("Option '--memory' is required.")
+            .AssertStandardErrorContains("Build Configuration usage settings are invalid. Missing value for input: '--memory'")
             .ExecuteAsync();
     }
 
@@ -176,7 +176,7 @@ public partial class GameServerHostingTests
         await GetFullySetCli()
             .Command(k_BuildConfigurationCreatePrefix + k_BuildConfigurationCreateOrUpdateCommandMissingSpeed)
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardErrorContains("Option '--speed' is required.")
+            .AssertStandardErrorContains("Build Configuration usage settings are invalid. Missing value for input: '--speed'")
             .ExecuteAsync();
     }
 }

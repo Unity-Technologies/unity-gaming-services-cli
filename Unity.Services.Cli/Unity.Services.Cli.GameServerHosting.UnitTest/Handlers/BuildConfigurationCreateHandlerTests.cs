@@ -115,30 +115,6 @@ class BuildConfigurationCreateHandlerTests : HandlerCommon
         ValidBuildConfigurationId,
         ValidBuildConfigurationCommandLine,
         ValidBuildConfigurationConfiguration,
-        null,
-        100,
-        ValidBuildConfigurationName,
-        ValidBuildConfigurationQueryType,
-        100,
-        true,
-        TestName = "Missing Cores")]
-    [TestCase(
-        ValidBuildConfigurationBinaryPath,
-        ValidBuildConfigurationId,
-        ValidBuildConfigurationCommandLine,
-        ValidBuildConfigurationConfiguration,
-        100,
-        null,
-        ValidBuildConfigurationName,
-        ValidBuildConfigurationQueryType,
-        100,
-        true,
-        TestName = "Missing Memory")]
-    [TestCase(
-        ValidBuildConfigurationBinaryPath,
-        ValidBuildConfigurationId,
-        ValidBuildConfigurationCommandLine,
-        ValidBuildConfigurationConfiguration,
         100,
         100,
         null,
@@ -158,19 +134,6 @@ class BuildConfigurationCreateHandlerTests : HandlerCommon
         100,
         true,
         TestName = "Missing QueryType")]
-    [TestCase(
-        ValidBuildConfigurationBinaryPath,
-        ValidBuildConfigurationId,
-        ValidBuildConfigurationCommandLine,
-        ValidBuildConfigurationConfiguration,
-        100,
-        100,
-        ValidBuildConfigurationName,
-        ValidBuildConfigurationQueryType,
-        null,
-        true,
-        TestName = "Missing Speed"),
-        ]
     public Task BuildConfigurationCreateAsync_NullInputThrowsException(
         string? binaryPath,
         long? buildId,
@@ -205,6 +168,95 @@ class BuildConfigurationCreateHandlerTests : HandlerCommon
         };
 
         Assert.ThrowsAsync<MissingInputException>(
+            () =>
+                BuildConfigurationCreateHandler.BuildConfigurationCreateAsync(
+                    input,
+                    MockUnityEnvironment.Object,
+                    GameServerHostingService!,
+                    MockLogger!.Object,
+                    CancellationToken.None
+                )
+        );
+
+        TestsHelper.VerifyLoggerWasCalled(
+            MockLogger!,
+            LogLevel.Critical,
+            LoggerExtension.ResultEventId,
+            Times.Never);
+        return Task.CompletedTask;
+    }
+
+    [TestCase(
+            ValidBuildConfigurationBinaryPath,
+            ValidBuildConfigurationId,
+            ValidBuildConfigurationCommandLine,
+            ValidBuildConfigurationConfiguration,
+            100,
+            100,
+            ValidBuildConfigurationName,
+            ValidBuildConfigurationQueryType,
+            null,
+            true,
+            TestName = "Missing Speed"),
+    ]
+    [TestCase(
+        ValidBuildConfigurationBinaryPath,
+        ValidBuildConfigurationId,
+        ValidBuildConfigurationCommandLine,
+        ValidBuildConfigurationConfiguration,
+        null,
+        100,
+        ValidBuildConfigurationName,
+        ValidBuildConfigurationQueryType,
+        100,
+        true,
+        TestName = "Missing Cores")]
+    [TestCase(
+        ValidBuildConfigurationBinaryPath,
+        ValidBuildConfigurationId,
+        ValidBuildConfigurationCommandLine,
+        ValidBuildConfigurationConfiguration,
+        100,
+        null,
+        ValidBuildConfigurationName,
+        ValidBuildConfigurationQueryType,
+        100,
+        true,
+        TestName = "Missing Memory")]
+    public Task BuildConfigurationCreateAsync_InvalidLegacyUsageInputThrowsException(
+        string? binaryPath,
+        long? buildId,
+        string? commandLine,
+        string? configuration,
+        long? cores,
+        long? memory,
+        string? name,
+        string? queryType,
+        long? speed,
+        bool? readiness)
+    {
+        BuildConfigurationCreateInput input = new()
+        {
+            CloudProjectId = ValidProjectId,
+            TargetEnvironmentName = ValidEnvironmentName,
+            BinaryPath = binaryPath,
+            BuildId = buildId,
+            CommandLine = commandLine,
+            Configuration = configuration == null
+                ? null
+                : new List<string>
+                {
+                    configuration
+                },
+            Cores = cores,
+            Memory = memory,
+            Name = name,
+            QueryType = queryType,
+            Speed = speed,
+            Readiness = readiness
+        };
+
+        Assert.ThrowsAsync<InvalidLegacyInputUsageException>(
             () =>
                 BuildConfigurationCreateHandler.BuildConfigurationCreateAsync(
                     input,

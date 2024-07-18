@@ -35,6 +35,8 @@ class RemoteConfigExporter : BaseExporter<RemoteConfigEntryDTO>
     {
         m_RemoteConfigClient.Initialize(projectId, environmentId, cancellationToken);
         var result = await m_RemoteConfigClient.GetAsync();
+        if (!result.ConfigsExists)
+            return Array.Empty<RemoteConfigEntryDTO>();
         return ToDto(result.Configs);
     }
 
@@ -42,7 +44,7 @@ class RemoteConfigExporter : BaseExporter<RemoteConfigEntryDTO>
     {
         return new ImportExportEntry<RemoteConfigEntryDTO>(value.key.GetHashCode(), value.key, value);
     }
-    
+
     static IReadOnlyList<RemoteConfigEntryDTO> ToDto(IReadOnlyList<RemoteConfigEntry> entries)
     {
         return entries.Select(entry => new RemoteConfigEntryDTO()

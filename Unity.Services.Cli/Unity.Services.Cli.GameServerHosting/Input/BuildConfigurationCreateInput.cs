@@ -40,15 +40,9 @@ public class BuildConfigurationCreateInput : CommonInput
         AllowMultipleArgumentsPerToken = true
     };
 
-    public static readonly Option<long> CoresOption = new(CoresKey, "The number of CPU cores required per server")
-    {
-        IsRequired = true
-    };
+    public static readonly Option<long> CoresOption = new(CoresKey, "The number of CPU cores required per server");
 
-    public static readonly Option<long> MemoryOption = new(MemoryKey, "Maximum memory required per server (MB)")
-    {
-        IsRequired = true
-    };
+    public static readonly Option<long> MemoryOption = new(MemoryKey, "Maximum memory required per server (MB)");
 
     public static readonly Option<string> NameOption = new(NameKey, "Name to use for the new build configuration")
     {
@@ -60,10 +54,7 @@ public class BuildConfigurationCreateInput : CommonInput
         IsRequired = true
     };
 
-    public static readonly Option<long> SpeedOption = new(SpeedKey, "CPU utilisation per core")
-    {
-        IsRequired = true
-    };
+    public static readonly Option<long> SpeedOption = new(SpeedKey, "CPU utilisation per core");
 
     public static readonly Option<bool> ReadinessOption = new(ReadinessKey, "Readiness of the build configuration");
 

@@ -40,7 +40,7 @@ public class ProjectAccessClientTests
             Assert.That(m_ProjectAccessClient.CancellationToken, Is.EqualTo(CancellationToken.None));
         });
         CancellationToken cancellationToken = new(true);
-        m_ProjectAccessClient!.Initialize( k_TestEnvironmentId, k_TestProjectId, cancellationToken);
+        m_ProjectAccessClient!.Initialize(k_TestEnvironmentId, k_TestProjectId, cancellationToken);
         Assert.Multiple(() =>
         {
             Assert.That(m_ProjectAccessClient.ProjectId, Is.SameAs(k_TestProjectId));
@@ -68,7 +68,7 @@ public class ProjectAccessClientTests
     [Test]
     public async Task GetAsyncForPolicyWithStatements()
     {
-        var policy = TestMocks.GetPolicy(new List<ProjectStatement>(){TestMocks.GetProjectStatement()});
+        var policy = TestMocks.GetPolicy(new List<ProjectStatement>() { TestMocks.GetProjectStatement() });
         m_MockAccessService.Setup(r => r.GetPolicyAsync(k_TestProjectId, k_TestEnvironmentId, CancellationToken.None)).ReturnsAsync(policy);
 
         var authoringStatements = new List<AccessControlStatement>()
@@ -85,8 +85,8 @@ public class ProjectAccessClientTests
     [Test]
     public async Task UpsertAsyncSuccessfully()
     {
-        var authoringStatements = new List<AccessControlStatement>(){TestMocks.GetAuthoringStatement("sid-1"), TestMocks.GetAuthoringStatement("sid-2")};
-        var policy = TestMocks.GetPolicy(new List<ProjectStatement>(){TestMocks.GetProjectStatement("sid-1"), TestMocks.GetProjectStatement("sid-2")});
+        var authoringStatements = new List<AccessControlStatement>() { TestMocks.GetAuthoringStatement("sid-1"), TestMocks.GetAuthoringStatement("sid-2") };
+        var policy = TestMocks.GetPolicy(new List<ProjectStatement>() { TestMocks.GetProjectStatement("sid-1"), TestMocks.GetProjectStatement("sid-2") });
         await m_ProjectAccessClient!.UpsertAsync(authoringStatements);
         m_MockAccessService.Verify(ac => ac.UpsertProjectAccessCaCAsync(k_TestProjectId, k_TestEnvironmentId, policy, CancellationToken.None), Times.Once);
     }
@@ -94,8 +94,8 @@ public class ProjectAccessClientTests
     [Test]
     public async Task DeleteAsyncSuccessfully()
     {
-        var authoringStatements = new List<AccessControlStatement>(){TestMocks.GetAuthoringStatement("sid-1"), TestMocks.GetAuthoringStatement("sid-2")};
-        var deleteOptions = TestMocks.GetDeleteOptions(new List<string>(){"sid-1", "sid-2"});
+        var authoringStatements = new List<AccessControlStatement>() { TestMocks.GetAuthoringStatement("sid-1"), TestMocks.GetAuthoringStatement("sid-2") };
+        var deleteOptions = TestMocks.GetDeleteOptions(new List<string>() { "sid-1", "sid-2" });
         await m_ProjectAccessClient!.DeleteAsync(authoringStatements);
         m_MockAccessService.Verify(ac => ac.DeleteProjectAccessCaCAsync(k_TestProjectId, k_TestEnvironmentId, deleteOptions, CancellationToken.None), Times.Once);
     }

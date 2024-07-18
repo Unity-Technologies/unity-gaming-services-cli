@@ -80,6 +80,25 @@ static class BuildConfigurationUpdateHandler
 #pragma warning restore CS0612 // Type or member is obsolete
         );
 
+        var cores = input.Cores ?? 0;
+        var memory = input.Memory ?? 0;
+        var speed = input.Speed ?? 0;
+
+#pragma warning disable CS0612 // Type or member is obsolete
+        // allow for usage backwards compatibility.
+        var oldUsage = cores + memory + speed;
+        if (oldUsage > 0)
+        {
+            req.Speed = speed > 0 ? speed : throw new InvalidLegacyInputUsageException(BuildConfigurationCreateInput.SpeedKey);
+            req.Memory = memory > 0 ? memory : throw new InvalidLegacyInputUsageException(BuildConfigurationCreateInput.MemoryKey);
+            req.Cores = cores > 0 ? cores : throw new InvalidLegacyInputUsageException(BuildConfigurationCreateInput.CoresKey);
+
+            // log warning for those options
+            logger.LogWarning("The '--cores', '--memory' and '--speed' options are deprecated and will be removed in a future release. Please use '--usage-setting' option on the fleet create instead. For more info please refer to https://docs.unity.com/ugs/en-us/manual/game-server-hosting/manual/guides/configure-server-density.");
+        }
+#pragma warning disable CS0612 // Type or member is obsolete
+
+
         var buildConfiguration = await service.BuildConfigurationsApi.UpdateBuildConfigurationAsync(
             Guid.Parse(input.CloudProjectId!),
             Guid.Parse(environmentId),

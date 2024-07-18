@@ -143,6 +143,15 @@ class GameServerHostingBuildsApiV1Mock
             syncStatus: CreateBuild200Response.SyncStatusEnum.SYNCED,
             updated: new DateTime(2022, 10, 11)),
         new CreateBuild200Response(
+            ValidBuildIdGcs,
+            "build1-gcs-build",
+            CreateBuild200Response.BuildTypeEnum.GCS,
+            buildVersionName: ValidBuildVersionName,
+            gcs: new GoogleCloudStorageDetails("gs://bucket-name"),
+            osFamily: CreateBuild200Response.OsFamilyEnum.LINUX,
+            syncStatus: CreateBuild200Response.SyncStatusEnum.SYNCED,
+            updated: new DateTime(2022, 10, 12)),
+        new CreateBuild200Response(
             ValidBuildIdFileUpload,
             "build3-file-upload-build",
             CreateBuild200Response.BuildTypeEnum.FILEUPLOAD,

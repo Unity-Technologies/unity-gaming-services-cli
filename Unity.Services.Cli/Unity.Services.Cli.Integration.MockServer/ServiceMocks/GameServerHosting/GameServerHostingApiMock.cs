@@ -35,6 +35,7 @@ public class GameServerHostingApiMock : IServiceApiMock
     public void CustomMock(WireMockServer mockServer)
     {
         MockFleetGet(mockServer);
+        MockFleetList(mockServer);
         MockServerGet(mockServer);
         MockServerList(mockServer);
         MockBuildInstalls(mockServer);
@@ -50,6 +51,37 @@ public class GameServerHostingApiMock : IServiceApiMock
         MockBuildConfigurationList(mockServer);
         MockMachineList(mockServer);
         MockFilesDownload(mockServer);
+    }
+
+    static void MockFleetList(WireMockServer mockServer)
+    {
+        var fleetList = new List<FleetListItem>
+        {
+            new (
+                FleetListItem.AllocationTypeEnum.ALLOCATION,
+                new List<BuildConfiguration1>(),
+                graceful: false,
+                regions: new List<FleetRegion>(),
+                id: new Guid(Keys.ValidFleetId),
+                name: "Test Fleet",
+                osName: Fleet.OsFamilyEnum.LINUX.ToString(),
+                servers: new Servers(
+                    new FleetServerBreakdown(new ServerStatus()),
+                    new FleetServerBreakdown(new ServerStatus()),
+                    new FleetServerBreakdown(new ServerStatus())),
+                status: FleetListItem.StatusEnum.ONLINE
+            ),
+        };
+
+        var request = Request.Create()
+            .WithPath(Keys.FleetsPath)
+            .UsingGet();
+
+        var response = Response.Create()
+            .WithBodyAsJson(fleetList)
+            .WithStatusCode(HttpStatusCode.OK);
+
+        mockServer.Given(request).RespondWith(response);
     }
 
     static void MockFleetGet(WireMockServer mockServer)

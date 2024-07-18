@@ -64,7 +64,7 @@ public partial class GameServerHostingTests
             .Command("gsh build create --name test-build --os-family linux --type VM")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(
-                "Invalid option for --type. Did you mean one of the following? FILEUPLOAD, CONTAINER, S3")
+                "Invalid option for --type. Did you mean one of the following? FILEUPLOAD, CONTAINER, S3, GCS")
             .ExecuteAsync();
     }
 

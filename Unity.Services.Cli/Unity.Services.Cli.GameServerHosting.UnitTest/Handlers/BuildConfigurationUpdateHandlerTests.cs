@@ -63,7 +63,10 @@ class BuildConfigurationUpdateHandlerTests : HandlerCommon
             CloudProjectId = ValidProjectId,
             TargetEnvironmentName = ValidEnvironmentName,
             BuildId = ValidBuildConfigurationBuildId,
-            Configuration = new List<string> { configuration! },
+            Configuration = new List<string>
+            {
+                configuration!
+            },
         };
 
         Assert.ThrowsAsync<InvalidKeyValuePairException>(
@@ -83,5 +86,87 @@ class BuildConfigurationUpdateHandlerTests : HandlerCommon
             LoggerExtension.ResultEventId,
             Times.Never);
         return Task.CompletedTask;
+    }
+
+    [TestCase(
+        10,
+        null,
+        10,
+        TestName = "Cores empty")]
+    [TestCase(
+        10,
+        10,
+        null,
+        TestName = "Memory empty")]
+    [TestCase(
+        null,
+        10,
+        10,
+        TestName = "Speed empty")]
+    public Task BuildConfigurationUpdateAsync_InvalidLegacyInputUsageException(long? speed, long? cores, long? memory)
+    {
+        BuildConfigurationUpdateInput input = new()
+        {
+            CloudProjectId = ValidProjectId,
+            TargetEnvironmentName = ValidEnvironmentName,
+            BuildId = ValidBuildConfigurationBuildId,
+            Configuration = new List<string>
+            {
+                "foo:bar"
+            },
+            Speed = speed,
+            Cores = cores,
+            Memory = memory,
+        };
+
+        Assert.ThrowsAsync<InvalidLegacyInputUsageException>(
+            () =>
+                BuildConfigurationUpdateHandler.BuildConfigurationUpdateAsync(
+                    input,
+                    MockUnityEnvironment.Object,
+                    GameServerHostingService!,
+                    MockLogger!.Object,
+                    CancellationToken.None
+                )
+        );
+
+        TestsHelper.VerifyLoggerWasCalled(
+            MockLogger!,
+            LogLevel.Critical,
+            LoggerExtension.ResultEventId,
+            Times.Never);
+        return Task.CompletedTask;
+    }
+
+    [Test]
+    public async Task BuildConfigurationUpdateAsync_DepricatetionWarning()
+    {
+        BuildConfigurationUpdateInput input = new()
+        {
+            CloudProjectId = ValidProjectId,
+            TargetEnvironmentName = ValidEnvironmentName,
+            BuildId = ValidBuildConfigurationBuildId,
+            Configuration = new List<string>
+            {
+                "foo:bar"
+            },
+            Speed = 100,
+            Memory = 100,
+            Cores = 100,
+        };
+
+        await BuildConfigurationUpdateHandler.BuildConfigurationUpdateAsync(
+            input,
+            MockUnityEnvironment.Object,
+            GameServerHostingService!,
+            MockLogger!.Object,
+            CancellationToken.None
+        );
+
+        TestsHelper.VerifyLoggerWasCalled(
+            MockLogger!,
+            LogLevel.Warning,
+            null,
+            Times.Once);
     }
 }

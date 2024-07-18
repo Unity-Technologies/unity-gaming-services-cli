@@ -40,32 +40,45 @@ static class BuildConfigurationCreateHandler
         var buildId = input.BuildId ?? throw new MissingInputException(BuildConfigurationCreateInput.BuildIdKey);
         var commandLine = input.CommandLine ?? throw new MissingInputException(BuildConfigurationCreateInput.CommandLineKey);
         var configuration = input.Configuration ?? throw new MissingInputException(BuildConfigurationCreateInput.ConfigurationKey);
-        var cores = input.Cores ?? throw new MissingInputException(BuildConfigurationCreateInput.CoresKey);
-        var memory = input.Memory ?? throw new MissingInputException(BuildConfigurationCreateInput.MemoryKey);
+        var cores = input.Cores ?? 0;
+        var memory = input.Memory ?? 0;
         var name = input.Name ?? throw new MissingInputException(BuildConfigurationCreateInput.NameKey);
         var queryType = input.QueryType ?? throw new MissingInputException(BuildConfigurationCreateInput.QueryTypeKey);
-        var speed = input.Speed ?? throw new MissingInputException(BuildConfigurationCreateInput.SpeedKey);
+        var speed = input.Speed ?? 0;
         var readiness = input.Readiness ?? false;
 
         await service.AuthorizeGameServerHostingService(cancellationToken);
 
         var parsedConfigs = configuration.Select(ParseConfig).ToList();
 
+        var createReq = new BuildConfigurationCreateRequest(
+            binaryPath: binaryPath,
+            buildID: buildId,
+            commandLine: commandLine,
+            configuration: parsedConfigs,
+            name: name,
+            queryType: queryType,
+            readiness: readiness
+        );
+
+        // allow for usage backwards compatibility.
+        var oldUsage = cores + memory + speed;
+        if (oldUsage > 0)
+        {
+#pragma warning disable CS0612 // Type or member is obsolete
+            createReq.Speed = speed > 0 ? speed : throw new InvalidLegacyInputUsageException(BuildConfigurationCreateInput.SpeedKey);
+            createReq.Memory = memory > 0 ? memory : throw new InvalidLegacyInputUsageException(BuildConfigurationCreateInput.MemoryKey);
+            createReq.Cores = cores > 0 ? cores : throw new InvalidLegacyInputUsageException(BuildConfigurationCreateInput.CoresKey);
+#pragma warning disable CS0612 // Type or member is obsolete
+
+            // log warning for those options
+            logger.LogWarning("The '--cores', '--memory' and '--speed' options are deprecated and will be removed in a future release. Please use '--usage-setting' option on the fleet create instead. For more info please refer to https://docs.unity.com/ugs/en-us/manual/game-server-hosting/manual/guides/configure-server-density.");
+        }
+
         var buildConfiguration = await service.BuildConfigurationsApi.CreateBuildConfigurationAsync(
             Guid.Parse(input.CloudProjectId!),
             Guid.Parse(environmentId),
-            new BuildConfigurationCreateRequest(
-                binaryPath: binaryPath,
-                buildID: buildId,
-                commandLine: commandLine,
-                configuration: parsedConfigs,
-                cores: cores,
-                memory: memory,
-                name: name,
-                queryType: queryType,
-                speed: speed,
-                readiness: readiness
-            ),
+            createReq,
             cancellationToken: cancellationToken);
         logger.LogResultValue(new BuildConfigurationOutput(buildConfiguration));
     }

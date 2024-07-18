@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Gateway.ContentDeliveryManagementApiV1.Generated.Client;
@@ -47,4 +48,25 @@ You can specify the bucket-name using one of the following methods:
         }
     }
 
+
+    public static string AdjustPathForPlatform(string path)
+    {
+        if (string.IsNullOrEmpty(path) || Path.DirectorySeparatorChar == '/')
+        {
+            return path;
+        }
+        return path.Replace('/', Path.DirectorySeparatorChar);
+    }
+
+    public static string ConvertPathToForwardSlashes(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            return path;
+        }
+
+        path = path.Replace("\\", "/");
+
+        return path;
+    }
 }

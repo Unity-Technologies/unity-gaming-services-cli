@@ -11,7 +11,7 @@ namespace Unity.Services.Cli.GameServerHosting.Handlers;
 
 static partial class BuildCreateVersionHandler
 {
-    static async Task CreateBucketUploadBuildVersion(
+    static async Task CreateS3UploadBuildVersion(
         ILogger logger,
         IGameServerHostingService service,
         BuildCreateVersionInput input,
@@ -20,7 +20,7 @@ static partial class BuildCreateVersionHandler
         CancellationToken cancellationToken
     )
     {
-        ValidateBucketInput(input);
+        ValidateS3Input(input);
         try
         {
             await service.BuildsApi.CreateNewBuildVersionAsync(
@@ -43,7 +43,7 @@ static partial class BuildCreateVersionHandler
     }
 
     // We need to apply our own conditional validation based on the build type
-    internal static void ValidateBucketInput(BuildCreateVersionInput input)
+    internal static void ValidateS3Input(BuildCreateVersionInput input)
     {
         if (input.AccessKey == null)
             throw new MissingInputException(BuildCreateVersionInput.AccessKeyKey);
@@ -51,6 +51,8 @@ static partial class BuildCreateVersionHandler
             throw new MissingInputException(BuildCreateVersionInput.BucketUrlKey);
         if (input.SecretKey == null)
             throw new MissingInputException(BuildCreateVersionInput.SecretKeyKey);
+        if (input.ServiceAccountJsonFile != null)
+            throw new CliException("Build does not support gcs flags.", ExitCode.HandledError);
         if (input.ContainerTag != null)
             throw new CliException("Build does not support container flags.", ExitCode.HandledError);
         if (input.FileDirectory != null)

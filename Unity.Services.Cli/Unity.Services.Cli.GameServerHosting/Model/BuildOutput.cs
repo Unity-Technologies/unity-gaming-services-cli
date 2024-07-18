@@ -20,6 +20,7 @@ class BuildOutput
         if (build.Ccd != null) Ccd = new CcdOutput(build.Ccd);
         Container = build.Container;
         S3 = build.S3;
+        Gcs = build.Gcs;
     }
 
     public BuildOutput(CreateBuild200Response build)
@@ -35,6 +36,7 @@ class BuildOutput
         if (build.Ccd != null) Ccd = new CcdOutput(build.Ccd);
         Container = build.Container;
         S3 = build.S3;
+        Gcs = build.Gcs;
     }
 
     public string BuildVersionName { get; }
@@ -63,6 +65,8 @@ class BuildOutput
     [YamlMember(DefaultValuesHandling = DefaultValuesHandling.OmitDefaults)]
     public AmazonS3Details S3 { get; }
 
+    [YamlMember(DefaultValuesHandling = DefaultValuesHandling.OmitDefaults)]
+    public GoogleCloudStorageDetails Gcs { get; }
     public override string ToString()
     {
         var serializer = new SerializerBuilder()

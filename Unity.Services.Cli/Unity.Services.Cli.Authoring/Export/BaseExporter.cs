@@ -52,6 +52,12 @@ public abstract class BaseExporter<T> : IExporter
         var configs = await ListConfigsAsync(projectId, environmentId, cancellationToken);
         var state = new ExportState<T>(configs.Select(ToImportExportEntry).ToList());
 
+        if (!configs.Any())
+        {
+            m_Logger.LogInformation("No content to export.");
+            return;
+        }
+
         if (!input.DryRun)
         {
             await ExportToZipAsync(input.OutputDirectory, fileName, state, cancellationToken);

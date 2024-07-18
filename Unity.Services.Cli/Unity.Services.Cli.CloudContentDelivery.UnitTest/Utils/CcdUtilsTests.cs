@@ -1,4 +1,5 @@
 using System.Net;
+using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -101,6 +102,48 @@ public class CcdUtilsTests
     {
         Assert.Throws<CliException>(() => CcdUtils.ParseMetadata("{'partial'"));
         Assert.Throws<CliException>(() => CcdUtils.ParseMetadata("[invalid]"));
+    }
+
+    [Test]
+    public void AdjustPathForPlatform_ValidInput_ReturnsAdjustedPath()
+    {
+        const string input = "images/image.jpg";
+        const string expectedBackwardSlashes = "images\\image.jpg";
+        const string expectedForwardSlashes = "images/image.jpg";
+
+        string result = CcdUtils.AdjustPathForPlatform(input);
+
+        if (Path.DirectorySeparatorChar == '\\')
+        {
+            Assert.That(result, Is.EqualTo(expectedBackwardSlashes), "The adjusted path should use backward slashes.");
+        }
+        else
+        {
+            Assert.That(result, Is.EqualTo(expectedForwardSlashes), "The adjusted path should use forward slashes.");
+        }
+
+    }
+
+    [Test]
+    public void AdjustPathForWindowsUsers_EmptyOrNullInput_ReturnsSame()
+    {
+        Assert.That(CcdUtils.AdjustPathForPlatform(""), Is.EqualTo(""), "The result should be an empty string when the input is an empty string.");
+    }
+
+    [Test]
+    public void ConvertPathToForwardSlashes_ValidInput_ReturnsConvertedPath()
+    {
+        const string input = "images\\image.jpg";
+        const string expected = "images/image.jpg";
+
+        var result = CcdUtils.ConvertPathToForwardSlashes(input);
+        Assert.That(result, Is.EqualTo(expected), "The converted path should match the expected result.");
+    }
+
+    [Test]
+    public void ConvertPathToForwardSlashes_EmptyOrNullInput_ReturnsSame()
+    {
+        Assert.That(CcdUtils.ConvertPathToForwardSlashes(""), Is.EqualTo(""), "The result should be an empty string when the input is an empty string.");
     }
 
 }

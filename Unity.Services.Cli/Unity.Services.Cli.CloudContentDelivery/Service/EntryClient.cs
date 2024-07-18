@@ -177,6 +177,9 @@ class EntryClient : IEntryClient
         m_ContentDeliveryValidator.ValidatePath(localPath);
         m_ContentDeliveryValidator.ValidatePath(remotePath);
 
+        localPath = CcdUtils.AdjustPathForPlatform(localPath);
+        remotePath = CcdUtils.ConvertPathToForwardSlashes(remotePath);
+
         await using var filestream = m_FileSystem.File.OpenRead(localPath);
         var contentSize = m_UploadContentClient.GetContentSize(filestream);
         var contentType = m_UploadContentClient.GetContentType(localPath);
@@ -192,6 +195,7 @@ class EntryClient : IEntryClient
                 labels,
                 entryMetadata,
                 true);
+
         var entry = await m_EntriesApi.CreateOrUpdateEntryByPathEnvAsync(
             environmentId,
             bucketId,

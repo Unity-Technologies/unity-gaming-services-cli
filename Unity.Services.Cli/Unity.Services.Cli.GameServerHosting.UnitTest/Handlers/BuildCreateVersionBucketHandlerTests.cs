@@ -1,3 +1,4 @@
+using System.IO.Abstractions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Unity.Services.Cli.Common.Exceptions;
@@ -159,6 +160,6 @@ partial class BuildCreateVersionHandlerTests
             FileDirectory = fileDirectory,
         };
 
-        Assert.Throws(expectedExceptionType, () => BuildCreateVersionHandler.ValidateBucketInput(input));
+        Assert.Throws(expectedExceptionType, () => BuildCreateVersionHandler.ValidateS3Input(input));
     }
 }

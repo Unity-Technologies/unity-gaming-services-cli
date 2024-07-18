@@ -4,6 +4,18 @@ All notable changes to UGS CLI will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+## [1.6.0] - 2024-07-18
+
+### Changed
+- [Game Server Hosting] Mark options: `--speed`, `--cores` and `--memory` for CREATE and UPDATE of `gsh build configuration` as deprecated to allow for backwards compatibility. 
+  New usage should be set on the fleet using [server density configuration](https://docs.unity.com/ugs/en-us/manual/game-server-hosting/manual/guides/configure-server-density) 
+
+### Fixed
+- [Remote Config] Fixed import and export on an empty environment.
+- [Cloud Content Delivery] Now normalizing the path to always use forward slashes even on windows platform.
+
+### Added
+- [Game Server Hosting] Added support for Google Cloud Storage (GCS) as a source for Builds and Build Configurations.
 
 ## [1.5.0] - 2024-06-12
 
@@ -97,7 +109,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Deployment Definitions to the Deploy and Fetch commands.
 - Added analytics related to command usage and options used.
 - Deploy/Fetch return an array in a table-like format with -json flag enabled.
-- Leaderboards now supports the `ugs deploy` and `ugs fetch` commands at the root 
+- Leaderboards now supports the `ugs deploy` and `ugs fetch` commands at the root
   - Deploy sends file configurations into the service
   - Fetch updates local files based on service configuration
 - Leaderboards now supports `new-file`, to create an empty file for leaderboards

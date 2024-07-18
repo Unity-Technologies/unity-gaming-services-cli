@@ -12,6 +12,7 @@ class BuildCreateVersionInput : CommonInput
     public const string FileDirectoryKey = "--directory";
     public const string RemoveOldFilesKey = "--remove-old-files";
     public const string SecretKeyKey = "--secret-key";
+    public const string ServiceAccountJsonFileKey = "--service-account-json-file";
     public const string BuildVersionNameKey = "--build-version-name";
 
     public static readonly Option<string> AccessKeyOption = new(
@@ -24,7 +25,7 @@ class BuildCreateVersionInput : CommonInput
 
     public static readonly Option<string> BucketUrlOption = new(
         BucketUrlKey,
-        "The bucket url to use for the build version, for s3 bucket builds");
+        "The bucket url to use for the build version, for s3 or gcs bucket builds");
 
     public static readonly Option<string> ContainerTagOption = new(
         ContainerTagKey,
@@ -45,6 +46,10 @@ class BuildCreateVersionInput : CommonInput
     public static readonly Option<string> BuildVersionNameOption = new(
         BuildVersionNameKey,
         "The name of the build version to create");
+
+    public static readonly Option<string> ServiceAccountJsonFileOption = new(
+        ServiceAccountJsonFileKey,
+        "The path to the service account JSON file, for GCS builds");
 
     [InputBinding(nameof(AccessKeyOption))]
     public string? AccessKey { get; init; }
@@ -69,4 +74,7 @@ class BuildCreateVersionInput : CommonInput
 
     [InputBinding(nameof(BuildVersionNameOption))]
     public string? BuildVersionName { get; init; }
+
+    [InputBinding(nameof(ServiceAccountJsonFileOption))]
+    public string? ServiceAccountJsonFile { get; init; }
 }

@@ -64,7 +64,8 @@ public class GameServerHostingModule : ICommandModule
             BuildCreateVersionInput.FileDirectoryOption,
             BuildCreateVersionInput.SecretKeyOption,
             BuildCreateVersionInput.RemoveOldFilesOption,
-            BuildCreateVersionInput.BuildVersionNameOption
+            BuildCreateVersionInput.BuildVersionNameOption,
+            BuildCreateVersionInput.ServiceAccountJsonFileOption
         };
         BuildCreateVersionCommand.SetHandler<
             BuildCreateVersionInput,
@@ -75,7 +76,6 @@ public class GameServerHostingModule : ICommandModule
             ILoadingIndicator,
             CancellationToken
         >(BuildCreateVersionHandler.BuildCreateVersionAsync);
-
 
         BuildDeleteCommand = new Command("delete", "Delete a Game Server Hosting build")
         {

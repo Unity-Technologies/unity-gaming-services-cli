@@ -87,7 +87,7 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
             "my label"
         },
         Metadata = "{}",
-        Path = "image.jpg",
+        Path = "images/image.jpg",
         SignedUrl = "http://localhost:8080/ccd/upload"
     };
 

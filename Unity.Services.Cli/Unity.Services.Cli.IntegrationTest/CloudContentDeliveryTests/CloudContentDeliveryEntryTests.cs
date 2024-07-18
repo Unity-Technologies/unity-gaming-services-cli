@@ -11,6 +11,8 @@ namespace Unity.Services.Cli.IntegrationTest.CloudContentDeliveryTests;
 public class CloudContentDeliveryEntryTests : UgsCliFixture
 {
     static readonly string k_TestDirectory = Path.Combine(UgsCliBuilder.RootDirectory, ".tmp/FilesDir");
+    static readonly string k_TempDirectory = Path.Combine(UgsCliBuilder.RootDirectory, ".tmp/FilesDir/temp");
+    static readonly string k_ImageDirectory = Path.Combine(UgsCliBuilder.RootDirectory, ".tmp/FilesDir/images");
 
     [SetUp]
     public async Task SetUp()
@@ -20,8 +22,15 @@ public class CloudContentDeliveryEntryTests : UgsCliFixture
         if (!Directory.Exists(k_TestDirectory))
             Directory.CreateDirectory(k_TestDirectory);
 
-        await File.WriteAllTextAsync(Path.Join(k_TestDirectory, "foo"), "{}");
-        await File.WriteAllTextAsync(Path.Join(k_TestDirectory, "image.jpg"), "{}");
+        if (!Directory.Exists(k_TempDirectory))
+            Directory.CreateDirectory(k_TempDirectory);
+
+        if (!Directory.Exists(k_ImageDirectory))
+            Directory.CreateDirectory(k_ImageDirectory);
+
+        await File.WriteAllTextAsync(Path.Join(k_TempDirectory, "foo.txt"), "{}");
+        await File.WriteAllTextAsync(Path.Join(k_ImageDirectory, "image.jpg"), "{}");
+
         await MockApi.MockServiceAsync(new IdentityV1Mock());
         await MockApi.MockServiceAsync(new CloudContentDeliveryApiMock());
 
@@ -161,7 +170,7 @@ public class CloudContentDeliveryEntryTests : UgsCliFixture
     {
         await GetLoggedInCli()
             .Command(
-                $"ccd entries copy {k_TestDirectory}/foo foo")
+                $"ccd entries copy {k_TempDirectory}/foo.txt foo.txt")
             .AssertStandardOutputContains(
                 "entryid: 00000000-0000-0000-0000-000000000000")
             .AssertNoErrors()

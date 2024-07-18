@@ -41,6 +41,9 @@ class RemoteConfigImporter : BaseImporter<RemoteConfigEntryDTO>
         m_RemoteConfigClient.Initialize(cloudProjectId, environmentId, cancellationToken);
         m_GetResult = await m_RemoteConfigClient.GetAsync();
 
+        if (!m_GetResult.ConfigsExists)
+            return Array.Empty<RemoteConfigEntryDTO>();
+
         var configsOnRemote = ToDto(m_GetResult.Configs);
         return configsOnRemote;
     }

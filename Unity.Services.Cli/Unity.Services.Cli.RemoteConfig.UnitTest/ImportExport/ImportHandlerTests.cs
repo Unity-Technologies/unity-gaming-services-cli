@@ -189,4 +189,24 @@ class ImportHandlerTests
         CollectionAssert.DoesNotContain(sentEntries, remoteEntries[0]);
     }
 
+    [Test]
+    public void ImportAsync_SucceedsOnEmptyEnv()
+    {
+        var importInput = new ImportInput()
+        {
+            InputDirectory = "mock_input_directory"
+        };
+
+        m_MockRemoteConfigClient.Setup(c => c.GetAsync())
+            .ReturnsAsync(new GetConfigsResult(false, null));
+
+        Assert.DoesNotThrowAsync(
+            async () =>
+            {
+                await m_RemoteConfigImporter.ImportAsync(
+                    importInput,
+                    CancellationToken.None
+                );
+            });
+    }
 }

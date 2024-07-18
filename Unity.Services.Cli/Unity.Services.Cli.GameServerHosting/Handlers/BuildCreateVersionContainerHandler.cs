@@ -50,5 +50,11 @@ static partial class BuildCreateVersionHandler
             throw new CliException("Build does not support file upload flags.", ExitCode.HandledError);
         if (input.BucketUrl != null)
             throw new CliException("Build does not support s3 buckets.", ExitCode.HandledError);
+        if (input.SecretKey != null)
+            throw new CliException("Build does not support s3 flags.", ExitCode.HandledError);
+        if (input.AccessKey != null)
+            throw new CliException("Build does not support s3 flags.", ExitCode.HandledError);
+        if (input.ServiceAccountJsonFile != null)
+            throw new CliException("Build does not support gcs flags.", ExitCode.HandledError);
     }
 }
