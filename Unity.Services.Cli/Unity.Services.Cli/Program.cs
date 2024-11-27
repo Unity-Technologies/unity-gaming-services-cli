@@ -42,6 +42,7 @@ using Unity.Services.Cli.Scheduler;
 using Unity.Services.Cli.CloudSave;
 
 using Unity.Services.Cli.CloudContentDelivery;
+using System;
 
 
 namespace Unity.Services.Cli;
@@ -50,7 +51,8 @@ public static partial class Program
 {
     public static async Task<int> Main(string[] args)
     {
-        return await InternalMain(args, new Logger());
+        Console.WriteLine("Unity Services CLI - TEST");
+        return 0;
     }
 
     public static async Task<int> InternalMain(string[] args, Logger logger)
