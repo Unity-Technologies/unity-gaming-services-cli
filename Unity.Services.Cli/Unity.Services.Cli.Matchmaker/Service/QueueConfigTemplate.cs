@@ -21,36 +21,10 @@ class QueueConfigTemplate : QueueConfig, IFileTemplate
             TimeoutSeconds = 90,
             MatchLogic = new MatchLogicRulesConfig
             {
-                Name = "Default Pool Rules",
+                Name = "Rules",
                 MatchDefinition = new RuleBasedMatchDefinition()
                 {
-                    matchRules = new List<Rule>()
-                    {
-                        new Rule()
-                        {
-                            name = "skill-diff",
-                            type = RuleType.Difference,
-                            reference = new JsonObject("500"),
-                            source = "Players.ExternalData.CloudSave.Skill"
-                        },
-                        new Rule()
-                        {
-                            name = "QoS",
-                            type = RuleType.LessThanEqual,
-                            reference = new JsonObject("100"),
-                            source = "Players.QosResults.Latency",
-                            relaxations = new List<RuleRelaxation>()
-                            {
-                                new RuleRelaxation()
-                                {
-                                    ageType = AgeType.Oldest,
-                                    atSeconds = 30,
-                                    type = RuleRelaxationType.ReferenceControlReplace,
-                                    value = new JsonObject("200")
-                                }
-                            }
-                        }
-                    },
+                    matchRules = new List<Rule>(),
                     teams = new List<RuleBasedTeamDefinition>()
                     {
                         new RuleBasedTeamDefinition()

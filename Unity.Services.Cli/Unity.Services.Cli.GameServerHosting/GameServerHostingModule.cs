@@ -34,7 +34,7 @@ public class GameServerHostingModule : ICommandModule
 {
     public GameServerHostingModule()
     {
-        BuildCreateCommand = new Command("create", "Create a Game Server Hosting build.")
+        BuildCreateCommand = new Command("create", "Create a Multiplay Hosting build.")
         {
             BuildCreateInput.BuildNameOption,
             BuildCreateInput.BuildOsFamilyOption,
@@ -53,7 +53,7 @@ public class GameServerHostingModule : ICommandModule
 
         BuildCreateVersionCommand = new Command(
             "create-version",
-            "Create a new version of a Game Server Hosting build.")
+            "Create a new version of a Multiplay Hosting build.")
         {
             BuildCreateVersionInput.BuildIdArgument,
             CommonInput.EnvironmentNameOption,
@@ -77,7 +77,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(BuildCreateVersionHandler.BuildCreateVersionAsync);
 
-        BuildDeleteCommand = new Command("delete", "Delete a Game Server Hosting build")
+        BuildDeleteCommand = new Command("delete", "Delete a Multiplay Hosting build")
         {
             BuildIdInput.BuildIdArgument,
             CommonInput.EnvironmentNameOption,
@@ -92,7 +92,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(BuildDeleteHandler.BuildDeleteAsync);
 
-        BuildGetCommand = new Command("get", "Get a Game Server Hosting build.")
+        BuildGetCommand = new Command("get", "Get a Multiplay Hosting build.")
         {
             BuildIdInput.BuildIdArgument,
             CommonInput.EnvironmentNameOption,
@@ -106,7 +106,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(BuildGetHandler.BuildGetAsync);
 
-        BuildInstallsCommand = new Command("installs", "List Game Server Hosting build installs")
+        BuildInstallsCommand = new Command("installs", "List Multiplay Hosting build installs")
         {
             BuildIdInput.BuildIdArgument,
             CommonInput.EnvironmentNameOption,
@@ -121,7 +121,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(BuildInstallsHandler.BuildInstallsAsync);
 
-        BuildListCommand = new Command("list", "List Game Server Hosting builds.")
+        BuildListCommand = new Command("list", "List Multiplay Hosting builds.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption
@@ -134,7 +134,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(BuildListHandler.BuildListAsync);
 
-        BuildUpdateCommand = new Command("update", "Update a Game Server Hosting build")
+        BuildUpdateCommand = new Command("update", "Update a Multiplay Hosting build")
         {
             BuildIdInput.BuildIdArgument,
             BuildUpdateInput.BuildNameOption,
@@ -149,7 +149,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(BuildUpdateHandler.BuildUpdateAsync);
 
-        BuildCommand = new Command("build", "Manage Game Server Hosting builds.")
+        BuildCommand = new Command("build", "Manage Multiplay Hosting builds.")
         {
             BuildCreateCommand,
             BuildCreateVersionCommand,
@@ -160,7 +160,7 @@ public class GameServerHostingModule : ICommandModule
             BuildUpdateCommand
         };
 
-        BuildConfigurationGetCommand = new Command("get", "Get a Game Server Hosting build configurations.")
+        BuildConfigurationGetCommand = new Command("get", "Get a Multiplay Hosting build configurations.")
         {
             BuildConfigurationIdInput.BuildConfigurationIdArgument,
             CommonInput.EnvironmentNameOption,
@@ -175,7 +175,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(BuildConfigurationGetHandler.BuildConfigurationGetAsync);
 
-        BuildConfigurationCreateCommand = new Command("create", "Create a Game Server Hosting build configuration.")
+        BuildConfigurationCreateCommand = new Command("create", "Create a Multiplay Hosting build configuration.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -199,7 +199,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(BuildConfigurationCreateHandler.BuildConfigurationCreateAsync);
 
-        BuildConfigurationDeleteCommand = new Command("delete", "Delete a Game Server Hosting build configurations.")
+        BuildConfigurationDeleteCommand = new Command("delete", "Delete a Multiplay Hosting build configurations.")
         {
             BuildConfigurationIdInput.BuildConfigurationIdArgument,
             CommonInput.EnvironmentNameOption,
@@ -214,7 +214,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(BuildConfigurationDeleteHandler.BuildConfigurationDeleteAsync);
 
-        BuildConfigurationListCommand = new Command("list", "List Game Server Hosting build configurations.")
+        BuildConfigurationListCommand = new Command("list", "List Multiplay Hosting build configurations.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -230,7 +230,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(BuildConfigurationListHandler.BuildConfigurationListAsync);
 
-        BuildConfigurationUpdateCommand = new Command("update", "Update a Game Server Hosting build configuration.")
+        BuildConfigurationUpdateCommand = new Command("update", "Update a Multiplay Hosting build configuration.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -257,7 +257,7 @@ public class GameServerHostingModule : ICommandModule
 
         BuildConfigurationCommand = new Command(
             "build-configuration",
-            "Manage Game Server Hosting build configurations.")
+            "Manage Multiplay Hosting build configurations.")
         {
             BuildConfigurationGetCommand,
             BuildConfigurationCreateCommand,
@@ -266,7 +266,7 @@ public class GameServerHostingModule : ICommandModule
             BuildConfigurationUpdateCommand,
         };
 
-        FleetCreateCommand = new Command("create", "Create Game Server Hosting fleet.")
+        FleetCreateCommand = new Command("create", "Create Multiplay Hosting fleet.")
         {
             FleetCreateInput.FleetNameOption,
             FleetCreateInput.FleetOsFamilyOption,
@@ -286,7 +286,7 @@ public class GameServerHostingModule : ICommandModule
         >(FleetCreateHandler.FleetCreateAsync);
 
 
-        FleetDeleteCommand = new Command("delete", "Delete a Game Server Hosting fleet.")
+        FleetDeleteCommand = new Command("delete", "Delete a Multiplay Hosting fleet.")
         {
             FleetIdInput.FleetIdArgument,
             CommonInput.EnvironmentNameOption,
@@ -301,7 +301,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(FleetDeleteHandler.FleetDeleteAsync);
 
-        FleetGetCommand = new Command("get", "Get a Game Server Hosting fleet.")
+        FleetGetCommand = new Command("get", "Get a Multiplay Hosting fleet.")
         {
             FleetIdInput.FleetIdArgument,
             CommonInput.EnvironmentNameOption,
@@ -316,7 +316,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(FleetGetHandler.FleetGetAsync);
 
-        FleetListCommand = new Command("list", "List Game Server Hosting fleets.")
+        FleetListCommand = new Command("list", "List Multiplay Hosting fleets.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption
@@ -330,7 +330,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(FleetListHandler.FleetListAsync);
 
-        FleetUpdateCommand = new Command("update", "Update a Game Server Hosting fleet.")
+        FleetUpdateCommand = new Command("update", "Update a Multiplay Hosting fleet.")
         {
             FleetIdInput.FleetIdArgument,
             FleetUpdateInput.FleetNameOption,
@@ -352,7 +352,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(FleetUpdateHandler.FleetUpdateAsync);
 
-        FleetCommand = new Command("fleet", "Manage Game Server Hosting fleets.")
+        FleetCommand = new Command("fleet", "Manage Multiplay Hosting fleets.")
         {
             FleetCreateCommand,
             FleetDeleteCommand,
@@ -364,7 +364,7 @@ public class GameServerHostingModule : ICommandModule
 
         FleetRegionTemplatesCommand = new Command(
             "templates",
-            "List Game Server Hosting templates for creating fleet regions.")
+            "List Multiplay Hosting templates for creating fleet regions.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption
@@ -380,7 +380,7 @@ public class GameServerHostingModule : ICommandModule
 
         FleetRegionAvailableCommand = new Command(
             "available",
-            "List Game Server Hosting available template regions for creating fleet regions.")
+            "List Multiplay Hosting available template regions for creating fleet regions.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -395,7 +395,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(RegionAvailableHandler.RegionAvailableAsync);
 
-        FleetRegionCreateCommand = new Command("create", "Create Game Server Hosting fleet regions.")
+        FleetRegionCreateCommand = new Command("create", "Create Multiplay Hosting fleet regions.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -413,7 +413,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(FleetRegionCreateHandler.FleetRegionCreateAsync);
 
-        FleetRegionUpdateCommand = new Command("update", "Update Game Server Hosting fleet region.")
+        FleetRegionUpdateCommand = new Command("update", "Update Multiplay Hosting fleet region.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -436,7 +436,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(FleetRegionUpdateHandler.FleetRegionUpdateAsync);
 
-        FleetRegionCommand = new Command("fleet-region", "Manage Game Server Hosting fleet regions.")
+        FleetRegionCommand = new Command("fleet-region", "Manage Multiplay Hosting fleet regions.")
         {
             FleetRegionTemplatesCommand,
             FleetRegionAvailableCommand,
@@ -444,7 +444,7 @@ public class GameServerHostingModule : ICommandModule
             FleetRegionUpdateCommand
         };
 
-        MachineListCommand = new Command("list", "List Game Server Hosting machines.")
+        MachineListCommand = new Command("list", "List Multiplay Hosting machines.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -463,12 +463,12 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(MachineListHandler.MachineListAsync);
 
-        MachineCommand = new Command("machine", "Manage Game Server Hosting machines.")
+        MachineCommand = new Command("machine", "Manage Multiplay Hosting machines.")
         {
             MachineListCommand,
         };
 
-        ServerGetCommand = new Command("get", "Get a Game Server Hosting server.")
+        ServerGetCommand = new Command("get", "Get a Multiplay Hosting server.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -483,7 +483,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(ServerGetHandler.ServerGetAsync);
 
-        ServerListCommand = new Command("list", "List Game Server Hosting servers.")
+        ServerListCommand = new Command("list", "List Multiplay Hosting servers.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -503,7 +503,7 @@ public class GameServerHostingModule : ICommandModule
 
         ServerFilesDownloadCommand = new Command(
             "download",
-            "Download files for the provided Game Server Hosting server.")
+            "Download files for the provided Multiplay Hosting server.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -521,7 +521,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(FileDownloadHandler.FileDownloadAsync);
 
-        ServerFilesListCommand = new Command("list", "List of files for the provided Game Server Hosting servers.")
+        ServerFilesListCommand = new Command("list", "List of files for the provided Multiplay Hosting servers.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -540,34 +540,34 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(FileListHandler.FileListAsync);
 
-        ServerFilesCommand = new Command("files", "Manage Game Server Hosting server files.")
+        ServerFilesCommand = new Command("files", "Manage Multiplay Hosting server files.")
         {
             ServerFilesDownloadCommand,
             ServerFilesListCommand,
         };
 
-        ServerCommand = new Command("server", "Manage Game Server Hosting servers.")
+        ServerCommand = new Command("server", "Manage Multiplay Hosting servers.")
         {
             ServerGetCommand,
             ServerListCommand,
             ServerFilesCommand,
         };
 
-        CoreDumpGetCommand = new Command("get", "Get a Game Server Hosting core dump configuration.")
+        CoreDumpGetCommand = new Command("get", "Get a Multiplay Hosting core dump configuration.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
             FleetIdInput.FleetIdArgument,
         };
 
-        CoreDumpDeleteCommand = new Command("delete", "Delete a Game Server Hosting core dump configuration.")
+        CoreDumpDeleteCommand = new Command("delete", "Delete a Multiplay Hosting core dump configuration.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
             FleetIdInput.FleetIdArgument,
         };
 
-        CoreDumpCreateCommand = new Command("create", "Create a Game Server Hosting core dump configuration.")
+        CoreDumpCreateCommand = new Command("create", "Create a Multiplay Hosting core dump configuration.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -578,7 +578,7 @@ public class GameServerHostingModule : ICommandModule
             CoreDumpCreateInput.StateOption,
         };
 
-        CoreDumpUpdateCommand = new Command("update", "Update a Game Server Hosting core dump configuration.")
+        CoreDumpUpdateCommand = new Command("update", "Update a Multiplay Hosting core dump configuration.")
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -627,7 +627,7 @@ public class GameServerHostingModule : ICommandModule
             CancellationToken
         >(CoreDumpUpdateHandler.CoreDumpUpdateAsync);
 
-        CoreDumpCommand = new Command("core-dump", "Manage Game Server Hosting core dump configurations.")
+        CoreDumpCommand = new Command("core-dump", "Manage Multiplay Hosting core dump configurations.")
         {
             CoreDumpGetCommand,
             CoreDumpDeleteCommand,
@@ -635,7 +635,8 @@ public class GameServerHostingModule : ICommandModule
             CoreDumpUpdateCommand
         };
 
-        ModuleRootCommand = new Command("game-server-hosting", "Manage Game Sever Hosting resources.")
+
+        ModuleRootCommand = new Command("multiplay-hosting", "Manage Multiplay Hosting resources.")
         {
             BuildCommand,
             BuildConfigurationCommand,
@@ -646,7 +647,9 @@ public class GameServerHostingModule : ICommandModule
             ServerCommand,
         };
 
+        ModuleRootCommand.AddAlias("mh");
         ModuleRootCommand.AddAlias("gsh");
+        ModuleRootCommand.AddAlias("game-server-hosting");
         BuildCommand.AddAlias("b");
         BuildConfigurationCommand.AddAlias("bc");
         FleetCommand.AddAlias("f");
@@ -847,5 +850,8 @@ public class GameServerHostingModule : ICommandModule
         serviceCollection.AddScoped<IGameServerHostingConfigLoader, GameServerHostingConfigLoader>();
         serviceCollection.AddTransient<IDeployFileService, DeployFileService>();
     }
+
+
+
 
 }

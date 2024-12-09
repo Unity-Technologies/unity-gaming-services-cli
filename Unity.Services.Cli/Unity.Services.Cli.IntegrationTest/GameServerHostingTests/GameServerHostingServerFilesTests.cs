@@ -9,13 +9,13 @@ namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 public partial class GameServerHostingTests
 {
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server files")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server files")]
     public async Task ServerFiles_Succeeds()
     {
         await GetFullySetCli()
-            .Command("gsh server files list --server-id 123")
+            .Command("mh server files list --server-id 123")
             .AssertStandardOutput(
                 str =>
                 {
@@ -27,9 +27,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server files")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server files")]
     public async Task ServerFiles_ThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -37,36 +37,36 @@ public partial class GameServerHostingTests
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
         await new UgsCliTestCase()
-            .Command("gsh server files list --server-id 123")
+            .Command("mh server files list --server-id 123")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_NotLoggedIn)
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server files")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server files")]
     public async Task ServerFiles_ThrowsProjectIdNotSetException()
     {
         SetConfigValue("environment-id", CommonKeys.ValidEnvironmentId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
         await GetLoggedInCli()
-            .Command("gsh server files list --server-id 123")
+            .Command("mh server files list --server-id 123")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_ProjectIdIsNotSet)
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server files")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server files")]
     public async Task ServerFiles_ThrowsEnvironmentIdNotSetException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         await GetLoggedInCli()
-            .Command("gsh server files list --server-id 123")
+            .Command("mh server files list --server-id 123")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_EnvironmentNameIsNotSet)
             .ExecuteAsync();

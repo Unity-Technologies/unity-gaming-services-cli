@@ -23,6 +23,8 @@ public class LobbyTests : UgsCliFixture
     const string k_LobbyId = "test-lobby-id";
     const string k_PlayerId = "test-player-id";
     const string k_ConfigId = "test-config-id";
+    const string k_ConfigNonJsonInput = "invalidJson";
+    const string k_ConfigInvalidInput = "{}";
     const string k_RequiredArgumentMissing = "Required argument missing for command:";
     const string k_FailedToDeserialize = "Failed to deserialize object for Lobby request.";
 
@@ -585,12 +587,22 @@ public class LobbyTests : UgsCliFixture
     }
 
     [Test]
+    public async Task UpdateConfig_ThrowsIfRequestBodyIsNonJson()
+    {
+        await AuthenticatedCommand()
+            .Command($"lobby config update {k_ConfigId} {k_ConfigNonJsonInput}")
+            .AssertExitCode(ExitCode.HandledError)
+            .AssertStandardErrorContains("The configuration input value is invalid")
+            .ExecuteAsync();
+    }
+
+    [Test]
     public async Task UpdateConfig_ThrowsIfRequestBodyIsInvalid()
     {
         await AuthenticatedCommand()
-            .Command($"lobby config update {k_ConfigId} ''")
+            .Command($"lobby config update {k_ConfigId} {k_ConfigInvalidInput}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardErrorContains("Empty config request body")
+            .AssertStandardErrorContains("There is no configuration in input value")
             .ExecuteAsync();
     }
 

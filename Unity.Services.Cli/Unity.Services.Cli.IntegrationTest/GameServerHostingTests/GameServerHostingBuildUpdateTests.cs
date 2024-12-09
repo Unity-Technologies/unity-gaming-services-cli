@@ -8,12 +8,12 @@ namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 
 public partial class GameServerHostingTests
 {
-    const string k_BuildUpdateCommand = "gsh build update 1 --name \"Updated Name\"";
+    const string k_BuildUpdateCommand = "mh build update 1 --name \"Updated Name\"";
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build update")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build update")]
     public async Task BuildUpdate_Succeeds()
     {
         await GetFullySetCli()
@@ -25,9 +25,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build update")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build update")]
     public async Task BuildUpdate_ThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -43,9 +43,9 @@ public partial class GameServerHostingTests
 
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build update")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build update")]
     public async Task BuildUpdate_ThrowsProjectIdNotSetException()
     {
         SetConfigValue("environment-id", CommonKeys.ValidEnvironmentId);
@@ -58,9 +58,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build update")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build update")]
     public async Task BuildUpdate_ThrowsEnvironmentIdNotSetException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);

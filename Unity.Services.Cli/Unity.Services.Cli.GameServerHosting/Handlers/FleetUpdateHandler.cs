@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Utils;
+using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.GameServerHosting.Exceptions;
 using Unity.Services.Cli.GameServerHosting.Input;
 using Unity.Services.Cli.GameServerHosting.Service;
@@ -62,9 +63,19 @@ static class FleetUpdateHandler
         };
 
         // If provided, include usage settings
-        if (usageSettings != null)
+        if (usageSettings?.Count > 0)
         {
             fleetUpdateReq.UsageSettings = usageSettings.Select(setting => JsonConvert.DeserializeObject<FleetUsageSetting>(setting)!).ToList();
+        }
+        else if (fleet.UsageSettings?.Count > 0)
+        {
+            // pass UsageSettings from initial fleet GET request
+            fleetUpdateReq.UsageSettings = fleet.UsageSettings;
+        }
+        else
+        {
+            // No FleetUsage found. The customer needs to provide at least one for this fleet to be operational.
+            throw new CliException("Fleet does not have usage settings. At least 1 fleet usage must exist to be able to scale fleet up. ", ExitCode.HandledError);
         }
 
         await service.FleetsApi.UpdateFleetAsync(Guid.Parse(input.CloudProjectId!), Guid.Parse(environmentId),

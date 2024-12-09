@@ -9,12 +9,12 @@ namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 
 public partial class GameServerHostingTests
 {
-    internal const string FleetRegionAvailableCommand = $"gsh fleet-region available {Keys.ValidFleetId}";
+    internal const string FleetRegionAvailableCommand = $"mh fleet-region available {Keys.ValidFleetId}";
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region available")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region available")]
     public async Task FleetRegionAvailable_SucceedsWithValidInput()
     {
         await GetFullySetCli()
@@ -23,29 +23,29 @@ public partial class GameServerHostingTests
                 v =>
                 {
                     StringAssert.Contains("Fetching available regions...", v);
-                    StringAssert.Contains("name: US East",v);
+                    StringAssert.Contains("name: US East", v);
                 })
             .AssertNoErrors()
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region available")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region available")]
     public async Task FleetRegionAvailable_ThrowsInvalidFleetException()
     {
         await GetFullySetCli()
-            .Command($"gsh fleet-region available A")
+            .Command($"mh fleet-region available A")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Fleet 'A' not a valid UUID.")
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region available")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region available")]
     public async Task FleetRegionAvailable_ThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -60,9 +60,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region available")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region available")]
     public async Task FleetRegionAvailable_ThrowsProjectIdNotSetException()
     {
         SetConfigValue("environment-id", CommonKeys.ValidEnvironmentId);
@@ -75,9 +75,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region available")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region available")]
     public async Task FleetRegionAvailable_ThrowsEnvironmentIdNotSetException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);

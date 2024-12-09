@@ -1,7 +1,9 @@
 using Microsoft.Extensions.Logging;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Models;
+using Unity.Services.Cli.Lobby.Handlers.Config;
 using Unity.Services.Cli.Lobby.Input;
+using Unity.Services.Cli.RemoteConfig.Exceptions;
 using Unity.Services.Cli.RemoteConfig.Service;
 
 namespace Unity.Services.Cli.Lobby.Handlers
@@ -25,10 +27,28 @@ namespace Unity.Services.Cli.Lobby.Handlers
             var projectId = input.CloudProjectId ?? throw new MissingConfigurationException(
                 Keys.ConfigKeys.ProjectId, Keys.EnvironmentKeys.ProjectId);
 
+            var body = RequestBodyHandler.GetRequestBodyFromFileOrInput(input.JsonFileOrBody!, isRequired: true);
+
+            var lobbyConfig = LobbyConfig.ParseValue(body);
+
+            var configSchema = new ConfigSchema().FileBodyText;
+            if (lobbyConfig.SchemaId == LobbyConstants.SchemaIdV2)
+            {
+                configSchema = new ConfigSchemaV2().FileBodyText;
+            }
+            try
+            {
+                await service.ApplySchemaAsync(projectId, input.ConfigId!, configSchema, cancellationToken);
+            }
+            catch (ApiException) // Because it's an internal API, we hide any schema-related HTTP exceptions from the user.
+            {
+                throw new CliException("An error occurred while updating the Lobby configuration.", ExitCode.HandledError);
+            }
+
             await service.UpdateConfigAsync(
                 projectId,
                 input.ConfigId!,
-                RequestBodyHandler.GetRequestBodyFromFileOrInput(input.JsonFileOrBody!, isRequired: true),
+                body,
                 cancellationToken);
             logger.LogInformation("Config successfully updated.");
         }

@@ -9,12 +9,12 @@ namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 
 public partial class GameServerHostingTests
 {
-    internal const string FleetRegionTemplatesCommand = $"gsh fleet-region templates";
+    internal const string FleetRegionTemplatesCommand = $"mh fleet-region templates";
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region templates")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region templates")]
     public async Task FleetRegionTemplates_SucceedsWithValidInput()
     {
         await GetFullySetCli()
@@ -23,16 +23,16 @@ public partial class GameServerHostingTests
                 v =>
                 {
                     StringAssert.Contains("Fetching region list...", v);
-                    StringAssert.Contains("name: Example Region",v);
+                    StringAssert.Contains("name: Example Region", v);
                 })
             .AssertNoErrors()
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region templates")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region templates")]
     public async Task FleetRegionTemplates_ThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -47,9 +47,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region templates")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region templates")]
     public async Task FleetRegionTemplates_ThrowsProjectIdNotSetException()
     {
         SetConfigValue("environment-id", CommonKeys.ValidEnvironmentId);
@@ -62,9 +62,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region templates")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region templates")]
     public async Task FleetRegionTemplates_ThrowsEnvironmentIdNotSetException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);

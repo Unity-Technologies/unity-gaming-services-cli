@@ -8,10 +8,10 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Templates;
-using Unity.Services.Cli.RemoteConfig.Model;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Lobby.Handlers.Config;
 using Unity.Services.Cli.RemoteConfig.Exceptions;
+using UpdateConfigRequest = Unity.Services.Cli.RemoteConfig.Model.UpdateConfigRequest;
 
 namespace Unity.Services.Cli.Lobby.Handlers.ImportExport;
 
@@ -19,6 +19,7 @@ class LobbyImporter : BaseImporter<LobbyConfig>
 {
     readonly IRemoteConfigService m_RemoteConfigService;
     readonly IFileTemplate m_ConfigSchema;
+    readonly IFileTemplate m_ConfigSchemaV2;
 
     public LobbyImporter(
         IRemoteConfigService remoteConfigService,
@@ -32,6 +33,7 @@ class LobbyImporter : BaseImporter<LobbyConfig>
     {
         m_RemoteConfigService = remoteConfigService;
         m_ConfigSchema = new ConfigSchema();
+        m_ConfigSchemaV2 = new ConfigSchemaV2();
     }
 
     protected override string FileName => LobbyConstants.ZipName;
@@ -58,20 +60,25 @@ class LobbyImporter : BaseImporter<LobbyConfig>
     protected override async Task UpdateConfigAsync(string projectId, string environmentId, LobbyConfig config, CancellationToken cancellationToken)
     {
         string configId = config.Id;
+        string schemaId = config.SchemaId;
+        if (string.IsNullOrEmpty(schemaId))
+        {
+            schemaId = LobbyConstants.SchemaId;
+        }
 
         // Configs should already have the schema applied, but we do this as a safeguard because if they don't, the
         // subsequent update request will fail.
-        await ApplySchema(projectId, configId, cancellationToken);
+        await ApplySchema(projectId, configId, schemaId, cancellationToken);
 
         UpdateConfigRequest request = new UpdateConfigRequest
         {
             Type = LobbyConstants.ConfigType,
             Value = new object[] {
-                new RemoteConfigResponse.ConfigValue
+                new LobbyConfigValue
                 {
                     Key = LobbyConstants.ConfigKey,
                     Type = RemoteConfig.Types.ValueType.Json.ToString().ToLower(),
-                    SchemaId = LobbyConstants.SchemaId,
+                    SchemaId = schemaId,
                     Value = config.Config
                 }
             }
@@ -150,11 +157,17 @@ class LobbyImporter : BaseImporter<LobbyConfig>
         return new ImportState<LobbyConfig>(toCreate, toUpdate, toDelete);
     }
 
-    async Task ApplySchema(string projectId, string configId, CancellationToken cancellationToken)
+    async Task ApplySchema(string projectId, string configId, string schemaId, CancellationToken cancellationToken)
     {
+        var configSchemaFileBodyText = m_ConfigSchema.FileBodyText;
+        if (LobbyConstants.SchemaIdV2 == schemaId)
+        {
+            configSchemaFileBodyText = m_ConfigSchemaV2.FileBodyText;
+        }
+
         try
         {
-            await m_RemoteConfigService.ApplySchemaAsync(projectId, configId, m_ConfigSchema.FileBodyText, cancellationToken);
+            await m_RemoteConfigService.ApplySchemaAsync(projectId, configId, configSchemaFileBodyText, cancellationToken);
         }
         catch (ApiException) // Because it's an internal API, we hide any schema-related HTTP exceptions from the user.
         {

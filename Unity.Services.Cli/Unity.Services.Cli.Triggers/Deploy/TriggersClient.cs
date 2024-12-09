@@ -58,7 +58,8 @@ class TriggersClient : ITriggersClient
                 triggerConfig.Name,
                 triggerConfig.EventType,
                 JsonConvert.DeserializeObject<TriggerActionType>($"\"{triggerConfig.ActionType}\""),
-                triggerConfig.ActionUrn),
+                triggerConfig.ActionUrn,
+                triggerConfig.Filter),
             CancellationToken);
     }
 
@@ -71,7 +72,8 @@ class TriggersClient : ITriggersClient
                 triggerConfig.Name,
                 triggerConfig.EventType,
                 JsonConvert.DeserializeObject<TriggerActionType>($"\"{triggerConfig.ActionType}\""),
-                triggerConfig.ActionUrn),
+                triggerConfig.ActionUrn,
+                triggerConfig.Filter),
             CancellationToken);
     }
 
@@ -104,6 +106,7 @@ class TriggersClient : ITriggersClient
             Id = responseConfig.Id.ToString(),
             Name = responseConfig.Name,
             Path = "Remote",
+            Filter = responseConfig.Filter,
         };
     }
 }

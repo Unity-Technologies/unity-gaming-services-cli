@@ -26,37 +26,9 @@
             "teamRules": []
           }
         ],
-        "matchRules": [
-          {
-            "source": "Players.ExternalData.CloudSave.Skill",
-            "name": "skill-diff",
-            "type": "Difference",
-            "reference": 500,
-            "overlap": 0.0,
-            "enableRule": false,
-            "not": false,
-            "relaxations": []
-          },
-          {
-            "source": "Players.QosResults.Latency",
-            "name": "QoS",
-            "type": "LessThanEqual",
-            "reference": 100,
-            "overlap": 0.0,
-            "enableRule": false,
-            "not": false,
-            "relaxations": [
-              {
-                "type": "ReferenceControl.Replace",
-                "ageType": "Oldest",
-                "atSeconds": 30.0,
-                "value": 200
-              }
-            ]
-          }
-        ]
+        "matchRules": []
       },
-      "name": "Default Pool Rules",
+      "name": "Rules",
       "backfillEnabled": false
     },
     "matchHosting": {

@@ -8,12 +8,12 @@ namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 
 public partial class GameServerHostingTests
 {
-    static readonly string k_BuildConfigurationListCommand = "gsh bc list";
+    static readonly string k_BuildConfigurationListCommand = "mh bc list";
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc list")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc list")]
     public async Task BuildConfigurationList_SucceedsWithValidInput()
     {
         await GetFullySetCli()
@@ -29,9 +29,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc list")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc list")]
     public async Task BuildConfigurationList_ThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -46,9 +46,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc list")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc list")]
     public async Task BuildConfigurationList_ThrowsProjectIdNotSetException()
     {
         SetConfigValue("environment-id", CommonKeys.ValidEnvironmentId);
@@ -62,9 +62,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc get")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc get")]
     public async Task BuildConfigurationList_ThrowsEnvironmentIdNotSetException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);

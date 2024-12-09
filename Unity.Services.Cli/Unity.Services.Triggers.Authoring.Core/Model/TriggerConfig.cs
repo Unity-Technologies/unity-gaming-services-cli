@@ -20,6 +20,8 @@ namespace Unity.Services.Triggers.Authoring.Core.Model
         public string ActionType { get; set; }
         [DataMember]
         public string ActionUrn { get; set; }
+        [DataMember]
+        public string Filter { get; set; }
 
         public string Path { get; set; }
         public event PropertyChangedEventHandler PropertyChanged;
@@ -34,21 +36,23 @@ namespace Unity.Services.Triggers.Authoring.Core.Model
         }
 
         [JsonConstructor]
-        public TriggerConfig(string name, string eventType, string actionType, string actionUrn)
+        public TriggerConfig(string name, string eventType, string actionType, string actionUrn, string filter)
         {
             Name = name;
             EventType = eventType;
             ActionType = actionType;
             ActionUrn = actionUrn;
+            Filter = filter;
         }
 
-        public TriggerConfig(string id, string name, string eventType, string actionType, string actionUrn)
+        public TriggerConfig(string id, string name, string eventType, string actionType, string actionUrn, string filter)
         {
             Id = id;
             Name = name;
             EventType = eventType;
             ActionType = actionType;
             ActionUrn = actionUrn;
+            Filter = filter;
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

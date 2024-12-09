@@ -4,6 +4,20 @@ All notable changes to UGS CLI will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+
+## [1.7.0] - 2024-11-25
+
+### Fixed
+- [Multiplay Hosting] Fixed issue with fleet usage settings being deleted if not provided in the update command.
+- [CCD] Fixed issue with inconsistencies in paths when a customer uses more than one OS.
+
+### Changed
+- [Multiplay Hosting] Updated all docs, commands and prompts to use the term "Multiplay Hosting" instead of "Game Server Hosting" as per the new branding. Directories and file names have not been changed as they are not user-facing.
+- [Lobby] Supports new `lobbyv2` configuration schema on all config related commands.
+
+### Added
+- [Triggers] Added filter support to service configs
+
 ## [1.6.0] - 2024-07-18
 
 ### Changed

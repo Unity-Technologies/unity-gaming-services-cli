@@ -9,12 +9,12 @@ namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 
 public partial class GameServerHostingTests
 {
-    static readonly string k_ServersGetCommand = $"gsh server get {Keys.ValidServerId}";
+    static readonly string k_ServersGetCommand = $"mh server get {Keys.ValidServerId}";
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server get")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server get")]
     public async Task ServerGet_SucceedsWithValidInput()
     {
         await GetFullySetCli()
@@ -24,9 +24,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server get")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server get")]
     public async Task ServerGet_Succeeds()
     {
         await GetFullySetCli()
@@ -43,9 +43,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server get")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server get")]
     public async Task ServerGet_ThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -60,9 +60,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server get")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server get")]
     public async Task ServerGet_ThrowsProjectIdNotSetException()
     {
         SetConfigValue("environment-id", CommonKeys.ValidEnvironmentId);
@@ -76,9 +76,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server get")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server get")]
     public async Task ServerGet_ThrowsEnvironmentIdNotSetException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -90,14 +90,14 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server get")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server get")]
     public async Task ServerGet_ThrowsServerIdNotValidException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         await GetLoggedInCli()
-            .Command("gsh server get invalid-server-id")
+            .Command("mh server get invalid-server-id")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Server ID 'invalid-server-id' not a valid ID")
             .ExecuteAsync();

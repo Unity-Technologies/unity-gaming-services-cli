@@ -42,8 +42,8 @@ public class TriggerFetchServiceTests
             )
             .ReturnsAsync(new TriggersFileItem(new TriggersConfigFile(new List<TriggerConfig>()
                 {
-                    new("Trigger1", "EventType1", "cloud-code", "urn:ugs:cloud-code:MyTestScript"),
-                    new("Trigger2", "EventType2", "cloud-code", "urn:ugs:cloud-code:MyTestScript")
+                    new("Trigger1", "EventType1", "cloud-code", "urn:ugs:cloud-code:MyTestScript",""),
+                    new("Trigger2", "EventType2", "cloud-code", "urn:ugs:cloud-code:MyTestScript", "")
                 }), "samplePath"));
 
         var deployResult = new FetchResult()

@@ -61,6 +61,17 @@ class GameServerHostingFleetsApiV1Mock
         )
     };
 
+    static readonly List<FleetUsageSetting> k_TestFleetUsageSettings = new()
+    {
+        new FleetUsageSetting(
+            fleetUsageID: 0L,
+            hardwareType: FleetUsageSetting.HardwareTypeEnum.CLOUD,
+            machineType: "GCP-N2",
+            maxServersPerMachine: 5L,
+            memory: 0L,
+            speed: 0L)
+    };
+
     static readonly List<Fleet> k_TestFleets = new()
     {
         new Fleet(
@@ -80,7 +91,8 @@ class GameServerHostingFleetsApiV1Mock
             allocationTTL: 10,
             deleteTTL: 20,
             disabledDeleteTTL: 25,
-            shutdownTTL: 30
+            shutdownTTL: 30,
+            usageSettings: k_TestFleetUsageSettings
         ),
         new Fleet(
             buildConfigurations: new List<BuildConfiguration2>(),
@@ -88,6 +100,23 @@ class GameServerHostingFleetsApiV1Mock
             fleetRegions: new List<FleetRegion1>(),
             id: new Guid(ValidFleetId2),
             name: ValidFleetName2,
+            osFamily: Fleet.OsFamilyEnum.LINUX,
+            osName: OsNameLinux,
+            servers: new Servers(new FleetServerBreakdown(new ServerStatus()),
+                new FleetServerBreakdown(new ServerStatus()), new FleetServerBreakdown(new ServerStatus())),
+            status: Fleet.StatusEnum.ONLINE,
+            allocationTTL: 1,
+            deleteTTL: 2,
+            disabledDeleteTTL: 3,
+            shutdownTTL: 4,
+            usageSettings: k_TestFleetUsageSettings
+        ),
+        new Fleet(
+            buildConfigurations: new List<BuildConfiguration2>(),
+            graceful: false,
+            fleetRegions: new List<FleetRegion1>(),
+            id: new Guid(ValidFleetId3),
+            name: ValidFleetName3,
             osFamily: Fleet.OsFamilyEnum.LINUX,
             osName: OsNameLinux,
             servers: new Servers(new FleetServerBreakdown(new ServerStatus()),

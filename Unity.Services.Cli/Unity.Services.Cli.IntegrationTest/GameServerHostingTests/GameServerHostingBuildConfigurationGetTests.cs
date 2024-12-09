@@ -8,12 +8,12 @@ namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 
 public partial class GameServerHostingTests
 {
-    static readonly string k_BuildConfigurationGetCommand = "gsh bc get 1";
+    static readonly string k_BuildConfigurationGetCommand = "mh bc get 1";
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc get")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc get")]
     public async Task BuildConfigurationGet_SucceedsWithValidInput()
     {
         await GetFullySetCli()
@@ -29,35 +29,35 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc get")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc get")]
     public async Task BuildConfigurationGet_ThrowsMissingBuildConfigurationIdException()
     {
         await GetFullySetCli()
-            .Command("gsh bc get")
+            .Command("mh bc get")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Required argument missing for command: 'get'.")
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc get")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc get")]
     public async Task BuildConfigurationGet_ThrowsInvalidBuildConfigurationIdException()
     {
         await GetFullySetCli()
-            .Command("gsh bc get invalid-id")
+            .Command("mh bc get invalid-id")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Build Configuration ID 'invalid-id' not a valid ID.")
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc get")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc get")]
     public async Task BuildConfigurationGet_ThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -72,9 +72,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc get")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc get")]
     public async Task BuildConfigurationGet_ThrowsProjectIdNotSetException()
     {
         SetConfigValue("environment-id", CommonKeys.ValidEnvironmentId);
@@ -88,9 +88,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc get")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc get")]
     public async Task BuildConfigurationGet_ThrowsEnvironmentIdNotSetException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);

@@ -18,7 +18,7 @@ public class TriggerClientTests
 
     public TriggerClientTests()
     {
-        m_Trigger = new("1","Trigger1", "EventType1", "cloud-code", "actionUrn") { Path = k_Path };
+        m_Trigger = new("1", "Trigger1", "EventType1", "cloud-code", "actionUrn", "") { Path = k_Path };
     }
 
     [Test]
@@ -82,7 +82,7 @@ public class TriggerClientTests
                 TestValues.ValidEnvironmentId, "1", It.IsAny<TriggerConfigBody>(), CancellationToken.None))
             .ThrowsAsync(new Exception(exceptionMsg));
 
-        Assert.ThrowsAsync<Exception>( async () => await client.Update(m_Trigger!) );
+        Assert.ThrowsAsync<Exception>(async () => await client.Update(m_Trigger!));
     }
 
     [Test]

@@ -7,7 +7,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <DefineConstants>FEATURE_GAME_SERVER_HOSTING_SERVER_FILE_LIST</DefineConstants>
+    <DefineConstants>FEATURE_GAME_SERVER_HOSTING_SERVER_FILE_LIST;</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">

@@ -22,8 +22,9 @@ public class TriggersConfigFile : IFileTemplate
     {
         Configs = new List<TriggerConfig>()
         {
-            new ("Trigger 1", "EventType1", "cloud-code", "urn:ugs:cloud-code:MyScript"),
-            new ("Trigger 2", "EventType2", "cloud-code", "urn:ugs:cloud-code:MyModule/MyFunction")
+            new ("Trigger 1", "EventType1", "cloud-code", "urn:ugs:cloud-code:MyScript", ""),
+            new ("Trigger 2", "EventType2", "cloud-code", "urn:ugs:cloud-code:MyModule/MyFunction", ""),
+            new ("Trigger 3", "EventType3", "cloud-code", "urn:ugs:cloud-code:MyModule/MyFunction", "data['value'] > 5")
         };
     }
 

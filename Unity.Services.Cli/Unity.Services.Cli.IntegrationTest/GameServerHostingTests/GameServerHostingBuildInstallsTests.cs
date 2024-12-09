@@ -8,12 +8,12 @@ namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 
 public partial class GameServerHostingTests
 {
-    const string k_BuildInstallsCommand = "gsh build installs 1";
+    const string k_BuildInstallsCommand = "mh build installs 1";
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build installs")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build installs")]
     public async Task BuildInstalls_SucceedsWithValidInput()
     {
         await GetFullySetCli()
@@ -30,13 +30,13 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build installs")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build installs")]
     public async Task BuildInstalls_ThrowsMissingBuildIdException()
     {
         await GetFullySetCli()
-            .Command("gsh build installs")
+            .Command("mh build installs")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Required argument missing for command: 'installs'.")
             .ExecuteAsync();
@@ -44,22 +44,22 @@ public partial class GameServerHostingTests
 
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build installs")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build installs")]
     public async Task BuildInstalls_ThrowsInvalidBuildIdException()
     {
         await GetFullySetCli()
-            .Command("gsh build installs a")
+            .Command("mh build installs a")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Build ID 'a' not a valid ID.")
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build installs")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build installs")]
     public async Task BuildInstalls_ThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -74,9 +74,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build installs")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build installs")]
     public async Task BuildInstalls_ThrowsProjectIdNotSetException()
     {
         SetConfigValue("environment-id", CommonKeys.ValidEnvironmentId);
@@ -89,9 +89,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build installs")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build installs")]
     public async Task BuildInstalls_ThrowsEnvironmentIdNotSetException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);

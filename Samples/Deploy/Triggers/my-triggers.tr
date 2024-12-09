@@ -11,6 +11,13 @@
       "EventType": "EventType2",
       "ActionType": "cloud-code",
       "ActionUrn": "urn:ugs:cloud-code:MyModule/MyFunction"
+    },
+    {
+      "Name": "Trigger 3",
+      "EventType": "EventType3",
+      "ActionType": "cloud-code",
+      "ActionUrn": "urn:ugs:cloud-code:MyModule/MyFunction",
+      "Filter": "data['leaderboardId] == 'some-leaderboard-id'"
     }
   ]
 }

@@ -120,7 +120,7 @@ class TriggerFetchHandlerTests
         );
 
         var expectedFile1 = new TriggersConfigFile(
-            new List<TriggerConfig>(){(TriggerConfig)remoteTriggers[0]});
+            new List<TriggerConfig>() { (TriggerConfig)remoteTriggers[0] });
         mockFileSystem
             .Verify(f => f.WriteAllText(
                 "path1",
@@ -128,7 +128,7 @@ class TriggerFetchHandlerTests
                 It.IsAny<CancellationToken>()),
                 Times.Once);
         var expectedFile2 = new TriggersConfigFile(
-            new List<TriggerConfig>(){(TriggerConfig)remoteTriggers[1]});
+            new List<TriggerConfig>() { (TriggerConfig)remoteTriggers[1] });
         mockFileSystem
             .Verify(f => f.WriteAllText(
                 Path.Combine("dir", "name2.tr"),
@@ -176,7 +176,7 @@ class TriggerFetchHandlerTests
     public async Task FetchAsync_DuplicateNameNotDeleted()
     {
         var localTriggers = GetLocalConfigs();
-        var triggerConfig = new TriggerConfig("otherId", "name1", "changedEventType", "cloud-code", "actionUrn") { Path = "" };
+        var triggerConfig = new TriggerConfig("otherId", "name1", "changedEventType", "cloud-code", "actionUrn", "") { Path = "" };
 
         localTriggers.Add(triggerConfig);
         var remoteTriggers = GetRemoteConfigs();
@@ -209,11 +209,11 @@ class TriggerFetchHandlerTests
     {
         var triggers = new List<ITriggerConfig>()
         {
-            new TriggerConfig("id1", "name1", "eventType", "cloud-code", "actionUrn")
+            new TriggerConfig("id1", "name1", "eventType", "cloud-code", "actionUrn", "")
             {
                 Path = "path1"
             },
-            new TriggerConfig("id3", "name3", "eventType", "cloud-code", "actionUrn")
+            new TriggerConfig("id3", "name3", "eventType", "cloud-code", "actionUrn", "")
             {
                 Path = "path3"
             }
@@ -225,11 +225,11 @@ class TriggerFetchHandlerTests
     {
         var triggers = new List<ITriggerConfig>()
         {
-            new TriggerConfig("id1", "name1", "eventType", "cloud-code", "actionUrn")
+            new TriggerConfig("id1", "name1", "eventType", "cloud-code", "actionUrn", "")
             {
                 Path = "Remote"
             },
-            new TriggerConfig("id2", "name2", "eventType", "cloud-code", "actionUrn")
+            new TriggerConfig("id2", "name2", "eventType", "cloud-code", "actionUrn", "")
             {
                 Path = "Remote"
             },

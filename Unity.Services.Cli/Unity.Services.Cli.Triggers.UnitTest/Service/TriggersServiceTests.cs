@@ -64,7 +64,7 @@ class TriggersServiceTests
         m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
             .Returns(true);
 
-        var result = new TriggerConfigPage(Guid.Empty, Guid.Empty, new List<TriggerConfig>(){new (), new()});
+        var result = new TriggerConfigPage(Guid.Empty, Guid.Empty, new List<TriggerConfig>() { new(), new() });
         m_TriggersApiMock.Setup(
             t => t.ListTriggerConfigsAsync(
                 It.Is<Guid>(id => id.ToString() == k_ValidProjectId),
@@ -134,7 +134,7 @@ class TriggersServiceTests
         string mockErrorMsg;
         m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
             .Returns(true);
-        var updatedConfig = new TriggerConfigBody("name", "eventType", TriggerActionType.CloudCode, "urn");
+        var updatedConfig = new TriggerConfigBody("name", "eventType", TriggerActionType.CloudCode, "urn", "filter");
         m_TriggersApiMock.Setup(
             t => t.DeleteTriggerConfigAsync(
                 It.Is<Guid>(id => id.ToString() == k_ValidProjectId),

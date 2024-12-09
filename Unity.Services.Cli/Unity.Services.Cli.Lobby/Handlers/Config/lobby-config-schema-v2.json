@@ -1,6 +1,6 @@
 {
   "title": "Lobby Project Config",
-  "$id": "resource:/lobby",
+  "$id": "resource:/lobbyv2",
   "description": "The schema for a Lobby project's configuration.",
   "type": "object",
   "properties": {
@@ -11,6 +11,10 @@
     "disconnectRemovalTimeSeconds": {
       "$ref": "#/definitions/disconnectRemovalTimeSeconds",
       "description": "The minimum amount of time, in seconds, that must pass before a disconnected player is removed from the lobby."
+    },
+    "disconnectHostMigrationTimeSeconds": {
+      "$ref": "#/definitions/disconnectHostMigrationTimeSeconds",
+      "description": "The minimum amount of time, in seconds, that must pass before a disconnected host loses host status and triggers a host migration."
     },
     "playerSlots": {
       "$ref": "#/definitions/playerSlots",
@@ -24,6 +28,7 @@
   "required": [
     "activeLifespanSeconds",
     "disconnectRemovalTimeSeconds",
+    "disconnectHostMigrationTimeSeconds",
     "playerSlots"
   ],
   "definitions": {
@@ -57,6 +62,12 @@
       "$id": "#disconnectRemovalTimeSeconds",
       "type": "integer",
       "minimum": 10,
+      "maximum": 3600
+    },
+    "disconnectHostMigrationTimeSeconds": {
+      "$id": "#disconnectHostMigrationTimeSeconds",
+      "type": "integer",
+      "minimum": 5,
       "maximum": 3600
     }
   }

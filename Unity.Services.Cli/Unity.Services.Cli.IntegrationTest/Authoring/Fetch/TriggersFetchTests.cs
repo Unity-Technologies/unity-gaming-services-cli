@@ -37,27 +37,27 @@ public class TriggersFetchTests : UgsCliFixture
         await MockApi.MockServiceAsync(new TriggersApiMock());
         await MockApi.MockServiceAsync(new IdentityV1Mock());
         Directory.CreateDirectory(k_TestDirectory);
-        m_LocalTriggers = new TriggerConfig[]
-        {
-            new ("00000000-0000-0000-0000-000000000001", "Trigger1", "EventType1", "ActionType1", "ActionUrn1")
+        m_LocalTriggers =
+        [
+            new ("00000000-0000-0000-0000-000000000001", "Trigger1", "EventType1", "ActionType1", "ActionUrn1", "")
             {
                 Path = Path.Combine(k_TestDirectory, "Trigger1.tr")
             }
-        };
+        ];
 
-        m_RemoteTriggers = new TriggerConfig[]
-        {
-            new ("00000000-0000-0000-0000-000000000001", "Trigger1", "EventType1", "ActionType1", "ActionUrn1")
+        m_RemoteTriggers =
+        [
+            new ("00000000-0000-0000-0000-000000000001", "Trigger1", "EventType1", "ActionType1", "ActionUrn1", "")
             {
                 Name = "Trigger1",
                 Path = Path.Combine(k_TestDirectory, "Trigger1.tr")
             },
-            new ("00000000-0000-0000-0000-000000000002", "Trigger2", "EventType2", "ActionType2", "ActionUrn2")
+            new ("00000000-0000-0000-0000-000000000002", "Trigger2", "EventType2", "ActionType2", "ActionUrn2", "")
             {
                 Name = "Trigger2",
                 Path = Path.Combine(k_TestDirectory, "Trigger2.tr")
             }
-        };
+        ];
     }
 
     [TearDown]
@@ -78,7 +78,7 @@ public class TriggersFetchTests : UgsCliFixture
         {
             Configs = testCases
                 .Select(c => new TriggerConfig(
-                    c.Name, c.EventType, c.ActionType, c.ActionUrn))
+                    c.Name, c.EventType, c.ActionType, c.ActionUrn, c.Filter))
                 .ToList()
         };
         var serialized = JsonConvert.SerializeObject(file);
@@ -178,7 +178,7 @@ public class TriggersFetchTests : UgsCliFixture
     public async Task FetchToValidConfigFromDuplicateIdFails()
     {
         var localTriggers = m_LocalTriggers!.Append(
-            new TriggerConfig("00000000-0000-0000-0000-000000000001", "Trigger1", "EventType1", "ActionType1", "ActionUrn1")
+            new TriggerConfig("00000000-0000-0000-0000-000000000001", "Trigger1", "EventType1", "ActionType1", "ActionUrn1", "data['someId'] == 'thisId'")
             {
                 Path = Path.Combine(k_TestDirectory, "Trigger1.tr")
             }).ToList();

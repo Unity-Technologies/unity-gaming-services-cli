@@ -8,12 +8,12 @@ namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 
 public partial class GameServerHostingTests
 {
-    static readonly string k_BuildConfigurationCreatePrefix = "gsh bc create ";
+    static readonly string k_BuildConfigurationCreatePrefix = "mh bc create ";
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc create")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc create")]
     public async Task BuildConfigurationCreate_SucceedsWithValidInput()
     {
         await GetFullySetCli()
@@ -29,9 +29,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc create")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc create")]
     public async Task BuildConfigurationCreate_ThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -46,9 +46,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc create")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc create")]
     public async Task BuildConfigurationCreate_ThrowsProjectIdNotSetException()
     {
         SetConfigValue("environment-id", CommonKeys.ValidEnvironmentId);
@@ -62,9 +62,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc create")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc create")]
     public async Task BuildConfigurationCreate_ThrowsEnvironmentIdNotSetException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -77,9 +77,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc create")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc create")]
     public async Task BuildConfigurationCreate_FailsMissingBinaryPathException()
     {
         await GetFullySetCli()
@@ -90,9 +90,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc create")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc create")]
     public async Task BuildConfigurationCreate_FailsMissingBuildException()
     {
         await GetFullySetCli()
@@ -103,9 +103,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc create")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc create")]
     public async Task BuildConfigurationCreate_FailsMissingCommandLineException()
     {
         await GetFullySetCli()
@@ -116,9 +116,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc create")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc create")]
     public async Task BuildConfigurationCreate_FailsMissingCoresException()
     {
         await GetFullySetCli()
@@ -129,9 +129,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc create")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc create")]
     public async Task BuildConfigurationCreate_FailsMissingMemoryException()
     {
         await GetFullySetCli()
@@ -142,9 +142,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc create")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc create")]
     public async Task BuildConfigurationCreate_FailsMissingNameException()
     {
         await GetFullySetCli()
@@ -155,9 +155,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc create")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc create")]
     public async Task BuildConfigurationCreate_FailsMissingQueryTypeException()
     {
         await GetFullySetCli()
@@ -168,9 +168,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc create")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc create")]
     public async Task BuildConfigurationCreate_FailsMissingSpeedException()
     {
         await GetFullySetCli()

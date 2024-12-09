@@ -9,12 +9,12 @@ namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 
 public partial class GameServerHostingTests
 {
-    static readonly string k_MachineListCommand = $"gsh machine list";
+    static readonly string k_MachineListCommand = $"mh machine list";
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh machine")]
-    [Category("gsh machine list")]
+    [Category("mh")]
+    [Category("mh machine")]
+    [Category("mh machine list")]
     [Ignore("Failing with feature flag")]
     public async Task MachineList_Succeeds()
     {
@@ -33,9 +33,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh machine")]
-    [Category("gsh machine list")]
+    [Category("mh")]
+    [Category("mh machine")]
+    [Category("mh machine list")]
     [Ignore("Failing with feature flag")]
     public async Task MachineList_ThrowsNotLoggedInException()
     {
@@ -51,9 +51,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh machine")]
-    [Category("gsh machine list")]
+    [Category("mh")]
+    [Category("mh machine")]
+    [Category("mh machine list")]
     [Ignore("Failing with feature flag")]
     public async Task MachineList_ThrowsProjectIdNotSetException()
     {
@@ -67,9 +67,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh machine")]
-    [Category("gsh machine list")]
+    [Category("mh")]
+    [Category("mh machine")]
+    [Category("mh machine list")]
     [Ignore("Failing with feature flag")]
     public async Task MachineList_ThrowsEnvironmentIdNotSetException()
     {

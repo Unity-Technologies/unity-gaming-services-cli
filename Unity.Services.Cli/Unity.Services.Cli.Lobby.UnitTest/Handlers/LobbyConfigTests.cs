@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using NUnit.Framework;
 using Unity.Services.Cli.Lobby.Handlers;
-using Unity.Services.Cli.Lobby.Handlers.ImportExport;
+using Unity.Services.Cli.Lobby.Handlers.Config;
 
 namespace Unity.Services.Cli.Lobby.UnitTest.Handlers;
 
@@ -62,7 +62,7 @@ public class LobbyConfigTests
     [Test]
     public void TryParse_FailsWithNoConfigs()
     {
-        var configResponse = new List<RemoteConfigResponse.Config>();
+        var configResponse = new List<RemoteConfigValue>();
         var json = JsonConvert.SerializeObject(
             configResponse,
             new JsonSerializerSettings
@@ -81,7 +81,7 @@ public class LobbyConfigTests
              new MockLobbyConfig(k_DefaultStringSetting, k_DefaultIntSetting)) : "{}";
 
         var now = DateTime.Now.ToString(k_TimestampFormat);
-        var config = new RemoteConfigResponse.Config
+        var config = new RemoteConfigValue
         {
             ProjectId = Guid.NewGuid().ToString(),
             EnvironmentId = Guid.NewGuid().ToString(),
@@ -89,9 +89,9 @@ public class LobbyConfigTests
             Type = LobbyConstants.ConfigType,
             CreatedAt = now,
             UpdatedAt = now,
-            Value = new List<RemoteConfigResponse.ConfigValue>
+            Value = new List<LobbyConfigValue>
             {
-                new RemoteConfigResponse.ConfigValue{
+                new LobbyConfigValue{
                     Key = LobbyConstants.ConfigKey,
                     Type = RemoteConfig.Types.ValueType.Json.ToString().ToLower(),
                     SchemaId = LobbyConstants.ConfigType,
@@ -102,7 +102,7 @@ public class LobbyConfigTests
 
         return new RemoteConfigResponse
         {
-            Configs = new List<RemoteConfigResponse.Config>
+            Configs = new List<RemoteConfigValue>
             {
                 config
             }

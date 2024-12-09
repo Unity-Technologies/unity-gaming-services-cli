@@ -33,11 +33,13 @@ public static class GameServerHostingUnitTestsConstants
     // Fleet specific constants
     public const string ValidFleetId = "00000000-0000-0000-1000-000000000000";
     public const string ValidFleetId2 = "00000000-0000-0000-1100-000000000000";
+    public const string ValidFleetId3 = "00000000-0000-0000-3300-000000000000";
 
     public const string InvalidFleetId = "00000000-0000-0000-2222-000000000000";
 
     public const string ValidFleetName = "Fleet One";
     public const string ValidFleetName2 = "Fleet Two";
+    public const string ValidFleetName3 = "Fleet Three";
 
     public const string OsNameLinux = "Linux";
     public const string OsNameFullNameLinux = "Ubuntu (Server) 22.04 LTS";

@@ -9,12 +9,12 @@ namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 
 public partial class GameServerHostingTests
 {
-    static readonly string k_ServerListCommand = $"gsh server list --fleet-id {Keys.ValidFleetId}";
+    static readonly string k_ServerListCommand = $"mh server list --fleet-id {Keys.ValidFleetId}";
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server list")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server list")]
     public async Task ServerList_SucceedsWithValidInput()
     {
         await GetFullySetCli()
@@ -24,9 +24,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server list")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server list")]
     public async Task ServerList_Succeeds()
     {
         await GetFullySetCli()
@@ -43,9 +43,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server list")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server list")]
     public async Task ServerList_ThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -60,9 +60,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server list")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server list")]
     public async Task ServerList_ThrowsProjectIdNotSetException()
     {
         SetConfigValue("environment-id", CommonKeys.ValidEnvironmentId);
@@ -76,9 +76,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server list")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server list")]
     public async Task ServerList_ThrowsEnvironmentIdNotSetException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -90,29 +90,29 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server list")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server list")]
     public async Task ServerList_ThrowsFleetIdNotValidException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         await GetLoggedInCli()
-            .Command("gsh server list --fleet-id invalid-fleet-id")
+            .Command("mh server list --fleet-id invalid-fleet-id")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Invalid option for --fleet-id. invalid-fleet-id is not a valid UUID")
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server list")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server list")]
     public async Task ServerList_ThrowsBuildConfigurationIdNotValid()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         await GetLoggedInCli()
             .Command(
-                $"gsh server list --fleet-id {Keys.ValidFleetId} --build-configuration-id invalid-build-configuration-id")
+                $"mh server list --fleet-id {Keys.ValidFleetId} --build-configuration-id invalid-build-configuration-id")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(
                 "Invalid option for --build-configuration-id. invalid-build-configuration-id is not a valid number.")

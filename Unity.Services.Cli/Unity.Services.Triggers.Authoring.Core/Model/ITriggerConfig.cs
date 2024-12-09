@@ -10,5 +10,6 @@ namespace Unity.Services.Triggers.Authoring.Core.Model
         string EventType { get; }
         string ActionType { get; }
         string ActionUrn { get; }
+        string Filter { get; }
     }
 }

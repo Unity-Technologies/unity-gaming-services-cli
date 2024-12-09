@@ -16,12 +16,12 @@ public partial class GameServerHostingTests
     static string tempDirectory = Path.GetTempPath();
     static string outputArgPath = $"{tempDirectory}/server.log";
 
-    static readonly string k_ServerFilesDownloadCommand = $"gsh server files download --server-id {Keys.ValidServerId} --path {Keys.ValidErrorLogPath} --output {outputArgPath}";
+    static readonly string k_ServerFilesDownloadCommand = $"mh server files download --server-id {Keys.ValidServerId} --path {Keys.ValidErrorLogPath} --output {outputArgPath}";
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server files download")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server files download")]
     public async Task ServerFilesDownload_Succeeds()
     {
         await GetFullySetCli()
@@ -43,9 +43,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server files download")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server files download")]
     public async Task ServerFilesDownload_ThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -60,9 +60,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server files download")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server files download")]
     public async Task ServerFilesDownload_ThrowsProjectIdNotSetException()
     {
         SetConfigValue("environment-id", CommonKeys.ValidEnvironmentId);
@@ -75,9 +75,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh server")]
-    [Category("gsh server files download")]
+    [Category("mh")]
+    [Category("mh server")]
+    [Category("mh server files download")]
     public async Task ServerFilesDownload_ThrowsEnvironmentIdNotSetException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);

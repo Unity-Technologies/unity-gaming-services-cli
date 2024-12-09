@@ -8,12 +8,12 @@ namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 
 public partial class GameServerHostingTests
 {
-    static readonly string k_BuildConfigurationDeleteCommand = "gsh bc delete 1";
+    static readonly string k_BuildConfigurationDeleteCommand = "mh bc delete 1";
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc delete")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc delete")]
     public async Task BuildConfigurationDelete_SucceedsWithValidInput()
     {
         await GetFullySetCli()
@@ -24,22 +24,22 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc delete")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc delete")]
     public async Task BuildConfigurationDelete_ThrowsMissingBuildConfigurationIdException()
     {
         await GetFullySetCli()
-            .Command("gsh bc delete")
+            .Command("mh bc delete")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Required argument missing for command: 'delete'.")
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc delete")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc delete")]
     public async Task BuildConfigurationDelete_ThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -54,9 +54,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc delete")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc delete")]
     public async Task BuildConfigurationDelete_ThrowsProjectIdNotSetException()
     {
         SetConfigValue("environment-id", CommonKeys.ValidEnvironmentId);
@@ -70,9 +70,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh bc")]
-    [Category("gsh bc delete")]
+    [Category("mh")]
+    [Category("mh bc")]
+    [Category("mh bc delete")]
     public async Task BuildConfigurationDelete_ThrowsEnvironmentIdNotSetException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);

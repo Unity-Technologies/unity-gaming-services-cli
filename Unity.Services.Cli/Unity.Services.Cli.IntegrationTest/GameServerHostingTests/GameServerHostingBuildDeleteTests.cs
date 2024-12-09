@@ -8,12 +8,12 @@ namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 
 public partial class GameServerHostingTests
 {
-    const string k_BuildDeleteCommand = "gsh build delete 1";
+    const string k_BuildDeleteCommand = "mh build delete 1";
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build delete")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build delete")]
     public async Task BuildDelete_SucceedsWithValidInput()
     {
         await GetFullySetCli()
@@ -25,13 +25,13 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build delete")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build delete")]
     public async Task BuildDelete_ThrowsMissingBuildIdException()
     {
         await GetFullySetCli()
-            .Command("gsh build delete")
+            .Command("mh build delete")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Required argument missing for command: 'delete'.")
             .ExecuteAsync();
@@ -39,22 +39,22 @@ public partial class GameServerHostingTests
 
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build delete")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build delete")]
     public async Task BuildDelete_ThrowsInvalidBuildIdException()
     {
         await GetFullySetCli()
-            .Command("gsh build delete a")
+            .Command("mh build delete a")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Build ID 'a' not a valid ID.")
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build delete")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build delete")]
     public async Task BuildDelete_ThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -69,9 +69,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build delete")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build delete")]
     public async Task BuildDelete_ThrowsProjectIdNotSetException()
     {
         SetConfigValue("environment-id", CommonKeys.ValidEnvironmentId);
@@ -84,9 +84,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build delete")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build delete")]
     public async Task BuildDelete_ThrowsEnvironmentIdNotSetException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);

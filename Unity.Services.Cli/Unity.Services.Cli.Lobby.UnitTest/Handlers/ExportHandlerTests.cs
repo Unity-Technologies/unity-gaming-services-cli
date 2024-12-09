@@ -13,6 +13,7 @@ using Unity.Services.Cli.RemoteConfig.Service;
 using Unity.Services.Cli.Lobby.Handlers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Unity.Services.Cli.Lobby.Handlers.Config;
 
 namespace Unity.Services.Cli.Lobby.UnitTest.Handlers;
 
@@ -55,13 +56,14 @@ class ExportHandlerTests
             {
                 return JsonConvert.SerializeObject(new RemoteConfigResponse
                 {
-                    Configs = new List<RemoteConfigResponse.Config>{
-                        new RemoteConfigResponse.Config{
+                    Configs = new List<RemoteConfigValue>{
+                        new RemoteConfigValue{
                             Id = m_Config.Id,
                             Type = LobbyConstants.ConfigType,
-                            Value = new List<RemoteConfigResponse.ConfigValue>{
-                                new RemoteConfigResponse.ConfigValue{
+                            Value = new List<LobbyConfigValue>{
+                                new LobbyConfigValue{
                                     Key = LobbyConstants.ConfigKey,
+                                    SchemaId = LobbyConstants.SchemaId,
                                     Value = configElement,
                                 }
                             },

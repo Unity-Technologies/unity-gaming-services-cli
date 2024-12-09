@@ -8,14 +8,14 @@ namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 
 public partial class GameServerHostingTests
 {
-    const string k_BuildCreateVersionCommand = "gsh build create-version";
+    const string k_BuildCreateVersionCommand = "mh build create-version";
     const string k_BuildCreateVersionBucketArgs = " 101 --access-key test-access-key --secret-key test-secret-key --bucket-url test-bucket-url";
     const string k_BuildCreateVersionContainerArgs = " 102 --tag v1";
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build create-version")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build create-version")]
     public async Task BuildCreateVersion_Bucket_SucceedsWithValidInput()
     {
         await GetFullySetCli()
@@ -26,9 +26,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build create-version")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build create-version")]
     public async Task BuildCreateVersion_Container_SucceedsWithValidInput()
     {
         await GetFullySetCli()
@@ -39,9 +39,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build create-version")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build create-version")]
     public async Task BuildCreateVersion_FileUpload_SucceedsWithValidInput()
     {
         var args = " 103 --directory " + m_TempDirectoryPath;
@@ -53,22 +53,22 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build create-version")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build create-version")]
     public async Task BuildCreateVersion_ThrowsMissingIdException()
     {
         await GetFullySetCli()
-            .Command("gsh build create-version")
+            .Command("mh build create-version")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Required argument missing for command: 'create-version'.")
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build create-version")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build create-version")]
     public async Task BuildCreateVersion_ThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -83,9 +83,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build create-version")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build create-version")]
     public async Task BuildCreateVersion_ThrowsProjectIdNotSetException()
     {
         SetConfigValue("environment-id", CommonKeys.ValidEnvironmentId);
@@ -98,9 +98,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh build")]
-    [Category("gsh build create-version")]
+    [Category("mh")]
+    [Category("mh build")]
+    [Category("mh build create-version")]
     public async Task BuildCreateVersion_ThrowsEnvironmentIdNotSetException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);

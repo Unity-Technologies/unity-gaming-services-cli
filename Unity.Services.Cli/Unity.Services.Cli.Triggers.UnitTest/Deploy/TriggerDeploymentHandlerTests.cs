@@ -203,8 +203,8 @@ class TriggerDeploymentHandlerTests
     {
         var localTriggers = GetLocalConfigs();
         localTriggers.Add(
-            new TriggerConfig("id3x", "name3", "eventType", "cloud-code", "actionUrn")
-            { Path = "otherpath.tr"}
+            new TriggerConfig("id3x", "name3", "eventType", "cloud-code", "actionUrn", "")
+            { Path = "otherpath.tr" }
         );
         var remoteTriggers = GetRemoteConfigs();
 
@@ -228,15 +228,15 @@ class TriggerDeploymentHandlerTests
     {
         var triggers = new List<ITriggerConfig>()
         {
-            new TriggerConfig("id1", "name1", "eventType", "cloud-code", "actionUrn")
+            new TriggerConfig("id1", "name1", "eventType", "cloud-code", "actionUrn", "")
             {
                 Path = "path1"
             },
-            new TriggerConfig("id2", "name2", "eventType", "cloud-code", "actionUrn")
+            new TriggerConfig("id2", "name2", "eventType", "cloud-code", "actionUrn", "")
             {
                 Path = "path2"
             },
-            new TriggerConfig("id3", "name3", "eventType", "cloud-code", "actionUrn")
+            new TriggerConfig("id3", "name3", "eventType", "cloud-code", "actionUrn", "data['someId'] == 'thisId'")
             {
                 Path = "path3"
             }
@@ -249,11 +249,11 @@ class TriggerDeploymentHandlerTests
 
         var triggers = new List<ITriggerConfig>()
         {
-            new TriggerConfig("id1", "name1", "eventType", "cloud-code", "actionUrn")
+            new TriggerConfig("id1", "name1", "eventType", "cloud-code", "actionUrn", "")
             {
                 Path = "Remote"
             },
-            new TriggerConfig("id4", "name4", "eventType", "cloud-code", "actionUrn")
+            new TriggerConfig("id4", "name4", "eventType", "cloud-code", "actionUrn", "data['someId'] == 'thisId'")
             {
                 Path = "Remote"
             },

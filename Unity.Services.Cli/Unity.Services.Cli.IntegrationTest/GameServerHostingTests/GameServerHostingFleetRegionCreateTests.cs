@@ -10,12 +10,12 @@ namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 public partial class GameServerHostingTests
 {
     internal const string FleetRegionCreateCommand =
-        $"gsh fleet-region create --fleet-id {Keys.ValidFleetId} --region-id {Keys.ValidRegionId} --min-available-servers 1 --max-servers 2";
+        $"mh fleet-region create --fleet-id {Keys.ValidFleetId} --region-id {Keys.ValidRegionId} --min-available-servers 1 --max-servers 2";
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region create")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region create")]
     public async Task FleetRegionCreate_SucceedsWithValidInput()
     {
         await GetFullySetCli()
@@ -24,33 +24,33 @@ public partial class GameServerHostingTests
                 v =>
                 {
                     StringAssert.Contains("Creating fleet region...", v);
-                    StringAssert.Contains("fleetRegionId: 00000000-0000-0000-0000-200000000000",v);
+                    StringAssert.Contains("fleetRegionId: 00000000-0000-0000-0000-200000000000", v);
                 })
             .AssertNoErrors()
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region create")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region create")]
     public async Task FleetRegionCreate_ThrowsMissingFleetException()
     {
         await GetFullySetCli()
-            .Command($"gsh fleet-region create --region-id {Keys.ValidRegionId} --min-available-servers 1 --max-servers 2")
+            .Command($"mh fleet-region create --region-id {Keys.ValidRegionId} --min-available-servers 1 --max-servers 2")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Option '--fleet-id' is required.")
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region create")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region create")]
     public async Task FleetRegionCreate_ThrowsMissingRegionException()
     {
         await GetFullySetCli()
-            .Command($"gsh fleet-region create --fleet-id {Keys.ValidFleetId} --min-available-servers 1 --max-servers 2")
+            .Command($"mh fleet-region create --fleet-id {Keys.ValidFleetId} --min-available-servers 1 --max-servers 2")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Option '--region-id' is required.")
             .ExecuteAsync();
@@ -58,13 +58,13 @@ public partial class GameServerHostingTests
 
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region create")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region create")]
     public async Task FleetRegionCreate_ThrowsMissingMinServersException()
     {
         await GetFullySetCli()
-            .Command($"gsh fleet-region create --fleet-id {Keys.ValidFleetId} --region-id {Keys.ValidRegionId} --max-servers 2")
+            .Command($"mh fleet-region create --fleet-id {Keys.ValidFleetId} --region-id {Keys.ValidRegionId} --max-servers 2")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Option '--min-available-servers' is required.")
             .ExecuteAsync();
@@ -72,26 +72,26 @@ public partial class GameServerHostingTests
 
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region create")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region create")]
     public async Task FleetRegionCreate_ThrowsMissingMaxServersException()
     {
         await GetFullySetCli()
-            .Command($"gsh fleet-region create --fleet-id {Keys.ValidFleetId} --region-id {Keys.ValidRegionId} --min-available-servers 1")
+            .Command($"mh fleet-region create --fleet-id {Keys.ValidFleetId} --region-id {Keys.ValidRegionId} --min-available-servers 1")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Option '--max-servers' is required.")
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region create")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region create")]
     public async Task FleetRegionCreate_ThrowsInvalidFleetException()
     {
         await GetFullySetCli()
-            .Command($"gsh fleet-region create --fleet-id invalid --region-id {Keys.ValidRegionId} --min-available-servers 1 --max-servers 2")
+            .Command($"mh fleet-region create --fleet-id invalid --region-id {Keys.ValidRegionId} --min-available-servers 1 --max-servers 2")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Cannot parse argument 'invalid' for option '--fleet-id'")
             .ExecuteAsync();
@@ -99,48 +99,48 @@ public partial class GameServerHostingTests
 
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region create")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region create")]
     public async Task FleetRegionCreate_ThrowsInvalidRegionException()
     {
         await GetFullySetCli()
-            .Command($"gsh fleet-region create --fleet-id {Keys.ValidFleetId} --region-id invalid --min-available-servers 1 --max-servers 2")
+            .Command($"mh fleet-region create --fleet-id {Keys.ValidFleetId} --region-id invalid --min-available-servers 1 --max-servers 2")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Cannot parse argument 'invalid' for option '--region-id'")
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region create")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region create")]
     public async Task FleetRegionCreate_ThrowsInvalidMinAvailableException()
     {
         await GetFullySetCli()
-            .Command($"gsh fleet-region create --fleet-id {Keys.ValidFleetId} --region-id {Keys.ValidRegionId}  --min-available-servers ABC --max-servers 2")
+            .Command($"mh fleet-region create --fleet-id {Keys.ValidFleetId} --region-id {Keys.ValidRegionId}  --min-available-servers ABC --max-servers 2")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Cannot parse argument 'ABC' for option '--min-available-servers'")
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region create")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region create")]
     public async Task FleetRegionCreate_ThrowsInvalidMaxServersException()
     {
         await GetFullySetCli()
-            .Command($"gsh fleet-region create --fleet-id {Keys.ValidFleetId} --region-id {Keys.ValidRegionId}  --min-available-servers 1 --max-servers ABC")
+            .Command($"mh fleet-region create --fleet-id {Keys.ValidFleetId} --region-id {Keys.ValidRegionId}  --min-available-servers 1 --max-servers ABC")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Cannot parse argument 'ABC' for option '--max-servers'")
             .ExecuteAsync();
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region create")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region create")]
     public async Task FleetRegionCreate_ThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -155,9 +155,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region create")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region create")]
     public async Task FleetRegionCreate_ThrowsProjectIdNotSetException()
     {
         SetConfigValue("environment-id", CommonKeys.ValidEnvironmentId);
@@ -170,9 +170,9 @@ public partial class GameServerHostingTests
     }
 
     [Test]
-    [Category("gsh")]
-    [Category("gsh fleet region")]
-    [Category("gsh fleet region create")]
+    [Category("mh")]
+    [Category("mh fleet region")]
+    [Category("mh fleet region create")]
     public async Task FleetRegionCreate_ThrowsEnvironmentIdNotSetException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
