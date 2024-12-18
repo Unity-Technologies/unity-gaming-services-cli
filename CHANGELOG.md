@@ -5,6 +5,11 @@ All notable changes to UGS CLI will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.7.1] - 2024-12-11
+
+### Fixed
+- MacOS signature is fixed when running Silicon chips (arm64 architecture)
+
 ## [1.7.0] - 2024-11-25
 
 ### Fixed
