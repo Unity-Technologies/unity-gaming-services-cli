@@ -9,6 +9,7 @@ using Unity.Services.Cli.Matchmaker.Parser;
 using Unity.Services.Cli.Matchmaker.Service;
 using Unity.Services.Cli.Matchmaker.UnitTest.SampleConfigs;
 using Unity.Services.Cli.ServiceAccountAuthentication;
+using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
 using Unity.Services.Matchmaker.Authoring.Core.ConfigApi;
 using Core = Unity.Services.Matchmaker.Authoring.Core.Model;
 using Generated = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model;
@@ -316,4 +317,47 @@ class AdminApiClientUnitTests
         Assert.That(name, Is.EqualTo("ToDelete"));
     }
 
+    [Test]
+    public void InitializeAdminClientInvalidMultiplayConfig()
+    {
+        // Setup
+        var servers = new Servers(
+            new FleetServerBreakdown(new ServerStatus()),
+            new FleetServerBreakdown(new ServerStatus()),
+            new FleetServerBreakdown(new ServerStatus()));
+        var gshService = new Mock<IGameServerHostingService>();
+        gshService.Setup(x => x.FleetsApi.ListFleets(It.IsAny<Guid>(), It.IsAny<Guid>(), 0))
+            .Returns(
+            [
+                new FleetListItem(
+                    buildConfigurations: [new BuildConfiguration1(name: "")],
+                    regions: [],
+                    name: "missing-region",
+                    osName: "",
+                    servers: servers),
+                new FleetListItem(
+                    buildConfigurations: [],
+                    regions: [new FleetRegion(regionName: "")],
+                    name: "missing-build-configuration",
+                    osName: "",
+                    servers: servers),
+                new FleetListItem(
+                    buildConfigurations: [new BuildConfiguration1(name: "")],
+                    regions: [new FleetRegion(regionName: "")],
+                    name: "valid",
+                    osName: "",
+                    servers: servers)
+            ]);
+
+        var client = new AdminApiClient.MatchmakerAdminClient(
+            new Mock<IMatchmakerService>().Object,
+            gshService.Object);
+
+        // Test & Assert
+        var ex = Assert.ThrowsAsync<MatchmakerException>(
+            async () => await client.Initialize(Guid.NewGuid().ToString(), Guid.NewGuid().ToString()));
+        Assert.That(ex?.Message, Contains.Substring("missing-region"));
+        Assert.That(ex?.Message, Contains.Substring("missing-build-configuration"));
+        Assert.That(ex?.Message, !Contains.Substring("valid"));
+    }
 }

@@ -98,7 +98,7 @@ class FleetCreateHandlerTests : HandlerCommon
 
         var usageSetting = JsonConvert.DeserializeObject<FleetUsageSetting>(ValidUsageSettingsJson);
 
-        var createRequest = new FleetCreateRequest(name: input.FleetName, osFamily: input.OsFamily,
+        var createRequest = new FleetCreateRequest(name: input.FleetName, osFamily: input.OsFamily, allocationType: FleetCreateRequest.AllocationTypeEnum.ALLOCATION,
             buildConfigurations: buildConfigurations.ToList(), regions: regionList, usageSettings: new List<FleetUsageSetting> { usageSetting! });
 
         FleetsApi!.DefaultFleetsClient.Verify(api => api.CreateFleetAsync(

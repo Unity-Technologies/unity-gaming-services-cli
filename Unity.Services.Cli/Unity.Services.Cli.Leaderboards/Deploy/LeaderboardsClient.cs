@@ -113,14 +113,43 @@ class LeaderboardsClient : ILeaderboardsClient
         var lb = new LeaderboardConfig(
             responseData.Id,
             responseData.Name,
-            (CoreSortOrder)(int)responseData.SortOrder,
-            (CoreUpdateType)(int)responseData.UpdateType);
+            FromResponse(responseData.SortOrder),
+            FromResponse(responseData.UpdateType));
 
         lb.BucketSize = responseData.BucketSize;
         lb.ResetConfig = FromResponse(responseData.ResetConfig);
         lb.TieringConfig = FromResponse(responseData.TieringConfig);
         lb.Path = "Remote";
         return lb;
+    }
+
+    static CoreSortOrder FromResponse(ApiSortOrder sortOrder)
+    {
+        switch (sortOrder)
+        {
+            case ApiSortOrder.Desc: return CoreSortOrder.Desc;
+            case ApiSortOrder.Asc: return CoreSortOrder.Asc;
+            default:
+                throw new ArgumentOutOfRangeException(
+                    nameof(sortOrder),
+                    sortOrder,
+                    $"Unrecognized response value {nameof(ApiSortOrder)} '{sortOrder}'");
+        }
+    }
+
+    static CoreUpdateType FromResponse(ApiUpdateType updateType)
+    {
+        switch (updateType)
+        {
+            case ApiUpdateType.KeepBest: return CoreUpdateType.KeepBest;
+            case ApiUpdateType.KeepLatest: return CoreUpdateType.KeepLatest;
+            case ApiUpdateType.Aggregate: return CoreUpdateType.Aggregate;
+            default:
+                throw new ArgumentOutOfRangeException(
+                    nameof(updateType),
+                    updateType,
+                    $"Unrecognized response value {nameof(ApiUpdateType)} '{updateType}'");
+        }
     }
 
     static CoreResetConfig? FromResponse(ApiResetConfig? resetConfig)
@@ -164,8 +193,8 @@ class LeaderboardsClient : ILeaderboardsClient
     {
         return new LeaderboardIdConfig(leaderboardConfig.Id, leaderboardConfig.Name)
         {
-            SortOrder = (ApiSortOrder)(int)leaderboardConfig.SortOrder,
-            UpdateType = (ApiUpdateType)(int)leaderboardConfig.UpdateType,
+            SortOrder = FromConfig(leaderboardConfig.SortOrder),
+            UpdateType = FromConfig(leaderboardConfig.UpdateType),
             TieringConfig = FromConfig(leaderboardConfig.TieringConfig),
             ResetConfig = FromConfig(leaderboardConfig.ResetConfig),
             BucketSize = leaderboardConfig.BucketSize
@@ -178,8 +207,8 @@ class LeaderboardsClient : ILeaderboardsClient
         var res = new LeaderboardPatchSpecializedConfig()
         {
             Name = leaderboardConfig.Name,
-            SortOrder = (ApiSortOrder)(int)leaderboardConfig.SortOrder,
-            UpdateType = (ApiUpdateType)(int)leaderboardConfig.UpdateType,
+            SortOrder = FromConfig(leaderboardConfig.SortOrder),
+            UpdateType = FromConfig(leaderboardConfig.UpdateType),
             TieringConfig = FromConfig(leaderboardConfig.TieringConfig),
             ResetConfig = FromConfig(leaderboardConfig.ResetConfig)
         };
@@ -217,6 +246,35 @@ class LeaderboardsClient : ILeaderboardsClient
             Schedule = config.Schedule,
             Start = config.Start
         };
+    }
+
+    static ApiUpdateType FromConfig(CoreUpdateType updateType)
+    {
+        switch (updateType)
+        {
+            case CoreUpdateType.KeepBest: return ApiUpdateType.KeepBest;
+            case CoreUpdateType.KeepLatest: return ApiUpdateType.KeepLatest;
+            case CoreUpdateType.Aggregate: return ApiUpdateType.Aggregate;
+            default:
+                throw new ArgumentOutOfRangeException(
+                    nameof(updateType),
+                    updateType,
+                    $"Unrecognized config {nameof(CoreUpdateType)} '{updateType}'");
+        }
+    }
+
+    static ApiSortOrder FromConfig(CoreSortOrder sortOrder)
+    {
+        switch (sortOrder)
+        {
+            case CoreSortOrder.Asc: return ApiSortOrder.Asc;
+            case CoreSortOrder.Desc: return ApiSortOrder.Desc;
+            default:
+                throw new ArgumentOutOfRangeException(
+                    nameof(sortOrder),
+                    sortOrder,
+                    $"Unrecognized config {nameof(CoreSortOrder)} '{sortOrder}'");
+        }
     }
 
     [JsonConverter(typeof(LeaderboardPatchConverter))]

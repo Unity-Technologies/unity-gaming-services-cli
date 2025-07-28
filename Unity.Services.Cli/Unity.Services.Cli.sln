@@ -43,6 +43,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Leaderboards.UnitTest", "Unity.Services.Cli.Leaderboards.UnitTest\Unity.Services.Cli.Leaderboards.UnitTest.csproj", "{64C6D8E5-4396-419A-94F6-2B221E9B7860}"
 EndProject
 EndProject
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Authoring", "Unity.Services.Cli.Authoring\Unity.Services.Cli.Authoring.csproj", "{43B27EA4-45B0-4346-BBE9-920D090CF477}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Authoring.UnitTest", "Unity.Services.Cli.Authoring.UnitTest\Unity.Services.Cli.Authoring.UnitTest.csproj", "{55A7BF2B-3919-45A7-9B6F-7EAF6A81B047}"
@@ -63,6 +64,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 	ProjectSection(SolutionItems) = preProject
 		..\README.md = ..\README.md
 		..\CHANGELOG.md = ..\CHANGELOG.md
+		..\docs\ugs-cli\latest\version.json = ..\docs\ugs-cli\latest\version.json
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Integration.MockServerApp", "Unity.Services.Cli.Integration.MockServerApp\Unity.Services.Cli.Integration.MockServerApp.csproj", "{27BBE31C-43CE-45AA-9DE4-BF3D097DC1A3}"
@@ -140,6 +142,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CCD", "CCD", "{44AEB9D3-CDE4-4C0C-AE4E-07605839E89D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.Cli.Matchmaker.UnitTest", "Unity.Services.Cli.Matchmaker.UnitTest\Unity.Services.Cli.Matchmaker.UnitTest.csproj", "{CECE2AFF-200D-4EDC-9FD5-33C58A256E4A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.GameServerHosting.LocalProxy", "Unity.Services.GameServerHosting.LocalProxy\Unity.Services.GameServerHosting.LocalProxy.csproj", "{4B5ECA7F-27CA-41D1-814E-2FCEE4666995}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.Services.GameServerHosting.LocalProxy.UnitTest", "Unity.Services.GameServerHosting.LocalProxy.UnitTest\Unity.Services.GameServerHosting.LocalProxy.UnitTest.csproj", "{9E51C932-D653-4228-92A1-BDC7B0A71DA7}"
+EndProject
+EndProject
+EndProject
+EndProject
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -333,6 +343,14 @@ Global
 		{CECE2AFF-200D-4EDC-9FD5-33C58A256E4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CECE2AFF-200D-4EDC-9FD5-33C58A256E4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CECE2AFF-200D-4EDC-9FD5-33C58A256E4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B5ECA7F-27CA-41D1-814E-2FCEE4666995}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B5ECA7F-27CA-41D1-814E-2FCEE4666995}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B5ECA7F-27CA-41D1-814E-2FCEE4666995}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B5ECA7F-27CA-41D1-814E-2FCEE4666995}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E51C932-D653-4228-92A1-BDC7B0A71DA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E51C932-D653-4228-92A1-BDC7B0A71DA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E51C932-D653-4228-92A1-BDC7B0A71DA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E51C932-D653-4228-92A1-BDC7B0A71DA7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{44AEB9D3-CDE4-4C0C-AE4E-07605839E89D} = {210148BF-92DB-4EC2-9C1D-DB10E8ED7BB4}

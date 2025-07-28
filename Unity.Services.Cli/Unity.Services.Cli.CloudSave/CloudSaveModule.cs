@@ -54,7 +54,11 @@ public class CloudSaveModule : ICommandModule
     public Command CreatePlayerIndexCommand { get; }
     public Command CreateCustomIndexCommand { get; }
     public Command ListCustomDataIdsCommand { get; }
+    public Command SetCustomDataItemCommand { get; }
     public Command ListPlayerDataIdsCommand { get; }
+    public Command SetPlayerDataItemCommand { get; }
+    public Command GetPlayerDataItemsCommand { get; }
+    public Command GetCustomDataItemsCommand { get; }
 
     public CloudSaveModule()
     {
@@ -160,6 +164,26 @@ public class CloudSaveModule : ICommandModule
                 CancellationToken>(
                 ListCustomDataIdsHandler.ListCustomDataIdsAsync);
 
+        SetCustomDataItemCommand = new Command("set", "Set a custom entity data item.")
+        {
+            CommonInput.CloudProjectIdOption,
+            CommonInput.EnvironmentNameOption,
+            SetCustomItemInput.CustomIdValue,
+            SetCustomItemInput.KeyValue,
+            SetCustomItemInput.ValueValue,
+            SetCustomItemInput.WriteLockValue,
+            SetCustomItemInput.VisibilityOption
+        };
+        SetCustomDataItemCommand
+            .SetHandler<
+                SetCustomItemInput,
+                IUnityEnvironment,
+                ICloudSaveDataService,
+                ILogger,
+                ILoadingIndicator,
+                CancellationToken>(
+                SetCustomDataItemHandler.SetCustomDataItemAsync);
+
         ListPlayerDataIdsCommand = new Command("list", "Get a paginated list of all player data IDs for a given project and environment.")
         {
             CommonInput.CloudProjectIdOption,
@@ -176,6 +200,64 @@ public class CloudSaveModule : ICommandModule
                 ILoadingIndicator,
                 CancellationToken>(
                 ListPlayerDataIdsHandler.ListPlayerDataIdsAsync);
+
+        SetPlayerDataItemCommand = new Command("set", "Set a player data item.")
+        {
+            CommonInput.CloudProjectIdOption,
+            CommonInput.EnvironmentNameOption,
+            SetPlayerItemInput.PlayerIdValue,
+            SetPlayerItemInput.KeyValue,
+            SetPlayerItemInput.ValueValue,
+            SetPlayerItemInput.WriteLockValue,
+            SetPlayerItemInput.VisibilityOption
+        };
+        SetPlayerDataItemCommand
+            .SetHandler<
+                SetPlayerItemInput,
+                IUnityEnvironment,
+                ICloudSaveDataService,
+                ILogger,
+                ILoadingIndicator,
+                CancellationToken>(
+                SetPlayerDataItemHandler.SetPlayerDataItemAsync);
+
+        GetPlayerDataItemsCommand = new Command("get", "Get data items for a player.")
+        {
+            CommonInput.CloudProjectIdOption,
+            CommonInput.EnvironmentNameOption,
+            GetPlayerItemsInput.PlayerIdValue,
+            GetPlayerItemsInput.KeysValue,
+            GetPlayerItemsInput.AfterValue,
+            GetPlayerItemsInput.VisibilityOption
+        };
+        GetPlayerDataItemsCommand
+            .SetHandler<
+                GetPlayerItemsInput,
+                IUnityEnvironment,
+                ICloudSaveDataService,
+                ILogger,
+                ILoadingIndicator,
+                CancellationToken>(
+                GetPlayerDataItemsHandler.GetPlayerDataItemsAsync);
+
+        GetCustomDataItemsCommand = new Command("get", "Get data items for a custom entity.")
+        {
+            CommonInput.CloudProjectIdOption,
+            CommonInput.EnvironmentNameOption,
+            GetCustomItemsInput.CustomIdValue,
+            GetCustomItemsInput.KeysValue,
+            GetCustomItemsInput.AfterValue,
+            GetCustomItemsInput.VisibilityOption
+        };
+        GetCustomDataItemsCommand
+            .SetHandler<
+                GetCustomItemsInput,
+                IUnityEnvironment,
+                ICloudSaveDataService,
+                ILogger,
+                ILoadingIndicator,
+                CancellationToken>(
+                GetCustomDataItemsHandler.GetCustomDataItemsAsync);
 
         var indexPlayerCommand = new Command("player", "Create player indexes.")
         {
@@ -194,16 +276,20 @@ public class CloudSaveModule : ICommandModule
             indexCustomCommand,
         };
 
-        var playerCommand = new Command("player", "Query player data.")
+        var playerCommand = new Command("player", "List, query, and set player data.")
         {
             QueryPlayerDataCommand,
-            ListPlayerDataIdsCommand
+            ListPlayerDataIdsCommand,
+            SetPlayerDataItemCommand,
+            GetPlayerDataItemsCommand
         };
 
-        var customCommand = new Command("custom", "Query custom entity data.")
+        var customCommand = new Command("custom", "List, query, and set  custom entity data.")
         {
             QueryCustomDataCommand,
-            ListCustomDataIdsCommand
+            ListCustomDataIdsCommand,
+            SetCustomDataItemCommand,
+            GetCustomDataItemsCommand
         };
 
         // APIs

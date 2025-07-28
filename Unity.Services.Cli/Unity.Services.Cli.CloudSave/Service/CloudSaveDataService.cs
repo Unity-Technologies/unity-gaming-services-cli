@@ -161,6 +161,111 @@ class CloudSaveDataService : ICloudSaveDataService
         return response;
     }
 
+    public async Task<SetItemResponse> SetPlayerDataItemAsync(string projectId, string environmentId, string? playerId, string? key, object? value, string? writeLock, string? visibility, CancellationToken cancellationToken = default)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+
+        return visibility switch
+        {
+            PlayerIndexVisibilityTypes.Public => await m_DataApiAsync.SetPublicItemAsync(
+                projectId: Guid.Parse(projectId),
+                environmentId: Guid.Parse(environmentId),
+                playerId: playerId,
+                setItemBody: new SetItemBody(key, value, writeLock),
+                cancellationToken: cancellationToken),
+            PlayerIndexVisibilityTypes.Protected => await m_DataApiAsync.SetProtectedItemAsync(
+                projectId: Guid.Parse(projectId),
+                environmentId: Guid.Parse(environmentId),
+                playerId: playerId,
+                setItemBody: new SetItemBody(key, value, writeLock),
+                cancellationToken: cancellationToken),
+            _ => await m_DataApiAsync.SetItemAsync(
+                projectId: Guid.Parse(projectId),
+                environmentId: Guid.Parse(environmentId),
+                playerId: playerId,
+                setItemBody: new SetItemBody(key, value, writeLock),
+                cancellationToken: cancellationToken)
+        };
+    }
+
+    public async Task<SetItemResponse> SetCustomDataItemAsync(string projectId, string environmentId, string? customId, string? key, object? value, string? writeLock, string? visibility, CancellationToken cancellationToken = default)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+
+        return visibility switch
+        {
+            CustomIndexVisibilityTypes.Private => await m_DataApiAsync.SetPrivateCustomItemAsync(
+                projectId: Guid.Parse(projectId),
+                environmentId: Guid.Parse(environmentId),
+                customId: customId,
+                setItemBody: new SetItemBody(key, value, writeLock),
+                cancellationToken: cancellationToken),
+            _ => await m_DataApiAsync.SetCustomItemAsync(
+                projectId: Guid.Parse(projectId),
+                environmentId: Guid.Parse(environmentId),
+                customId: customId,
+                setItemBody: new SetItemBody(key, value, writeLock),
+                cancellationToken: cancellationToken)
+        };
+    }
+
+    public async Task<GetItemsResponse> GetPlayerDataItemsAsync(string projectId, string environmentId, string? playerId, List<string>? keys, string? after, string? visibility, CancellationToken cancellationToken = default)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+
+        return visibility switch
+        {
+            PlayerIndexVisibilityTypes.Public => await m_DataApiAsync.GetPublicItemsAsync(
+                projectId: Guid.Parse(projectId),
+                environmentId: Guid.Parse(environmentId),
+                playerId: playerId,
+                keys: keys,
+                after: after,
+                cancellationToken: cancellationToken),
+            PlayerIndexVisibilityTypes.Protected => await m_DataApiAsync.GetProtectedItemsAsync(
+                projectId: Guid.Parse(projectId),
+                environmentId: Guid.Parse(environmentId),
+                playerId: playerId,
+                keys: keys,
+                after: after,
+                cancellationToken: cancellationToken),
+            _ => await m_DataApiAsync.GetItemsAsync(
+                projectId: Guid.Parse(projectId),
+                environmentId: Guid.Parse(environmentId),
+                playerId: playerId,
+                keys: keys,
+                after: after,
+                cancellationToken: cancellationToken)
+        };
+    }
+
+    public async Task<GetItemsResponse> GetCustomDataItemsAsync(string projectId, string environmentId, string? customId, List<string>? keys, string? after, string? visibility, CancellationToken cancellationToken = default)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+
+        return visibility switch
+        {
+            CustomIndexVisibilityTypes.Private => await m_DataApiAsync.GetPrivateCustomItemsAsync(
+                projectId: Guid.Parse(projectId),
+                environmentId: Guid.Parse(environmentId),
+                customId: customId,
+                keys: keys,
+                after: after,
+                cancellationToken: cancellationToken),
+            _ => await m_DataApiAsync.GetCustomItemsAsync(
+                projectId: Guid.Parse(projectId),
+                environmentId: Guid.Parse(environmentId),
+                customId: customId,
+                keys: keys,
+                after: after,
+                cancellationToken: cancellationToken)
+        };
+    }
+
     static CreateIndexBody GetCreateIndexBody(string? fields, string? body)
     {
         if (!string.IsNullOrEmpty(fields) && !string.IsNullOrEmpty(body))

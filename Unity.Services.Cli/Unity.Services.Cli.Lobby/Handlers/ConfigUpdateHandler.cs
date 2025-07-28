@@ -32,9 +32,14 @@ namespace Unity.Services.Cli.Lobby.Handlers
             var lobbyConfig = LobbyConfig.ParseValue(body);
 
             var configSchema = new ConfigSchema().FileBodyText;
-            if (lobbyConfig.SchemaId == LobbyConstants.SchemaIdV2)
+            switch (lobbyConfig.SchemaId)
             {
-                configSchema = new ConfigSchemaV2().FileBodyText;
+                case LobbyConstants.SchemaIdV2:
+                    configSchema = new ConfigSchemaV2().FileBodyText;
+                    break;
+                case LobbyConstants.SchemaIdV3:
+                    configSchema = new ConfigSchemaV3().FileBodyText;
+                    break;
             }
             try
             {

@@ -8,7 +8,7 @@ namespace Unity.Services.Cli.GameServerHosting.Services;
 
 class GameServerHostingConfigLoader : IGameServerHostingConfigLoader
 {
-    internal const string k_Extension = ".gsh";
+    internal const string Extension = ".gsh";
 
     readonly IDeployFileService m_DeployFileService;
     readonly IMultiplayConfigValidator m_ConfigValidator;
@@ -24,7 +24,7 @@ class GameServerHostingConfigLoader : IGameServerHostingConfigLoader
     public async Task<MultiplayConfig> LoadAndValidateAsync(ICollection<string> paths, CancellationToken cancellationToken)
     {
         var configLoadTasks = m_DeployFileService
-            .ListFilesToDeploy(paths, k_Extension)
+            .ListFilesToDeploy(paths, Extension)
             .Select(async path => (path, config: await LoadConfig(m_DeployFileService, path, cancellationToken)))
             .ToList();
         var configs = await Task.WhenAll(configLoadTasks);

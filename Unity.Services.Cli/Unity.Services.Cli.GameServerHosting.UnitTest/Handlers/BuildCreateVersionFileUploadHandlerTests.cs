@@ -7,6 +7,7 @@ using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.GameServerHosting.Exceptions;
 using Unity.Services.Cli.GameServerHosting.Handlers;
 using Unity.Services.Cli.GameServerHosting.Input;
+using Unity.Services.Cli.GameServerHosting.Model;
 using Unity.Services.Cli.TestUtils;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
 using SystemFile = System.IO.File;
@@ -282,5 +283,65 @@ partial class BuildCreateVersionHandlerTests
             LogLevel.Critical,
             LoggerExtension.ResultEventId,
             Times.Never);
+    }
+
+    [Test]
+    public void BuildCreateVersionAsync_GetLocalFiles_PreservesFileExtensions()
+    {
+        var originalDirectory = Directory.GetCurrentDirectory();
+        var tempDirectory = "test_folder";
+
+        try
+        {
+            // Setup
+            Directory.CreateDirectory(tempDirectory);
+            Directory.SetCurrentDirectory(Path.Combine(originalDirectory, tempDirectory));
+            var currentDirectory = ".";
+            var filename1 = "file1.txt";
+            var filename2 = ".git";
+            SystemFile.WriteAllText(filename1, "This is a test file.");
+            SystemFile.WriteAllText(filename2, "This is a test system file");
+            var mockLogger = new Mock<ILogger>();
+
+            var directoriesToTest = new[]
+            {
+                currentDirectory,
+                tempDirectory
+            };
+            foreach (var directoryToTest in directoriesToTest)
+            {
+                if (directoryToTest.Equals(currentDirectory))
+                {
+                    Directory.SetCurrentDirectory(Path.Combine(originalDirectory, tempDirectory));
+                }
+                else if (directoryToTest.Equals(tempDirectory))
+                {
+                    Directory.SetCurrentDirectory(originalDirectory);
+                }
+
+                // Call
+                var result = BuildCreateVersionHandler.GetLocalFiles(directoryToTest, mockLogger.Object);
+
+                // Assert
+                Assert.That(result.Count, Is.EqualTo(2),
+                    "Two files should be returned.");
+
+                foreach (LocalFile localFile in result)
+                {
+                    // Validate extensions are preserved in the relative path
+                    Assert.That(Path.GetExtension(localFile.GetPathInDirectory()), Is.AnyOf(Path.GetExtension(filename1), Path.GetExtension(filename2)),
+                        $"The PathInDirectory should maintain the extension for file \"{localFile.GetSystemPath()}\", got \"{localFile.GetPathInDirectory()}\".");
+
+                    // Ensure the full path is correct
+                    Assert.That(localFile.GetSystemPath(), Is.AnyOf(Path.Combine(directoryToTest, filename1), Path.Combine(directoryToTest, filename2)),
+                        "The FullSystemPath should match the full path of the file.");
+                }
+            }
+        }
+        finally
+        {
+            Directory.SetCurrentDirectory(originalDirectory);
+            Directory.Delete(tempDirectory, true); // Clean up temporary directory
+        }
     }
 }

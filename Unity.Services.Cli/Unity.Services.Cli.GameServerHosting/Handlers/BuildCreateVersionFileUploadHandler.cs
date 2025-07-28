@@ -11,6 +11,8 @@ using Unity.Services.Cli.GameServerHosting.Services;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Client;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
 using SystemFile = System.IO.File;
+using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo("Unity.Services.Cli.GameServerHosting.UnitTest")]
 
 namespace Unity.Services.Cli.GameServerHosting.Handlers;
 
@@ -101,7 +103,7 @@ static partial class BuildCreateVersionHandler
         logger.LogInformation("Build version created successfully\n{}", details);
     }
 
-    static List<LocalFile> GetLocalFiles(string directory, ILogger logger)
+    internal static List<LocalFile> GetLocalFiles(string directory, ILogger logger)
     {
         try
         {
@@ -110,7 +112,20 @@ static partial class BuildCreateVersionHandler
                 .Select(
                     f =>
                     {
-                        var pathWithInDir = f.Replace(directory, "");
+                        string pathWithInDir;
+                        if (directory.Equals("."))
+                        {
+                            pathWithInDir = f.TrimStart('.');
+                        }
+                        else
+                        {
+                            pathWithInDir = f.Replace(directory, "");
+                        }
+
+                        if (!(Path.GetExtension(pathWithInDir)).Equals(Path.GetExtension(f)))
+                        {
+                            throw new InvalidExtensionException(pathWithInDir, Path.GetExtension(f));
+                        }
 
                         // handle windows file system
                         pathWithInDir = pathWithInDir.Replace("\\", "/");

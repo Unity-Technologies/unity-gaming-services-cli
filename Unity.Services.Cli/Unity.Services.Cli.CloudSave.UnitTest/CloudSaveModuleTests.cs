@@ -90,6 +90,47 @@ class CloudSaveModuleTests
         Assert.That(module.CreateCustomIndexCommand.Options, Does.Contain(CreateIndexInput.VisibilityOption));
     }
 
+    [Test]
+    public void SetPlayerDataItemCommandWithInput()
+    {
+        CloudSaveModule module = new();
+
+        Assert.That(module.SetPlayerDataItemCommand.Options, Does.Contain(CommonInput.CloudProjectIdOption));
+        Assert.That(module.SetPlayerDataItemCommand.Options, Does.Contain(CommonInput.EnvironmentNameOption));
+        Assert.That(module.SetPlayerDataItemCommand.Options, Does.Contain(SetPlayerItemInput.PlayerIdValue));
+        Assert.That(module.SetPlayerDataItemCommand.Options, Does.Contain(SetPlayerItemInput.KeyValue));
+        Assert.That(module.SetPlayerDataItemCommand.Options, Does.Contain(SetPlayerItemInput.ValueValue));
+        Assert.That(module.SetPlayerDataItemCommand.Options, Does.Contain(SetPlayerItemInput.WriteLockValue));
+        Assert.That(module.SetPlayerDataItemCommand.Options, Does.Contain(SetPlayerItemInput.VisibilityOption));
+    }
+
+    [Test]
+    public void SetCustomDataItemCommandWithInput()
+    {
+        CloudSaveModule module = new();
+
+        Assert.That(module.SetCustomDataItemCommand.Options, Does.Contain(CommonInput.CloudProjectIdOption));
+        Assert.That(module.SetCustomDataItemCommand.Options, Does.Contain(CommonInput.EnvironmentNameOption));
+        Assert.That(module.SetCustomDataItemCommand.Options, Does.Contain(SetCustomItemInput.CustomIdValue));
+        Assert.That(module.SetCustomDataItemCommand.Options, Does.Contain(SetCustomItemInput.KeyValue));
+        Assert.That(module.SetCustomDataItemCommand.Options, Does.Contain(SetCustomItemInput.ValueValue));
+        Assert.That(module.SetCustomDataItemCommand.Options, Does.Contain(SetCustomItemInput.WriteLockValue));
+        Assert.That(module.SetCustomDataItemCommand.Options, Does.Contain(SetCustomItemInput.VisibilityOption));
+    }
+
+    [Test]
+    public void GetPlayerDataItemsCommandWithInput()
+    {
+        CloudSaveModule module = new();
+
+        Assert.That(module.GetPlayerDataItemsCommand.Options, Does.Contain(CommonInput.CloudProjectIdOption));
+        Assert.That(module.GetPlayerDataItemsCommand.Options, Does.Contain(CommonInput.EnvironmentNameOption));
+        Assert.That(module.GetPlayerDataItemsCommand.Options, Does.Contain(GetPlayerItemsInput.PlayerIdValue));
+        Assert.That(module.GetPlayerDataItemsCommand.Options, Does.Contain(GetPlayerItemsInput.KeysValue));
+        Assert.That(module.GetPlayerDataItemsCommand.Options, Does.Contain(GetPlayerItemsInput.AfterValue));
+        Assert.That(module.GetPlayerDataItemsCommand.Options, Does.Contain(GetPlayerItemsInput.VisibilityOption));
+    }
+
     [TestCase(typeof(ICloudSaveDataService))]
     public void ConfigureCloudSaveRegistersExpectedServices(Type serviceType)
     {

@@ -502,6 +502,7 @@ public class CloudContentDeliveryModule : ICommandModule
             CloudContentDeliveryInput.LabelsOption,
             CloudContentDeliveryInput.CreateReleaseOption,
             CloudContentDeliveryInput.IncludeSyncEntriesOnlyOption,
+            CloudContentDeliveryInput.ConcurrentUploadRequestsOption,
             CloudContentDeliveryInput.UpdateBadgeOption,
             CloudContentDeliveryInput.SyncMetadataOption,
             CloudContentDeliveryInput.ReleaseNotesOption,

@@ -20,6 +20,7 @@ class LobbyImporter : BaseImporter<LobbyConfig>
     readonly IRemoteConfigService m_RemoteConfigService;
     readonly IFileTemplate m_ConfigSchema;
     readonly IFileTemplate m_ConfigSchemaV2;
+    readonly IFileTemplate m_ConfigSchemaV3;
 
     public LobbyImporter(
         IRemoteConfigService remoteConfigService,
@@ -34,6 +35,7 @@ class LobbyImporter : BaseImporter<LobbyConfig>
         m_RemoteConfigService = remoteConfigService;
         m_ConfigSchema = new ConfigSchema();
         m_ConfigSchemaV2 = new ConfigSchemaV2();
+        m_ConfigSchemaV3 = new ConfigSchemaV3();
     }
 
     protected override string FileName => LobbyConstants.ZipName;
@@ -160,9 +162,14 @@ class LobbyImporter : BaseImporter<LobbyConfig>
     async Task ApplySchema(string projectId, string configId, string schemaId, CancellationToken cancellationToken)
     {
         var configSchemaFileBodyText = m_ConfigSchema.FileBodyText;
-        if (LobbyConstants.SchemaIdV2 == schemaId)
+        switch (schemaId)
         {
-            configSchemaFileBodyText = m_ConfigSchemaV2.FileBodyText;
+            case LobbyConstants.SchemaIdV2:
+                configSchemaFileBodyText = m_ConfigSchemaV2.FileBodyText;
+                break;
+            case LobbyConstants.SchemaIdV3:
+                configSchemaFileBodyText = m_ConfigSchemaV3.FileBodyText;
+                break;
         }
 
         try

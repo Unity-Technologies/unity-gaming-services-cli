@@ -1,0 +1,74 @@
+{
+  "title": "Lobby Project Config",
+  "$id": "resource:/lobbyv3",
+  "description": "The schema for a Lobby project's configuration.",
+  "type": "object",
+  "properties": {
+    "activeLifespanSeconds": {
+      "$ref": "#/definitions/activeLifespanSeconds",
+      "description": "The minimum amount of time, in seconds, that must pass before a lobby is considered inactive."
+    },
+    "disconnectRemovalTimeSeconds": {
+      "$ref": "#/definitions/disconnectRemovalTimeSeconds",
+      "description": "The minimum amount of time, in seconds, that must pass before a disconnected player is removed from the lobby."
+    },
+    "disconnectHostMigrationTimeSeconds": {
+      "$ref": "#/definitions/disconnectHostMigrationTimeSeconds",
+      "description": "The minimum amount of time, in seconds, that must pass before a disconnected host loses host status and triggers a host migration."
+    },
+    "playerSlots": {
+      "$ref": "#/definitions/playerSlots",
+      "description": "The minimum and maximum allowed values for a lobby's 'MaxPlayers' property."
+    },
+    "socialProfilesEnabled": {
+      "type": "boolean",
+      "description": "Whether or not to inject profiles from Social Profile data in lobby responses."
+    }
+  },
+  "required": [
+    "activeLifespanSeconds",
+    "disconnectRemovalTimeSeconds",
+    "disconnectHostMigrationTimeSeconds",
+    "playerSlots"
+  ],
+  "definitions": {
+    "playerSlots": {
+      "$id": "#playerSlots",
+      "type": "object",
+      "properties": {
+        "minimum": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 150
+        },
+        "maximum": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 150
+        }
+      },
+      "required": [
+        "minimum",
+        "maximum"
+      ]
+    },
+    "activeLifespanSeconds": {
+      "$id": "#activeLifespanSeconds",
+      "type": "integer",
+      "minimum": 10,
+      "maximum": 3600
+    },
+    "disconnectRemovalTimeSeconds": {
+      "$id": "#disconnectRemovalTimeSeconds",
+      "type": "integer",
+      "minimum": 10,
+      "maximum": 3600
+    },
+    "disconnectHostMigrationTimeSeconds": {
+      "$id": "#disconnectHostMigrationTimeSeconds",
+      "type": "integer",
+      "minimum": 5,
+      "maximum": 3600
+    }
+  }
+}

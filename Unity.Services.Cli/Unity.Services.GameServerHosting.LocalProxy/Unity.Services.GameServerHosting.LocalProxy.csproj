@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9</LangVersion>
+    <Nullable>disable</Nullable>
+    <RootNamespace>Unity.Services.GameServerHosting.LocalProxy</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Unity.Services.Cli.Common\Unity.Services.Cli.Common.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
+  </ItemGroup>
+</Project>

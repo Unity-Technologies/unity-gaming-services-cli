@@ -21,7 +21,7 @@ public class SynchronizationService : ISynchronizationService
     readonly IUploadContentClient m_UploadContentClient;
     const double k_BytesInMb = 1048576.0;
     const int k_MaximumPageSizeAllowed = 100;
-
+    const int k_DefaultBatchSize = 20;
     public SynchronizationService(
         IEntriesApi entriesApi,
         IUploadContentClient uploadContentClient,
@@ -71,7 +71,7 @@ public class SynchronizationService : ISynchronizationService
         }
     }
 
-    public async Task<List<CcdCreateOrUpdateEntryBatch200ResponseInner>> FetchAllEntriesAsync(
+    async Task<List<CcdCreateOrUpdateEntryBatch200ResponseInner>> FetchAllEntriesAsync(
         string projectId,
         string environmentId,
         string bucketId,
@@ -295,24 +295,24 @@ public class SynchronizationService : ISynchronizationService
         return syncResult;
     }
 
-    public async Task<List<CcdCreateReleaseRequestEntriesInner>> ProcessSynchronization(
-        ILogger logger,
+    public async Task<List<CcdCreateReleaseRequestEntriesInner>> ProcessSynchronization(ILogger logger,
         bool verbose,
         SyncResult syncResult,
         string localFolder,
         int retryCount,
-        int maxConcurrentRequests,
+        int maxConcurrentBatchAddOrUpdate,
+        int concurrentUploadContentRequests,
         int retryDelayMilliseconds,
         CancellationToken cancellationToken)
     {
         await AuthorizeServiceAsync(cancellationToken);
         var rateLimitStatus = new SharedRateLimitStatus();
-        var semaphore = new SemaphoreSlim(maxConcurrentRequests);
+        var semaphore = new SemaphoreSlim(maxConcurrentBatchAddOrUpdate);
+        var batchSize = Math.Max(k_DefaultBatchSize, concurrentUploadContentRequests);
 
-
-        var addBatches = CreateBatches(syncResult.EntriesToAdd, 20);
-        var updateBatches = CreateBatches(syncResult.EntriesToUpdate, 20);
-        var deleteBatches = CreateBatches(syncResult.EntriesToDelete, 20);
+        var addBatches = CreateBatches(syncResult.EntriesToAdd, batchSize);
+        var updateBatches = CreateBatches(syncResult.EntriesToUpdate, batchSize);
+        var deleteBatches = CreateBatches(syncResult.EntriesToDelete, batchSize);
 
         var tasks = addBatches.Select(
                 batch => ProcessBatchAddOrUpdateEntryAsync(
@@ -323,6 +323,7 @@ public class SynchronizationService : ISynchronizationService
                     retryCount,
                     retryDelayMilliseconds,
                     semaphore,
+                    concurrentUploadContentRequests,
                     rateLimitStatus,
                     cancellationToken))
             .ToList();
@@ -337,8 +338,10 @@ public class SynchronizationService : ISynchronizationService
                         retryCount,
                         retryDelayMilliseconds,
                         semaphore,
+                        concurrentUploadContentRequests,
                         rateLimitStatus,
-                        cancellationToken))
+                        cancellationToken
+                        ))
                 .ToList());
 
         tasks.AddRange(
@@ -396,18 +399,18 @@ public class SynchronizationService : ISynchronizationService
                         new Guid(entry.VersionId))));
     }
 
-    async Task<List<CcdCreateReleaseRequestEntriesInner>> ProcessBatchAddOrUpdateEntryAsync(
-       ILogger logger,
-       bool verbose,
-       List<SyncEntry> entryBatch,
-       string localFolder,
-       int retryCount,
-       int retryDelayMilliseconds,
-       SemaphoreSlim semaphore,
-       SharedRateLimitStatus rateLimitStatus,
-       CancellationToken cancellationToken)
+    async Task<List<CcdCreateReleaseRequestEntriesInner>> ProcessBatchAddOrUpdateEntryAsync(ILogger logger,
+        bool verbose,
+        List<SyncEntry> entryBatch,
+        string localFolder,
+        int retryCount,
+        int retryDelayMilliseconds,
+        SemaphoreSlim semaphore,
+        int maxConcurrentUploadRequests,
+        SharedRateLimitStatus rateLimitStatus,
+        CancellationToken cancellationToken
+        )
     {
-
         var releaseEntries = new List<CcdCreateReleaseRequestEntriesInner>();
         await ThrottledRetryPolicyAsync(
             logger,
@@ -444,12 +447,12 @@ public class SynchronizationService : ISynchronizationService
 
                 await RespectRateLimitAsync(createdEntriesResponse.Headers, rateLimitStatus, cancellationToken);
 
-                var uploadSemaphore = new SemaphoreSlim(10);
+                var uploadSemaphore = new SemaphoreSlim(maxConcurrentUploadRequests);
                 var tasks = new List<Task>();
 
                 foreach (var createdEntry in createdEntriesResponse.Data)
                 {
-                    await uploadSemaphore.WaitAsync();
+                    await uploadSemaphore.WaitAsync(cancellationToken);
                     tasks.Add(Task.Run(async () =>
                     {
                         try
@@ -473,7 +476,7 @@ public class SynchronizationService : ISynchronizationService
                         {
                             uploadSemaphore.Release();
                         }
-                    }));
+                    }, cancellationToken));
                 }
                 await Task.WhenAll(tasks);
 
@@ -566,7 +569,7 @@ public class SynchronizationService : ISynchronizationService
             }
     }
 
-    public static double CalculateUploadSpeed(double totalDataInMegabytes, double timeInSeconds)
+    internal static double CalculateUploadSpeed(double totalDataInMegabytes, double timeInSeconds)
     {
         var totalDataInMegabits = totalDataInMegabytes * 8;
         var uploadSpeedMbps = totalDataInMegabits / timeInSeconds;

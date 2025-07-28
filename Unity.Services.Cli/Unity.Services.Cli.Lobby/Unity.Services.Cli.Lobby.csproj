@@ -29,6 +29,7 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Handlers\Config\lobby-config-schema-v2.json" />
+    <EmbeddedResource Include="Handlers\Config\lobby-config-schema-v3.json" />
     <EmbeddedResource Include="Handlers\Config\lobby-config-schema.json" />
   </ItemGroup>
 </Project>

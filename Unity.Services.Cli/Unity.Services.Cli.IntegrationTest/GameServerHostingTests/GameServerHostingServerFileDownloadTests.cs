@@ -13,10 +13,10 @@ namespace Unity.Services.Cli.IntegrationTest.GameServerHostingTests;
 public partial class GameServerHostingTests
 {
     // Get the operating system's temporary directory
-    static string tempDirectory = Path.GetTempPath();
-    static string outputArgPath = $"{tempDirectory}/server.log";
+    static readonly string k_TempDirectory = Path.GetTempPath();
+    static readonly string k_OutputArgPath = $"{k_TempDirectory}/server.log";
 
-    static readonly string k_ServerFilesDownloadCommand = $"mh server files download --server-id {Keys.ValidServerId} --path {Keys.ValidErrorLogPath} --output {outputArgPath}";
+    static readonly string k_ServerFilesDownloadCommand = $"mh server files download --server-id {Keys.ValidServerId} --path {Keys.ValidErrorLogPath} --output {k_OutputArgPath}";
 
     [Test]
     [Category("mh")]
@@ -34,8 +34,8 @@ public partial class GameServerHostingTests
             .AssertStandardError(
                 str =>
                 {
-                    Assert.IsTrue(str.Contains($"File downloaded to {outputArgPath}"));
-                    string fileContents = File.ReadAllText(outputArgPath);
+                    Assert.IsTrue(str.Contains($"File downloaded to {k_OutputArgPath}"));
+                    string fileContents = File.ReadAllText(k_OutputArgPath);
                     Assert.AreEqual(Keys.MockFileContent, fileContents);
                 }
                 )

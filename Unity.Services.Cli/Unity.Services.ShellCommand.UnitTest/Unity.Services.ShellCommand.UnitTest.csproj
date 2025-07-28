@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.msbuild" Version="3.2.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
+    <PackageReference Include="NUnit.Analyzers" Version="3.5.0" />
+    <PackageReference Include="coverlet.collector" Version="3.2.0" />
+    <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="19.2.16" />
+  </ItemGroup>
+  <ItemGroup />
+  <!-- This builds the mock processes before we build this project -->
+  <Target Name="BuildMockProcessesBeforeBuild" BeforeTargets="PrepareForBuild">
+    <MSBuild Projects="..\Unity.Services.ShellCommand.MockCli\Unity.Services.ShellCommand.MockCli.csproj" Targets="Build" />
+    <MSBuild Projects="..\Unity.Services.ShellCommand.MockWinApp\Unity.Services.ShellCommand.MockWinApp.csproj" Targets="Build" />
+  </Target>
+</Project>

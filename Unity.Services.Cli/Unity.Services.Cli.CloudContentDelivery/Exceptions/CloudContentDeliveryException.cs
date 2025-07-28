@@ -1,4 +1,3 @@
-using System.Runtime.Serialization;
 using Unity.Services.Cli.Common.Exceptions;
 
 namespace Unity.Services.Cli.CloudContentDelivery.Exceptions;

@@ -84,6 +84,7 @@ public static class GameServerHostingUnitTestsConstants
     public const long ValidMachineId = 654321L;
     public const long InvalidMachineId = 666L;
     public const string ValidMachineName = "p-gce-test-2";
+    public const int ValidPid = 8082;
 
     public const string ValidMachineCpuSeriesShortname = "U1.Standard.3";
     public const string ValidMachineCpuType = "Cloud Intel 2nd Gen Scalable";

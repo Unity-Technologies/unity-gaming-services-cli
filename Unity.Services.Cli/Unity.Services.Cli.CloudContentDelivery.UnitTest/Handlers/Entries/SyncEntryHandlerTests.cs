@@ -107,6 +107,7 @@ public class SyncEntryHandlerTests
                     CloudContentDeliveryTestsConstants.LocalFolder,
                     CloudContentDeliveryTestsConstants.Retry,
                     50,
+                    20,
                     100,
                     CancellationToken.None))
             .ReturnsAsync(new List<CcdCreateReleaseRequestEntriesInner>());
@@ -196,4 +197,56 @@ public class SyncEntryHandlerTests
         m_MockUnityEnvironment.Verify(x => x.FetchIdentifierAsync(CancellationToken.None), Times.Once);
 
     }
+
+    [Test]
+    public void ValidateConcurrentUploadRequests_ValueBelowMinimum_LogsWarningAndReturnsMinimum()
+    {
+        var result = SyncEntryHandler.ValidateConcurrentUploadRequests(m_MockLogger.Object, 0);
+
+        Assert.That(result, Is.EqualTo(1));
+        m_MockLogger.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((o, t) =>
+                    o.ToString()!.Contains("The minimum number of concurrent upload requests allowed is")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
+            Times.Once);
+    }
+
+    [Test]
+    public void ValidateConcurrentUploadRequests_ValueAboveMaximum_LogsWarningAndReturnsMaximum()
+    {
+        var result = SyncEntryHandler.ValidateConcurrentUploadRequests(m_MockLogger.Object, 100);
+
+        Assert.That(result, Is.EqualTo(30));
+        m_MockLogger.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((o, t) =>
+                    o.ToString()!.Contains("The maximum number of concurrent upload requests allowed is")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
+            Times.Once);
+    }
+
+    [Test]
+    public void ValidateConcurrentUploadRequests_ValueInValidRange_NoWarningAndReturnsSameValue()
+    {
+        var inputValue = 5;
+        var result = SyncEntryHandler.ValidateConcurrentUploadRequests(m_MockLogger.Object, inputValue);
+
+        Assert.That(result, Is.EqualTo(inputValue));
+        m_MockLogger.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
+            Times.Never);
+    }
+
 }

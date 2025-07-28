@@ -5,10 +5,22 @@ All notable changes to UGS CLI will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2025-07-23
+
+### Changed
+- [Multiplay Hosting] Update timeout for build files upload from 10 minutes to 60 minutes per file.
+
+### Fixed
+- [Matchmaker] Handle exception when Multiplay fleet is invalid.
+
+### Added
+- [Cloud Content Delivery] Option to specify the number of concurrent uploads.
+
 ## [1.7.1] - 2024-12-11
 
 ### Fixed
 - MacOS signature is fixed when running Silicon chips (arm64 architecture)
+- Fix leaderboard creation always defaulting to descending
 
 ## [1.7.0] - 2024-11-25
 
@@ -16,12 +28,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - [Multiplay Hosting] Fixed issue with fleet usage settings being deleted if not provided in the update command.
 - [CCD] Fixed issue with inconsistencies in paths when a customer uses more than one OS.
 
+
 ### Changed
 - [Multiplay Hosting] Updated all docs, commands and prompts to use the term "Multiplay Hosting" instead of "Game Server Hosting" as per the new branding. Directories and file names have not been changed as they are not user-facing.
 - [Lobby] Supports new `lobbyv2` configuration schema on all config related commands.
+- [Lobby] Supports new `lobbyv3` configuration schema on all config related commands with 150 maximum players.
 
 ### Added
 - [Triggers] Added filter support to service configs
+- [Cloud Save] Added support for getting and setting player and custom data
+
+### Fixed
+- [Game Server Hosting] Fixed file extensions losing their dot when uploading a build version from the current directory.
 
 ## [1.6.0] - 2024-07-18
 

@@ -152,6 +152,15 @@ public class CloudContentDeliveryInput : CommonInput
         },
         "JSON metadata associated with this entry.");
 
+
+    public static readonly Option<int?> ConcurrentUploadRequestsOption = new(
+        new[]
+        {
+            "-cu",
+            "--concurrent-upload"
+        },
+        "Number of files that can be uploaded concurrently (Default: 10, allowed range: 1-30).");
+
     public static readonly Option<int> PageOption = new(
         new[]
         {
@@ -483,5 +492,10 @@ public class CloudContentDeliveryInput : CommonInput
 
     [InputBinding(nameof(ReleaseNumArgument))]
     public int? ReleaseNum { get; set; }
+
+    [InputBinding(nameof(ConcurrentUploadRequestsOption))]
+    public int? ConcurrentUploadRequests { get; set; }
+
+
 
 }

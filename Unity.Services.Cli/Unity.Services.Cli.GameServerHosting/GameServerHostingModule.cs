@@ -2,12 +2,12 @@ using System.CommandLine;
 using System.IO.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Unity.Services.Cli.Common;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.Common.Utils;
+using Unity.Services.Cli.Common.Validator;
 using Unity.Services.Cli.GameServerHosting.Endpoints;
 using Unity.Services.Cli.GameServerHosting.Handlers;
 using Unity.Services.Cli.GameServerHosting.Input;
@@ -26,6 +26,7 @@ using GameServerHostingConfiguration = Unity.Services.Gateway.GameServerHostingA
 using CloudContentDeliveryConfiguration =
     Unity.Services.Gateway.ContentDeliveryManagementApiV1.Generated.Client.Configuration;
 using IBuildsApi = Unity.Services.Gateway.GameServerHostingApiV1.Generated.Api.IBuildsApi;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 using IServersApi = Unity.Services.Gateway.GameServerHostingApiV1.Generated.Api.IServersApi;
 
 namespace Unity.Services.Cli.GameServerHosting;
@@ -801,8 +802,9 @@ public class GameServerHostingModule : ICommandModule
 
         serviceCollection.AddSingleton<IGameServerHostingService>(service);
 
-        serviceCollection.AddTransient<IFile>(_ => new FileSystem().File);
-        serviceCollection.AddTransient<IDirectory>(_ => new FileSystem().Directory);
+
+        serviceCollection.AddTransient<IFile>(_ => new System.IO.Abstractions.FileSystem().File);
+        serviceCollection.AddTransient<IDirectory>(_ => new System.IO.Abstractions.FileSystem().Directory);
         serviceCollection.AddTransient<GcsCredentialParser>();
         RegisterApiClients(serviceCollection);
         RegisterAuthoringServices(serviceCollection);

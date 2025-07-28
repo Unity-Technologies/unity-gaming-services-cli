@@ -114,7 +114,7 @@ public class CloudContentDeliveryEntryTests : UgsCliFixture
     {
         await GetLoggedInCli()
             .DebugCommand(
-                $"ccd entries sync {k_TestDirectory} -r -u mybadge")
+                $"ccd entries sync {k_TestDirectory} -r -cu 35 -u mybadge")
             .AssertStandardOutputContains("operationCompletedSuccessfully: true")
             .AssertExitCode(ExitCode.Success)
             .ExecuteAsync();
@@ -125,7 +125,7 @@ public class CloudContentDeliveryEntryTests : UgsCliFixture
     {
         await GetLoggedInCli()
             .DebugCommand(
-                $"ccd entries sync {k_TestDirectory} -r -u mybadge --include-entries-added-during-sync")
+                $"ccd entries sync {k_TestDirectory} -r -u mybadge --include-entries-added-during-sync -cu 25")
             .AssertStandardOutputContains("operationCompletedSuccessfully: true")
             .AssertExitCode(ExitCode.Success)
             .ExecuteAsync();

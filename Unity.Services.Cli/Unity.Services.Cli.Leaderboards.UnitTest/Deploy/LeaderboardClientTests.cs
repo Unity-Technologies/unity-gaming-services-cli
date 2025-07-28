@@ -9,9 +9,11 @@ using Unity.Services.Gateway.LeaderboardApiV1.Generated.Model;
 using Unity.Services.Leaderboards.Authoring.Core.Model;
 using LeaderboardConfig = Unity.Services.Leaderboards.Authoring.Core.Model.LeaderboardConfig;
 using ResetConfig = Unity.Services.Gateway.LeaderboardApiV1.Generated.Model.ResetConfig;
-using SortOrder = Unity.Services.Leaderboards.Authoring.Core.Model.SortOrder;
+using CoreSortOrder = Unity.Services.Leaderboards.Authoring.Core.Model.SortOrder;
 using TieringConfig = Unity.Services.Gateway.LeaderboardApiV1.Generated.Model.TieringConfig;
-using UpdateType = Unity.Services.Leaderboards.Authoring.Core.Model.UpdateType;
+using CoreUpdateType = Unity.Services.Leaderboards.Authoring.Core.Model.UpdateType;
+using SortOrder = Unity.Services.Gateway.LeaderboardApiV1.Generated.Model.SortOrder;
+using UpdateType = Unity.Services.Gateway.LeaderboardApiV1.Generated.Model.UpdateType;
 
 namespace Unity.Services.Cli.Leaderboards.UnitTest.Deploy;
 
@@ -25,7 +27,7 @@ public class LeaderboardClientTests
 
     public LeaderboardClientTests()
     {
-        m_Leaderboard = new("lb1", "lb_name", SortOrder.Asc, UpdateType.Aggregate) { Path = k_Path };
+        m_Leaderboard = new("lb1", "lb_name", CoreSortOrder.Asc, CoreUpdateType.Aggregate) { Path = k_Path };
     }
 
     [Test]
@@ -162,7 +164,7 @@ public class LeaderboardClientTests
         var client = new LeaderboardsClient(service.Object);
         client.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
         var leaderboardId = "someid";
-        var mockRes = new UpdatedLeaderboardConfig(leaderboardId, "somename");
+        var mockRes = new UpdatedLeaderboardConfig(leaderboardId, "somename", SortOrder.Asc, UpdateType.Aggregate);
         service.Setup(
             s => s.GetLeaderboardAsync(
                 It.IsAny<string>(),
@@ -194,7 +196,7 @@ public class LeaderboardClientTests
         var client = new LeaderboardsClient(service.Object);
         client.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
         var leaderboardId = "someid";
-        var mockRes = new UpdatedLeaderboardConfig(leaderboardId, "somename")
+        var mockRes = new UpdatedLeaderboardConfig(leaderboardId, "somename", SortOrder.Asc, UpdateType.Aggregate)
         {
             ResetConfig = new ResetConfig(),
             TieringConfig = new TieringConfig(TieringConfig.StrategyEnum.Score,new List<TieringConfigTiersInner>()
@@ -231,6 +233,234 @@ public class LeaderboardClientTests
         Assert.AreEqual(mockRes.ResetConfig.Start, res.ResetConfig.Start);
     }
 
+    [Test]
+    [TestCase(SortOrder.Asc, UpdateType.Aggregate)]
+    [TestCase(SortOrder.Desc, UpdateType.KeepBest)]
+    [TestCase(SortOrder.Desc, UpdateType.KeepLatest)]
+    public async Task GetMapsSortAndUpdate(SortOrder order, UpdateType updateType)
+    {
+        Mock<ILeaderboardsService> service = new();
+        var client = new LeaderboardsClient(service.Object);
+        client.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        var leaderboardId = "someid";
+        var mockRes = new UpdatedLeaderboardConfig(leaderboardId, "somename")
+        {
+            ResetConfig = new ResetConfig(),
+            SortOrder = order,
+            UpdateType = updateType
+        };
+        service.Setup(
+                s => s.GetLeaderboardAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    leaderboardId,
+                    It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult(new ApiResponse<UpdatedLeaderboardConfig>(HttpStatusCode.Accepted, mockRes)));
+
+        client.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        var res = await client.Get(leaderboardId, CancellationToken.None);
+
+        service
+            .Verify(
+                s => s.GetLeaderboardAsync(
+                    TestValues.ValidProjectId,
+                    TestValues.ValidEnvironmentId,
+                    leaderboardId,
+                    It.IsAny<CancellationToken>()),
+                Times.Once());
+
+        Assert.AreEqual(mockRes.Id, res.Id);
+        Assert.AreEqual(mockRes.Name, res.Name);
+        Assert.AreEqual(order == SortOrder.Asc ? CoreSortOrder.Asc : CoreSortOrder.Desc, res.SortOrder);
+        Assert.AreEqual(
+            updateType == UpdateType.Aggregate
+                ? CoreUpdateType.Aggregate
+                : (updateType == UpdateType.KeepBest
+                    ? CoreUpdateType.KeepBest : CoreUpdateType.KeepLatest),
+            res.UpdateType);
+    }
+
+    [Test]
+    public void GetThrowsOnInvalidSort()
+    {
+        Mock<ILeaderboardsService> service = new();
+        var client = new LeaderboardsClient(service.Object);
+        client.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        var leaderboardId = "someid";
+        var mockRes = new UpdatedLeaderboardConfig(leaderboardId, "somename")
+        {
+            SortOrder = 0,
+        };
+        service.Setup(
+                s => s.GetLeaderboardAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    leaderboardId,
+                    It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult(new ApiResponse<UpdatedLeaderboardConfig>(HttpStatusCode.Accepted, mockRes)));
+
+        client.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            async () => await client.Get(leaderboardId, CancellationToken.None));
+    }
+
+    [Test]
+    public void GetThrowsOnInvalidUpdate()
+    {
+        Mock<ILeaderboardsService> service = new();
+        var client = new LeaderboardsClient(service.Object);
+        client.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        var leaderboardId = "someid";
+        var mockRes = new UpdatedLeaderboardConfig(leaderboardId, "somename")
+        {
+            UpdateType = 0,
+        };
+        service.Setup(
+                s => s.GetLeaderboardAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    leaderboardId,
+                    It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult(new ApiResponse<UpdatedLeaderboardConfig>(HttpStatusCode.Accepted, mockRes)));
+
+        client.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            async () => await client.Get(leaderboardId, CancellationToken.None));
+    }
+
+    [Test]
+    [TestCase((int)CoreSortOrder.Asc, (int)CoreUpdateType.Aggregate)]
+    [TestCase((int)CoreSortOrder.Desc, (int)CoreUpdateType.KeepBest)]
+    [TestCase((int)CoreSortOrder.Desc, (int)CoreUpdateType.KeepLatest)]
+    public async Task UpdateMapsSortAndUpdate(int sortInt, int updateInt)
+    {
+        var sort = (CoreSortOrder)sortInt;
+        var update = (CoreUpdateType)updateInt;
+        Mock<ILeaderboardsService> service = new();
+        var client = new LeaderboardsClient(service.Object);
+        client.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        LeaderboardConfig config = new("lb1", "lb_name", sort, update) { Path = k_Path };
+        await client.Update(config, CancellationToken.None);
+
+        var expectedSort = sort == CoreSortOrder.Asc ? SortOrder.Asc : SortOrder.Desc;
+        var expectedUpdate = update == CoreUpdateType.Aggregate
+            ? UpdateType.Aggregate
+            : (update == CoreUpdateType.KeepBest ? UpdateType.KeepBest : UpdateType.KeepLatest);
+
+        service
+            .Verify(
+                s => s.UpdateLeaderboardAsync(
+                    TestValues.ValidProjectId,
+                    TestValues.ValidEnvironmentId,
+                    m_Leaderboard.Id,
+                    It.Is<LeaderboardPatchConfig>(l =>
+                        l.Name == m_Leaderboard.Name
+                        && l.SortOrder == expectedSort
+                        && l.UpdateType == expectedUpdate),
+                    It.IsAny<CancellationToken>()),
+                Times.Once());
+    }
+
+    [Test]
+    public async Task UpdateTiers()
+    {
+        Mock<ILeaderboardsService> service = new();
+        var client = new LeaderboardsClient(service.Object);
+        client.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        LeaderboardConfig config = new("lb1", "lb_name")
+        {
+            Path = k_Path,
+            TieringConfig = new Services.Leaderboards.Authoring.Core.Model.TieringConfig()
+            {
+                Strategy = Strategy.Score,
+                Tiers = new List<Tier>
+                {
+                    new () { Id = "Tier1", Cutoff = 10.0 },
+                    new () { Id = "Tier2", Cutoff = 15.0 },
+                }
+            }
+        };
+        await client.Update(config, CancellationToken.None);
+
+        service
+            .Verify(
+                s => s.UpdateLeaderboardAsync(
+                    TestValues.ValidProjectId,
+                    TestValues.ValidEnvironmentId,
+                    m_Leaderboard.Id,
+                    It.Is<LeaderboardPatchConfig>(l =>
+                        l.Name == m_Leaderboard.Name
+                        && l.TieringConfig.Tiers.Count == 2
+                        && l.TieringConfig.Strategy == TieringConfig.StrategyEnum.Score
+                        && l.TieringConfig.Tiers[0].Id == "Tier1"),
+                    It.IsAny<CancellationToken>()),
+                Times.Once());
+    }
+
+    [Test]
+    public async Task UpdateResetConfig()
+    {
+        Mock<ILeaderboardsService> service = new();
+        var client = new LeaderboardsClient(service.Object);
+        client.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        var today = DateTime.Today;
+        var schedule = "foo";
+        LeaderboardConfig config = new("lb1", "lb_name")
+        {
+            Path = k_Path,
+            ResetConfig = new Services.Leaderboards.Authoring.Core.Model.ResetConfig()
+            {
+                Archive = true,
+                Schedule = schedule,
+                Start = today
+            }
+        };
+        await client.Update(config, CancellationToken.None);
+
+        service
+            .Verify(
+                s => s.UpdateLeaderboardAsync(
+                    TestValues.ValidProjectId,
+                    TestValues.ValidEnvironmentId,
+                    m_Leaderboard.Id,
+                    It.Is<LeaderboardPatchConfig>(l =>
+                        l.Name == m_Leaderboard.Name
+                        && l.ResetConfig.Archive
+                        && l.ResetConfig.Schedule == schedule
+                        && l.ResetConfig.Start == today),
+                    It.IsAny<CancellationToken>()),
+                Times.Once());
+    }
+
+    [Test]
+    public void UpdateThrowsOnInvalidSort()
+    {
+        Mock<ILeaderboardsService> service = new();
+        var client = new LeaderboardsClient(service.Object);
+        client.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        LeaderboardConfig config = new("lb1", "lb_name")
+        {
+            Path = k_Path,
+            SortOrder = 0
+        };
+        Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await client.Update(config, CancellationToken.None));
+    }
+
+    [Test]
+    public void UpdateThrowsOnInvalidUpdate()
+    {
+        Mock<ILeaderboardsService> service = new();
+        var client = new LeaderboardsClient(service.Object);
+        client.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        LeaderboardConfig config = new("lb1", "lb_name")
+        {
+            Path = k_Path,
+            UpdateType = 0
+        };
+        Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await client.Update(config, CancellationToken.None));
+    }
+
+
     static Task<IEnumerable<UpdatedLeaderboardConfig>> ListFunc(
         string projectId,
         string envId,
@@ -239,7 +469,7 @@ public class LeaderboardClientTests
         CancellationToken token)
     {
         var remoteLbs = Enumerable.Range(0, 75)
-            .Select(i => new UpdatedLeaderboardConfig($"id{i}", $"name{i}"));
+            .Select(i => new UpdatedLeaderboardConfig($"id{i}", $"name{i}", SortOrder.Asc, UpdateType.Aggregate));
 
         if (cursor == null)
         {

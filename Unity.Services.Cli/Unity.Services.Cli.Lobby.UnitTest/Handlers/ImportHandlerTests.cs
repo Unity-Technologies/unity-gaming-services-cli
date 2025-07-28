@@ -28,11 +28,13 @@ class ImportHandlerTests
     LobbyConfig m_Config = null!;
     LobbyConfig m_ConfigV1 = null!;
     LobbyConfig m_ConfigV2 = null!;
+    LobbyConfig m_ConfigV3 = null!;
 
     LobbyImporter m_LobbyImporter = null!;
 
     const string k_V1Schema = ".*resource:/lobby.*";
     const string k_V2Schema = ".*resource:/lobbyv2.*";
+    const string k_V3Schema = ".*resource:/lobbyv3.*";
 
     [SetUp]
     public void SetUp()
@@ -46,6 +48,10 @@ class ImportHandlerTests
         m_ConfigV2 = JsonConvert.DeserializeObject<LobbyConfig>(
             "{ \"Id\": \"mock_id\", \"SchemaId\": \"lobbyv2\", \"Config\": { \"mock_key\": \"mock_value\" } }"
         )!;
+        m_ConfigV3 = JsonConvert.DeserializeObject<LobbyConfig>(
+            "{ \"Id\": \"mock_id\", \"SchemaId\": \"lobbyv3\", \"Config\": { \"mock_key\": \"mock_value\" } }"
+        )!;
+
 
         m_MockUnityEnvironment.Reset();
         m_MockRemoteConfigService.Reset();
@@ -180,6 +186,7 @@ class ImportHandlerTests
                      (m_Config, k_V1Schema),
                      (m_ConfigV1, k_V1Schema),
                      (m_ConfigV2, k_V2Schema),
+                     (m_ConfigV3, k_V3Schema),
                  })
         {
             SetupExistingConfig(tc.config);
@@ -219,6 +226,7 @@ class ImportHandlerTests
                      (m_Config, k_V1Schema),
                      (m_ConfigV1, k_V1Schema),
                      (m_ConfigV2, k_V2Schema),
+                     (m_ConfigV3, k_V3Schema),
                  })
         {
             SetupNonExistingConfig(tc.config);

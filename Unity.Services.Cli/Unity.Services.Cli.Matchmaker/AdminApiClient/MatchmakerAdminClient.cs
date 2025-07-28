@@ -35,6 +35,18 @@ class MatchmakerAdminClient : IConfigApiClient
 
     static MultiplayResources MpResourcesFromFleetAndBuildConfig(List<FleetListItem> fleets)
     {
+        var invalidFleetNames = fleets
+            .Where(
+                f => f.Regions == null || f.Regions.Count == 0 || f.BuildConfigurations == null ||
+                     f.BuildConfigurations.Count == 0)
+            .Select(f => f.Name)
+            .ToList();
+        if (invalidFleetNames.Count != 0)
+        {
+            throw new MatchmakerException(
+                $"One or more Multiplay fleets are misconfigured (missing region and/or build configuration): {string.Join(", ", invalidFleetNames)}");
+        }
+
         return new MultiplayResources()
         {
             Fleets = fleets.Select(

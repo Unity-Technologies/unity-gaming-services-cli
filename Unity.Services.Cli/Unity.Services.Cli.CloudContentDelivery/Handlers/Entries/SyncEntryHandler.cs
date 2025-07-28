@@ -12,6 +12,11 @@ namespace Unity.Services.Cli.CloudContentDelivery.Handlers.Entries;
 
 static class SyncEntryHandler
 {
+
+    const int k_DefaultConcurrentUploadRequests = 10;
+    const int k_MaxConcurrentUploadRequests = 30;
+    const int k_MinConcurrentUploadRequests = 1;
+
     public static async Task SyncEntriesAsync(
         CloudContentDeliveryInput input,
         IUnityEnvironment unityEnvironment,
@@ -32,15 +37,14 @@ static class SyncEntryHandler
                 cancellationToken));
     }
 
-    internal static async Task SyncEntriesAsync(
-        CloudContentDeliveryInput input,
+    internal static async Task SyncEntriesAsync(CloudContentDeliveryInput input,
         IUnityEnvironment unityEnvironment,
         IClientWrapper clients,
         ISynchronizationService synchronizationService,
         ILogger logger,
         CancellationToken cancellationToken)
     {
-        const int maxConcurrentRequests = 5;
+        const int maxConcurrentBatchAddOrUpdate = 5;
         const int retryDelayMilliseconds = 5000;
         var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         var projectId = input.CloudProjectId!;
@@ -56,6 +60,9 @@ static class SyncEntryHandler
         var labels = input.Labels;
         var releaseNotes = input.ReleaseNotes!;
         var verbose = input.Verbose == true;
+        var concurrentUploadRequests = input.ConcurrentUploadRequests ?? k_DefaultConcurrentUploadRequests;
+
+        concurrentUploadRequests = ValidateConcurrentUploadRequests(logger, concurrentUploadRequests);
 
         HandleBadgeAndReleaseNoteWarning(logger, createRelease, badgeName,
             releaseNotes);
@@ -100,7 +107,8 @@ static class SyncEntryHandler
                 syncResult,
                 localFolder,
                 retryCount,
-                maxConcurrentRequests,
+                maxConcurrentBatchAddOrUpdate,
+                concurrentUploadRequests,
                 retryDelayMilliseconds,
                 cancellationToken);
             stopwatch.Stop();
@@ -153,6 +161,27 @@ static class SyncEntryHandler
         }
 
     }
+    internal static int ValidateConcurrentUploadRequests(ILogger logger, int concurrentUploadRequests)
+    {
+        switch (concurrentUploadRequests)
+        {
+            case > k_MaxConcurrentUploadRequests:
+                logger.LogWarning(
+                    $"The maximum number of concurrent upload requests allowed is {k_MaxConcurrentUploadRequests}. " +
+                    $"Your requested value ({concurrentUploadRequests}) was set to {k_MaxConcurrentUploadRequests}.");
+                break;
+            case < k_MinConcurrentUploadRequests:
+                logger.LogWarning(
+                    $"The minimum number of concurrent upload requests allowed is {k_MinConcurrentUploadRequests}. " +
+                    $"Your requested value ({concurrentUploadRequests}) was set to {k_MinConcurrentUploadRequests}.");
+                break;
+        }
+
+        return Math.Clamp(concurrentUploadRequests,
+            k_MinConcurrentUploadRequests,
+            k_MaxConcurrentUploadRequests);
+    }
+
 
     static void HandleBadgeAndReleaseNoteWarning(ILogger logger, bool createRelease, string? badgeName, string releaseNotes)
     {

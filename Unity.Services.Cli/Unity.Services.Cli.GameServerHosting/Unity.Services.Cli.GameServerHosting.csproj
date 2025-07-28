@@ -6,6 +6,11 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+  <ItemGroup>
+    <SonarQubeSetting Include="sonar.coverage.exclusions">
+      <Value>**/ConsoleWrapper.cs, **/ProcessMonitor.cs, **/SimulatorUtils.cs, **/FileSystem.cs</Value>
+    </SonarQubeSetting>
+  </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DefineConstants>FEATURE_GAME_SERVER_HOSTING_SERVER_FILE_LIST;</DefineConstants>
   </PropertyGroup>
@@ -26,6 +31,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Unity.Services.Cli.Common\Unity.Services.Cli.Common.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
+    <ProjectReference Include="..\Unity.Services.GameServerHosting.LocalProxy\Unity.Services.GameServerHosting.LocalProxy.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.IO.Abstractions" Version="19.2.16" />

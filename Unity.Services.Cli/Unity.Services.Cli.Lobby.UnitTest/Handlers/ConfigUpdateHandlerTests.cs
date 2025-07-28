@@ -60,6 +60,19 @@ namespace Unity.Services.Cli.Lobby.UnitTest.Handlers
         }
 
         [Test]
+        public void ConfigUpdateHandler_HandlesV3InputAndLogsOnSuccess()
+        {
+            var input = new LobbyConfigUpdateInput()
+            {
+                CloudProjectId = "projectid",
+                JsonFileOrBody = """{"type":"lobby","value":[{"key":"lobbyConfig","type":"json","schemaId":"lobbyv3","value":{"socialProfilesEnabled":false,"activeLifespanSeconds":30,"disconnectRemovalTimeSeconds":110,"disconnectHostMigrationTimeSeconds":10,"playerSlots":{"minimum":1,"maximum":150}}}]}""",
+            };
+            Assert.DoesNotThrowAsync(async () => await ConfigUpdateHandler.ConfigUpdateAsync(input, m_MockRemoteConfig.Object, m_MockLogger.Object, default));
+            TestsHelper.VerifyLoggerWasCalled(m_MockLogger, LogLevel.Information, null, Times.Once);
+        }
+
+
+        [Test]
         public void ConfigUpdateHandler_MissingProjectIdThrowsException()
         {
             var input = new LobbyConfigUpdateInput();

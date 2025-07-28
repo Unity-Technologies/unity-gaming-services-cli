@@ -32,7 +32,7 @@ def main():
     base_build_command = "dotnet publish " + PROJECT_PATH + " --self-contained true --nologo" \
                          + " -p:PublishSingleFile=true -p:TrimUnusedDependencies=true -p:DebugType=None -c Release"
     if len(extra_defines) > 0:
-        base_build_command = base_build_command + " -p:ExtraDefineConstants=" + extra_defines
+        base_build_command = base_build_command + " -p:ExtraDefineConstants=\"" + extra_defines + "\""
 
     for platform in platforms_to_build:
         build_for_platform(base_build_command, platform)
@@ -75,7 +75,7 @@ def get_extra_defines(args):
     extra_defines = args.extra_defines
     if "EXTRA_CLI_DEFINES" in os.environ:
         if len(extra_defines) > 0:
-            extra_defines = extra_defines + ";" + os.environ["EXTRA_CLI_DEFINES"]
+            extra_defines = extra_defines + " " + os.environ["EXTRA_CLI_DEFINES"]
         else:
             extra_defines = os.environ["EXTRA_CLI_DEFINES"]
 

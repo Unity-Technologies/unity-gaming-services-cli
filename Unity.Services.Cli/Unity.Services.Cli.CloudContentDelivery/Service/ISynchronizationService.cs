@@ -28,13 +28,13 @@ public interface ISynchronizationService
         List<string>? labels,
         object? metadata);
 
-    Task<List<CcdCreateReleaseRequestEntriesInner>> ProcessSynchronization(
-        ILogger logger,
+    Task<List<CcdCreateReleaseRequestEntriesInner>> ProcessSynchronization(ILogger logger,
         bool verbose,
         SyncResult syncResult,
         string localFolder,
         int retryCount,
-        int maxConcurrentRequests,
+        int maxConcurrentBatchAddOrUpdate,
+        int concurrentUploadContentRequests,
         int retryDelayMilliseconds,
         CancellationToken cancellationToken);
 

@@ -48,11 +48,12 @@ static class FleetCreateHandler
         var regionCreateRequestList = regionIdList.Select(regionId => new Region(regionID: regionId)).ToList();
 
         var req = new FleetCreateRequest(
-            name: fleetName,
-            osFamily: osFamily,
-            regions: regionCreateRequestList,
-            buildConfigurations: buildConfigurations.ToList()
-        );
+                name: fleetName,
+                osFamily: osFamily,
+                regions: regionCreateRequestList,
+                buildConfigurations: buildConfigurations.ToList(),
+                allocationType: FleetCreateRequest.AllocationTypeEnum.ALLOCATION
+            );
 
         if (input.UsageSettings != null)
         {

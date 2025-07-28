@@ -8,6 +8,8 @@ static class LobbyConstants
 
     internal const string SchemaIdV2 = "lobbyv2";
 
+    internal const string SchemaIdV3 = "lobbyv3";
+
     internal const string ConfigKey = "lobbyConfig";
 
     internal const string ZipName = "ugs.lozip";

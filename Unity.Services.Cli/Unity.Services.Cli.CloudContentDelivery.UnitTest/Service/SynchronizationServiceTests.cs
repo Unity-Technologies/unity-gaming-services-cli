@@ -426,6 +426,7 @@ public class SynchronizationServiceTests
             "local-folder",
             3,
             5,
+            5,
             1000,
             CancellationToken.None);
 
@@ -466,6 +467,7 @@ public class SynchronizationServiceTests
                 syncResult,
                 "local-folder",
                 3,
+                20,
                 5,
                 1000,
                 CancellationToken.None));

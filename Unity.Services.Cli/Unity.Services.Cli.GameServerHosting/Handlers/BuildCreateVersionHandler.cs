@@ -42,7 +42,7 @@ static partial class BuildCreateVersionHandler
         CancellationToken cancellationToken = default
     )
     {
-        httpClient.Timeout = TimeSpan.FromMinutes(10);
+        httpClient.Timeout = TimeSpan.FromMinutes(60);
 
         var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         var buildIdStr = input.BuildId ?? throw new MissingInputException(BuildCreateVersionInput.BuildIdKey);

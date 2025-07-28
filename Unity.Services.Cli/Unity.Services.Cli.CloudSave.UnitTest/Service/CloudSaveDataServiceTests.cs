@@ -52,8 +52,20 @@ class CloudSaveServiceTests
 
     readonly CreateIndexBody m_ValidCreateIndexBody = new CreateIndexBody(
         new CreateIndexBodyIndexConfig(k_ValidIndexFields));
+    readonly SetItemBody m_ValidSetItemBody = new SetItemBody(
+        "key", "value");
+
 
     readonly CreateIndexResponse m_ValidCreateIndexResponse = new CreateIndexResponse("id", IndexStatus.READY);
+    readonly SetItemResponse m_ValidSetItemResponse = new SetItemResponse("valid_writeLock");
+
+    readonly GetItemsResponse m_ValidGetItemsResponse = new GetItemsResponse(
+        [
+            new Item("key1", "value1", "writelock1", new ModifiedMetadata(DateTime.Now), new ModifiedMetadata(DateTime.Today)),
+            new Item("key2", "value2", "writelock2", new ModifiedMetadata(DateTime.Now), new ModifiedMetadata(DateTime.Today))
+        ],
+        new GetItemsResponseLinks("next")
+    );
 
     [SetUp]
     public void SetUp()
@@ -949,4 +961,300 @@ class CloudSaveServiceTests
             Assert.That(e.Message, Does.Contain("Failed to deserialize object for Cloud Save request."));
         }
     }
+
+    #region Set Player Items
+
+    [Test]
+    public async Task SetPlayerDataItem_Default_Success()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        m_DataApiAsyncMock.Setup(
+            t => t.SetItemAsync(
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidProjectId),
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidEnvironmentId),
+                It.IsAny<string>(),
+                It.IsAny<SetItemBody>(),
+                It.IsAny<int>(),
+                CancellationToken.None)).ReturnsAsync(m_ValidSetItemResponse);
+
+        var visibility = PlayerIndexVisibilityTypes.Default;
+        var actual = await m_CloudSaveDataService!.SetPlayerDataItemAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId, m_ValidSetItemBody.Key, m_ValidSetItemBody.Value, null, visibility, CancellationToken.None);
+
+        m_DataApiAsyncMock.VerifyAll();
+        Assert.Multiple(() =>
+        {
+            Assert.That(actual.WriteLock, Is.EqualTo(m_ValidSetItemResponse.WriteLock));
+        });
+    }
+
+    [Test]
+    public async Task SetPlayerDataItem_Protected_Success()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        m_DataApiAsyncMock.Setup(
+            t => t.SetProtectedItemAsync(
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidProjectId),
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidEnvironmentId),
+                It.IsAny<string>(),
+                It.IsAny<SetItemBody>(),
+                It.IsAny<int>(),
+                CancellationToken.None)).ReturnsAsync(m_ValidSetItemResponse);
+
+        var visibility = PlayerIndexVisibilityTypes.Protected;
+        var actual = await m_CloudSaveDataService!.SetPlayerDataItemAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId, m_ValidSetItemBody.Key, m_ValidSetItemBody.Value, null, visibility, CancellationToken.None);
+
+        m_DataApiAsyncMock.VerifyAll();
+        Assert.Multiple(() =>
+        {
+            Assert.That(actual.WriteLock, Is.EqualTo(m_ValidSetItemResponse.WriteLock));
+        });
+    }
+
+    [Test]
+    public async Task SetPlayerDataItem_Public_Success()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        m_DataApiAsyncMock.Setup(
+            t => t.SetPublicItemAsync(
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidProjectId),
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidEnvironmentId),
+                It.IsAny<string>(),
+                It.IsAny<SetItemBody>(),
+                It.IsAny<int>(),
+                CancellationToken.None)).ReturnsAsync(m_ValidSetItemResponse);
+
+        var visibility = PlayerIndexVisibilityTypes.Public;
+        var actual = await m_CloudSaveDataService!.SetPlayerDataItemAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId, m_ValidSetItemBody.Key, m_ValidSetItemBody.Value, null, visibility, CancellationToken.None);
+
+        m_DataApiAsyncMock.VerifyAll();
+        Assert.Multiple(() =>
+        {
+            Assert.That(actual.WriteLock, Is.EqualTo(m_ValidSetItemResponse.WriteLock));
+        });
+    }
+
+    #endregion
+
+    #region Set Custom Items
+
+    [Test]
+    public async Task SetCustomDataItem_Default_Success()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        m_DataApiAsyncMock.Setup(
+            t => t.SetCustomItemAsync(
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidProjectId),
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidEnvironmentId),
+                It.IsAny<string>(),
+                It.IsAny<SetItemBody>(),
+                It.IsAny<int>(),
+                CancellationToken.None)).ReturnsAsync(m_ValidSetItemResponse);
+
+        var visibility = CustomIndexVisibilityTypes.Default;
+        var actual = await m_CloudSaveDataService!.SetCustomDataItemAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId, m_ValidSetItemBody.Key, m_ValidSetItemBody.Value, null, visibility, CancellationToken.None);
+
+        m_DataApiAsyncMock.VerifyAll();
+        Assert.Multiple(() =>
+        {
+            Assert.That(actual.WriteLock, Is.EqualTo(m_ValidSetItemResponse.WriteLock));
+        });
+    }
+
+    [Test]
+    public async Task SetCustomDataItem_Private_Success()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        m_DataApiAsyncMock.Setup(
+            t => t.SetPrivateCustomItemAsync(
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidProjectId),
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidEnvironmentId),
+                It.IsAny<string>(),
+                It.IsAny<SetItemBody>(),
+                It.IsAny<int>(),
+                CancellationToken.None)).ReturnsAsync(m_ValidSetItemResponse);
+
+        var visibility = CustomIndexVisibilityTypes.Private;
+        var actual = await m_CloudSaveDataService!.SetCustomDataItemAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId, m_ValidSetItemBody.Key, m_ValidSetItemBody.Value, null, visibility, CancellationToken.None);
+
+        m_DataApiAsyncMock.VerifyAll();
+        Assert.Multiple(() =>
+        {
+            Assert.That(actual.WriteLock, Is.EqualTo(m_ValidSetItemResponse.WriteLock));
+        });
+    }
+
+    #endregion
+
+    #region Get Player Items
+
+    [Test]
+    public async Task GetPlayerDataItem_Default_Success()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        m_DataApiAsyncMock.Setup(
+            t => t.GetItemsAsync(
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidProjectId),
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidEnvironmentId),
+                It.IsAny<string>(),
+                It.IsAny<List<string>>(),
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                CancellationToken.None)).ReturnsAsync(m_ValidGetItemsResponse);
+
+        var visibility = PlayerIndexVisibilityTypes.Default;
+        var actual = await m_CloudSaveDataService!.GetPlayerDataItemsAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId, null, null, visibility, CancellationToken.None);
+
+        m_DataApiAsyncMock.VerifyAll();
+        Assert.Multiple(() =>
+        {
+            Assert.That(actual.Results, Is.EqualTo(m_ValidGetItemsResponse.Results));
+            Assert.That(actual.Links, Is.EqualTo(m_ValidGetItemsResponse.Links));
+        });
+    }
+
+    [Test]
+    public async Task GetPlayerDataItem_Protected_Success()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        m_DataApiAsyncMock.Setup(
+            t => t.GetProtectedItemsAsync(
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidProjectId),
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidEnvironmentId),
+                It.IsAny<string>(),
+                It.IsAny<List<string>>(),
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                CancellationToken.None)).ReturnsAsync(m_ValidGetItemsResponse);
+
+        var visibility = PlayerIndexVisibilityTypes.Protected;
+        var actual = await m_CloudSaveDataService!.GetPlayerDataItemsAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId, null, null, visibility, CancellationToken.None);
+
+        m_DataApiAsyncMock.VerifyAll();
+        Assert.Multiple(() =>
+        {
+            Assert.That(actual.Results, Is.EqualTo(m_ValidGetItemsResponse.Results));
+            Assert.That(actual.Links, Is.EqualTo(m_ValidGetItemsResponse.Links));
+        });
+    }
+
+    [Test]
+    public async Task GetPlayerDataItem_Public_Success()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        m_DataApiAsyncMock.Setup(
+            t => t.GetPublicItemsAsync(
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidProjectId),
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidEnvironmentId),
+                It.IsAny<string>(),
+                It.IsAny<List<string>>(),
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                CancellationToken.None)).ReturnsAsync(m_ValidGetItemsResponse);
+
+        var visibility = PlayerIndexVisibilityTypes.Public;
+        var actual = await m_CloudSaveDataService!.GetPlayerDataItemsAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidPlayerId, null, null, visibility, CancellationToken.None);
+
+        m_DataApiAsyncMock.VerifyAll();
+        Assert.Multiple(() =>
+        {
+            Assert.That(actual.Results, Is.EqualTo(m_ValidGetItemsResponse.Results));
+            Assert.That(actual.Links, Is.EqualTo(m_ValidGetItemsResponse.Links));
+        });
+    }
+
+    #endregion
+
+    #region Get Custom Items
+
+    [Test]
+    public async Task GetCustomDataItem_Default_Success()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        m_DataApiAsyncMock.Setup(
+            t => t.GetCustomItemsAsync(
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidProjectId),
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidEnvironmentId),
+                It.IsAny<string>(),
+                It.IsAny<List<string>>(),
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                CancellationToken.None)).ReturnsAsync(m_ValidGetItemsResponse);
+
+        var visibility = CustomIndexVisibilityTypes.Default;
+        var actual = await m_CloudSaveDataService!.GetCustomDataItemsAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidCustomId, null, null, visibility, CancellationToken.None);
+
+        m_DataApiAsyncMock.VerifyAll();
+        Assert.Multiple(() =>
+        {
+            Assert.That(actual.Results, Is.EqualTo(m_ValidGetItemsResponse.Results));
+            Assert.That(actual.Links, Is.EqualTo(m_ValidGetItemsResponse.Links));
+        });
+    }
+
+    [Test]
+    public async Task GetCustomDataItem_Private_Success()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        m_DataApiAsyncMock.Setup(
+            t => t.GetPrivateCustomItemsAsync(
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidProjectId),
+                It.Is<Guid>(id => id.ToString() == TestValues.ValidEnvironmentId),
+                It.IsAny<string>(),
+                It.IsAny<List<string>>(),
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                CancellationToken.None)).ReturnsAsync(m_ValidGetItemsResponse);
+
+        var visibility = CustomIndexVisibilityTypes.Private;
+        var actual = await m_CloudSaveDataService!.GetCustomDataItemsAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, TestValues.ValidCustomId, null, null, visibility, CancellationToken.None);
+
+        m_DataApiAsyncMock.VerifyAll();
+        Assert.Multiple(() =>
+        {
+            Assert.That(actual.Results, Is.EqualTo(m_ValidGetItemsResponse.Results));
+            Assert.That(actual.Links, Is.EqualTo(m_ValidGetItemsResponse.Links));
+        });
+    }
+
+    #endregion
 }

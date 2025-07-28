@@ -10,6 +10,7 @@ class Config
     public string? Version { get; set; }
     public string? CreatedAt { get; set; }
     public string? UpdatedAt { get; set; }
+    public bool? UseA2S { get; set; }
     public List<RemoteConfigEntry>? Value { get; set; }
 }
 
