@@ -1,5 +1,5 @@
 using Newtonsoft.Json;
-using Unity.Services.Matchmaker.Authoring.Core.Model;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
 
 namespace Unity.Services.Cli.Matchmaker.Parser;
 

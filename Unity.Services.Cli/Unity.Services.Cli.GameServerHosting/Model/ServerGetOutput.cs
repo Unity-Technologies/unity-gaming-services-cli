@@ -19,6 +19,8 @@ public class ServerGetOutput
         Ip = server.Ip;
         LocationId = server.LocationID;
         LocationName = server.LocationName;
+        RegionId = server.RegionID;
+        RegionName = server.RegionName;
         MachineId = server.MachineID;
         Port = server.Port;
         Status = server.Status;
@@ -46,6 +48,10 @@ public class ServerGetOutput
     public long LocationId { get; }
 
     public string LocationName { get; }
+
+    public Guid RegionId { get; }
+
+    public string RegionName { get; }
 
     public long MachineId { get; }
 

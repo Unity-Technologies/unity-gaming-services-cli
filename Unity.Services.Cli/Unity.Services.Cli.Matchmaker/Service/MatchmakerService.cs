@@ -7,14 +7,14 @@ using Unity.Services.Cli.Common.Validator;
 using Unity.Services.Cli.ServiceAccountAuthentication;
 using Unity.Services.Cli.ServiceAccountAuthentication.Token;
 using Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Client;
-using Unity.Services.Matchmaker.Authoring.Core.Model;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
 using EnvironmentConfig = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model.EnvironmentConfig;
 using QueueConfig = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model.QueueConfig;
 
 
 namespace Unity.Services.Cli.Matchmaker.Service;
 
-public class MatchmakerService : IMatchmakerService
+class MatchmakerService : IMatchmakerService
 {
     readonly IMatchmakerAdminApi m_MatchmakerAdminApi;
     readonly IServiceAccountAuthenticationService m_AuthenticationService;

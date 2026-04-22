@@ -35,6 +35,7 @@ public class GameServerHostingModule : ICommandModule
 {
     public GameServerHostingModule()
     {
+        ObfuscatedInputs.Instance.NonObfuscatedOptions.Add(BuildCreateInput.BuildOsFamilyOption);
         BuildCreateCommand = new Command("create", "Create a Multiplay Hosting build.")
         {
             BuildCreateInput.BuildNameOption,

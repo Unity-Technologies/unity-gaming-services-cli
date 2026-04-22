@@ -119,12 +119,17 @@ class TriggerFetchHandlerTests
             reconcile: true
         );
 
+        var expectedFormatting = new JsonSerializerSettings()
+        {
+            DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
+            Formatting = Formatting.Indented
+        };
         var expectedFile1 = new TriggersConfigFile(
             new List<TriggerConfig>() { (TriggerConfig)remoteTriggers[0] });
         mockFileSystem
             .Verify(f => f.WriteAllText(
                 "path1",
-                JsonConvert.SerializeObject(expectedFile1, Formatting.Indented),
+                JsonConvert.SerializeObject(expectedFile1, expectedFormatting),
                 It.IsAny<CancellationToken>()),
                 Times.Once);
         var expectedFile2 = new TriggersConfigFile(
@@ -132,7 +137,7 @@ class TriggerFetchHandlerTests
         mockFileSystem
             .Verify(f => f.WriteAllText(
                 Path.Combine("dir", "name2.tr"),
-                JsonConvert.SerializeObject(expectedFile2, Formatting.Indented),
+                JsonConvert.SerializeObject(expectedFile2, expectedFormatting),
                 It.IsAny<CancellationToken>()),
                 Times.Once);
         mockFileSystem.Verify(f => f.Delete("path3", It.IsAny<CancellationToken>()));

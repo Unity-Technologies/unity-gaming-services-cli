@@ -177,14 +177,14 @@ public partial class UgsCliTestCase
         {
             EnsureProcessStarted();
             await m_LastProcess!.WaitForExitAsync(cancellationToken);
-            var output = await m_LastProcess.StandardOutput.ReadToEndAsync();
+            var output = await m_LastProcess.StandardOutput.ReadToEndAsync(cancellationToken);
             try
             {
                 outputHandler(output);
             }
             catch (AssertionException)
             {
-                TestContext.Write($"{k_CliName}{m_LastProcess.StartInfo.Arguments}{System.Environment.NewLine}{output}");
+                TestContext.Write($"{k_CliName}{m_LastProcess.StartInfo.Arguments}{Environment.NewLine}{output}");
                 throw;
             }
         });

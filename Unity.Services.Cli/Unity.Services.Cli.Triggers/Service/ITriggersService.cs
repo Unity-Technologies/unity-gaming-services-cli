@@ -4,7 +4,7 @@ namespace Unity.Services.Cli.Triggers.Service;
 
 interface ITriggersService
 {
-    Task<IEnumerable<TriggerConfig>> GetTriggersAsync(
+    Task<List<TriggerConfigListItem>> GetTriggersAsync(
         string projectId,
         string environmentId,
         int? limit,

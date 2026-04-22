@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.WebSockets;
@@ -37,6 +38,7 @@ namespace Unity.Services.GameServerHosting.LocalProxy.ProxyServer
         public IPAddress ServerAddress { get; init; } = IPAddress.Loopback;
         public ushort ServerPort { get; init; }
         public WebsocketClientAuth ClientAuth { get; init; }
+        public Dictionary<string, string> Headers { get; init; }
     }
 
     /// <summary>
@@ -147,7 +149,7 @@ namespace Unity.Services.GameServerHosting.LocalProxy.ProxyServer
 
         LocalProxyServer BuildLocalProxyServer()
         {
-            var server = new LocalProxyServer(m_Logger, m_RemoteLocalProxyService, m_LocalProxyConfig.UpstreamHost);
+            var server = new LocalProxyServer(m_Logger, m_RemoteLocalProxyService, m_LocalProxyConfig.UpstreamHost, m_LocalProxyConfig.Headers);
 
             var success = m_Disposables.TryAdd(k_WebSocketServer, server);
             if (!success)
@@ -232,6 +234,15 @@ namespace Unity.Services.GameServerHosting.LocalProxy.ProxyServer
             if (m_LocalProxyConfig.ClientAuth != null)
             {
                 upstream.Options.SetRequestHeader("Authorization", m_LocalProxyConfig.ClientAuth.ToBasicAuthHeader());
+            }
+
+            // Add all headers from LocalProxyConfig
+            if (m_LocalProxyConfig.Headers != null)
+            {
+                foreach (var header in m_LocalProxyConfig.Headers)
+                {
+                    upstream.Options.SetRequestHeader(header.Key, header.Value);
+                }
             }
 
             upstream.Options.KeepAliveInterval = TimeSpan.FromSeconds(30);

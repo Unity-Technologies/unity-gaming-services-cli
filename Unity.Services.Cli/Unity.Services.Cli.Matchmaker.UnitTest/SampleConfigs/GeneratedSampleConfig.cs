@@ -1,24 +1,26 @@
 namespace Unity.Services.Cli.Matchmaker.UnitTest.SampleConfigs;
 using Generated = Gateway.MatchmakerAdminApiV3.Generated.Model;
+using Newtonsoft.Json;
 
 class GeneratedSampleConfig
 {
     struct TestTruct
     {
-        public string myObject;
+        [JsonProperty("myObject")]
+        public string MyObject;
 
         public TestTruct()
         {
-            myObject = "defaultValue";
+            MyObject = "defaultValue";
         }
 
         public TestTruct(string myObject)
         {
-            this.myObject = myObject;
+            MyObject = myObject;
         }
     }
 
-    public Generated.QueueConfig QueueConfig
+    public static Generated.QueueConfig QueueConfig
     {
         get => new Generated.QueueConfig(
             name: "DefaultQueueTest",
@@ -32,7 +34,10 @@ class GeneratedSampleConfig
                         type: Generated.MultiplayHostingConfig.TypeEnum.Multiplay,
                         fleetId: "e8b109e1-6746-4ce6-9c21-3330509554a1",
                         buildConfigurationId: "74874928923749",
-                        defaultQoSRegionId: "3eac13c4-bf61-4b05-83df-eed5732ad305"
+                        defaultQoSRegionId: "3eac13c4-bf61-4b05-83df-eed5732ad305",
+                        moduleName: "module",
+                        allocateFunctionName: "allocate",
+                        pollFunctionName: "poll"
                     )),
                 matchLogic: new Generated.Rules(
                     name: "TestMatchLogic",
@@ -282,11 +287,55 @@ class GeneratedSampleConfig
                         )
                     }
                 ),
+                new Generated.FilteredPoolConfig(
+                    name: "CloudCodeFilteredPool",
+                    enabled: false,
+                    filters: new List<Generated.Filter>()
+                    {
+                        new Generated.Filter(
+                            attribute: "Game-mode-eq",
+                            value: "TDM",
+                            _operator: Generated.Filter.OperatorEnum.Equal
+                        )
+                    },
+                    matchHosting: new Generated.MatchHosting(
+                        new Generated.CloudCodeHostingConfig(
+                            type: Generated.CloudCodeHostingConfig.TypeEnum.CloudCode,
+                            moduleName: "cc-module",
+                            allocateFunctionName: "cc-allocate",
+                            pollFunctionName: "cc-poll"
+                        )),
+                    matchLogic: new Generated.Rules(
+                        name: "CCFilteredMatchLogic",
+                        backfillEnabled: false,
+                        matchDefinition: new Generated.RuleBasedMatchDefinition(
+                            teams: new List<Generated.RuleBasedTeamDefinition>(),
+                            matchRules: new List<Generated.Rule>()
+                        )
+                    ),
+                    variants: new List<Generated.PoolConfig>()
+                    {
+                        new Generated.PoolConfig(
+                            name: "CCVariantPool",
+                            enabled: true,
+                            timeoutSeconds: 10,
+                            matchLogic: new Generated.Rules(
+                                name: "cc-logic",
+                                backfillEnabled: true,
+                                matchDefinition: new Generated.RuleBasedMatchDefinition(
+                                    matchRules: new List<Generated.Rule>(),
+                                    teams: new List<Generated.RuleBasedTeamDefinition>()
+                                )
+                            ),
+                            matchHosting: new Generated.MatchHosting(new Generated.MatchIdHostingConfig(Generated.MatchIdHostingConfig.TypeEnum.MatchId))
+                        )
+                    }
+                )
             }
         );
     }
 
-    public Generated.QueueConfig EmptyQueueConfig
+    public static Generated.QueueConfig EmptyQueueConfig
     {
         get => new Generated.QueueConfig(
             name: "EmptyQueue",

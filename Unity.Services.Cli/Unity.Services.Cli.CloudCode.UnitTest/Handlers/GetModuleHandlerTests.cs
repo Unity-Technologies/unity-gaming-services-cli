@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -24,7 +25,7 @@ class GetModuleHandlerTests
     readonly Mock<IUnityEnvironment> m_MockUnityEnvironment = new();
     readonly Mock<ICloudCodeService> m_MockCloudCode = new();
     readonly Mock<ILogger> m_MockLogger = new();
-    readonly DateTime dateTime = DateTime.Now;
+    readonly DateTime m_DateTime = DateTime.Now;
 
     [SetUp]
     public void SetUp()
@@ -41,8 +42,8 @@ class GetModuleHandlerTests
                     "CS",
                     null,
                     "url",
-                    dateTime,
-                    dateTime));
+                    m_DateTime,
+                    m_DateTime));
     }
 
     [Test]
@@ -89,8 +90,8 @@ class GetModuleHandlerTests
             "CS",
             null,
             "url",
-            dateTime,
-            dateTime));
+            m_DateTime,
+            m_DateTime));
 
         TestsHelper.VerifyLoggerWasCalled(
             m_MockLogger, LogLevel.Critical, LoggerExtension.ResultEventId, Times.Once, output.ToString());

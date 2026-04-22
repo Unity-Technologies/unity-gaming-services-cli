@@ -1,10 +1,10 @@
-using Unity.Services.Matchmaker.Authoring.Core.Model;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
 using EnvironmentConfig = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model.EnvironmentConfig;
 using QueueConfig = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model.QueueConfig;
 
 namespace Unity.Services.Cli.Matchmaker.Service;
 
-public interface IMatchmakerService
+interface IMatchmakerService
 {
     Task<string> Initialize(string projectId, string environmentId, CancellationToken ct = default);
 

@@ -9,10 +9,13 @@ using Unity.Services.Cli.Common;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Common.Logging;
+using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.Triggers.Deploy;
 using Unity.Services.Cli.Triggers.Fetch;
+using Unity.Services.Cli.Triggers.Handlers;
+using Unity.Services.Cli.Triggers.Input;
 using Unity.Services.Cli.Triggers.IO;
 using Unity.Services.Cli.Triggers.Service;
 using Unity.Services.Gateway.TriggersApiV1.Generated.Api;
@@ -25,18 +28,47 @@ using IFileSystem = Unity.Services.Triggers.Authoring.Core.IO.IFileSystem;
 
 namespace Unity.Services.Cli.Triggers;
 
-/// <summary>
-/// A Template module to achieve a get request command: ugs triggers get `address` -o `file`
-/// </summary>
 public class TriggersModule : ICommandModule
 {
     public Command? ModuleRootCommand { get; }
 
+    static readonly Command k_ListCommand = new("list", "List trigger configurations.")
+    {
+        ListTriggersInput.LimitOption,
+        CommonInput.CloudProjectIdOption,
+        CommonInput.EnvironmentNameOption,
+    };
+
+    static readonly Command k_DeleteCommand = new("delete", "Delete a trigger configuration.")
+    {
+        DeleteTriggerInput.TriggerIdArgument,
+        CommonInput.CloudProjectIdOption,
+        CommonInput.EnvironmentNameOption,
+    };
+
     public TriggersModule()
     {
+        k_ListCommand.SetHandler<
+            ListTriggersInput,
+            IUnityEnvironment,
+            ITriggersService,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken>(ListTriggersHandler.ListAsync);
+
+        k_DeleteCommand.SetHandler<
+            DeleteTriggerInput,
+            IUnityEnvironment,
+            ITriggersService,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken>(DeleteTriggersHandler.DeleteAsync);
+
         ModuleRootCommand = new("triggers", "Triggers module root command.")
         {
             ModuleRootCommand.AddNewFileCommand<TriggersConfigFile>("Trigger"),
+            k_ListCommand,
+            k_DeleteCommand,
         };
 
         ModuleRootCommand.AddAlias("tr");

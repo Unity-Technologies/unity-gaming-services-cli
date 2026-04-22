@@ -62,6 +62,8 @@ public class CloudSaveModule : ICommandModule
 
     public CloudSaveModule()
     {
+        ObfuscatedInputs.Instance.NonObfuscatedOptions.Add(QueryDataInput.VisibilityOption);
+
         ListIndexesCommand = new Command("list", "List all indexes.")
         {
             CommonInput.CloudProjectIdOption,

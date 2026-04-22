@@ -10,8 +10,8 @@ using Unity.Services.Cli.Matchmaker.Service;
 using Unity.Services.Cli.Matchmaker.UnitTest.SampleConfigs;
 using Unity.Services.Cli.ServiceAccountAuthentication;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
-using Unity.Services.Matchmaker.Authoring.Core.ConfigApi;
-using Core = Unity.Services.Matchmaker.Authoring.Core.Model;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.ConfigApi;
+using Core = Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
 using Generated = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model;
 
 
@@ -80,7 +80,6 @@ class AdminApiClientUnitTests
             .Returns(Task.FromResult((true, removeEnvConfig)));
         var expectedConfig = new Core.EnvironmentConfig
         {
-            Type = Core.IMatchmakerConfig.ConfigType.EnvironmentConfig,
             Enabled = true,
             DefaultQueueName = new Core.QueueName("Test")
         };
@@ -137,7 +136,6 @@ class AdminApiClientUnitTests
         // Setup
         var multiplaySampleConfig = new MultiplaySampleConfig();
         var coreSampleConfig = new CoreSampleConfig();
-        var generatedSampleConfig = new GeneratedSampleConfig();
         var gshService = new Mock<IGameServerHostingService>();
         gshService.Setup(f => f.FleetsApi.ListFleets(It.IsAny<Guid>(), It.IsAny<Guid>(), default)).Returns(multiplaySampleConfig.RemoteFleets);
         var configService = new Mock<IMatchmakerService>();
@@ -145,8 +143,8 @@ class AdminApiClientUnitTests
             .Setup(x => x.ListQueues(default))
             .Returns(Task.FromResult(new List<Generated.QueueConfig>()
             {
-                generatedSampleConfig.QueueConfig,
-                generatedSampleConfig.EmptyQueueConfig
+                GeneratedSampleConfig.QueueConfig,
+                GeneratedSampleConfig.EmptyQueueConfig
             }));
         var expectedQueueConfigs = new List<Core.QueueConfig>()
         {
@@ -170,6 +168,27 @@ class AdminApiClientUnitTests
         actualJson = JsonConvert.SerializeObject(actualConfig[1].Item1, MatchmakerConfigParser.JsonSerializerSettings);
         expectedJson = JsonConvert.SerializeObject(expectedQueueConfigs[1], MatchmakerConfigParser.JsonSerializerSettings);
         Assert.That(expectedJson, Is.EqualTo(actualJson));
+
+        // Multiplay extra fields on default pool
+        var defaultPoolHosting = actualConfig[0].Item1.DefaultPool!.MatchHosting as Core.MultiplayConfig;
+        Assert.That(defaultPoolHosting, Is.Not.Null);
+        Assert.That(defaultPoolHosting!.ModuleName, Is.EqualTo("module"));
+        Assert.That(defaultPoolHosting!.AllocateFunctionName, Is.EqualTo("allocate"));
+        Assert.That(defaultPoolHosting!.PollFunctionName, Is.EqualTo("poll"));
+
+        // Filtered pools: one MatchId and one CloudCode
+        Assert.That(actualConfig[0].Item1.FilteredPools!.Count, Is.EqualTo(2));
+
+        var filtered0 = actualConfig[0].Item1.FilteredPools![0].MatchHosting;
+        var filtered1 = actualConfig[0].Item1.FilteredPools![1].MatchHosting;
+
+        Assert.That(filtered0, Is.TypeOf<Core.MatchIdConfig>());
+        Assert.That(filtered1, Is.TypeOf<Core.CloudCodeConfig>());
+
+        var cloudCodeHosting = (Core.CloudCodeConfig)filtered1;
+        Assert.That(cloudCodeHosting.ModuleName, Is.EqualTo("cc-module"));
+        Assert.That(cloudCodeHosting.AllocateFunctionName, Is.EqualTo("cc-allocate"));
+        Assert.That(cloudCodeHosting.PollFunctionName, Is.EqualTo("cc-poll"));
     }
 
     [Test]
@@ -180,7 +199,6 @@ class AdminApiClientUnitTests
         // Setup
         var multiplaySampleConfig = new MultiplaySampleConfig();
         var coreSampleConfig = new CoreSampleConfig();
-        var generatedSampleConfig = new GeneratedSampleConfig();
         var gshService = new Mock<IGameServerHostingService>();
         gshService.Setup(f => f.FleetsApi.ListFleets(It.IsAny<Guid>(), It.IsAny<Guid>(), default)).Returns(multiplaySampleConfig.RemoteFleets);
         var configService = new Mock<IMatchmakerService>();
@@ -198,7 +216,7 @@ class AdminApiClientUnitTests
         Assert.That(configService.Invocations.Count, Is.EqualTo(2));
         var that = configService.Invocations[1].Arguments[0];
         var actualEnvConfig = JsonConvert.SerializeObject(that, MatchmakerConfigParser.JsonSerializerSettings);
-        var expectedConfig = JsonConvert.SerializeObject(emptyQueue ? generatedSampleConfig.EmptyQueueConfig : generatedSampleConfig.QueueConfig, MatchmakerConfigParser.JsonSerializerSettings);
+        var expectedConfig = JsonConvert.SerializeObject(emptyQueue ? GeneratedSampleConfig.EmptyQueueConfig : GeneratedSampleConfig.QueueConfig, MatchmakerConfigParser.JsonSerializerSettings);
         Assert.That(actualEnvConfig, Is.EqualTo(expectedConfig));
         Assert.That(errors.Count, Is.EqualTo(1));
         Assert.That(errors[0].ResultCode, Is.EqualTo("MockedFailedValidation"));
@@ -248,13 +266,11 @@ class AdminApiClientUnitTests
     {
         // Setup
         var multiplaySampleConfig = new MultiplaySampleConfig();
-        var generatedSampleConfig = new GeneratedSampleConfig();
-
         var gshService = new Mock<IGameServerHostingService>();
         var configService = new Mock<IMatchmakerService>();
         var multiplayConfig = multiplaySampleConfig.RemoteFleets;
         configService.Setup(f => f.ListQueues(default))
-            .ReturnsAsync(new List<Generated.QueueConfig>() { generatedSampleConfig.QueueConfig });
+            .ReturnsAsync(new List<Generated.QueueConfig>() { GeneratedSampleConfig.QueueConfig });
         var client = new AdminApiClient.MatchmakerAdminClient(configService.Object, gshService.Object);
 
         // Setup

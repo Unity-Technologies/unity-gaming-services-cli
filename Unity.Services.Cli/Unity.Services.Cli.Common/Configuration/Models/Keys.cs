@@ -15,7 +15,7 @@ public static class Keys
             new Dictionary<string, string>
             {
                 [ConfigKeys.ProjectId] = EnvironmentKeys.ProjectId,
-                [ConfigKeys.EnvironmentName] = EnvironmentKeys.EnvironmentName
+                [ConfigKeys.EnvironmentName] = EnvironmentKeys.EnvironmentName,
             });
 
     /// <summary>
@@ -30,12 +30,13 @@ public static class Keys
         // Environment Id is currently not stored/retrieved but the key is used for validation purposes
         public const string EnvironmentId = "environment-id";
         public const string BucketName = "bucket-name";
+        public const string ReleaseName = "release-name";
 
         public static readonly IReadOnlyList<string> Keys = new List<string>
         {
             ProjectId,
             EnvironmentName,
-            BucketName
+            BucketName,
         };
     }
 
@@ -47,6 +48,7 @@ public static class Keys
         public const string ProjectId = "UGS_CLI_PROJECT_ID";
         public const string EnvironmentName = "UGS_CLI_ENVIRONMENT_NAME";
         public const string BucketName = "UGS_CLI_BUCKET_NAME";
+        public const string ReleaseName = "UGS_CLI_RELEASE_NAME";
 
         public const string TelemetryDisabled = "UGS_CLI_TELEMETRY_DISABLED";
 

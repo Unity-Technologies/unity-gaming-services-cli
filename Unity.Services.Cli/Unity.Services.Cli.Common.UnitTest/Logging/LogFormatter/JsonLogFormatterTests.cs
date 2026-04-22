@@ -38,7 +38,6 @@ public class JsonLogFormatterTests
     }
 
     [TestCaseSource(nameof(k_WriteResultTestCases))]
-    [TestCase(null)]
     public void WriteResult_OutputsStringOrStringListCorrectly(object result)
     {
         m_Cache!.AddResult(result);
@@ -46,6 +45,17 @@ public class JsonLogFormatterTests
         var resultLogMessage = m_LogMessageTestHelper!.LogMessage;
         Assert.AreEqual(
             JsonConvert.SerializeObject(result, Formatting.Indented) + System.Environment.NewLine,
+            resultLogMessage);
+    }
+
+    [Test]
+    public void WriteResult_OutputsNullListCorrectly()
+    {
+        m_Cache!.AddResult(null);
+        m_Formatter!.WriteLog(m_Cache);
+        var resultLogMessage = m_LogMessageTestHelper!.LogMessage;
+        Assert.AreEqual(
+            string.Empty,
             resultLogMessage);
     }
 

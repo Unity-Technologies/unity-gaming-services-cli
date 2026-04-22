@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Unity.Services.Cli.GameServerHosting.Types;
@@ -24,4 +25,6 @@ public class ServerInfoConnectionV5
     public string? Host { get; set; }
     [JsonProperty("port")]
     public int Port { get; set; }
+    [JsonProperty("headers")]
+    public Dictionary<string, string> Headers { get; set; } = new();
 }

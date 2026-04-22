@@ -44,7 +44,7 @@ public class ConfigurationModule : ICommandModule
             CommonInput.UseForceOption
         };
         DeleteCommand.SetHandler<ConfigurationInput, IConfigurationService, ILogger, ISystemEnvironmentProvider, CancellationToken>(
-            DeleteHandler.DeleteAsync);
+            DeleteTriggersHandler.DeleteAsync);
 
         ModuleRootCommand = new(
             "config",

@@ -22,6 +22,8 @@ namespace Unity.Services.Triggers.Authoring.Core.Model
         public string ActionUrn { get; set; }
         [DataMember]
         public string Filter { get; set; }
+        [DataMember]
+        public WebhookConfig Webhook { get; set; }
 
         public string Path { get; set; }
         public event PropertyChangedEventHandler PropertyChanged;
@@ -36,16 +38,17 @@ namespace Unity.Services.Triggers.Authoring.Core.Model
         }
 
         [JsonConstructor]
-        public TriggerConfig(string name, string eventType, string actionType, string actionUrn, string filter)
+        public TriggerConfig(string name, string eventType, string actionType, string actionUrn, string filter, WebhookConfig webhook = null)
         {
             Name = name;
             EventType = eventType;
             ActionType = actionType;
             ActionUrn = actionUrn;
             Filter = filter;
+            Webhook = webhook;
         }
 
-        public TriggerConfig(string id, string name, string eventType, string actionType, string actionUrn, string filter)
+        public TriggerConfig(string id, string name, string eventType, string actionType, string actionUrn, string filter, WebhookConfig webhook = null)
         {
             Id = id;
             Name = name;
@@ -53,6 +56,7 @@ namespace Unity.Services.Triggers.Authoring.Core.Model
             ActionType = actionType;
             ActionUrn = actionUrn;
             Filter = filter;
+            Webhook = webhook;
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

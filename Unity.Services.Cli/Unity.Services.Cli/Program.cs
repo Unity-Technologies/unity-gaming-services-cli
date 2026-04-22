@@ -27,6 +27,7 @@ using Unity.Services.Cli.Common.Telemetry.AnalyticEvent.AnalyticEventFactory;
 using Unity.Services.Cli.Authoring;
 using Unity.Services.Cli.GameServerHosting;
 using Unity.Services.Cli.Matchmaker;
+
 #if FEATURE_ECONOMY
 using Unity.Services.Cli.Economy;
 #endif
@@ -40,9 +41,7 @@ using Unity.Services.Cli.Player;
 using Unity.Services.Cli.Access;
 using Unity.Services.Cli.Scheduler;
 using Unity.Services.Cli.CloudSave;
-
 using Unity.Services.Cli.CloudContentDelivery;
-
 
 namespace Unity.Services.Cli;
 
@@ -60,7 +59,8 @@ public static partial class Program
         TelemetrySender telemetrySender = null;
         SystemEnvironmentProvider systemEnvironmentProvider = new SystemEnvironmentProvider();
         IAnalyticEventFactory analyticEventFactory = new AnalyticEventFactory(systemEnvironmentProvider);
-        IAnalyticsEventBuilder analyticsEventBuilder = new AnalyticsEventBuilder(analyticEventFactory, new FileSystem());
+        IAnalyticsEventBuilder analyticsEventBuilder =
+            new AnalyticsEventBuilder(analyticEventFactory, new FileSystem());
 
         var parser = BuildCommandLine()
             .UseHost(
@@ -95,7 +95,6 @@ public static partial class Program
                     host.ConfigureServices(CloudSaveModule.RegisterServices);
                     host.ConfigureServices(LeaderboardsModule.RegisterServices);
                     host.ConfigureServices(PlayerModule.RegisterServices);
-
                     host.ConfigureServices(CloudContentDeliveryModule.RegisterServices);
                     host.ConfigureServices(MatchmakerModule.RegisterServices);
                     host.ConfigureServices(serviceCollection => serviceCollection
@@ -105,39 +104,36 @@ public static partial class Program
                         .AddSingleton<IAnalyticsEventBuilder>(analyticsEventBuilder));
                 })
             .UseVersionOption()
-            .UseHelp(
-                ctx =>
+            .UseHelp(ctx =>
+            {
+                ctx.HelpBuilder.CustomizeLayout(_ =>
                 {
-                    ctx.HelpBuilder.CustomizeLayout(
-                        _ =>
-                        {
-                            List<HelpSectionDelegate> helpSectionDelegates = HelpBuilder.Default.GetLayout().ToList();
+                    List<HelpSectionDelegate> helpSectionDelegates = HelpBuilder.Default.GetLayout().ToList();
 
-                            helpSectionDelegates.Insert(
-                                1,
-                                _ => ansiConsole
-                                    .Markup(
-                                        $"Project Role Requirements:{System.Environment.NewLine}  You may need " +
-                                        $"permissions to use this module or command.{System.Environment.NewLine}  " +
-                                        "Visit https://services.docs.unity.com/guides/ugs-cli/latest/general/" +
-                                        "troubleshooting/project-roles for required project roles." +
-                                        $"{System.Environment.NewLine}"));
+                    helpSectionDelegates.Insert(
+                        1,
+                        _ => ansiConsole
+                            .Markup(
+                                $"Project Role Requirements:{System.Environment.NewLine}  You may need " +
+                                $"permissions to use this module or command.{System.Environment.NewLine}  " +
+                                "Visit https://services.docs.unity.com/guides/ugs-cli/latest/general/" +
+                                "troubleshooting/project-roles for required project roles." +
+                                $"{System.Environment.NewLine}"));
 
-                            // Replace built-in subcommand help section by custom subcommand help section
-                            helpSectionDelegates.Remove(HelpBuilder.Default.SubcommandsSection());
-                            helpSectionDelegates.Add(SubcommandsSectionDelegate(ctx, ansiConsole));
+                    // Replace built-in subcommand help section by custom subcommand help section
+                    helpSectionDelegates.Remove(HelpBuilder.Default.SubcommandsSection());
+                    helpSectionDelegates.Add(SubcommandsSectionDelegate(ctx, ansiConsole));
 
-                            return helpSectionDelegates.AsEnumerable();
-                        });
-                })
+                    return helpSectionDelegates.AsEnumerable();
+                });
+            })
             .UseEnvironmentVariableDirective()
             .UseParseDirective()
             .UseSuggestDirective()
             .RegisterWithDotnetSuggest()
             .UseTypoCorrections()
             .UseParseErrorReporting()
-            .UseExceptionHandler(
-                (exception, context) =>
+            .UseExceptionHandler((exception, context) =>
                 {
                     var diagnostics = analyticEventFactory.CreateDiagnosticEvent();
                     var exceptionHelper = new ExceptionHelper(diagnostics, ansiConsole);
@@ -178,13 +174,12 @@ public static partial class Program
 
         return await parser
             .InvokeAsync(args, console: new LoggerConsole(logger.StdOut, logger.StdErr))
-            .ContinueWith(
-                commandTask =>
-                {
-                    logger.Write();
-                    TrySendCommandUsageMetric(analyticsEventBuilder, parser.Parse(args));
-                    return commandTask.Result;
-                });
+            .ContinueWith(commandTask =>
+            {
+                logger.Write();
+                TrySendCommandUsageMetric(analyticsEventBuilder, parser.Parse(args));
+                return commandTask.Result;
+            });
     }
 
     static CommandLineBuilder BuildCommandLine()

@@ -78,6 +78,7 @@ static class FleetUpdateHandler
             throw new CliException("Fleet does not have usage settings. At least 1 fleet usage must exist to be able to scale fleet up. ", ExitCode.HandledError);
         }
 
+
         await service.FleetsApi.UpdateFleetAsync(Guid.Parse(input.CloudProjectId!), Guid.Parse(environmentId),
             Guid.Parse(fleetId), fleetUpdateReq, cancellationToken: cancellationToken);
 

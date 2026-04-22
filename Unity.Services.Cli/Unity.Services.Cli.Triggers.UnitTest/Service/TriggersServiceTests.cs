@@ -64,7 +64,7 @@ class TriggersServiceTests
         m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
             .Returns(true);
 
-        var result = new TriggerConfigPage(Guid.Empty, Guid.Empty, new List<TriggerConfig>() { new(), new() });
+        var result = new TriggerConfigPage(new List<TriggerConfigListItem>() { new(), new() });
         m_TriggersApiMock.Setup(
             t => t.ListTriggerConfigsAsync(
                 It.Is<Guid>(id => id.ToString() == k_ValidProjectId),
@@ -111,7 +111,7 @@ class TriggersServiceTests
         var config = new TriggerConfigBody(
             "name",
             "eventType",
-            TriggerActionType.CloudCode,
+            "CloudCode",
             "cc/blah");
         m_TriggersApiMock.Setup(
             t => t.CreateTriggerConfigAsync(
@@ -129,12 +129,45 @@ class TriggersServiceTests
     }
 
     [Test]
+    public async Task CreateAsync_Webhook_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        var configWithWebhook = new TriggerConfigBody(
+            "name",
+            "eventType",
+            "webhook",
+            "cc/blah",
+            "",
+            new WebhookConfigBody(
+                "https://example.com",
+                "POST",
+                new Dictionary<string, string>() { {"Content-Type",  "application/json"} },
+                "{\"message\": \"Hello, world!\"}"));
+        m_TriggersApiMock.Setup(
+            t => t.CreateTriggerConfigAsync(
+                It.Is<Guid>(id => id.ToString() == k_ValidProjectId),
+                It.Is<Guid>(id => id.ToString() == k_ValidEnvironmentId),
+                configWithWebhook,
+                0,
+                CancellationToken.None
+            ));
+
+        await m_TriggersService!.CreateTriggerAsync(
+            k_ValidProjectId, k_ValidEnvironmentId,
+            configWithWebhook,
+            CancellationToken.None);
+    }
+
+    [Test]
     public async Task UpdateAsync_Succeeded()
     {
         string mockErrorMsg;
         m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
             .Returns(true);
-        var updatedConfig = new TriggerConfigBody("name", "eventType", TriggerActionType.CloudCode, "urn", "filter");
+        var updatedConfig = new TriggerConfigBody("name", "eventType", "CloudCode", "urn", "filter");
         m_TriggersApiMock.Setup(
             t => t.DeleteTriggerConfigAsync(
                 It.Is<Guid>(id => id.ToString() == k_ValidProjectId),

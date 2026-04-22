@@ -21,6 +21,7 @@ public class FetchModule : ICommandModule
 
     public FetchModule()
     {
+        ObfuscatedInputs.Instance.NonObfuscatedOptions.Add(FetchInput.ServiceOptions);
         ModuleRootCommand = new Command(
             "fetch",
             $"Fetch configuration files of supported services from the backend.")
@@ -30,7 +31,7 @@ public class FetchModule : ICommandModule
             FetchInput.ServiceOptions,
             FetchInput.DryRunOption,
             CommonInput.EnvironmentNameOption,
-            CommonInput.CloudProjectIdOption
+            CommonInput.CloudProjectIdOption,
         };
         ModuleRootCommand.SetHandler<
             IHost,

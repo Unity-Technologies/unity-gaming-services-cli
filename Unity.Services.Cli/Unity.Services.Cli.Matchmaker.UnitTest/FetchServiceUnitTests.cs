@@ -3,10 +3,10 @@ using Moq;
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Matchmaker.Service;
-using Unity.Services.Matchmaker.Authoring.Core.ConfigApi;
-using Unity.Services.Matchmaker.Authoring.Core.Fetch;
-using Unity.Services.Matchmaker.Authoring.Core.Model;
-using FetchResult = Unity.Services.Matchmaker.Authoring.Core.Fetch.FetchResult;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.ConfigApi;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Fetch;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
+using FetchResult = Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Fetch.FetchResult;
 
 namespace Unity.Services.Cli.Matchmaker.UnitTest;
 

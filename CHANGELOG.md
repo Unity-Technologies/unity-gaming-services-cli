@@ -5,6 +5,19 @@ All notable changes to UGS CLI will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-04-20
+
+### Changed
+- [Cloud Code] Module template now includes a test project, a `.gitignore`, and targets .NET 9.
+- [Matchmaker] Add Cloud Code Hosting Type to Matchmaker Pools.
+- [Matchmaker] Migrate to consolidated multiplayer SDK.
+- [Matchmaker] Implement Common Expression Language (CEL) for Pool Filters.
+- API error responses are now in a YAML format, with --json flag support to have JSON formatting with proper formatting
+- [Cloud Code] Fully implement Get Module API return fields.
+- [Cloud Code] Add option to choose .NET version during module creation.
+- [Triggers] Add commands to list and delete triggers.
+- [Triggers] Add support for webhook triggers
+
 ## [1.8.0] - 2025-07-23
 
 ### Changed

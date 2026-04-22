@@ -289,7 +289,8 @@ public class CloudCodeModule : ICommandModule
         {
             CloudCodeInput.ModuleNameArgument,
             CloudCodeInput.ModuleDirectoryArgument,
-            CommonInput.UseForceOption
+            CloudCodeInput.TargetFrameworkOption,
+            CommonInput.UseForceOption,
         };
         newFileCommand.SetHandler<
             CloudCodeInput,
@@ -362,13 +363,10 @@ public class CloudCodeModule : ICommandModule
 
         serviceCollection.AddTransient<CloudCodeModuleSolutionGenerator, CloudCodeModuleSolutionGenerator>();
         serviceCollection.AddTransient<IDotnetRunner, CloudCodeCliDotnetRunner>();
-        serviceCollection.AddTransient<IFileContentRetriever, FileContentRetriever>();
         serviceCollection.AddTransient<IFileSystem, FileSystem>();
         serviceCollection.AddTransient<ITemplateInfo, TemplateInfo>();
         serviceCollection.AddTransient<IAssemblyLoader, AssemblyLoader>();
         serviceCollection.AddTransient<IFileStream, CloudCodeFileStream>();
-        serviceCollection.AddTransient<IFileCopier, FileCopier>();
-        serviceCollection.AddTransient<IPathResolver, PathResolver>();
         serviceCollection.AddTransient<ISolutionPublisher, SolutionPublisher>();
         serviceCollection.AddTransient<IModuleZipper, ModuleZipper>();
         serviceCollection.AddTransient<IModuleProjectRetriever, ModuleProjectRetriever>();

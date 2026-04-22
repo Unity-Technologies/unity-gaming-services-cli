@@ -3,8 +3,8 @@ using Unity.Services.Cli.GameServerHosting.Service;
 using Unity.Services.Cli.Matchmaker.Parser;
 using Unity.Services.Cli.Matchmaker.Service;
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
-using Unity.Services.Matchmaker.Authoring.Core.ConfigApi;
-using Unity.Services.Matchmaker.Authoring.Core.Model;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.ConfigApi;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
 using Generated = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model;
 
 namespace Unity.Services.Cli.Matchmaker.AdminApiClient;
@@ -13,7 +13,7 @@ class MatchmakerAdminClient : IConfigApiClient
 {
     readonly IMatchmakerService m_Service;
     readonly IGameServerHostingService m_GameServerHostingService;
-    MultiplayResources m_RemoteMultiplayResources;
+    MultiplayResources m_RemoteMultiplayResources = new MultiplayResources();
 
     public MatchmakerAdminClient(IMatchmakerService service, IGameServerHostingService gameServerHostingService)
     {
@@ -21,7 +21,7 @@ class MatchmakerAdminClient : IConfigApiClient
         m_GameServerHostingService = gameServerHostingService;
     }
 
-    public async Task<string> Initialize(string projectId, string environmentId, CancellationToken ct = default)
+    public async Task Initialize(string projectId, string environmentId, CancellationToken ct = default)
     {
         var settings = JsonConvert.DefaultSettings?.Invoke() ?? new JsonSerializerSettings();
         if (settings.Converters.All(c => c.GetType() != typeof(JsonObjectSpecializedConverter)))
@@ -30,7 +30,7 @@ class MatchmakerAdminClient : IConfigApiClient
         await m_GameServerHostingService.AuthorizeGameServerHostingService(ct);
         var fleets = m_GameServerHostingService.FleetsApi.ListFleets(Guid.Parse(projectId), Guid.Parse(environmentId));
         m_RemoteMultiplayResources = MpResourcesFromFleetAndBuildConfig(fleets);
-        return await m_Service.Initialize(projectId, environmentId, ct);
+        _ = await m_Service.Initialize(projectId, environmentId, ct);
     }
 
     static MultiplayResources MpResourcesFromFleetAndBuildConfig(List<FleetListItem> fleets)
@@ -130,4 +130,5 @@ class MatchmakerAdminClient : IConfigApiClient
         }
     }
 
+    Task IConfigApiClient.UpdateToken() => Task.CompletedTask; // Explicit no-op implementation to satisfy interface
 }

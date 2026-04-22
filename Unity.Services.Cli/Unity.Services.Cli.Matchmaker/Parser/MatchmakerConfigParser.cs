@@ -1,13 +1,13 @@
 using System.Reflection;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using Unity.Services.DeploymentApi.Editor;
-using Unity.Services.Matchmaker.Authoring.Core.Fetch;
-using Unity.Services.Matchmaker.Authoring.Core.IO;
-using Unity.Services.Matchmaker.Authoring.Core.Model;
-using Unity.Services.Matchmaker.Authoring.Core.Parser;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Fetch;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.IO;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Parser;
+using Unity.Services.Cli.Matchmaker.Service;
 
 namespace Unity.Services.Cli.Matchmaker.Parser;
 
@@ -50,6 +50,7 @@ class MatchmakerConfigParser : IMatchmakerConfigParser, IDeepEqualityComparer
             new DataMemberEnumConverter(),
             new ResourceNameConverter(),
             new MatchHostingConfigTypeConverted(),
+            new FilterValueConverter(),
             new JsonObjectSpecializedConverter(),
         }
     };
@@ -196,5 +197,14 @@ class MatchmakerConfigParser : IMatchmakerConfigParser, IDeepEqualityComparer
         var sourceJson = JsonConvert.SerializeObject(source, JsonSerializerSettings);
         var targetJson = JsonConvert.SerializeObject(target, JsonSerializerSettings);
         return sourceJson == targetJson;
+    }
+
+    IMatchmakerConfig IMatchmakerConfigParser.Parse(string filePath)
+    {
+        var parsingResult = Parse(new[] { filePath }, CancellationToken.None).GetAwaiter().GetResult();
+        var resource = parsingResult.parsed.FirstOrDefault(r => r.Path == filePath);
+        if (resource?.Content is { } cfg)
+            return (IMatchmakerConfig)cfg;
+        throw new MatchmakerException($"Failed to parse matchmaker config file '{filePath}'.");
     }
 }

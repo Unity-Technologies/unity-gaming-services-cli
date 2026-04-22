@@ -16,12 +16,16 @@ public class TriggersApiMock : IServiceApiMock
     public static readonly TriggerConfig Trigger1 = new(
         Guid.Parse("00000000-0000-0000-0000-000000000001"), DateTime.Now, DateTime.Now, "Trigger1",
         Guid.Parse(CommonKeys.ValidProjectId), Guid.Parse(CommonKeys.ValidEnvironmentId), "eventType",
-        TriggerActionType.CloudCode, "cloudcode:blah"
+        "cloud-code", "cloudcode:blah"
         );
-    public static readonly TriggerConfig Trigger2 = new(
+
+    public static readonly TriggerConfigListItem TriggerListItem1 = new(
+        Guid.Parse("00000000-0000-0000-0000-000000000001"), DateTime.Now, DateTime.Now, "Trigger1",
+        "eventType", "cloud-code", "cloudcode:blah"
+    );
+    public static readonly TriggerConfigListItem TriggerListItem2 = new(
         Guid.Parse("00000000-0000-0000-0000-000000000002"), DateTime.Now, DateTime.Now, "Trigger2",
-        Guid.Parse(CommonKeys.ValidProjectId), Guid.Parse(CommonKeys.ValidEnvironmentId), "eventType",
-        TriggerActionType.CloudCode, "cloudcode:blah"
+        "eventType", "cloud-code", "cloudcode:blah"
     );
 
 
@@ -38,10 +42,10 @@ public class TriggersApiMock : IServiceApiMock
 
     public void CustomMock(WireMockServer mockServer)
     {
-        MockListTriggers(mockServer, new List<TriggerConfig>()
+        MockListTriggers(mockServer, new List<TriggerConfigListItem>()
         {
-            Trigger1,
-            Trigger2
+            TriggerListItem1,
+            TriggerListItem2
         });
 
         MockGetTrigger(mockServer, Trigger1);
@@ -49,7 +53,7 @@ public class TriggersApiMock : IServiceApiMock
         MockCreateTrigger(mockServer, Trigger1);
     }
 
-    void MockListTriggers(WireMockServer mockServer, List<TriggerConfig> triggerConfigs,
+    void MockListTriggers(WireMockServer mockServer, List<TriggerConfigListItem> triggerConfigs,
         HttpStatusCode code = HttpStatusCode.OK)
     {
         var response = new TriggerConfigPage()

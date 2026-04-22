@@ -8,11 +8,11 @@ using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.Matchmaker.Parser;
 using Unity.Services.Cli.Matchmaker.Service;
 using Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Api;
-using Unity.Services.Matchmaker.Authoring.Core.ConfigApi;
-using Unity.Services.Matchmaker.Authoring.Core.Deploy;
-using Unity.Services.Matchmaker.Authoring.Core.Fetch;
-using Unity.Services.Matchmaker.Authoring.Core.IO;
-using Unity.Services.Matchmaker.Authoring.Core.Parser;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.ConfigApi;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Deploy;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Fetch;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.IO;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Parser;
 
 namespace Unity.Services.Cli.Matchmaker;
 

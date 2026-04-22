@@ -3,9 +3,9 @@ using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.GameServerHosting.Services;
-using Unity.Services.Matchmaker.Authoring.Core.ConfigApi;
-using Unity.Services.Matchmaker.Authoring.Core.Deploy;
-using Unity.Services.Matchmaker.Authoring.Core.Model;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.ConfigApi;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Deploy;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
 
 namespace Unity.Services.Cli.Matchmaker.Service;
 
@@ -103,7 +103,7 @@ class MatchmakerDeploymentService : IDeploymentService
                        })
                    .ToList()
            };
-         
+
         var availableMultiplayConfig = remoteMultiplayResources;
 
         if (deployInput.DryRun) // If not dry-run, remote is what we get since GSH is deployed before Matchmaker

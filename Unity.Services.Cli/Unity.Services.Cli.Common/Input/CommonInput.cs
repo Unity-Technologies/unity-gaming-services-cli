@@ -21,6 +21,7 @@ public class CommonInput
         "--project-id"
     }, "The Unity cloud project id");
 
+
     public static readonly Option<bool> JsonOutputOption = new(new[]
     {
         "-j",
@@ -57,6 +58,7 @@ public class CommonInput
     [ConfigBinding(Keys.ConfigKeys.ProjectId)]
     [InputBinding(nameof(CloudProjectIdOption))]
     public string? CloudProjectId { get; set; }
+
 
     [InputBinding(nameof(JsonOutputOption))]
     public bool IsJson { get; set; }

@@ -23,6 +23,9 @@
     <PackageReference Include="Unity.Services.DeploymentApi" Version="1.0.0-beta.5" />
   </ItemGroup>
   <PropertyGroup>
+    <DefineConstants></DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>
   </PropertyGroup>
 </Project>

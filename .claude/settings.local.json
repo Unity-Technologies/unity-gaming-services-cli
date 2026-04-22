@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/UnitySrc/ugs-cli -type f -name .husky/*)",
+      "Bash(dotnet build:*)"
+    ]
+  }
+}

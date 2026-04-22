@@ -27,7 +27,11 @@ class TriggersService : ITriggersService
         m_AuthenticationService = authenticationService;
     }
 
-    public async Task<IEnumerable<TriggerConfig>> GetTriggersAsync(string projectId, string environmentId, int? limit, CancellationToken cancellationToken = default)
+    public async Task<List<TriggerConfigListItem>> GetTriggersAsync(
+        string projectId,
+        string environmentId,
+        int? limit,
+        CancellationToken cancellationToken = default)
     {
         await AuthorizeServiceAsync(cancellationToken);
         ValidateProjectIdAndEnvironmentId(projectId, environmentId);

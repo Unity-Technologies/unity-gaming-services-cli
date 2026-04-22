@@ -46,11 +46,18 @@ namespace Unity.Services.GameServerHosting.LocalProxy.ProxyServer
         /// <param name="logger">Logger</param>
         /// <param name="service">The service to make onward HTTP calls to the remove playmode server.</param>
         /// <param name="gameServerHost">The host of the remote playmode server.</param>
-        public LocalProxyServer(ILogger logger, IRemoteLocalProxyService service, string gameServerHost)
+        /// <param name="headers">Additional headers to include in HTTP requests.</param>
+        public LocalProxyServer(ILogger logger, IRemoteLocalProxyService service, string gameServerHost, Dictionary<string, string> headers = null)
         {
             m_Logger = logger;
             m_RemoteLocalProxyService = service;
             m_RemoteLocalProxyService.GameServerHost = gameServerHost;
+
+            // Set headers on the service if provided
+            if (headers != null)
+            {
+                m_RemoteLocalProxyService.SetHeaders(headers);
+            }
         }
 
         /// <summary>

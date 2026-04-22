@@ -1,12 +1,38 @@
 using System.ComponentModel;
 using Newtonsoft.Json;
-using Core = Unity.Services.Matchmaker.Authoring.Core.Model;
+using Core = Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
 using Generated = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model;
 
 namespace Unity.Services.Cli.Matchmaker.AdminApiClient;
 
 static class ModelGeneratedToCore
 {
+    // Helper to convert arbitrary generated filter value to Core.FilteredPoolConfig.Filter.FilterValue
+    static Core.FilteredPoolConfig.Filter.FilterValue ToFilterValue(object? value)
+    {
+        if (value == null)
+            return new Core.FilteredPoolConfig.Filter.FilterValue(string.Empty);
+        switch (value)
+        {
+            case int i:
+                return new Core.FilteredPoolConfig.Filter.FilterValue(i);
+            case long l when l <= int.MaxValue && l >= int.MinValue:
+                return new Core.FilteredPoolConfig.Filter.FilterValue((int)l);
+            case float f:
+                return new Core.FilteredPoolConfig.Filter.FilterValue(f);
+            case double d:
+                return new Core.FilteredPoolConfig.Filter.FilterValue((float)d);
+            case decimal m:
+                return new Core.FilteredPoolConfig.Filter.FilterValue((float)m);
+            case string s:
+                return new Core.FilteredPoolConfig.Filter.FilterValue(s);
+            case bool b:
+                return new Core.FilteredPoolConfig.Filter.FilterValue(b ? 1 : 0);
+            default:
+                return new Core.FilteredPoolConfig.Filter.FilterValue(JsonConvert.SerializeObject(value));
+        }
+    }
+
     static Core.Rule FromGeneratedRule(Generated.Rule rule)
     {
         Core.RuleType type = rule.Type switch
@@ -198,7 +224,20 @@ static class ModelGeneratedToCore
                 Type = Core.IMatchHostingConfig.MatchHostingType.Multiplay,
                 FleetName = fleet.Name,
                 BuildConfigurationName = buildName,
-                DefaultQoSRegionName = regionName
+                DefaultQoSRegionName = regionName,
+                ModuleName = multiplayConfig.ModuleName ?? string.Empty,
+                AllocateFunctionName = multiplayConfig.AllocateFunctionName ?? string.Empty,
+                PollFunctionName = multiplayConfig.PollFunctionName ?? string.Empty
+            };
+        }
+        else if (matchHosting.ActualInstance is Generated.CloudCodeHostingConfig cloudCodeHostingConfig)
+        {
+            matchHostingConfig = new Core.CloudCodeConfig
+            {
+                Type = Core.IMatchHostingConfig.MatchHostingType.CloudCode,
+                ModuleName = cloudCodeHostingConfig.ModuleName,
+                AllocateFunctionName = cloudCodeHostingConfig.AllocateFunctionName,
+                PollFunctionName = cloudCodeHostingConfig.PollFunctionName
             };
         }
         else
@@ -282,6 +321,7 @@ static class ModelGeneratedToCore
                             Generated.Filter.OperatorEnum.LessThan => Core.FilteredPoolConfig.Filter.FilterOperator.LessThan,
                             Generated.Filter.OperatorEnum.NotEqual => Core.FilteredPoolConfig.Filter.FilterOperator.NotEqual,
                             Generated.Filter.OperatorEnum.Equal => Core.FilteredPoolConfig.Filter.FilterOperator.Equal,
+                            Generated.Filter.OperatorEnum.CommonExpressionLanguage => Core.FilteredPoolConfig.Filter.FilterOperator.CommonExpressionLanguage,
                             _ => throw new InvalidEnumArgumentException(nameof(filter))
                         };
 
@@ -289,7 +329,7 @@ static class ModelGeneratedToCore
                         {
                             Attribute = f.Attribute,
                             Operator = filter,
-                            Value = new MatchmakerAdminClient.JsonObjectSpecialized(JsonConvert.SerializeObject(f.Value))
+                            Value = ToFilterValue(f.Value)
                         };
                     })
                 .ToList() ?? new List<Core.FilteredPoolConfig.Filter>()

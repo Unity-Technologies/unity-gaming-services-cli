@@ -45,6 +45,22 @@ class ConfigurationValidatorTests
             yield return new TestCaseData(Models.Keys.ConfigKeys.ProjectId, "invalidProjectId", false,
                 ConfigurationValidator.GuidInvalidMessage);
 
+            // release name
+            yield return new TestCaseData(Models.Keys.ConfigKeys.ReleaseName, ".1",
+                false, ConfigurationValidator.ReleaseNameInvalidMessage);
+            yield return new TestCaseData(Models.Keys.ConfigKeys.ReleaseName, "1.",
+                false, ConfigurationValidator.ReleaseNameInvalidMessage);
+            yield return new TestCaseData(Models.Keys.ConfigKeys.ReleaseName, "a-",
+                false, ConfigurationValidator.ReleaseNameInvalidMessage);
+            yield return new TestCaseData(Models.Keys.ConfigKeys.ReleaseName, "-a",
+                false, ConfigurationValidator.ReleaseNameInvalidMessage);
+            yield return new TestCaseData(Models.Keys.ConfigKeys.ReleaseName, "A-1",
+                true, string.Empty);
+            yield return new TestCaseData(Models.Keys.ConfigKeys.ReleaseName, "A.1",
+                true, string.Empty);
+            yield return new TestCaseData(Models.Keys.ConfigKeys.ReleaseName, "A1",
+                true, string.Empty);
+
             // Null or empty key and value tests
             yield return new TestCaseData(null, "123", false,
                 ConfigurationValidator.NullKeyMsg);

@@ -61,10 +61,10 @@ static class FleetCreateHandler
             req.UsageSettings = input.UsageSettings.Select(setting => JsonConvert.DeserializeObject<FleetUsageSetting>(setting)!).ToList();
         }
 
+
         var fleet = await service.FleetsApi.CreateFleetAsync(
             Guid.Parse(input.CloudProjectId!),
             Guid.Parse(environmentId),
-            null,
             fleetCreateRequest: req,
             cancellationToken: cancellationToken
         );

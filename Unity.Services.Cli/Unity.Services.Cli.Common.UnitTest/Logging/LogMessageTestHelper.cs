@@ -31,7 +31,11 @@ class LogMessageTestHelper : IDisposable
 
     public static string GetJsonLogFormatted(object? result, List<LogMessage> logMessages)
     {
-        return GetJsonResult(result) + GetJsonLogMessage(logMessages);
+        if (result != null)
+        {
+            return GetJsonResult(result) + GetJsonLogMessage(logMessages);
+        }
+        return GetJsonLogMessage(logMessages);
     }
 
     static string GetJsonResult(object? result)

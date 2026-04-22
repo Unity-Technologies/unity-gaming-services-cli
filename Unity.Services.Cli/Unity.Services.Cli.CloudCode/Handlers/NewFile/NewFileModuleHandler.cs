@@ -52,12 +52,29 @@ static class NewFileModuleHandler
             {
                 await solutionGenerator.CreateSolutionWithProject(moduleDirectory, moduleName, cancellationToken);
                 logger.LogInformation($"Module '{moduleName}' created successfully at path '{moduleDirectory}'!", moduleName);
+                if (!string.IsNullOrWhiteSpace(input.TargetFramework))
+                {
+                    var projectFilePath = path.Combine(moduleDirectory, $"Project/{moduleName}.csproj");
+                    await UpdateTargetFrameworkAsync(projectFilePath, input.TargetFramework, cancellationToken);
+                }
             }
             catch (Exception e)
             {
                 logger.LogError(e.Message);
                 throw;
             }
+        }
+    }
+
+    static async Task UpdateTargetFrameworkAsync(string projectFilePath, string targetFramework, CancellationToken cancellationToken)
+    {
+        var doc = await Task.Run(() => System.Xml.Linq.XDocument.Load(projectFilePath), cancellationToken);
+        var targetFrameworkElement = doc.Descendants("TargetFramework").FirstOrDefault();
+
+        if (targetFrameworkElement != null)
+        {
+            targetFrameworkElement.Value = targetFramework;
+            await Task.Run(() => doc.Save(projectFilePath), cancellationToken);
         }
     }
 }

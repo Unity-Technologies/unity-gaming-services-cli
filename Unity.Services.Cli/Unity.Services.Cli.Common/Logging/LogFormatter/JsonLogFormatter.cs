@@ -1,5 +1,4 @@
-using System;
-using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 
 namespace Unity.Services.Cli.Common.Logging;
@@ -18,25 +17,53 @@ class JsonLogFormatter : ILogFormatter
     /// <inheritdoc cref="ILogFormatter.WriteLog"/>
     public void WriteLog(LogCache logCache)
     {
-        m_StdOut.WriteLine(JsonConvert.SerializeObject(logCache.Result, Formatting.Indented));
+        if (logCache.Result != null)
+        {
+            m_StdOut.WriteLine(JsonConvert.SerializeObject(logCache.Result, Formatting.Indented));
+        }
+
+        foreach (var logCacheMessage in logCache.Messages)
+        {
+            logCacheMessage.Message = MessageFormatter.TryFormatAsJson(logCacheMessage.Message);
+        }
+
         WriteMessages(logCache.Messages);
     }
 
     void WriteMessages(List<LogMessage> logMessages)
     {
-        var messages = new List<JsonLogMessage>(logMessages.Capacity);
+        var messages = new List<object>(logMessages.Capacity);
         foreach (var message in logMessages)
         {
-            messages.Add(new JsonLogMessage()
+            var messageObj = new
             {
-                Message = message.Message,
+                Message = TryGetMessageAsObj(message.Message),
                 Type = message.Type.ToString()
-            });
+            };
+            messages.Add(messageObj);
         }
 
         if (messages.Any())
         {
             m_StdErr.WriteLine(JsonConvert.SerializeObject(messages, Formatting.Indented));
         }
+    }
+
+    static object? TryGetMessageAsObj(string? message)
+    {
+        // Try to parse the message as JSON to pretty-print
+        if (!string.IsNullOrEmpty(message))
+        {
+            try
+            {
+                return JToken.Parse(message);
+            }
+            catch (Exception)
+            {
+                return message;
+            }
+        }
+
+        return message;
     }
 }

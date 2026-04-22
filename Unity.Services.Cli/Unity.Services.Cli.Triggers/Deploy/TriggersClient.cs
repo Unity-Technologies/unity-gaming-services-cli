@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Unity.Services.Cli.Triggers.Service;
 using Unity.Services.Gateway.TriggersApiV1.Generated.Model;
@@ -6,6 +7,9 @@ using Unity.Services.Triggers.Authoring.Core.Service;
 using TriggerConfig = Unity.Services.Triggers.Authoring.Core.Model.TriggerConfig;
 
 namespace Unity.Services.Cli.Triggers.Deploy;
+
+using CoreWebhook = WebhookConfigBody;
+using WebhookDto = Services.Triggers.Authoring.Core.Model.WebhookConfig;
 
 class TriggersClient : ITriggersClient
 {
@@ -57,9 +61,10 @@ class TriggersClient : ITriggersClient
             new TriggerConfigBody(
                 triggerConfig.Name,
                 triggerConfig.EventType,
-                JsonConvert.DeserializeObject<TriggerActionType>($"\"{triggerConfig.ActionType}\""),
+                triggerConfig.ActionType,
                 triggerConfig.ActionUrn,
-                triggerConfig.Filter),
+                triggerConfig.Filter,
+                ToApiWebhookConfigBody(triggerConfig.Webhook)),
             CancellationToken);
     }
 
@@ -71,9 +76,10 @@ class TriggersClient : ITriggersClient
             new TriggerConfigBody(
                 triggerConfig.Name,
                 triggerConfig.EventType,
-                JsonConvert.DeserializeObject<TriggerActionType>($"\"{triggerConfig.ActionType}\""),
+                triggerConfig.ActionType,
                 triggerConfig.ActionUrn,
-                triggerConfig.Filter),
+                triggerConfig.Filter,
+                ToApiWebhookConfigBody(triggerConfig.Webhook)),
             CancellationToken);
     }
 
@@ -96,7 +102,7 @@ class TriggersClient : ITriggersClient
         return triggers.Select(FromResponse).ToList();
     }
 
-    static TriggerConfig FromResponse(Gateway.TriggersApiV1.Generated.Model.TriggerConfig responseConfig)
+    static TriggerConfig FromResponse(TriggerConfigListItem responseConfig)
     {
         return new TriggerConfig()
         {
@@ -107,6 +113,37 @@ class TriggersClient : ITriggersClient
             Name = responseConfig.Name,
             Path = "Remote",
             Filter = responseConfig.Filter,
+            Webhook = FromApiWebhookConfig(responseConfig.Webhook),
         };
+    }
+
+    static WebhookDto FromApiWebhookConfig(Gateway.TriggersApiV1.Generated.Model.WebhookConfig apiWebhook)
+    {
+        if (apiWebhook == null)
+            return null!;
+
+        var headers = apiWebhook.Headers != null
+            ? JsonConvert.DeserializeObject<Dictionary<string, string>>(JsonConvert.SerializeObject(apiWebhook.Headers))
+            : null;
+
+        return new WebhookDto(
+            apiWebhook.Url,
+            apiWebhook.Method,
+            headers,
+            apiWebhook.PayloadTemplate
+        );
+    }
+
+    static CoreWebhook ToApiWebhookConfigBody(WebhookDto webhook)
+    {
+        if (webhook == null)
+            return null!;
+
+        return new CoreWebhook(
+            webhook.Url,
+            webhook.Method,
+            webhook.Headers,
+            webhook.PayloadTemplate
+        );
     }
 }

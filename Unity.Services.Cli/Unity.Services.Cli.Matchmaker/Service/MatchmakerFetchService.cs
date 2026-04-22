@@ -1,8 +1,8 @@
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Service;
-using Unity.Services.Matchmaker.Authoring.Core.ConfigApi;
-using Unity.Services.Matchmaker.Authoring.Core.Fetch;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.ConfigApi;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Fetch;
 using FetchResult = Unity.Services.Cli.Authoring.Model.FetchResult;
 
 namespace Unity.Services.Cli.Matchmaker.Service;

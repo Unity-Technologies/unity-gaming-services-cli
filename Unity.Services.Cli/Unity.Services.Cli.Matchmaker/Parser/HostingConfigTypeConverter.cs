@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Unity.Services.Matchmaker.Authoring.Core.Model;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
 namespace Unity.Services.Cli.Matchmaker.Parser;
 
 public class MatchHostingConfigTypeConverted : JsonConverter
@@ -20,6 +20,8 @@ public class MatchHostingConfigTypeConverted : JsonConverter
                 return item.ToObject<MultiplayConfig>(serializer) ?? throw new InvalidOperationException();
             case "MatchId":
                 return item.ToObject<MatchIdConfig>(serializer) ?? throw new InvalidOperationException();
+            case "CloudCode":
+                return item.ToObject<CloudCodeConfig>(serializer) ?? throw new InvalidOperationException();
             default:
                 throw new JsonSerializationException($"Invalid hosting config type: {type}");
         }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Net.Sockets;
@@ -9,6 +10,8 @@ namespace Unity.Services.GameServerHosting.LocalProxy.Service
     public interface IRemoteLocalProxyService
     {
         public string GameServerHost { set; }
+
+        public void SetHeaders(Dictionary<string, string> headers);
 
         // Authentication APIs
         public Task HandleFetchUnityJwtToken(Stream downstream, CancellationToken cancellationToken);

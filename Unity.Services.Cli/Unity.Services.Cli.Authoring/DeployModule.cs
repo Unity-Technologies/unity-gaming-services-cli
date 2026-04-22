@@ -34,8 +34,11 @@ public class DeployModule : ICommandModule
             DeployInput.DryRunOption,
             DeployInput.ServiceOptions,
             CommonInput.EnvironmentNameOption,
-            CommonInput.CloudProjectIdOption
+            CommonInput.CloudProjectIdOption,
         };
+
+        ObfuscatedInputs.Instance.NonObfuscatedOptions.Add(DeployInput.ServiceOptions);
+
         ModuleRootCommand.SetHandler<
             IHost,
             DeployInput,

@@ -11,5 +11,6 @@ namespace Unity.Services.Triggers.Authoring.Core.Model
         string ActionType { get; }
         string ActionUrn { get; }
         string Filter { get; }
+        WebhookConfig Webhook { get; }
     }
 }

@@ -30,7 +30,7 @@ public abstract class NetworkTargetEndpoints
         get
         {
 #if USE_STAGING_ENDPOINTS
-            return Staging;
+          return Staging;
 #elif USE_MOCKSERVER_ENDPOINTS
             return MockServer;
 #else

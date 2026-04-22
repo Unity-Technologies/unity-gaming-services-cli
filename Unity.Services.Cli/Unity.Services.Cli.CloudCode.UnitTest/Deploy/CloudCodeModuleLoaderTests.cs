@@ -68,7 +68,7 @@ public class CloudCodeModuleLoaderTests
     {
         m_MockModuleBuilder
             .Setup(x => x.CreateCloudCodeModuleFromSolution(
-                It.IsAny<IModuleItem>(), It.IsAny<CancellationToken>()))
+                It.IsAny<ISolutionModuleItem>(), It.IsAny<CancellationToken>(), It.IsAny<string>(), It.IsAny<string>()))
             .Throws(new Exception("failed"));
 
         var cloudCodeModulesLoader = new CloudCodeModulesLoader(m_MockModuleBuilder.Object);
@@ -88,9 +88,11 @@ public class CloudCodeModuleLoaderTests
     {
         m_MockModuleBuilder.Setup(
                 x => x.CreateCloudCodeModuleFromSolution(
-                    It.IsAny<IModuleItem>(),
-                    It.IsAny<CancellationToken>()))
-            .Callback<IModuleItem, CancellationToken>((m, _) => { m.CcmPath = m_TestBModule.Path; });
+                    It.IsAny<ISolutionModuleItem>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()))
+            .Callback<ISolutionModuleItem, CancellationToken, string, string>((m, _, _, _) => { m.CcmPath = m_TestBModule.Path; });
 
         var cloudCodeModulesLoader = new CloudCodeModulesLoader(m_MockModuleBuilder.Object);
 

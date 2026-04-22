@@ -70,6 +70,7 @@ class FleetUpdateInput : FleetIdInput
     [InputBinding(nameof(UsageSettingsOption))]
     public List<string>? UsageSettings { get; set; }
 
+
     static void ValidateUsageSetting(OptionResult result)
     {
         var values = result.GetValueOrDefault<List<string>>();

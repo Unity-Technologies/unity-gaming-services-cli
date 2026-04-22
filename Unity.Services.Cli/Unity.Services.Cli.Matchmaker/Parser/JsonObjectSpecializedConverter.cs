@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Unity.Services.Matchmaker.Authoring.Core.Model;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
 
 namespace Unity.Services.Cli.Matchmaker.Parser;
 
@@ -14,8 +14,21 @@ class JsonObjectSpecializedConverter : JsonConverter
     {
         if (value is JsonObject valueJson)
         {
-            var obj = JToken.Parse(valueJson.Value);
-            obj.WriteTo(writer);
+            var raw = valueJson.Value;
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                writer.WriteNull();
+                return;
+            }
+            try
+            {
+                var token = JToken.Parse(raw);
+                token.WriteTo(writer);
+            }
+            catch (JsonReaderException)
+            {
+                writer.WriteValue(raw);
+            }
         }
     }
 

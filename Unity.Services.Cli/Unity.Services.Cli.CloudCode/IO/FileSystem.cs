@@ -57,6 +57,11 @@ class FileSystem : Common.IO.FileSystem, IFileSystem
         return m_Path.GetFullPath(path);
     }
 
+    public string GetCurrentDirectory()
+    {
+        return Directory.GetCurrentDirectory();
+    }
+
     public string GetFileNameWithoutExtension(string path)
     {
         return m_Path.GetFileNameWithoutExtension(path);
@@ -95,6 +100,25 @@ class FileSystem : Common.IO.FileSystem, IFileSystem
     public void FileMove(string sourceFileName, string destFileName)
     {
         File.Move(sourceFileName, destFileName);
+    }
+
+    public void CopyDirectory(string sourceDir, string destDir)
+    {
+        Directory.CreateDirectory(destDir);
+
+        foreach (string file in Directory.GetFiles(sourceDir))
+        {
+            string fileName = Path.GetFileName(file);
+            string destFile = Path.Combine(destDir, fileName);
+            File.Copy(file, destFile);
+        }
+
+        foreach (string subDir in Directory.GetDirectories(sourceDir))
+        {
+            string dirName = Path.GetFileName(subDir);
+            string destSubDir = Path.Combine(destDir, dirName);
+            CopyDirectory(subDir, destSubDir);
+        }
     }
 
     public void MoveDirectory(string sourceDirName, string destDirName)

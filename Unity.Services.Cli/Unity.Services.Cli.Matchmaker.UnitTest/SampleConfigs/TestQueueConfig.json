@@ -185,7 +185,10 @@
       "type": "Multiplay",
       "fleetName": "TestFleet",
       "buildConfigurationName": "TestBuildConfig",
-      "defaultQoSRegionName": "NorthAmerica"
+      "defaultQoSRegionName": "NorthAmerica",
+      "moduleName": "module",
+      "allocateFunctionName": "allocate",
+      "pollFunctionName": "poll"
     }
   },
   "filteredPools": [
@@ -283,6 +286,50 @@
       },
       "matchHosting": {
         "type": "MatchId"
+      }
+    },
+    {
+      "filters": [
+        {
+          "attribute": "Game-mode-eq",
+          "operator": "Equal",
+          "value": "TDM"
+        }
+      ],
+      "variants": [
+        {
+          "name": "CCVariantPool",
+          "enabled": true,
+          "timeoutSeconds": 10,
+          "matchLogic": {
+            "matchDefinition": {
+              "teams": [],
+              "matchRules": []
+            },
+            "name": "cc-logic",
+            "backfillEnabled": true
+          },
+          "matchHosting": {
+            "type": "MatchId"
+          }
+        }
+      ],
+      "name": "CloudCodeFilteredPool",
+      "enabled": false,
+      "timeoutSeconds": 0,
+      "matchLogic": {
+        "matchDefinition": {
+          "teams": [],
+          "matchRules": []
+        },
+        "name": "CCFilteredMatchLogic",
+        "backfillEnabled": false
+      },
+      "matchHosting": {
+        "type": "CloudCode",
+        "moduleName": "cc-module",
+        "allocateFunctionName": "cc-allocate",
+        "pollFunctionName": "cc-poll"
       }
     }
   ]

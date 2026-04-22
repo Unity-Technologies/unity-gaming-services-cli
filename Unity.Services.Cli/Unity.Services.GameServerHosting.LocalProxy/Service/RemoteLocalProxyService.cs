@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
@@ -26,6 +27,18 @@ namespace Unity.Services.GameServerHosting.LocalProxy.Service
             m_HttpClient.DefaultRequestHeaders.SetXClientIdHeader();
             var token = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{projectId}:{environmentId}"));
             m_HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", token);
+        }
+
+        public void SetHeaders(Dictionary<string, string> headers)
+        {
+            if (headers == null) return;
+
+            foreach (var header in headers)
+            {
+                // If the header already exists, remove it first to avoid duplicates.
+                m_HttpClient.DefaultRequestHeaders.Remove(header.Key);
+                m_HttpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+            }
         }
 
         public async Task HandleFetchUnityJwtToken(Stream downstream, CancellationToken cancellationToken)

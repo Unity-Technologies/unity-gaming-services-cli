@@ -7,6 +7,7 @@ class LogFormatter : ILogFormatter
     LogConfiguration LogConfiguration { get; set; }
 
     public LogFormatter(TextWriter stdout, TextWriter stdErr) : this(new LogConfiguration(), stdout, stdErr) { }
+
     public LogFormatter(LogConfiguration logConfiguration, TextWriter stdout, TextWriter stdErr)
     {
         m_Stdout = stdout;
@@ -20,6 +21,11 @@ class LogFormatter : ILogFormatter
         if (logCache.Result != null)
         {
             WriteResult(logCache.Result);
+        }
+
+        foreach (var logCacheMessage in logCache.Messages)
+        {
+            logCacheMessage.Message = MessageFormatter.TryFormatAsYaml(logCacheMessage.Message);
         }
 
         WriteMessages(logCache.Messages);
@@ -45,7 +51,17 @@ class LogFormatter : ILogFormatter
             m_StdErr.Write($"[{message.Type}]: ");
             System.Console.ForegroundColor = previousForegroundColor;
             m_StdErr.WriteLine(message.Name);
-            m_StdErr.WriteLine($"    {message.Message}");
+            if (message.Message != null)
+            {
+                m_StdErr.WriteLine(IndentByLine(message.Message));
+            }
         }
+    }
+
+    static string IndentByLine(string message)
+    {
+        var lines = message.ReplaceLineEndings().Split(Environment.NewLine);
+        var indentedMessage = string.Join(Environment.NewLine, lines.Select(line => $"    {line}"));
+        return indentedMessage;
     }
 }

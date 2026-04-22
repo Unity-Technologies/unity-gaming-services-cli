@@ -8,7 +8,7 @@ using LanguageType = Unity.Services.CloudCode.Authoring.Editor.Core.Model.Langua
 
 namespace Unity.Services.Cli.CloudCode.Deploy;
 
-class CloudCodeModule : ModuleDeployContent, IScript, IModuleItem
+class CloudCodeModule : ModuleDeployContent, IScript, ISolutionModuleItem
 {
     [JsonConverter(typeof(ScriptNameJsonConverter))]
     // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global used for deserialization
@@ -63,6 +63,7 @@ class CloudCodeModule : ModuleDeployContent, IScript, IModuleItem
         Parameters = parameters;
         LastPublishedDate = lastPublishedDate;
         SignedUrl = "";
+        StatusLog  = new List<(DateTime, DeploymentStatus)>();
     }
 
     public CloudCodeModule(string name, string path, float progress, DeploymentStatus? status, string signedUrl = "")
@@ -75,6 +76,8 @@ class CloudCodeModule : ModuleDeployContent, IScript, IModuleItem
         Parameters = new List<CloudCodeParameter>();
         LastPublishedDate = string.Empty;
         SignedUrl = signedUrl;
+        StatusLog  = new List<(DateTime, DeploymentStatus)>();
+        
     }
 
     public CloudCodeModule(
@@ -96,6 +99,8 @@ class CloudCodeModule : ModuleDeployContent, IScript, IModuleItem
         Parameters = new List<CloudCodeParameter>();
         LastPublishedDate = "";
         SignedUrl = signedUrl;
+        StatusLog  = new List<(DateTime, DeploymentStatus)>();
+        
     }
 
     public CloudCodeModule(GetModuleResponse response)
@@ -112,6 +117,7 @@ class CloudCodeModule : ModuleDeployContent, IScript, IModuleItem
         Parameters = new List<CloudCodeParameter>();
         LastPublishedDate = response.DateModified.ToString(CultureInfo.InvariantCulture);
         SignedUrl = "";
+        StatusLog  = new List<(DateTime, DeploymentStatus)>();
     }
 
     public string SolutionPath { get; } = "";
@@ -131,4 +137,6 @@ class CloudCodeModule : ModuleDeployContent, IScript, IModuleItem
             base.Name = System.IO.Path.GetFileNameWithoutExtension(value);
         }
     }
+
+    public List<(DateTime, DeploymentStatus)> StatusLog { get; }
 }

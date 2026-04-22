@@ -1,9 +1,9 @@
 using Newtonsoft.Json;
 using Unity.Services.Cli.Authoring.Templates;
 using Unity.Services.Cli.Matchmaker.Parser;
-using Unity.Services.Matchmaker.Authoring.Core.Model;
-using Unity.Services.Matchmaker.Authoring.Core.Parser;
-using Range = Unity.Services.Matchmaker.Authoring.Core.Model.Range;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Parser;
+using Range = Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model.Range;
 
 namespace Unity.Services.Cli.Matchmaker.Service;
 

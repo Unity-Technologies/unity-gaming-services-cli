@@ -20,8 +20,8 @@
     <ProjectReference Include="..\Unity.Services.Cli.GameServerHosting\Unity.Services.Cli.GameServerHosting.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Unity.Services.Gateway.MatchmakerAdminApiV3.Generated" Version="0.1.2" />
-    <PackageReference Include="Unity.Services.Matchmaker.Authoring.Core" Version="0.0.40" />
+    <PackageReference Include="Unity.Services.Gateway.MatchmakerAdminApiV3.Generated" Version="0.1.7" />
+    <PackageReference Include="Unity.Services.Matchmaker.Authoring.Core" Version="0.0.44" />
   </ItemGroup>
   <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>

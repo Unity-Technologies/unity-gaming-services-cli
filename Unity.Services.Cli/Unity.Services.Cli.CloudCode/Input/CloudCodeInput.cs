@@ -36,6 +36,9 @@ public class CloudCodeInput : DeployInput
     public static readonly Argument<string> ModuleDirectoryArgument =
         new("module-directory", "Directory for the new module");
 
+    public static readonly Option<string?> TargetFrameworkOption =
+        new("--target-framework","Target framework for the module (e.g., net8.0); defaults to net9.0 if not specified");
+
     [InputBinding(nameof(ScriptNameArgument))]
     public string? ScriptName { get; set; }
 
@@ -56,4 +59,21 @@ public class CloudCodeInput : DeployInput
 
     [InputBinding(nameof(ModuleDirectoryArgument))]
     public string? ModuleDirectory { get; set; }
+
+    [InputBinding(nameof(TargetFrameworkOption))]
+    public string? TargetFramework { get; set; }
+
+    static CloudCodeInput()
+    {
+        var validFrameworks = new[] { "net9.0", "net8.0", "net7.0", "net6.0" };
+
+        TargetFrameworkOption.AddValidator(result =>
+        {
+            var value = result.GetValueOrDefault<string?>();
+            if (value != null && !validFrameworks.Contains(value, StringComparer.OrdinalIgnoreCase))
+            {
+                result.ErrorMessage = $"Invalid target framework '{value}'. Valid values are: {string.Join(", ", validFrameworks)}";
+            }
+        });
+    }
 }

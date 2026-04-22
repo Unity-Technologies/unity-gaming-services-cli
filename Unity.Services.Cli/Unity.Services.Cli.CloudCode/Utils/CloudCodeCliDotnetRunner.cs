@@ -48,4 +48,9 @@ class CloudCodeCliDotnetRunner : IDotnetRunner
             throw new DotnetCommandFailedException(e.Message);
         }
     }
+
+    public Task<List<SemVersion>> GetAvailableCoreRuntimes(CancellationToken ct = new CancellationToken())
+    {
+        throw new NotImplementedException();
+    }
 }

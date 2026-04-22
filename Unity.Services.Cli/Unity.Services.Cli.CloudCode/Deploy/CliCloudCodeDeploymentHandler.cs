@@ -20,21 +20,21 @@ class CliCloudCodeDeploymentHandler<TClient> : CloudCodeDeploymentHandler
     { }
 
     protected override void UpdateScriptStatus(
-        IScript script, string message, string detail, StatusSeverityLevel level = StatusSeverityLevel.None)
+        IScript script, string message, string detail, SeverityLevel level = SeverityLevel.None)
     {
         if (script is DeployContent deployContent)
         {
             deployContent.Status = new DeploymentStatus(
                 message,
                 detail,
-                (SeverityLevel)Enum.Parse(typeof(SeverityLevel), level.ToString()));
+                level);
         }
         else if (script is ModuleDeployContent moduleDeployContent)
         {
             moduleDeployContent.Status = new DeploymentStatus(
                 message,
                 detail,
-                (SeverityLevel)Enum.Parse(typeof(SeverityLevel), level.ToString()));
+                level);
         }
     }
 

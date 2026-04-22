@@ -1,6 +1,6 @@
 using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
 using Unity.Services.Multiplay.Authoring.Core.Assets;
-using Core = Unity.Services.Matchmaker.Authoring.Core.Model;
+using Core = Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
 
 namespace Unity.Services.Cli.Matchmaker.UnitTest.SampleConfigs;
 

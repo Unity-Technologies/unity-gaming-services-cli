@@ -61,6 +61,7 @@ public class FleetCreateInput : CommonInput
         FleetRegionsOption.AddValidator(ValidateRegionIds);
         FleetOsFamilyOption.AddValidator(ValidateOsFamilyEnum);
         FleetUsageSettingsOption.AddValidator(ValidateUsageSetting);
+
     }
 
     [InputBinding(nameof(FleetNameOption))]
@@ -77,6 +78,8 @@ public class FleetCreateInput : CommonInput
 
     [InputBinding(nameof(FleetUsageSettingsOption))]
     public string[]? UsageSettings { get; set; }
+
+
 
     static void ValidateRegionIds(OptionResult result)
     {
@@ -121,4 +124,5 @@ public class FleetCreateInput : CommonInput
             }
         }
     }
+
 }

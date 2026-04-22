@@ -37,40 +37,35 @@ class FileContentRetrieverTests
     [Test]
     public async Task GetFileContent_CanLoadSolution()
     {
-        var templateInfo = new TemplateInfo();
-        var fileContent = await m_FileContentRetriever.GetFileContent(templateInfo.PathSolution);
+        var fileContent = await m_FileContentRetriever.GetFileContent($"{TemplateInfo.AssemblyString}.Solution.sln");
         Assert.IsFalse(string.IsNullOrEmpty(fileContent));
     }
 
     [Test]
     public async Task GetFileContent_CanLoadProject()
     {
-        var templateInfo = new TemplateInfo();
-        var fileContent = await m_FileContentRetriever.GetFileContent(templateInfo.PathConfig);
+        var fileContent = await m_FileContentRetriever.GetFileContent($"{TemplateInfo.AssemblyString}.Project.csproj");
         Assert.IsFalse(string.IsNullOrEmpty(fileContent));
     }
 
     [Test]
     public async Task GetFileContent_CanLoadExample()
     {
-        var templateInfo = new TemplateInfo();
-        var fileContent = await m_FileContentRetriever.GetFileContent(templateInfo.PathExampleClass);
+        var fileContent = await m_FileContentRetriever.GetFileContent($"{TemplateInfo.AssemblyString}.Example.cs");
         Assert.IsFalse(string.IsNullOrEmpty(fileContent));
     }
 
     [Test]
     public async Task GetFileContent_CanLoadConfig()
     {
-        var templateInfo = new TemplateInfo();
-        var fileContent = await m_FileContentRetriever.GetFileContent(templateInfo.PathConfig);
+        var fileContent = await m_FileContentRetriever.GetFileContent($"{TemplateInfo.AssemblyString}.FolderProfile.pubxml");
         Assert.IsFalse(string.IsNullOrEmpty(fileContent));
     }
 
     [Test]
     public async Task GetFileContent_CanLoadConfigUser()
     {
-        var templateInfo = new TemplateInfo();
-        var fileContent = await m_FileContentRetriever.GetFileContent(templateInfo.PathConfigUser);
+        var fileContent = await m_FileContentRetriever.GetFileContent($"{TemplateInfo.AssemblyString}.FolderProfile.pubxml.user");
         Assert.IsFalse(string.IsNullOrEmpty(fileContent));
     }
 }

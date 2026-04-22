@@ -131,7 +131,13 @@ class CloudCodeScriptDeploymentService : IDeploymentService
 
         foreach (var script in scripts)
         {
-            var deletedCloudCode = new DeletedCloudCode(script.Name.ToString(), m_ServiceType, script.Path);
+            var name = script.Name.ToString();
+            if (!name.EndsWith(CloudCodeConstants.FileExtensionJavaScript, StringComparison.OrdinalIgnoreCase))
+            {
+                name += CloudCodeConstants.FileExtensionJavaScript;
+            }
+
+            var deletedCloudCode = new DeletedCloudCode(name, m_ServiceType, script.Path);
             contents.Add(deletedCloudCode);
             if (!dryRun)
             {

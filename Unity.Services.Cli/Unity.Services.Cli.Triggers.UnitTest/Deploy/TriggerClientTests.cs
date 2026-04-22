@@ -43,10 +43,10 @@ public class TriggerClientTests
                 s => s.GetTriggersAsync(
                     TestValues.ValidProjectId,
                     TestValues.ValidEnvironmentId,
-                    It.IsAny<int>(),
+                    null,
                     It.IsAny<CancellationToken>()
                 ))
-            .Returns(Task.FromResult((IEnumerable<Unity.Services.Gateway.TriggersApiV1.Generated.Model.TriggerConfig>)Array.Empty<Unity.Services.Gateway.TriggersApiV1.Generated.Model.TriggerConfig>()));
+            .Returns(Task.FromResult(new List<TriggerConfigListItem>()));
 
         var list = await client.List();
         Assert.AreEqual(0, list.Count);

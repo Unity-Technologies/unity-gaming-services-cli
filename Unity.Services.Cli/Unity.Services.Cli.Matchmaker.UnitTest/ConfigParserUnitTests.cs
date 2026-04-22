@@ -1,13 +1,12 @@
 using KellermanSoftware.CompareNetObjects;
 using Moq;
-using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Matchmaker.Parser;
 using Unity.Services.Cli.Matchmaker.Service;
 using Unity.Services.Cli.Matchmaker.UnitTest.SampleConfigs;
-using Unity.Services.Matchmaker.Authoring.Core.IO;
-using Unity.Services.Matchmaker.Authoring.Core.Model;
-using Unity.Services.Matchmaker.Authoring.Core.Parser;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.IO;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
+using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Parser;
 
 namespace Unity.Services.Cli.Matchmaker.UnitTest;
 
@@ -128,17 +127,11 @@ class ConfigParserUnitTests
         // Setup
         var mockFileSystem = new Mock<IFileSystem>();
         mockFileSystem.Setup(x => x.ReadAllText(It.IsAny<string>(), default)).ReturnsAsync((string path, CancellationToken _) =>
-        {
-            if (path.StartsWith("queue"))
-                return JsonSampleConfigLoader.QueueConfig;
-            return JsonSampleConfigLoader.EnvironmentConfig;
-        }
-        );
+            path.StartsWith("queue") ? JsonSampleConfigLoader.QueueConfig : JsonSampleConfigLoader.EnvironmentConfig);
         var configParser = new MatchmakerConfigParser(mockFileSystem.Object);
 
-        var res = await configParser.Parse(new List<string> { "queue.mmq", "env.mme", }, default);
+        var res = await configParser.Parse(new List<string> { "queue.mmq", "env.mme" }, default);
         var res2 = await configParser.Parse(new List<string> { "queueCopy.mmq", "envCopy.mme" }, default);
-
         res.failed.AddRange(res2.failed);
         res.parsed.AddRange(res2.parsed);
 
@@ -170,12 +163,7 @@ class ConfigParserUnitTests
         // Setup
         var mockFileSystem = new Mock<IFileSystem>();
         mockFileSystem.Setup(x => x.ReadAllText(It.IsAny<string>(), default)).ReturnsAsync((string path, CancellationToken _) =>
-            {
-                if (path.StartsWith("queue"))
-                    return JsonSampleConfigLoader.QueueConfig;
-                return JsonSampleConfigLoader.EnvironmentConfig;
-            }
-        );
+            path.StartsWith("queue") ? JsonSampleConfigLoader.QueueConfig : JsonSampleConfigLoader.EnvironmentConfig);
         var configParser = new MatchmakerConfigParser(mockFileSystem.Object);
 
         var res = await configParser.Parse(new List<string> { "queue.mmq", "env.mme", "queueCopy.mmq", "envCopy.mme" }, default);
@@ -183,8 +171,7 @@ class ConfigParserUnitTests
         // Test
         Assert.That(res.failed.Count, Is.EqualTo(2));
         Assert.That(res.parsed.Count, Is.EqualTo(2));
-        Assert.That(res.failed.Select(f => f.Status.MessageDetail),
-        Is.EquivalentTo(new[]
+        Assert.That(res.failed.Select(f => f.Status.MessageDetail), Is.EquivalentTo(new[]
         {
             "Multiple environment config files found in envCopy.mme",
             "Multiple queue config files named DefaultQueueTest found in queueCopy.mmq"

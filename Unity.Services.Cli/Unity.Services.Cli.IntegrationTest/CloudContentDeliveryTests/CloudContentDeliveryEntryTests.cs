@@ -82,7 +82,7 @@ public class CloudContentDeliveryEntryTests : UgsCliFixture
     public async Task CloudContentDeliveryInfoEntries()
     {
         await GetLoggedInCli()
-            .DebugCommand("ccd entries info myentry")
+            .Command("ccd entries info myentry")
             .AssertStandardOutputContains("entryid: 00000000-0000-0000-0000-000000000000")
             .AssertExitCode(ExitCode.Success)
             .ExecuteAsync();
@@ -113,7 +113,7 @@ public class CloudContentDeliveryEntryTests : UgsCliFixture
     public async Task CloudContentDeliverySyncEntriesWithParams()
     {
         await GetLoggedInCli()
-            .DebugCommand(
+            .Command(
                 $"ccd entries sync {k_TestDirectory} -r -cu 35 -u mybadge")
             .AssertStandardOutputContains("operationCompletedSuccessfully: true")
             .AssertExitCode(ExitCode.Success)
@@ -124,7 +124,7 @@ public class CloudContentDeliveryEntryTests : UgsCliFixture
     public async Task CloudContentDeliverySyncEntriesWithParamsIncludeSyncEntriesOnlyFalse()
     {
         await GetLoggedInCli()
-            .DebugCommand(
+            .Command(
                 $"ccd entries sync {k_TestDirectory} -r -u mybadge --include-entries-added-during-sync -cu 25")
             .AssertStandardOutputContains("operationCompletedSuccessfully: true")
             .AssertExitCode(ExitCode.Success)
@@ -135,7 +135,7 @@ public class CloudContentDeliveryEntryTests : UgsCliFixture
     public async Task CloudContentDeliverySyncEntriesWithBadgeButNoRelease()
     {
         await GetLoggedInCli()
-            .DebugCommand(
+            .Command(
                 $"ccd entries sync {k_TestDirectory} -u mybadge")
             .AssertStandardErrorContains("The badge option requires the 'create release' option to be set to true.")
             .AssertExitCode(ExitCode.Success)
@@ -146,7 +146,7 @@ public class CloudContentDeliveryEntryTests : UgsCliFixture
     public async Task CloudContentDeliverySyncEntriesWithReleaseNoteButNoRelease()
     {
         await GetLoggedInCli()
-            .DebugCommand(
+            .Command(
                 $"ccd entries sync {k_TestDirectory} -n mynotes")
             .AssertStandardErrorContains("The release notes option requires the 'create release' option to be set to true. As a result, no release notes were added.")
             .AssertExitCode(ExitCode.Success)

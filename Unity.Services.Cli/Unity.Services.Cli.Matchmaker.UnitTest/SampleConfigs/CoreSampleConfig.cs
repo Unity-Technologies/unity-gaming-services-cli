@@ -1,4 +1,4 @@
-using Core = Unity.Services.Matchmaker.Authoring.Core.Model;
+using Core = Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
 
 namespace Unity.Services.Cli.Matchmaker.UnitTest.SampleConfigs;
 
@@ -13,11 +13,15 @@ class CoreSampleConfig
         {
             Enabled = true,
             Name = new Core.PoolName("TestPool"),
+            TimeoutSeconds = 0,
             MatchHosting = new Core.MultiplayConfig()
             {
                 FleetName = "TestFleet",
                 BuildConfigurationName = "TestBuildConfig",
                 DefaultQoSRegionName = "NorthAmerica",
+                ModuleName = "module",
+                AllocateFunctionName = "allocate",
+                PollFunctionName = "poll",
             },
             MatchLogic = new Core.MatchLogicRulesConfig()
             {
@@ -54,6 +58,8 @@ class CoreSampleConfig
                             source = "ExternalData.CloudSave.myObject",
                             type = Core.RuleType.GreaterThan,
                             not = false,
+                            overlap = 0.0,
+                            enableRule = false,
                             reference = new AdminApiClient.MatchmakerAdminClient.JsonObjectSpecialized("\"value\""),
                             externalData = new Core.RuleExternalData()
                             {
@@ -72,6 +78,8 @@ class CoreSampleConfig
                             source = "ExternalData.Leaderboard.Tiers",
                             type = Core.RuleType.GreaterThanEqual,
                             not = false,
+                            overlap = 0.0,
+                            enableRule = false,
                             reference = new AdminApiClient.MatchmakerAdminClient.JsonObjectSpecialized("156"),
                             externalData = new Core.RuleExternalData()
                             {
@@ -87,6 +95,9 @@ class CoreSampleConfig
                             name = "LessThan",
                             source = "attribute",
                             type = Core.RuleType.LessThan,
+                            overlap = 0.0,
+                            enableRule = false,
+                            not = false,
                             reference = new AdminApiClient.MatchmakerAdminClient.JsonObjectSpecialized("2"),
                             relaxations = new List<Core.RuleRelaxation>()
                             {
@@ -118,6 +129,9 @@ class CoreSampleConfig
                             name = "LessThanEqual",
                             source = "attribute",
                             type = Core.RuleType.LessThanEqual,
+                            overlap = 0.0,
+                            enableRule = false,
+                            not = false,
                             reference = new AdminApiClient.MatchmakerAdminClient.JsonObjectSpecialized("2"),
                             externalData = new Core.RuleExternalData()
                             {
@@ -127,27 +141,40 @@ class CoreSampleConfig
                                     _default = new AdminApiClient.MatchmakerAdminClient.JsonObjectSpecialized("3")
                                 }
                             },
+                            relaxations = new List<Core.RuleRelaxation>()
                         },
                         new Core.Rule()
                         {
                             name = "Equality",
                             source = "attribute",
                             type = Core.RuleType.Equality,
-                            reference = new AdminApiClient.MatchmakerAdminClient.JsonObjectSpecialized("2")
+                            overlap = 0.0,
+                            enableRule = false,
+                            not = false,
+                            reference = new AdminApiClient.MatchmakerAdminClient.JsonObjectSpecialized("2"),
+                            relaxations = new List<Core.RuleRelaxation>()
                         },
                         new Core.Rule()
                         {
                             name = "InList",
                             source = "attribute",
                             type = Core.RuleType.InList,
-                            reference = new AdminApiClient.MatchmakerAdminClient.JsonObjectSpecialized(JsonSampleConfigLoader.WindowsLineEnding("[\n  2,\n  3\n]"))
+                            overlap = 0.0,
+                            enableRule = false,
+                            not = false,
+                            reference = new AdminApiClient.MatchmakerAdminClient.JsonObjectSpecialized(JsonSampleConfigLoader.WindowsLineEnding("[\n  2,\n  3\n]")),
+                            relaxations = new List<Core.RuleRelaxation>()
                         },
                         new Core.Rule()
                         {
                             name = "Intersection",
                             source = "attribute",
                             type = Core.RuleType.Intersection,
-                            reference = new AdminApiClient.MatchmakerAdminClient.JsonObjectSpecialized(JsonSampleConfigLoader.WindowsLineEnding("[\n  2,\n  3\n]"))
+                            overlap = 0.0,
+                            enableRule = false,
+                            not = false,
+                            reference = new AdminApiClient.MatchmakerAdminClient.JsonObjectSpecialized(JsonSampleConfigLoader.WindowsLineEnding("[\n  2,\n  3\n]")),
+                            relaxations = new List<Core.RuleRelaxation>()
                         },
                     }
                 }
@@ -197,30 +224,31 @@ class CoreSampleConfig
                     new Core.FilteredPoolConfig.Filter()
                     {
                         Attribute = "Game-mode-eq",
-                        Value = new AdminApiClient.MatchmakerAdminClient.JsonObjectSpecialized("\"TDM\""),
+                        Value = new Core.FilteredPoolConfig.Filter.FilterValue("TDM"),
                         Operator = Core.FilteredPoolConfig.Filter.FilterOperator.Equal,
                     },
                     new Core.FilteredPoolConfig.Filter()
                     {
                         Attribute = "Game-mode-number-lt",
-                        Value = new AdminApiClient.MatchmakerAdminClient.JsonObjectSpecialized("10.5"),
+                        Value = new Core.FilteredPoolConfig.Filter.FilterValue(10.5f),
                         Operator = Core.FilteredPoolConfig.Filter.FilterOperator.LessThan,
                     },
                     new Core.FilteredPoolConfig.Filter()
                     {
                         Attribute = "Game-mode-number-gt",
-                        Value = new AdminApiClient.MatchmakerAdminClient.JsonObjectSpecialized("10.5"),
+                        Value = new Core.FilteredPoolConfig.Filter.FilterValue(10.5f),
                         Operator = Core.FilteredPoolConfig.Filter.FilterOperator.GreaterThan,
                     },
                     new Core.FilteredPoolConfig.Filter()
                     {
                         Attribute = "Game-mode-number-ne",
-                        Value = new AdminApiClient.MatchmakerAdminClient.JsonObjectSpecialized("10.5"),
+                        Value = new Core.FilteredPoolConfig.Filter.FilterValue(10.5f),
                         Operator = Core.FilteredPoolConfig.Filter.FilterOperator.NotEqual,
                     }
                 },
                 Name = new Core.PoolName("FilteredPool"),
                 Enabled = false,
+                TimeoutSeconds = 0,
                 MatchHosting = new Core.MatchIdConfig(),
                 MatchLogic = new Core.MatchLogicRulesConfig()
                 {
@@ -300,6 +328,58 @@ class CoreSampleConfig
                     }
                 }
             },
+            // Additional CloudCode filtered pool
+            new Core.FilteredPoolConfig()
+            {
+                Filters = new List<Core.FilteredPoolConfig.Filter>()
+                {
+                    new Core.FilteredPoolConfig.Filter()
+                    {
+                        Attribute = "Game-mode-eq",
+                        Value = new Core.FilteredPoolConfig.Filter.FilterValue("TDM"),
+                        Operator = Core.FilteredPoolConfig.Filter.FilterOperator.Equal,
+                    }
+                },
+                Name = new Core.PoolName("CloudCodeFilteredPool"),
+                Enabled = false,
+                TimeoutSeconds = 0,
+                MatchHosting = new Core.CloudCodeConfig()
+                {
+                    ModuleName = "cc-module",
+                    AllocateFunctionName = "cc-allocate",
+                    PollFunctionName = "cc-poll"
+                },
+                MatchLogic = new Core.MatchLogicRulesConfig()
+                {
+                    Name = "CCFilteredMatchLogic",
+                    BackfillEnabled = false,
+                    MatchDefinition = new Core.RuleBasedMatchDefinition()
+                    {
+                        matchRules = new List<Core.Rule>(),
+                        teams = new List<Core.RuleBasedTeamDefinition>()
+                    }
+                },
+                Variants = new List<Core.PoolConfig>()
+                {
+                    new Core.PoolConfig()
+                    {
+                        Name = new Core.PoolName("CCVariantPool"),
+                        Enabled = true,
+                        TimeoutSeconds = 10,
+                        MatchHosting = new Core.MatchIdConfig(),
+                        MatchLogic = new Core.MatchLogicRulesConfig()
+                        {
+                            Name = "cc-logic",
+                            BackfillEnabled = true,
+                            MatchDefinition = new Core.RuleBasedMatchDefinition()
+                            {
+                                matchRules = new List<Core.Rule>(),
+                                teams = new List<Core.RuleBasedTeamDefinition>()
+                            }
+                        }
+                    }
+                }
+            }
         }
     };
 
@@ -313,7 +393,6 @@ class CoreSampleConfig
 
     internal readonly Core.EnvironmentConfig EnvironmentConfig = new Core.EnvironmentConfig()
     {
-        Type = Core.IMatchmakerConfig.ConfigType.EnvironmentConfig,
         Enabled = true,
         DefaultQueueName = new Core.QueueName("DefaultQueueTest"),
     };

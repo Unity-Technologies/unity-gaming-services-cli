@@ -3,7 +3,7 @@ using Unity.Services.CloudCode.Authoring.Editor.Core.Solution;
 
 namespace Unity.Services.Cli.CloudCode.Solution;
 
-class FileContentRetriever : IFileContentRetriever
+class FileContentRetriever
 {
     internal const string AssemblyString = "Unity.Services.CloudCode.Authoring.Editor.Core";
 

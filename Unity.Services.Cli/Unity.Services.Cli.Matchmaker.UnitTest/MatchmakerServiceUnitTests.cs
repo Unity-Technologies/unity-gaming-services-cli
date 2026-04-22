@@ -143,16 +143,15 @@ public class MatchmakerServiceTests
     public async Task ListQueues_ReturnsListOfQueues()
     {
         // Arrange
-        var generatedSampleConfig = new GeneratedSampleConfig();
-        var expectedQueues = new List<Generated.QueueConfig> { generatedSampleConfig.QueueConfig };
+        var expectedQueues = new List<Generated.QueueConfig> { GeneratedSampleConfig.QueueConfig };
         m_MockMatchmakerAdminApi.Setup(x => x.ListQueuesWithHttpInfoAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ApiResponse<List<Generated.QueueConfig>>(HttpStatusCode.OK, expectedQueues, $"[{generatedSampleConfig.QueueConfig}]"));
+            .ReturnsAsync(new ApiResponse<List<Generated.QueueConfig>>(HttpStatusCode.OK, expectedQueues, $"[{GeneratedSampleConfig.QueueConfig}]"));
 
         // Act
         var queues = await m_Service.ListQueues();
 
         // Assert
-        var compResult = m_CompareLogic.Compare(generatedSampleConfig.QueueConfig, queues.First());
+        var compResult = m_CompareLogic.Compare(GeneratedSampleConfig.QueueConfig, queues.First());
         Assert.IsTrue(compResult.AreEqual, compResult.DifferencesString);
         Assert.That(queues, Is.EqualTo(expectedQueues));
     }
@@ -175,8 +174,7 @@ public class MatchmakerServiceTests
     public async Task UpsertQueueConfig_CallsUpsertQueueConfigWithCorrectParameters()
     {
         // Arrange
-        var generatedSampleConfig = new GeneratedSampleConfig();
-        var queueConfig = generatedSampleConfig.QueueConfig;
+        var queueConfig = GeneratedSampleConfig.QueueConfig;
         m_MockMatchmakerAdminApi.Setup(x => x.UpsertQueueConfigWithHttpInfoAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<Generated.QueueConfig>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ApiResponse<Object>(HttpStatusCode.OK, new Object()));
 

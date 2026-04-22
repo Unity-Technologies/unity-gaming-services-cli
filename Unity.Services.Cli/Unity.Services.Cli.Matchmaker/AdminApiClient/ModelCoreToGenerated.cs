@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using System.Globalization;
-using Core = Unity.Services.Matchmaker.Authoring.Core.Model;
+using Core = Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
 using Generated = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model;
 
 namespace Unity.Services.Cli.Matchmaker.AdminApiClient;
@@ -80,11 +80,24 @@ static class ModelCoreToGenerated
                                 type: Generated.MultiplayHostingConfig.TypeEnum.Multiplay,
                                 fleetId: fleet.Id,
                                 buildConfigurationId: buildConfig.Id,
-                                defaultQoSRegionId: qosRegion.Id
+                                defaultQoSRegionId: qosRegion.Id,
+                                moduleName: multiplayConfig.ModuleName ?? string.Empty,
+                                allocateFunctionName: multiplayConfig.AllocateFunctionName ?? string.Empty,
+                                pollFunctionName: multiplayConfig.PollFunctionName ?? string.Empty
                             )), errors);
                     }
                 }
             }
+        }
+        else if (matchHostingConfig is Core.CloudCodeConfig cloudCodeConfig)
+        {
+            return (new Generated.MatchHosting(
+                new Generated.CloudCodeHostingConfig(
+                    type: Generated.CloudCodeHostingConfig.TypeEnum.CloudCode,
+                    moduleName: cloudCodeConfig.ModuleName,
+                    allocateFunctionName: cloudCodeConfig.AllocateFunctionName,
+                    pollFunctionName: cloudCodeConfig.PollFunctionName
+                )), errors);
         }
         return (new Generated.MatchHosting(new Generated.MatchIdHostingConfig(type: Generated.MatchIdHostingConfig.TypeEnum.MatchId)), errors);
     }
@@ -274,6 +287,8 @@ static class ModelCoreToGenerated
                                 .NotEqual,
                             Core.FilteredPoolConfig.Filter.FilterOperator.Equal => Generated.Filter.OperatorEnum
                                 .Equal,
+                            Core.FilteredPoolConfig.Filter.FilterOperator.CommonExpressionLanguage => Generated.Filter.OperatorEnum
+                                .CommonExpressionLanguage,
                             _ => throw new InvalidEnumArgumentException(nameof(f.Operator))
                         };
 

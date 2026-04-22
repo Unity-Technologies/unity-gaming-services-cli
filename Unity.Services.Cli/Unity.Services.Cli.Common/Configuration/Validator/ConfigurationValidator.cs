@@ -8,6 +8,7 @@ public class ConfigurationValidator : IConfigurationValidator
 {
     const string k_EnvironmentNameRegexPattern = "^[a-z0-9_-]*$";
     const string k_BucketNameRegexPattern = "^\\s*[^ \\s]+.*$";
+    const string k_ReleaseNameRegexPattern = "^[a-zA-Z0-9]([a-zA-Z0-9.-]{0,62}[a-zA-Z0-9])?$";
     const string k_GuidRegexPattern = "^[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?$";
 
     public const string EnvironmentNameInvalidMessage =
@@ -15,6 +16,9 @@ public class ConfigurationValidator : IConfigurationValidator
 
     public const string BucketNameInvalidMessage =
         "Valid input should have at least one character.";
+
+    public const string ReleaseNameInvalidMessage =
+        "Name must start and end with an alphanumeric character and can only contain letters, numbers, dots (.), and dashes (-). Maximum length is 64 characters.";
 
     public const string GuidInvalidMessage =
         "Valid input should have characters 0-9, a-f, A-F and follow the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX.";
@@ -47,6 +51,8 @@ public class ConfigurationValidator : IConfigurationValidator
                 return IsProjectIdValid(value, out errorMessage);
             case Keys.ConfigKeys.BucketName:
                 return IsBucketNameValid(value, out errorMessage);
+            case Keys.ConfigKeys.ReleaseName:
+                return IsReleaseNameValid(value, out errorMessage);
             default:
                 errorMessage = InvalidKeyMsg;
                 return false;
@@ -122,6 +128,19 @@ public class ConfigurationValidator : IConfigurationValidator
         if (!nameRegex.IsMatch(value))
         {
             errorMessage = BucketNameInvalidMessage;
+            return false;
+        }
+
+        errorMessage = "";
+        return true;
+    }
+
+    static bool IsReleaseNameValid(string value, out string errorMessage)
+    {
+        var nameRegex = new Regex(k_ReleaseNameRegexPattern, RegexOptions.None, TimeSpan.FromSeconds(1));
+        if (!nameRegex.IsMatch(value))
+        {
+            errorMessage = ReleaseNameInvalidMessage;
             return false;
         }
 
