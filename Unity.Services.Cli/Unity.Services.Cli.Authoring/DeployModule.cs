@@ -27,7 +27,9 @@ public class DeployModule : ICommandModule
     {
         ModuleRootCommand = new Command(
             "deploy",
-            $"Deploy configuration files of supported services to the backend.")
+            new CommandDescription("Deploy configuration files of supported services to the backend.")
+                .WithReturn("List of deployed files grouped by status; or JSON list containing name, path and status with --json.")
+                .Build())
         {
             DeployInput.PathsArgument,
             DeployInput.ReconcileOption,
@@ -45,7 +47,7 @@ public class DeployModule : ICommandModule
             IUnityEnvironment,
             ILogger,
             ILoadingIndicator,
-            ICliDeploymentDefinitionService,
+            IAuthoringFileService,
             IAnalyticsEventBuilder,
             CancellationToken>(
             DeployCommandHandler.DeployAsync);
@@ -60,8 +62,8 @@ public class DeployModule : ICommandModule
         serviceCollection.AddTransient<IDirectory>(_ => new FileSystem().Directory);
         serviceCollection.AddTransient<IPath>(_ => new FileSystem().Path);
         serviceCollection.AddTransient<IDeployFileService, DeployFileService>();
-        serviceCollection.AddTransient<ICliDeploymentDefinitionService, CliDeploymentDefinitionService>();
-        serviceCollection.AddTransient<IDeploymentDefinitionFileService, DeploymentDefinitionFileService>();
+        serviceCollection.AddTransient<IAuthoringFileService, AuthoringFileService>();
+        serviceCollection.AddTransient<IFileDiscoveryService, FileDiscoveryService>();
         serviceCollection.AddTransient<IDeploymentDefinitionFactory, DeploymentDefinitionFactory>();
         serviceCollection.AddTransient<IZipArchiver, ZipArchiver>();
     }

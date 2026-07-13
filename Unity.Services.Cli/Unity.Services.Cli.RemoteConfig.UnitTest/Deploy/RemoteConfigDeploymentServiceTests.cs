@@ -4,6 +4,7 @@ using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Service;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.RemoteConfig.Deploy;
 using Unity.Services.Cli.RemoteConfig.Exceptions;
 using Unity.Services.Cli.RemoteConfig.Service;
@@ -23,10 +24,10 @@ public class RemoteConfigDeploymentServiceTests
     const string k_ValidProjectId = "a912b1fd-541d-42e1-89f2-85436f27aabd";
     const string k_ValidEnvironmentId = "00000000-0000-0000-0000-000000000000";
 
-    static readonly List<string> k_ValidFilePaths = new()
+    static readonly List<AuthoringFile> k_ValidFilePaths = new()
     {
-        "test_a.rc",
-        "test_b.rc"
+        new AuthoringFile("test_a.rc"),
+        new AuthoringFile("test_b.rc")
     };
 
     readonly Mock<ICliRemoteConfigClient> m_MockCliRemoteConfigClient = new();
@@ -156,7 +157,7 @@ public class RemoteConfigDeploymentServiceTests
 
         m_MockRemoteConfigScriptsLoader.Verify(x =>
                 x.LoadScriptsAsync(
-                    k_ValidFilePaths,
+                    k_ValidFilePaths.ToPaths(),
                     CancellationToken.None),
             Times.Once);
     }

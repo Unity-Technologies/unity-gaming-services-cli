@@ -3,7 +3,7 @@ using Unity.Services.Cli.Common.Input;
 
 namespace Unity.Services.Cli.Leaderboards.Input;
 
-class ResetInput : LeaderboardIdInput
+public class ResetInput : LeaderboardIdInput
 {
     const string k_ArchiveDescription =
         "Whether or not to archive the current set of scores before resetting the leaderboard. ";

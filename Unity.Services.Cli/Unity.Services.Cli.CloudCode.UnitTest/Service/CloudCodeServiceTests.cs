@@ -730,6 +730,80 @@ class CloudCodeServiceTests
     }
 
     [Test]
+    public async Task GetModuleSpecAsync_ValidParamsGetExpectedSpec()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        var actualSpec = await m_CloudCodeService!.GetModuleSpecAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_TestModuleName, CancellationToken.None);
+
+        Assert.AreEqual(m_CloudCodeApiV1AsyncMock.ModuleSpecResponse, actualSpec);
+
+        m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.ModuleSpecAsync(
+                TestValues.ValidProjectId,
+                TestValues.ValidEnvironmentId,
+                k_TestModuleName,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public void GetModuleSpecAsync_InvalidProjectIDThrowConfigValidationException()
+    {
+        m_ValidatorObject.Setup(v => v.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, k_InvalidProjectId))
+            .Throws(new ConfigValidationException(Keys.ConfigKeys.ProjectId, k_InvalidProjectId, It.IsAny<string>()));
+
+        Assert.ThrowsAsync<ConfigValidationException>(
+            () => m_CloudCodeService!.GetModuleSpecAsync(
+                k_InvalidProjectId, TestValues.ValidEnvironmentId, k_TestModuleName, CancellationToken.None));
+
+        m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.ModuleSpecAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Test]
+    public void GetModuleSpecAsync_InvalidEnvironmentThrowConfigValidationException()
+    {
+        m_ValidatorObject.Setup(v => v.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentId, k_InvalidEnvironmentId))
+            .Throws(new ConfigValidationException(Keys.ConfigKeys.EnvironmentId, k_InvalidEnvironmentId, It.IsAny<string>()));
+
+        Assert.ThrowsAsync<ConfigValidationException>(
+            () => m_CloudCodeService!.GetModuleSpecAsync(
+                TestValues.ValidProjectId, k_InvalidEnvironmentId, k_TestModuleName, CancellationToken.None));
+
+        m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.ModuleSpecAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [TestCase(null)]
+    [TestCase("")]
+    [TestCase("!%")]
+    public void GetModuleSpecAsync_InvalidModuleNameThrowCliException(string invalidModuleName)
+    {
+        Assert.ThrowsAsync<CliException>(
+            () => m_CloudCodeService!.GetModuleSpecAsync(
+                TestValues.ValidProjectId, k_InvalidEnvironmentId, invalidModuleName, CancellationToken.None));
+        m_ValidatorObject.Verify(
+            v => v.ThrowExceptionIfConfigInvalid(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
     public void CreateAsync_InvalidEnvironmentOrProjectIdThrowsConfigValidationException()
     {
         m_ValidatorObject.Setup(

@@ -5,7 +5,7 @@ namespace Unity.Services.Cli.ServiceAccountAuthentication;
 
 interface IAuthenticator
 {
-    Task LoginAsync(LoginInput input, CancellationToken cancellationToken = default);
+    Task<LoginResult> LoginAsync(LoginInput input, CancellationToken cancellationToken = default);
 
     Task<LogoutResponse> LogoutAsync(ISystemEnvironmentProvider environmentProvider,
         CancellationToken cancellationToken = default);

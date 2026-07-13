@@ -3,7 +3,7 @@ using Unity.Services.Cli.Common.Input;
 
 namespace Unity.Services.Cli.Triggers.Input;
 
-class ListTriggersInput : CommonInput
+public class ListTriggersInput : CommonInput
 {
     public static readonly Option<int?> LimitOption = new("--limit",
         "The number of triggers to return per page. Defaults to 100");

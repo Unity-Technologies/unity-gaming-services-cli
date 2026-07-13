@@ -45,7 +45,7 @@ public class EnvTests : UgsCliFixture
     public async Task EnvironmentListThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("env list")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_NotLoggedInMessage)
@@ -89,7 +89,7 @@ public class EnvTests : UgsCliFixture
         var expectedMsg = "'project-id' is not set in project configuration." +
                           " 'UGS_CLI_PROJECT_ID' is not set in system environment variables";
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("env add 1")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(expectedMsg)
@@ -100,7 +100,7 @@ public class EnvTests : UgsCliFixture
     public async Task EnvironmentAdditionThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", "12345678-1111-2222-3333-123412341234");
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"env add test1")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_NotLoggedInMessage)
@@ -138,7 +138,7 @@ public class EnvTests : UgsCliFixture
         var expectedMsg = "'project-id' is not set in project configuration." +
                           " 'UGS_CLI_PROJECT_ID' is not set in system environment variables";
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("env delete test-env-123")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(expectedMsg)
@@ -149,7 +149,7 @@ public class EnvTests : UgsCliFixture
     public async Task EnvironmentDeleteThrowsNotLoggedInException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("env delete test-env-123")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_NotLoggedInMessage)
@@ -184,7 +184,7 @@ public class EnvTests : UgsCliFixture
     [Test]
     public async Task EnvironmentUseThrowsInvalidEnvironmentFormatException()
     {
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("env use test@")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_InvalidEnvNameMsg)
@@ -194,7 +194,7 @@ public class EnvTests : UgsCliFixture
     [Test]
     public async Task EnvironmentUseReturnsZeroExitCode()
     {
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("env use 123")
             .ExecuteAsync();
     }

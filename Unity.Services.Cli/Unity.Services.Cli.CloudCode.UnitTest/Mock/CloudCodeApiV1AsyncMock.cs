@@ -30,6 +30,8 @@ class CloudCodeApiV1AsyncMock
         _Version = 0
     };
 
+    public string ModuleSpecResponse { get; set; } = "openapi: 3.0.0";
+
     public CreateModuleResponse CreateModuleResponse { get; set; } = new(DateTime.Now);
     public UpdateModuleResponse UpdateModuleResponse { get; set; } = new(DateTime.Now);
 
@@ -85,6 +87,15 @@ class CloudCodeApiV1AsyncMock
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()))
             .ReturnsAsync(GetModuleResponse);
+
+        DefaultApiAsyncObject.Setup(
+                ex => ex.ModuleSpecAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ModuleSpecResponse);
 
         DefaultApiAsyncObject.Setup(
                 ex => ex.ListModulesAsync(

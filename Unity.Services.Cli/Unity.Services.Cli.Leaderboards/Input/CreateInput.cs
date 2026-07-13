@@ -3,7 +3,7 @@ using Unity.Services.Cli.Common.Input;
 
 namespace Unity.Services.Cli.Leaderboards.Input;
 
-class CreateInput : LeaderboardIdInput
+public class CreateInput : LeaderboardIdInput
 {
     const string k_JsonBodyDescription =
         "Json file path of the leadeboard config, \n" +

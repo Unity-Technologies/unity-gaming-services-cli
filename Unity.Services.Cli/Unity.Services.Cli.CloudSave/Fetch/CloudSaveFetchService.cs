@@ -1,6 +1,8 @@
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Service;
+using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.CloudSave.Authoring.Core.Fetch;
 using Unity.Services.CloudSave.Authoring.Core.IO;
@@ -38,7 +40,7 @@ class CloudSaveFetchService : IFetchService
 
     public async Task<FetchResult> FetchAsync(
         FetchInput input,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> authoringFiles,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,
@@ -46,7 +48,7 @@ class CloudSaveFetchService : IFetchService
     {
         await m_Client.Initialize(environmentId, projectId, cancellationToken);
         loadingContext?.Status($"Reading {m_ServiceType} files...");
-        var (loadedSuccessfully, failedToLoad) = await GetResourcesFromFiles(filePaths);
+        var (loadedSuccessfully, failedToLoad) = await GetResourcesFromFiles(authoringFiles.ToPaths());
 
         loadingContext?.Status($"Fetching {m_ServiceType} files...");
         var res = await m_FetchHandler.FetchAsync(

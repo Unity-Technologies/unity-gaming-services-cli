@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/runtime-deps:7.0.4-alpine3.16-amd64
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-alpine-amd64
 
 ARG UGS_VERSION=latest
 

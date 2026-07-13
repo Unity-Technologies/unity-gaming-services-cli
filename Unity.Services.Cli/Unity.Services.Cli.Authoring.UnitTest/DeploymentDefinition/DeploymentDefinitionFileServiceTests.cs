@@ -1,9 +1,10 @@
 using System.IO.Abstractions;
-using System.Runtime.Intrinsics.Arm;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.DeploymentDefinition;
 using Unity.Services.Cli.Authoring.Service;
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Deployment.Core.Model;
 
 namespace Unity.Services.Cli.Authoring.UnitTest.Service;
@@ -15,8 +16,9 @@ class DeploymentDefinitionFileServiceTests
     Mock<IDirectory> m_MockDirectory;
     Mock<IPath> m_MockPath;
     Mock<IDeploymentDefinitionFactory> m_MockFactory;
+    Mock<ILogger> m_MockLogger;
 
-    DeploymentDefinitionFileService m_DdefFileService;
+    FileDiscoveryService m_DdefFileService;
 
     public DeploymentDefinitionFileServiceTests()
     {
@@ -24,13 +26,15 @@ class DeploymentDefinitionFileServiceTests
         m_MockDirectory = new Mock<IDirectory>();
         m_MockPath = new Mock<IPath>();
         m_MockFactory = new Mock<IDeploymentDefinitionFactory>();
+        m_MockLogger = new Mock<ILogger>();
         m_MockFactory
             .Setup(f => f.CreateDeploymentDefinition(It.IsAny<string>()))
             .Returns((string path) => CreateMockDdef(path).Object);
-        m_DdefFileService = new DeploymentDefinitionFileService(
+        m_DdefFileService = new FileDiscoveryService(
             m_MockFile.Object,
             m_MockDirectory.Object,
             m_MockPath.Object,
+            m_MockLogger.Object,
             m_MockFactory.Object);
     }
 
@@ -47,7 +51,7 @@ class DeploymentDefinitionFileServiceTests
     }
 
     [Test]
-    public void GetDeploymentDefinitionsForInput_GetsAllDdef()
+    public void DiscoverDeploymentDefinitions_GetsAllDdef()
     {
         var inputPaths = new[]
         {
@@ -63,10 +67,9 @@ class DeploymentDefinitionFileServiceTests
             ".ddef",
             "path/to/folder/A.ddef", "path/to/folder/subfolder/B.ddef");
 
-        var result = m_DdefFileService.GetDeploymentDefinitionsForInput(inputPaths);
+        var result = m_DdefFileService.DiscoverDeploymentDefinitions(inputPaths);
 
-        Assert.AreEqual(1, result.InputDeploymentDefinitions.Count);
-        Assert.AreEqual(2, result.AllDeploymentDefinitions.Count);
+        Assert.AreEqual(2, result.Count);
     }
 
     void SetupFilePathDirectoryForInput(IEnumerable<string> inputPaths)
@@ -132,7 +135,7 @@ class DeploymentDefinitionFileServiceTests
         SetupDirectoryReturn("path/to/folder", ".js", "path/to/folder/script.js");
         SetupDirectoryReturn("path/to/folder", ".rc", "path/to/folder/config.rc");
 
-        var files = new List<string>();
+        var files = new List<AuthoringFile>();
         foreach (var extension in extensions)
         {
             files.AddRange(m_DdefFileService.GetFilesForDeploymentDefinition(ddef.Object, extension));
@@ -142,7 +145,7 @@ class DeploymentDefinitionFileServiceTests
     }
 
     [Test]
-    public void GetDeploymentDefinitionsForInput_MultipleDdefsInFolder_Throws()
+    public void DiscoverDeploymentDefinitions_MultipleDdefsInFolder_Throws()
     {
         var inputPaths = new[]
         {
@@ -155,11 +158,11 @@ class DeploymentDefinitionFileServiceTests
 
         Assert.Throws<MultipleDeploymentDefinitionInDirectoryException>(
             () =>
-                m_DdefFileService.GetDeploymentDefinitionsForInput(inputPaths));
+                m_DdefFileService.DiscoverDeploymentDefinitions(inputPaths));
     }
 
     [Test]
-    public void GetDeploymentDefinitionsForInput_MultipleDdefsInNestedFolders_DoesNotThrow()
+    public void DiscoverDeploymentDefinitions_MultipleDdefsInNestedFolders_DoesNotThrow()
     {
         var inputPaths = new[]
         {
@@ -175,6 +178,7 @@ class DeploymentDefinitionFileServiceTests
         SetupDirectoryReturn("path/to/folder/subfolder", ".ddef", "path/to/folder/subfolder/B.ddef");
 
         Assert.DoesNotThrow(() =>
-            m_DdefFileService.GetDeploymentDefinitionsForInput(inputPaths));
+            m_DdefFileService.DiscoverDeploymentDefinitions(inputPaths));
     }
+
 }

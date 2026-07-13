@@ -7,7 +7,6 @@ using Unity.Services.Cli.Common.Validator;
 using Unity.Services.Cli.RemoteConfig.Types;
 using Unity.Services.Cli.ServiceAccountAuthentication;
 using Unity.Services.Cli.Common.Networking;
-using System.Reflection;
 using Unity.Services.Cli.RemoteConfig.Exceptions;
 
 namespace Unity.Services.Cli.RemoteConfig.UnitTest.Service;
@@ -30,11 +29,11 @@ class RemoteConfigServiceTests
     [SetUp]
     public void SetUp()
     {
-        EndpointHelper.InitializeNetworkTargetEndpoints(new[]
-        {
-            typeof(RemoteConfigEndpoints).GetTypeInfo(),
-            typeof(RemoteConfigInternalEndpoints).GetTypeInfo()
-        });
+        EndpointHelper.InitializeNetworkTargetEndpoints(
+        [
+            new RemoteConfigEndpoints(),
+            new RemoteConfigInternalEndpoints()
+        ]);
 
         m_AuthenticationServiceObject.Reset();
 

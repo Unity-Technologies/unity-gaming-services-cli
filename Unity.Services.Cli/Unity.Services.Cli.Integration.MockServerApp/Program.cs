@@ -10,10 +10,13 @@ static class Program
 {
     static async Task Main()
     {
-        using var mockApi = new MockApi(NetworkTargetEndpoints.MockServer);
+        using var mockApi = new MockApi();
         using var integrationConfig = new IntegrationConfig();
         try
         {
+            Console.WriteLine($"To isolate test use: `export UGS_CLI_CONFIG_DIR={integrationConfig.ConfigDir}`");
+            Console.WriteLine($"To isolate test use: `export UGS_CLI_MOCK_SERVER_URL={mockApi.Url}`");
+
             await MockIntegrationTestAsync(mockApi, integrationConfig);
             Console.ReadLine();
         }

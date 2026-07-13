@@ -2,6 +2,8 @@ using Microsoft.Extensions.Logging;
 using Unity.Services.Cli.Authoring.DeploymentDefinition;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
+using Unity.Services.Cli.Authoring.Exceptions;
 using Unity.Services.Cli.Authoring.Model.TableOutput;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.Common.Exceptions;
@@ -53,7 +55,7 @@ static class AuthoringHandlerCommon
 
             if (typeof(T) == typeof(IFetchService)
                 && inputPaths.Count > 0
-                && Path.GetExtension(inputPaths[0]) == CliDeploymentDefinitionService.Extension)
+                && Path.GetExtension(inputPaths[0]) == DDefConstants.Extension)
             {
                 logger.LogError("Reconcile Fetch is not compatible with Deployment Definitions");
                 return false;
@@ -77,16 +79,16 @@ static class AuthoringHandlerCommon
     }
 
     public static IDeploymentDefinitionFilteringResult? GetDdefResult(
-        ICliDeploymentDefinitionService ddefService,
+        IAuthoringFileService authoringFileService,
         ILogger logger,
-        IEnumerable<string> inputPaths,
-        IEnumerable<string> extensions)
+        IReadOnlyList<string> inputPaths,
+        IReadOnlyList<string> extensions)
     {
         IDeploymentDefinitionFilteringResult? ddefResult = null;
         try
         {
-            ddefResult = ddefService
-                .GetFilesFromInput(inputPaths, extensions);
+            ddefResult = authoringFileService
+                .ResolveAuthoringFiles(inputPaths, extensions);
         }
         catch (MultipleDeploymentDefinitionInDirectoryException e)
         {
@@ -108,11 +110,31 @@ static class AuthoringHandlerCommon
         return input.Services.Contains(serviceName);
     }
 
-    public static bool AreAllServicesSupported(AuthoringInput input, IReadOnlyList<string> serviceNames, out string unsupportedServices)
+    public static bool AreAllServicesSupported(
+        AuthoringInput input,
+        IReadOnlyList<string> serviceNames,
+        out string unsupportedServices)
     {
         unsupportedServices = string.Join(", ", input.Services.Except(serviceNames));
 
         return string.IsNullOrEmpty(unsupportedServices);
+    }
+
+    public static void OverwriteVariantTags(
+        IReadOnlyList<string> variantTags,
+        IEnumerable<AuthoringFile> authoringFiles,
+        bool useForce)
+    {
+        foreach (var authoringFile in authoringFiles)
+        {
+            if (!VariantTagsUtils.Equals(variantTags, authoringFile.VariantTags) && !useForce)
+            {
+                var filePath = Path.GetRelativePath(Directory.GetCurrentDirectory(), authoringFile.Path);
+                throw new DeployException($"'{filePath}' has variant tags that differ from the specified ones. Use --force to override.");
+            }
+
+            authoringFile.VariantTags = variantTags;
+        }
     }
 
     public static void PrintResult<T>(
@@ -161,6 +183,21 @@ static class AuthoringHandlerCommon
         if (totalResult.Failed.Any())
         {
             throw new DeploymentFailureException();
+        }
+    }
+
+    public static void ReconcileVariantTags(
+        AuthoringInput input,
+        AuthoringFile[] authoringFiles,
+        IReadOnlyList<string>? fallbackVariantTags = null)
+    {
+        if (input.VariantTags?.Any() == true)
+        {
+            OverwriteVariantTags(input.VariantTags!, authoringFiles, input.UseForce);
+        }
+        else if (fallbackVariantTags != null)
+        {
+            input.VariantTags = fallbackVariantTags.ToList();
         }
     }
 }

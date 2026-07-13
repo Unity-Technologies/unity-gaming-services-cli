@@ -1,0 +1,29 @@
+<linker>
+  <!-- Third-party libraries that are not AOT/trim compatible -->
+  <assembly fullname="Newtonsoft.Json" preserve="all" />
+  <assembly fullname="RestSharp" preserve="all" />
+  <assembly fullname="OpenTelemetry.Api" preserve="all" />
+  <assembly fullname="Spectre.Console" preserve="all" />
+  <assembly fullname="System.CommandLine.NamingConventionBinder" preserve="all" />
+  <assembly fullname="YamlDotNet" preserve="all" />
+  <assembly fullname="Unity.Analytics.Sender" preserve="all" />
+
+  <!-- Unity Services generated API clients (OpenAPI-generated, not AOT compatible) -->
+  <assembly fullname="Unity.Services.Gateway.AccessApiV1.Generated" preserve="all" />
+  <assembly fullname="Unity.Services.Gateway.Auth.Generated" preserve="all" />
+  <assembly fullname="Unity.Services.Gateway.CloudCodeApiV1.Generated" preserve="all" />
+  <assembly fullname="Unity.Services.Gateway.CloudSaveApiV1.Generated" preserve="all" />
+  <assembly fullname="Unity.Services.Gateway.ContentDeliveryManagementApiV1.Generated" preserve="all" />
+  <assembly fullname="Unity.Services.Gateway.EconomyApiV2.Generated" preserve="all" />
+  <assembly fullname="Unity.Services.Gateway.IdentityApiV1.Generated" preserve="all" />
+  <assembly fullname="Unity.Services.Gateway.LeaderboardApiV1.Generated" preserve="all" />
+  <assembly fullname="Unity.Services.Gateway.LiveContentApiV1.Generated" preserve="all" />
+  <assembly fullname="Unity.Services.Gateway.LiveReleasesApiV1.Generated" preserve="all" />
+  <assembly fullname="Unity.Services.Gateway.MatchmakerAdminApiV3.Generated" preserve="all" />
+  <assembly fullname="Unity.Services.Gateway.PlayerAdminApiV3.Generated" preserve="all" />
+  <assembly fullname="Unity.Services.Gateway.PlayerAuthApiV1.Generated" preserve="all" />
+  <assembly fullname="Unity.Services.Gateway.SchedulerApiV1.Generated" preserve="all" />
+  <assembly fullname="Unity.Services.Gateway.SchemaRegistryApiV1.Generated" preserve="all" />
+  <assembly fullname="Unity.Services.Gateway.TriggersApiV1.Generated" preserve="all" />
+  <assembly fullname="Unity.Services.MpsLobby.LobbyApiV1.Generated" preserve="all" />
+</linker>

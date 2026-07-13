@@ -4,139 +4,225 @@ using NUnit.Framework;
 using Unity.Services.Cli.Common.SystemEnvironment;
 using Unity.Services.Cli.ServiceAccountAuthentication;
 using Unity.Services.Cli.ServiceAccountAuthentication.Handlers;
+using Unity.Services.Cli.ServiceAccountAuthentication.Hub;
 
 namespace Unity.Services.Cli.Authentication.UnitTest.Handlers;
 
 [TestFixture]
 class StatusHandlerTests
 {
-    Mock<IAuthenticator>? m_MockAuthenticator;
-    Mock<ISystemEnvironmentProvider>? m_EnvironmentProvider;
-    Mock<ILogger>? m_MockedLogger;
+    Mock<IAuthenticator> m_MockAuthenticator = null!;
+    Mock<ISystemEnvironmentProvider> m_EnvironmentProvider = null!;
+    Mock<IHubAuthProvider> m_MockHubAuthProvider = null!;
+    Mock<ILogger> m_MockedLogger = null!;
 
     [SetUp]
     public void SetUp()
     {
         m_MockAuthenticator = new();
         m_EnvironmentProvider = new();
+        m_MockHubAuthProvider = new();
         m_MockedLogger = new();
+
+        // Default: every env var returns null. Tests override the ones they
+        // need so each precedence path is exercised in isolation.
+        var sink = "";
+        m_EnvironmentProvider
+            .Setup(ex => ex.GetSystemEnvironmentVariable(It.IsAny<string>(), out sink))
+            .Returns((string?)null);
+
+        // Default: not hub auth.
+        m_MockHubAuthProvider
+            .Setup(h => h.IsHubAuthToken(It.IsAny<string?>()))
+            .Returns(false);
     }
 
-    [Test]
-    public async Task GetStatusAsyncCallsRegisteredAuthenticatorGetToken()
+    void StubEnv(string name, string? value)
     {
-        Mock<IAuthenticator> mockAuthenticator = new();
-        Mock<ISystemEnvironmentProvider> environmentProvider = new();
-        var mockedLogger = new Mock<ILogger>();
-        await StatusHandler.GetStatusAsync(mockAuthenticator.Object, environmentProvider.Object, mockedLogger.Object, CancellationToken.None);
-
-        mockAuthenticator.Verify(a => a.GetTokenAsync(CancellationToken.None));
-        mockedLogger.Verify(x => x.Log(
-            It.Is<LogLevel>(level => level.Equals(LogLevel.Information)),
-            It.IsAny<EventId>(),
-            It.IsAny<It.IsAnyType>(),
-            It.IsAny<Exception>(),
-            It.Is<Func<It.IsAnyType, Exception?, string>>((o, t) => true)), Times.Exactly(1));
+        var sink = "";
+        m_EnvironmentProvider
+            .Setup(ex => ex.GetSystemEnvironmentVariable(name, out sink))
+            .Returns(value);
     }
 
-    [Test]
-    public async Task GetStatusAsync_ReturnsLoggedOutWhenNoAccessToken()
+    void StubPersistedToken(string? token)
     {
-        string errorMsg;
-        m_EnvironmentProvider!.Setup(ex => ex.
-                GetSystemEnvironmentVariable(It.IsAny<string>(), out errorMsg)).Returns("");
-        m_MockAuthenticator!.Setup(ex => ex
-            .GetTokenAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult("")!);
+        m_MockAuthenticator
+            .Setup(ex => ex.GetTokenAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult(token));
+    }
 
-        await StatusHandler.GetStatusAsync(m_MockAuthenticator.Object, m_EnvironmentProvider.Object,
-            m_MockedLogger!.Object, CancellationToken.None);
+    void StubHubAuth()
+    {
+        m_MockHubAuthProvider
+            .Setup(h => h.IsHubAuthToken(AuthenticatorV1.HubAuthMarker))
+            .Returns(true);
+    }
 
-        m_MockAuthenticator.Verify(a => a.GetTokenAsync(CancellationToken.None));
+    Task RunStatus() =>
+        StatusHandler.GetStatusAsync(
+            m_MockAuthenticator.Object,
+            m_EnvironmentProvider.Object,
+            m_MockHubAuthProvider.Object,
+            m_MockedLogger.Object,
+            CancellationToken.None);
 
+    void VerifyLogged(LogLevel level, string expectedMessage, Times times) =>
         m_MockedLogger.Verify(
             x => x.Log(
-                LogLevel.Information,
+                level,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((o, t) => string.Equals(expectedMessage, o.ToString())),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            times);
+
+    void VerifyNoLogAtLevel(LogLevel level) =>
+        m_MockedLogger.Verify(
+            x => x.Log(
+                level,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Never);
+
+    [Test]
+    public async Task ReportsNoCredentialsWhenNothingConfigured()
+    {
+        await RunStatus();
+
+        m_MockAuthenticator.Verify(a => a.GetTokenAsync(CancellationToken.None));
+        VerifyLogged(LogLevel.Information, StatusHandler.NoCredentialsMessage, Times.Once());
+        VerifyNoLogAtLevel(LogLevel.Warning);
+    }
+
+    [Test]
+    public async Task ReportsAuthTokenWhenOnlyBearerEnvSet()
+    {
+        StubEnv(AuthenticatorV1.AuthToken, "eyJhbGciOiJSUzI1NiJ9.payload.sig");
+
+        await RunStatus();
+
+        VerifyLogged(LogLevel.Information, StatusHandler.UsingAuthTokenMessage, Times.Once());
+        VerifyNoLogAtLevel(LogLevel.Warning);
+    }
+
+    [Test]
+    public async Task ReportsLoginConfigWhenOnlyPersistedTokenSet()
+    {
+        StubPersistedToken("base64-keyid-secret");
+
+        await RunStatus();
+
+        VerifyLogged(LogLevel.Information, StatusHandler.UsingLoginConfigMessage, Times.Once());
+        VerifyNoLogAtLevel(LogLevel.Warning);
+    }
+
+    [Test]
+    public async Task ReportsServiceKeyEnvWhenOnlyServiceKeyEnvSet()
+    {
+        StubEnv(AuthenticatorV1.ServiceKeyId, "key-id");
+        StubEnv(AuthenticatorV1.ServiceSecretKey, "secret-key");
+
+        await RunStatus();
+
+        VerifyLogged(LogLevel.Information, StatusHandler.UsingServiceKeyEnvMessage, Times.Once());
+        VerifyNoLogAtLevel(LogLevel.Warning);
+    }
+
+    [Test]
+    public async Task AuthTokenWinsAndWarnsAboutOverriddenLoginAndServiceKeyEnv()
+    {
+        StubEnv(AuthenticatorV1.AuthToken, "eyJhbGciOiJSUzI1NiJ9.payload.sig");
+        StubPersistedToken("base64-keyid-secret");
+        StubEnv(AuthenticatorV1.ServiceKeyId, "key-id");
+        StubEnv(AuthenticatorV1.ServiceSecretKey, "secret-key");
+
+        await RunStatus();
+
+        VerifyLogged(LogLevel.Information, StatusHandler.UsingAuthTokenMessage, Times.Once());
+        // Exactly one warning that names both overridden sources.
+        m_MockedLogger.Verify(
+            x => x.Log(
+                LogLevel.Warning,
                 It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>((o, t) =>
-                    string.Equals(StatusHandler.NoServiceAccountKeysMessage, o.ToString())),
+                    o.ToString()!.Contains("saved login")
+                    && o.ToString()!.Contains(AuthenticatorV1.ServiceKeyId)),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
 
     [Test]
-    public async Task GetStatusAsync_ReturnsLoggedInWhenAccessTokenOnlyFromLocalConfig()
+    public async Task LoginConfigWinsAndWarnsAboutOverriddenServiceKeyEnv()
     {
-        string expectedLoggedMessage = "Using Service Account key from local configuration.";
-        string errorMsg;
-        m_EnvironmentProvider!.Setup(ex => ex.
-            GetSystemEnvironmentVariable(It.IsAny<string>(), out errorMsg)).Returns("");
-        m_MockAuthenticator!.Setup(ex => ex
-            .GetTokenAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult("1234")!);
+        StubPersistedToken("base64-keyid-secret");
+        StubEnv(AuthenticatorV1.ServiceKeyId, "key-id");
+        StubEnv(AuthenticatorV1.ServiceSecretKey, "secret-key");
 
-        await StatusHandler.GetStatusAsync(m_MockAuthenticator.Object, m_EnvironmentProvider.Object,
-            m_MockedLogger!.Object, CancellationToken.None);
+        await RunStatus();
 
-        m_MockAuthenticator.Verify(a => a.GetTokenAsync(CancellationToken.None));
-
+        VerifyLogged(LogLevel.Information, StatusHandler.UsingLoginConfigMessage, Times.Once());
         m_MockedLogger.Verify(
             x => x.Log(
-                LogLevel.Information,
+                LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) =>
-                    string.Equals(expectedLoggedMessage, o.ToString())),
+                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains(AuthenticatorV1.ServiceKeyId)),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
 
     [Test]
-    public async Task GetStatusAsync_ReturnsLoggedInThroughLocalConfigWhenLocalTokenSetAndEnvTokenSet()
+    public async Task ReportsHubAuthWhenMarkerPersisted()
     {
-        string expectedLoggedMessage = "Using Service Account key from local configuration.";
-        string errorMsg;
-        m_EnvironmentProvider!.Setup(ex => ex.
-            GetSystemEnvironmentVariable(It.IsAny<string>(), out errorMsg)).Returns("1234");
-        m_MockAuthenticator!.Setup(ex => ex
-            .GetTokenAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult("1234")!);
+        StubHubAuth();
+        StubPersistedToken(AuthenticatorV1.HubAuthMarker);
 
-        await StatusHandler.GetStatusAsync(m_MockAuthenticator.Object, m_EnvironmentProvider.Object,
-            m_MockedLogger!.Object, CancellationToken.None);
+        await RunStatus();
 
-        m_MockAuthenticator.Verify(a => a.GetTokenAsync(CancellationToken.None));
+        VerifyLogged(LogLevel.Information, StatusHandler.UsingHubAuthMessage, Times.Once());
+        VerifyNoLogAtLevel(LogLevel.Warning);
+    }
 
+    [Test]
+    public async Task HubAuthOverriddenByBearerTokenReportsWarning()
+    {
+        StubHubAuth();
+        StubEnv(AuthenticatorV1.AuthToken, "eyJhbGciOiJSUzI1NiJ9.payload.sig");
+        StubPersistedToken(AuthenticatorV1.HubAuthMarker);
+
+        await RunStatus();
+
+        VerifyLogged(LogLevel.Information, StatusHandler.UsingAuthTokenMessage, Times.Once());
         m_MockedLogger.Verify(
             x => x.Log(
-                LogLevel.Information,
+                LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) =>
-                    string.Equals(expectedLoggedMessage, o.ToString())),
+                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains("Unity Hub")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
 
     [Test]
-    public async Task GetStatusAsync_ReturnsLoggedInThroughEnvVariablesWhenLocalTokenNotSetAndEnvTokenSet()
+    public async Task HubAuthWinsOverServiceKeyEnvAndWarns()
     {
-        string expectedLoggedMessage = "Using Service Account key from system environment variables.";
-        string errorMsg;
-        m_EnvironmentProvider!.Setup(ex => ex.
-            GetSystemEnvironmentVariable(It.IsAny<string>(), out errorMsg)).Returns("1234");
-        m_MockAuthenticator!.Setup(ex => ex
-            .GetTokenAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult("")!);
+        StubHubAuth();
+        StubPersistedToken(AuthenticatorV1.HubAuthMarker);
+        StubEnv(AuthenticatorV1.ServiceKeyId, "key-id");
+        StubEnv(AuthenticatorV1.ServiceSecretKey, "secret-key");
 
-        await StatusHandler.GetStatusAsync(m_MockAuthenticator.Object, m_EnvironmentProvider.Object,
-            m_MockedLogger!.Object, CancellationToken.None);
+        await RunStatus();
 
-        m_MockAuthenticator.Verify(a => a.GetTokenAsync(CancellationToken.None));
-
+        VerifyLogged(LogLevel.Information, StatusHandler.UsingHubAuthMessage, Times.Once());
         m_MockedLogger.Verify(
             x => x.Log(
-                LogLevel.Information,
+                LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((o, t) =>
-                    string.Equals(expectedLoggedMessage, o.ToString())),
+                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains(AuthenticatorV1.ServiceKeyId)),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);

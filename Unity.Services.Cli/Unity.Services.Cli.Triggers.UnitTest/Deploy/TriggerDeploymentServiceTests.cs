@@ -2,6 +2,7 @@ using NUnit.Framework;
 using Moq;
 using Newtonsoft.Json;
 using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Triggers.Deploy;
 using Unity.Services.Cli.Triggers.IO;
 using Unity.Services.DeploymentApi.Editor;
@@ -77,7 +78,7 @@ public class TriggerDeploymentServiceTests
         };
         var res = await m_DeploymentService!.Deploy(
             input,
-            new[]{"file.tr"},
+            [new AuthoringFile("file.tr")],
             String.Empty,
             string.Empty,
             null,
@@ -111,7 +112,7 @@ public class TriggerDeploymentServiceTests
         };
         var res = await m_DeploymentService!.Deploy(
             input,
-            new[] { "file.tr" },
+            [new AuthoringFile("file.tr")],
             string.Empty,
             string.Empty,
             null,

@@ -53,7 +53,7 @@ Check `Unity.Services.Cli\Unity.Services.Cli\Unity.Services.Cli.csproj` for the 
 
 Default assumed path (verify against csproj):
 ```
-Unity.Services.Cli\Unity.Services.Cli\bin\Debug\net8.0\ugs.exe
+Unity.Services.Cli\Unity.Services.Cli\bin\Debug\net10.0\ugs.exe
 ```
 
 ---
@@ -75,7 +75,7 @@ To test NuGet changes without publishing:
 
 3. Run the output binary directly (don't use `dotnet run`):
    ```
-   Unity.Services.Cli\Unity.Services.Cli\bin\Debug\net8.0\ugs.exe <command>
+   Unity.Services.Cli\Unity.Services.Cli\bin\Debug\net10.0\ugs.exe <command>
    ```
    If env vars are needed, pass them inline: `VAR=value ./ugs.exe <command>`
 

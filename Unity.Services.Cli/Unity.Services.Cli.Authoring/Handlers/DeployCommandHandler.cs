@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
@@ -19,7 +20,7 @@ static class DeployCommandHandler
         IUnityEnvironment unityEnvironment,
         ILogger logger,
         ILoadingIndicator loadingIndicator,
-        ICliDeploymentDefinitionService definitionService,
+        IAuthoringFileService authoringFileService,
         IAnalyticsEventBuilder analyticsEventBuilder,
         CancellationToken cancellationToken
     )
@@ -32,7 +33,7 @@ static class DeployCommandHandler
                 unityEnvironment,
                 logger,
                 context,
-                definitionService,
+                authoringFileService,
                 analyticsEventBuilder,
                 cancellationToken));
     }
@@ -43,7 +44,7 @@ static class DeployCommandHandler
         IUnityEnvironment unityEnvironment,
         ILogger logger,
         StatusContext? loadingContext,
-        ICliDeploymentDefinitionService definitionService,
+        IAuthoringFileService authoringFileService,
         IAnalyticsEventBuilder analyticsEventBuilder,
         CancellationToken cancellationToken)
     {
@@ -60,10 +61,10 @@ static class DeployCommandHandler
             .ToArray();
 
         var ddefResult = AuthoringHandlerCommon.GetDdefResult(
-            definitionService,
+            authoringFileService,
             logger,
             input.Paths,
-            deploymentServices.SelectMany(ds => ds.FileExtensions));
+            deploymentServices.SelectMany(ds => ds.FileExtensions).ToList());
 
         if (ddefResult == null)
         {
@@ -79,11 +80,11 @@ static class DeployCommandHandler
                 .Select<IDeploymentService, AuthoringResultServiceTask<DeploymentResult>>(
                 service =>
                 {
-                    var filePaths = service.FileExtensions
+                    var authoringFiles = service.FileExtensions
                         .SelectMany(extension => ddefResult.AllFilesByExtension[extension])
                         .ToArray();
 
-                    if (!input.Reconcile && !filePaths.Any())
+                    if (!input.Reconcile && !authoringFiles.Any())
                     {
                         // nothing to do for this service
                         return new AuthoringResultServiceTask<DeploymentResult>(
@@ -91,10 +92,12 @@ static class DeployCommandHandler
                             service.ServiceType);
                     }
 
+                    AuthoringHandlerCommon.ReconcileVariantTags(input, authoringFiles);
+
                     return new AuthoringResultServiceTask<DeploymentResult>(
                         service.Deploy(
                             input,
-                            filePaths,
+                            authoringFiles,
                             projectId,
                             environmentId,
                             loadingContext,

@@ -112,7 +112,10 @@ class TriggersServiceTests
             "name",
             "eventType",
             "CloudCode",
-            "cc/blah");
+            "cc/blah",
+            null!,
+            null!,
+            null!);
         m_TriggersApiMock.Setup(
             t => t.CreateTriggerConfigAsync(
                 It.Is<Guid>(id => id.ToString() == k_ValidProjectId),
@@ -140,6 +143,7 @@ class TriggersServiceTests
             "eventType",
             "webhook",
             "cc/blah",
+            null!,
             "",
             new WebhookConfigBody(
                 "https://example.com",
@@ -167,7 +171,14 @@ class TriggersServiceTests
         string mockErrorMsg;
         m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
             .Returns(true);
-        var updatedConfig = new TriggerConfigBody("name", "eventType", "CloudCode", "urn", "filter");
+        var updatedConfig = new TriggerConfigBody(
+            "name",
+            "eventType",
+            "CloudCode",
+            "urn",
+            actionScopeType: null!,
+            filter: "filter",
+            webhook: null!);
         m_TriggersApiMock.Setup(
             t => t.DeleteTriggerConfigAsync(
                 It.Is<Guid>(id => id.ToString() == k_ValidProjectId),
@@ -191,6 +202,38 @@ class TriggersServiceTests
             updatedConfig,
             CancellationToken.None);
         m_TriggersApiMock.VerifyAll();
+    }
+
+    [Test]
+    public async Task GetTriggerAsync_Success()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        var config = new TriggerConfig(
+            Guid.Parse(k_TriggerId),
+            DateTime.UtcNow,
+            DateTime.UtcNow,
+            "Test Trigger",
+            Guid.Parse(k_ValidProjectId),
+            Guid.Parse(k_ValidEnvironmentId),
+            "com.unity.services.scheduler.example-event.v1",
+            "cloud-code",
+            "urn:ugs:cloud-code:MyTestScript");
+        m_TriggersApiMock.Setup(
+            t => t.GetTriggerConfigAsync(
+                It.Is<Guid>(id => id.ToString() == k_ValidProjectId),
+                It.Is<Guid>(id => id.ToString() == k_ValidEnvironmentId),
+                It.Is<Guid>(id => id.ToString() == k_TriggerId),
+                0,
+                CancellationToken.None)).ReturnsAsync(config);
+
+        var actual = await m_TriggersService!.GetTriggerAsync(
+            k_ValidProjectId, k_ValidEnvironmentId, k_TriggerId, CancellationToken.None);
+
+        m_TriggersApiMock.VerifyAll();
+        Assert.AreEqual(k_TriggerId, actual.Id.ToString());
     }
 
     [Test]

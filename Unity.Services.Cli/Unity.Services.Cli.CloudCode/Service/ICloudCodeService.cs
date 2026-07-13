@@ -119,4 +119,15 @@ public interface ICloudCodeService
     /// <returns></returns>
     public Task<IEnumerable<ListModulesResponseResultsInner>> ListModulesAsync(string projectId, string environmentId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get the OpenAPI spec for a Cloud Code Module
+    /// </summary>
+    /// <param name="projectId">unique id of a unity project</param>
+    /// <param name="environmentId">unique id of a unity environment</param>
+    /// <param name="moduleName">name of a module</param>
+    /// <param name="cancellationToken">token to cancel the task</param>
+    /// <returns></returns>
+    public Task<string> GetModuleSpecAsync(string projectId, string environmentId, string moduleName,
+        CancellationToken cancellationToken = default);
 }

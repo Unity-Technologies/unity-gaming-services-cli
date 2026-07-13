@@ -5,6 +5,7 @@ using Spectre.Console;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.RemoteConfig.Deploy;
 using Unity.Services.Cli.RemoteConfig.Service;
 using Unity.Services.DeploymentApi.Editor;
@@ -23,10 +24,10 @@ public class RemoteConfigFetchServiceTests
     const string k_ValidProjectId = "a912b1fd-541d-42e1-89f2-85436f27aabd";
     const string k_ValidEnvironmentId = "00000000-0000-0000-0000-000000000000";
 
-    static readonly List<string> k_ValidFilePaths = new()
+    static readonly List<AuthoringFile> k_ValidFilePaths = new()
     {
-        "test_a.rc",
-        "test_b.rc"
+        new AuthoringFile("test_a.rc"),
+        new AuthoringFile("test_b.rc")
     };
 
     List<IRemoteConfigFile> m_RemoteConfigFiles = new();
@@ -68,7 +69,7 @@ public class RemoteConfigFetchServiceTests
             .ReturnsAsync(k_ValidEnvironmentId);
 
         m_RemoteConfigFiles = new List<IRemoteConfigFile>(k_ValidFilePaths.Count);
-        foreach (var filePath in k_ValidFilePaths)
+        foreach (var filePath in k_ValidFilePaths.ToPaths())
         {
             var rcFile = new RemoteConfigFile(filePath, filePath);
             m_RemoteConfigFiles.Add(rcFile);

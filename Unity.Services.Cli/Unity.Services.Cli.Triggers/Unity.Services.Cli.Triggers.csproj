@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <LangVersion>10</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -21,7 +21,7 @@
     <ProjectReference Include="..\Unity.Services.Triggers.Authoring.Core\Unity.Services.Triggers.Authoring.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Unity.Services.Gateway.TriggersApiV1.Generated" Version="1.1.3" />
+    <PackageReference Include="Unity.Services.Gateway.TriggersApiV1.Generated" Version="1.2.0" />
   </ItemGroup>
   <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>

@@ -225,6 +225,19 @@ class CloudCodeService : ICloudCodeService
         await m_CloudCodeAsyncApi.DeleteModuleAsync(projectId, environmentId, moduleName, cancellationToken: cancellationToken);
     }
 
+    /// <inheritdoc cref="ICloudCodeService.GetModuleSpecAsync" />
+    public async Task<string> GetModuleSpecAsync(string projectId, string environmentId, string moduleName,
+        CancellationToken cancellationToken = default)
+    {
+        await AuthorizeService(cancellationToken);
+        ThrowIfModuleNameInvalid(moduleName);
+
+        m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
+        m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentId, environmentId);
+
+        return await m_CloudCodeAsyncApi.ModuleSpecAsync(projectId, environmentId, moduleName, cancellationToken: cancellationToken);
+    }
+
     public async Task<IEnumerable<ListModulesResponseResultsInner>> ListModulesAsync(string projectId, string environmentId,
         CancellationToken cancellationToken = default)
     {

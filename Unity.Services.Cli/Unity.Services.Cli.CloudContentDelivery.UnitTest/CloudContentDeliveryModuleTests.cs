@@ -1,5 +1,4 @@
 using System.CommandLine;
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Moq;
@@ -24,7 +23,7 @@ public class CloudContentDeliveryModuleTests
             () =>
             {
                 Assert.That(k_Module.ModuleRootCommand?.Name, Is.EqualTo("ccd"));
-                Assert.That(k_Module.ModuleRootCommand?.Description, Is.EqualTo("Manage Cloud Content Delivery."));
+                Assert.That(k_Module.ModuleRootCommand?.Description, Contains.Substring("Manage Cloud Content Delivery."));
             });
     }
 
@@ -32,10 +31,9 @@ public class CloudContentDeliveryModuleTests
     public void ConfigureCloudContentDeliveryRegistersExpectedServices()
     {
         EndpointHelper.InitializeNetworkTargetEndpoints(
-            new[]
-            {
-                typeof(CloudContentDeliveryApiEndpoints).GetTypeInfo()
-            });
+        [
+            new CloudContentDeliveryApiEndpoints()
+        ]);
 
         var collection = new ServiceCollection();
         collection.AddSingleton(ServiceDescriptor.Singleton(new Mock<IServiceAccountAuthenticationService>().Object));

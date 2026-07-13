@@ -15,6 +15,7 @@ using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.Common.Process;
+using Unity.Services.Cli.Common.Services;
 using Unity.Services.Cli.Common.SystemEnvironment;
 using Unity.Services.Cli.Common.Telemetry;
 using Unity.Services.Cli.Common.Telemetry.AnalyticEvent.AnalyticEventFactory;
@@ -25,7 +26,7 @@ namespace Unity.Services.Cli.Common;
 
 public static class CommonModule
 {
-    public const string cliProductName = "com.unity.ugs-cli";
+    public const string CliProductName = "com.unity.ugs-cli";
     public static CommandLineBuilder UseTreePrinter(this CommandLineBuilder builder)
     {
         var printTreeFlag = new Option<bool>("--print-tree")
@@ -56,16 +57,43 @@ public static class CommonModule
         return builder;
     }
 
+    public static CommandLineBuilder UseHelpPrinter(this CommandLineBuilder builder)
+    {
+        var printHelpFlag = new Option<bool>("--help-all")
+        {
+            IsHidden = true,
+            IsRequired = false,
+        };
+        var printHelpShowHiddenFlag = new Option<bool>("--help-all-show-hidden")
+        {
+            IsHidden = true,
+            IsRequired = false,
+        };
+        builder.Command.AddOption(printHelpFlag);
+        builder.Command.AddOption(printHelpShowHiddenFlag);
+        builder.AddMiddleware((context, next) =>
+        {
+            var shouldPrintHelp = context.ParseResult.GetValueForOption(printHelpFlag);
+            if (shouldPrintHelp)
+            {
+                var shouldShowHidden = context.ParseResult.GetValueForOption(printHelpShowHiddenFlag);
+                var helpPrinter = new CommandHelpPrinter(context, context.Console.Out.CreateTextWriter());
+                helpPrinter.PrintHelp(context.ParseResult.CommandResult.Command, shouldShowHidden);
+                return Task.CompletedTask;
+            }
+
+            return next(context);
+        });
+        return builder;
+    }
+
     public static void ConfigureCommonServices(IHostBuilder hostBuilder, Logger logger,
-        IAnsiConsole ansiConsole, IAnalyticEventFactory analyticEventFactory)
+        IAnsiConsole ansiConsole, IAnalyticEventFactory analyticEventFactory, NetworkTargetEndpoints[] networkTargetEndpoints)
     {
         var parseResult = hostBuilder.GetInvocationContext().ParseResult;
         bool outputIsJson = parseResult.GetValueForOption(CommonInput.JsonOutputOption);
         bool silentAnsiConsole = parseResult.GetValueForOption(CommonInput.QuietOption) || outputIsJson;
-        var allDefinedTypesInDomain = AppDomain.CurrentDomain
-            .GetAssemblies()
-            .SelectMany(x => x.DefinedTypes);
-        EndpointHelper.InitializeNetworkTargetEndpoints(allDefinedTypesInDomain);
+        EndpointHelper.InitializeNetworkTargetEndpoints(networkTargetEndpoints);
         var usedConsole = silentAnsiConsole ? null : ansiConsole;
         hostBuilder.ConfigureAppConfiguration(ConfigAppConfiguration);
         hostBuilder.ConfigureLogging(logBuilder => ConfigureLogging(parseResult, logBuilder, logger));
@@ -157,7 +185,7 @@ public static class CommonModule
         };
         var productTags = new Dictionary<string, string>
         {
-            [TagKeys.ProductName] = cliProductName,
+            [TagKeys.ProductName] = CliProductName,
             [TagKeys.CliVersion] = TelemetryConfigurationProvider.GetCliVersion()
         };
 
@@ -174,15 +202,14 @@ public static class CommonModule
     internal static void CreateAndRegisterCliAnalyticsSenderService(IServiceCollection serviceCollection)
     {
         serviceCollection.AddAnalytics(((x, _) =>
-                x.WithSourceName(cliProductName)
+                x.WithSourceName(CliProductName)
                     .WithDefaultUnityBigQueryExporter()
                     .WithCommonHeader(new Dictionary<string, string>
                     {
                         ["uuid"] = ""
                     })
             ));
-        var provider = serviceCollection.BuildServiceProvider();
-        provider.InitAnalytics();
+        serviceCollection.AddHostedService<AnalyticsInitializer>();
     }
 
     internal static void CreateAndRegisterCliProcessService(IServiceCollection serviceCollection)

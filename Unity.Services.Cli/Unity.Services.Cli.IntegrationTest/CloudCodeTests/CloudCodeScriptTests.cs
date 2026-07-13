@@ -69,7 +69,7 @@ public class CloudCodeScriptTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("cloud-code scripts list")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_LoggedOutErrorMessage)
@@ -112,7 +112,7 @@ public class CloudCodeScriptTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-code scripts publish {k_ValidScriptName}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_ProjectIdNotSetErrorMessage)
@@ -125,7 +125,7 @@ public class CloudCodeScriptTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("cloud-code scripts publish test-script-123")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_LoggedOutErrorMessage)
@@ -164,7 +164,7 @@ public class CloudCodeScriptTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-code scripts delete {k_ValidScriptName}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_ProjectIdNotSetErrorMessage)
@@ -177,7 +177,7 @@ public class CloudCodeScriptTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-code scripts delete {k_ValidScriptName}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_LoggedOutErrorMessage)
@@ -231,7 +231,7 @@ public class CloudCodeScriptTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command(command)
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_ProjectIdNotSetErrorMessage)
@@ -245,7 +245,7 @@ public class CloudCodeScriptTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command(command)
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_LoggedOutErrorMessage)
@@ -313,7 +313,7 @@ public class CloudCodeScriptTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-code scripts create {k_ValidScriptName} invalidpath")
             .AssertStandardErrorContains(k_EnvironmentNameNotSetErrorMessage)
             .AssertExitCode(ExitCode.HandledError)
@@ -385,7 +385,7 @@ public class CloudCodeScriptTests : UgsCliFixture
         const string expectedMsg = "Script could not be created because the code provided is null or empty.";
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        await File.WriteAllTextAsync(k_ValidFilepath, null);
+        await File.WriteAllTextAsync(k_ValidFilepath, string.Empty);
         var path = Path.GetFullPath(k_ValidFilepath);
 
         await GetLoggedInCli()
@@ -402,7 +402,7 @@ public class CloudCodeScriptTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-code scripts create testscript {path}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_LoggedOutErrorMessage)
@@ -526,7 +526,7 @@ public class CloudCodeScriptTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-code scripts update {k_ValidScriptName} invalidpath")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_ProjectIdNotSetErrorMessage)
@@ -538,7 +538,7 @@ public class CloudCodeScriptTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-code scripts update {k_ValidScriptName} invalidpath")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_EnvironmentNameNotSetErrorMessage)
@@ -610,7 +610,7 @@ public class CloudCodeScriptTests : UgsCliFixture
         const string expectedMsg = "Script could not be updated because the code provided is null or empty.";
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        await File.WriteAllTextAsync(k_ValidFilepath, null);
+        await File.WriteAllTextAsync(k_ValidFilepath, string.Empty);
         var path = Path.GetFullPath(k_ValidFilepath);
 
         await GetLoggedInCli()
@@ -627,7 +627,7 @@ public class CloudCodeScriptTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-code scripts update testscript {path}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_LoggedOutErrorMessage)

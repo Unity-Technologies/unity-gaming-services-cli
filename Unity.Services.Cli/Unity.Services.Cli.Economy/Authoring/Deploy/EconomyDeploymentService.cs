@@ -1,6 +1,7 @@
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Economy.Editor.Authoring.Core.Deploy;
 using Unity.Services.Economy.Editor.Authoring.Core.Model;
@@ -38,7 +39,7 @@ class EconomyDeploymentService : IDeploymentService
 
     public async Task<DeploymentResult> Deploy(
         DeployInput deployInput,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> authoringFiles,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,
@@ -49,7 +50,7 @@ class EconomyDeploymentService : IDeploymentService
         var reconcile = deployInput.Reconcile;
         var dryRun = deployInput.DryRun;
 
-        var resourceLoadTaskList = filePaths
+        var resourceLoadTaskList = authoringFiles.ToPaths()
             .Select(path => m_EconomyResourcesLoader.LoadResourceAsync(path, cancellationToken))
             .ToList();
 

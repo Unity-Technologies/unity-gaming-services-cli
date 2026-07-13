@@ -28,7 +28,7 @@ namespace Unity.Services.Cli.CloudSave;
 /// </summary>
 public class CloudSaveModule : ICommandModule
 {
-    class CloudSaveInput : CommonInput
+    public class CloudSaveInput : CommonInput
     {
         public static readonly Argument<string> AddressArgument = new(
             "address",
@@ -64,7 +64,9 @@ public class CloudSaveModule : ICommandModule
     {
         ObfuscatedInputs.Instance.NonObfuscatedOptions.Add(QueryDataInput.VisibilityOption);
 
-        ListIndexesCommand = new Command("list", "List all indexes.")
+        ListIndexesCommand = new Command("list", new CommandDescription("List all indexes.")
+            .WithReturn("JSON with indexIds array, each containing id, status, entityType, accessClass, and fields.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -79,7 +81,9 @@ public class CloudSaveModule : ICommandModule
                 CancellationToken>(
                 ListIndexesHandler.ListIndexesAsync);
 
-        QueryPlayerDataCommand = new Command("query", "Query player data.")
+        QueryPlayerDataCommand = new Command("query", new CommandDescription("Query player data.")
+            .WithReturn("JSON with results array of player buckets, each containing items with key, value, writeLock, modified, and created.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -96,7 +100,9 @@ public class CloudSaveModule : ICommandModule
                 CancellationToken>(
                 QueryPlayerDataHandler.QueryPlayerDataAsync);
 
-        QueryCustomDataCommand = new Command("query", "Query custom entity data.")
+        QueryCustomDataCommand = new Command("query", new CommandDescription("Query custom entity data.")
+            .WithReturn("JSON with results array of custom-id buckets, each containing items with key, value, writeLock, modified, and created.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -113,7 +119,9 @@ public class CloudSaveModule : ICommandModule
                 CancellationToken>(
                 QueryCustomDataHandler.QueryCustomDataAsync);
 
-        CreateCustomIndexCommand = new Command("create", "Create a custom index.")
+        CreateCustomIndexCommand = new Command("create", new CommandDescription("Create a custom index.")
+            .WithReturn("The new index's id and status.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -131,7 +139,9 @@ public class CloudSaveModule : ICommandModule
                 CancellationToken>(
                 CreateCustomIndexHandler.CreateCustomIndexAsync);
 
-        CreatePlayerIndexCommand = new Command("create", "Create a new player data index.")
+        CreatePlayerIndexCommand = new Command("create", new CommandDescription("Create a new player data index.")
+            .WithReturn("The new index's id and status.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -149,7 +159,9 @@ public class CloudSaveModule : ICommandModule
                 CancellationToken>(
                 CreatePlayerIndexHandler.CreatePlayerIndexAsync);
 
-        ListCustomDataIdsCommand = new Command("list", "Get a paginated list of all Game State custom data IDs for a given project and environment.")
+        ListCustomDataIdsCommand = new Command("list", new CommandDescription("Get a paginated list of all Game State custom data IDs for a given project and environment.")
+            .WithReturn("JSON with results array of {id, accessClasses} and links.next pagination cursor.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -166,7 +178,9 @@ public class CloudSaveModule : ICommandModule
                 CancellationToken>(
                 ListCustomDataIdsHandler.ListCustomDataIdsAsync);
 
-        SetCustomDataItemCommand = new Command("set", "Set a custom entity data item.")
+        SetCustomDataItemCommand = new Command("set", new CommandDescription("Set a custom entity data item.")
+            .WithReturn("Confirmation message with writeLock token.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -186,7 +200,9 @@ public class CloudSaveModule : ICommandModule
                 CancellationToken>(
                 SetCustomDataItemHandler.SetCustomDataItemAsync);
 
-        ListPlayerDataIdsCommand = new Command("list", "Get a paginated list of all player data IDs for a given project and environment.")
+        ListPlayerDataIdsCommand = new Command("list", new CommandDescription("Get a paginated list of all player data IDs for a given project and environment.")
+            .WithReturn("JSON with results array of {id, accessClasses} and links.next pagination cursor.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -203,7 +219,9 @@ public class CloudSaveModule : ICommandModule
                 CancellationToken>(
                 ListPlayerDataIdsHandler.ListPlayerDataIdsAsync);
 
-        SetPlayerDataItemCommand = new Command("set", "Set a player data item.")
+        SetPlayerDataItemCommand = new Command("set", new CommandDescription("Set a player data item.")
+            .WithReturn("Confirmation message with writeLock token.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -223,7 +241,9 @@ public class CloudSaveModule : ICommandModule
                 CancellationToken>(
                 SetPlayerDataItemHandler.SetPlayerDataItemAsync);
 
-        GetPlayerDataItemsCommand = new Command("get", "Get data items for a player.")
+        GetPlayerDataItemsCommand = new Command("get", new CommandDescription("Get data items for a player.")
+            .WithReturn("Items array with key, value, writeLock, modified, created, and a next pagination cursor.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -242,7 +262,9 @@ public class CloudSaveModule : ICommandModule
                 CancellationToken>(
                 GetPlayerDataItemsHandler.GetPlayerDataItemsAsync);
 
-        GetCustomDataItemsCommand = new Command("get", "Get data items for a custom entity.")
+        GetCustomDataItemsCommand = new Command("get", new CommandDescription("Get data items for a custom entity.")
+            .WithReturn("Items array with key, value, writeLock, modified, created, and a next pagination cursor.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -303,7 +325,10 @@ public class CloudSaveModule : ICommandModule
         };
 
         // Root
-        ModuleRootCommand = new("cloud-save", "Manage Cloud Save indexes.")
+        ModuleRootCommand = new("cloud-save", new CommandDescription("Manage Cloud Save indexes.")
+            .WithDocs("https://docs.unity.com/ugs/manual/cloud-save/manual")
+            .WithAdminApi("https://services.docs.unity.com/cloud-save-admin/v1/")
+            .Build())
         {
             dataCommand
         };

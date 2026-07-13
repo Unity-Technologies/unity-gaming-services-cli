@@ -1,4 +1,3 @@
-using System.Reflection;
 using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
@@ -61,12 +60,11 @@ class LobbyServiceTests
     [SetUp]
     public void SetUp()
     {
-        var types = new List<TypeInfo>
-        {
-            typeof(LobbyApiEndpoints).GetTypeInfo(),
-            typeof(UnityServicesGatewayEndpoints).GetTypeInfo(),
-        };
-        EndpointHelper.InitializeNetworkTargetEndpoints(types);
+        EndpointHelper.InitializeNetworkTargetEndpoints(
+        [
+            new LobbyApiEndpoints(),
+            new UnityServicesGatewayEndpoints()
+        ]);
 
         m_ValidatorObject = new ConfigurationValidator();
         m_AuthenticationServiceObject = new Mock<IServiceAccountAuthenticationService>();

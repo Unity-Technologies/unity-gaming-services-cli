@@ -3,10 +3,11 @@ using Unity.Services.Cli.Common.Input;
 
 namespace Unity.Services.Cli.ServiceAccountAuthentication.Input;
 
-class LoginInput : CommonInput
+public class LoginInput : CommonInput
 {
     internal const string ServiceKeyIdAlias = "--service-key-id";
     internal const string ServiceSecretKeyAlias = "--secret-key-stdin";
+    internal const string ServiceUnityHubAlias = "--unity-hub";
 
     public static readonly Option<string> ServiceKeyIdOption = new(
         ServiceKeyIdAlias,
@@ -22,9 +23,19 @@ class LoginInput : CommonInput
         Arity = ArgumentArity.Zero,
     };
 
+    public static readonly Option<bool> UnityHubOption = new(
+        ServiceUnityHubAlias,
+        "Use Unity Hub authentication.")
+    {
+        Arity = ArgumentArity.Zero,
+    };
+
     [InputBinding(nameof(ServiceKeyIdOption))]
     public string? ServiceKeyId { get; set; }
 
     [InputBinding(nameof(SecretKeyOption))]
     public bool HasSecretKeyOption { get; set; }
+
+    [InputBinding(nameof(UnityHubOption))]
+    public bool HasUnityHubOption { get; set; }
 }

@@ -63,7 +63,7 @@ dotnet new UgsCliModuleUnitTest --name <Module> --output Unity.Services.Cli.<Mod
 
 ## Architecture
 
-The CLI is a modular .NET 8 application (~76 projects in `Unity.Services.Cli/Unity.Services.Cli.sln`). Each Unity Gaming Service (Cloud Code, Economy, Leaderboards, etc.) is an independent module project.
+The CLI is a modular .NET 10 application (~76 projects in `Unity.Services.Cli/Unity.Services.Cli.sln`). Each Unity Gaming Service (Cloud Code, Economy, Leaderboards, etc.) is an independent module project.
 
 ### Key Projects
 
@@ -84,6 +84,18 @@ The CLI is a modular .NET 8 application (~76 projects in `Unity.Services.Cli/Uni
 4. **Register** in `Program.cs` via `.AddModule(new YourModule())` and `.ConfigureServices(YourModule.RegisterServices)`.
 5. **Services** exposed to other modules are registered as singletons in `RegisterServices(HostBuilderContext, IServiceCollection)`.
 
+### Config-As-Code (Deploy / Fetch)
+`ugs deploy <paths>` and `ugs fetch <path>` sync local files to and from Unity services.
+The pipeline lives in `Unity.Services.Cli.Authoring` and fans out to per-service plugins
+- any module that registers `IDeploymentService` or `IFetchService` automatically participates.
+
+**Deployment Definition files (`.ddef`):** JSON control files that define a scope
+boundary for deploy/fetch operations. One `.ddef` per directory, discovered automatically
+by walking up and recursively searching child directories.
+
+See [docs/Internal/variantTags.md](docs/Internal/variantTags.md) for how variant tags (`--tag`) work and how a service
+can support them by having its `IDeploymentItem` implement `IVariantItem`.
+
 ### Service Clients
 
 HTTP clients are generated from OpenAPI specs stored in `OpenApi/`. Generated code lands in `.tmp` subdirectories inside module projects. See `OpenApi/README.md` for regeneration steps.
@@ -95,6 +107,21 @@ Unfinished features must be hidden behind a feature flag. Flags are defined in `
 ### Integration Tests
 
 Integration tests build with `USE_MOCKSERVER_ENDPOINTS` define and spin up `Unity.Services.Cli.Integration.MockServerApp` (WireMock.Net). Run them separately from unit tests; CI only runs the `--filter "UnitTest"` suite on PRs.
+
+## Working on a Feature or Fix
+
+Use the `/iterate-cli-command` slash command (`.claude/commands/iterate-cli-command.md`) when adding or fixing a CLI feature that may involve a NuGet package shared with the Unity Editor plugin.
+
+**Before starting any task:**
+- Ask for the associated Jira ticket ID (e.g. `ULO-1234`)
+- Ask which service/module is affected and whether it's a `fix` or `feat`
+
+**Branch naming:** `<module-shortname>/(feat|fix)/ULO-<ticket>-<short-description>`
+- Examples: `cloudcode/fix/ULO-8694-fix-ccm-template`, `economy/feat/ULO-1234-add-publish-command`
+
+**Environment variables:** If a command requires credentials or service keys, ask the user to set them in their shell before the session or pass them inline. Do not store, log, or persist env var values.
+
+**CLI exe path:** Check `Unity.Services.Cli/Unity.Services.Cli/Unity.Services.Cli.csproj` for `AssemblyName`/`TargetFramework`. Default: `Unity.Services.Cli\Unity.Services.Cli\bin\Debug\net10.0\ugs.exe`
 
 ## Pull Requests
 

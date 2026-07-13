@@ -9,6 +9,6 @@ static class ImportExportUtils
 {
     public static string ToRequestBody(this UpdatedLeaderboardConfig config)
     {
-        return JsonSerializer.Serialize(config);
+        return JsonSerializer.Serialize(config, LeaderboardsJsonContext.Default.UpdatedLeaderboardConfig);
     }
 }

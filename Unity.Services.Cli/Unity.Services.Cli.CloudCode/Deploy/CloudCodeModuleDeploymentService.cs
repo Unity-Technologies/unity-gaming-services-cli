@@ -1,6 +1,7 @@
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.CloudCode.Authoring;
 using Unity.Services.Cli.CloudCode.Model;
@@ -52,7 +53,7 @@ class CloudCodeModuleDeploymentService : IDeploymentService
 
     public async Task<DeploymentResult> Deploy(
         DeployInput deployInput,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> authoringFiles,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,
@@ -63,7 +64,7 @@ class CloudCodeModuleDeploymentService : IDeploymentService
 
         loadingContext?.Status($"Reading {m_ServiceType}...");
 
-        var (ccmFilePaths, slnFilePaths) = ListFilesToDeploy(filePaths.ToList());
+        var (ccmFilePaths, slnFilePaths) = ListFilesToDeploy(authoringFiles.ToPaths().ToList());
 
         loadingContext?.Status($"Loading {m_ServiceName} modules...");
 

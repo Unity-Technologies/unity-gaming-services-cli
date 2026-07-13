@@ -199,13 +199,61 @@ class TriggerDeploymentHandlerTests
     }
 
     [Test]
+    public async Task DeployAsync_UpdatePassesActionScopeTypeToClient()
+    {
+        var localTriggers = new List<ITriggerConfig>
+        {
+            TriggerConfig.CreateWithId("placeholder", "name1", "eventType", "cloud-code", "actionUrn", "", actionScopeType: "Player", path: "path1"),
+            TriggerConfig.CreateWithId("id2", "name2", "eventType", "cloud-code", "actionUrn", "", path: "path2"),
+            TriggerConfig.CreateWithId("id3", "name3", "eventType", "cloud-code", "actionUrn", "data['someId'] == 'thisId'", path: "path3"),
+        };
+        var remoteTriggers = GetRemoteConfigs();
+
+        Mock<ITriggersClient> mockTriggersClient = new();
+        var handler = new TriggersDeploymentHandler(mockTriggersClient.Object);
+
+        mockTriggersClient
+            .Setup(c => c.List())
+            .ReturnsAsync(remoteTriggers.ToList());
+
+        await handler.DeployAsync(localTriggers);
+
+        mockTriggersClient.Verify(
+            c => c.Update(It.Is<ITriggerConfig>(t => t.Name == "name1" && t.ActionScopeType == "Player")),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task DeployAsync_CreatePassesActionScopeTypeToClient()
+    {
+        var localTriggers = new List<ITriggerConfig>
+        {
+            TriggerConfig.CreateWithId("id1", "name1", "eventType", "cloud-code", "actionUrn", "", path: "path1"),
+            TriggerConfig.CreateWithId("id2", "name2", "eventType", "cloud-code", "actionUrn", "", actionScopeType: "MultiplayerSession", path: "path2"),
+            TriggerConfig.CreateWithId("id3", "name3", "eventType", "cloud-code", "actionUrn", "data['someId'] == 'thisId'", path: "path3"),
+        };
+        var remoteTriggers = GetRemoteConfigs();
+
+        Mock<ITriggersClient> mockTriggersClient = new();
+        var handler = new TriggersDeploymentHandler(mockTriggersClient.Object);
+
+        mockTriggersClient
+            .Setup(c => c.List())
+            .ReturnsAsync(remoteTriggers.ToList());
+
+        await handler.DeployAsync(localTriggers);
+
+        mockTriggersClient.Verify(
+            c => c.Create(It.Is<ITriggerConfig>(t => t.Name == "name2" && t.ActionScopeType == "MultiplayerSession")),
+            Times.Once);
+    }
+
+    [Test]
     public async Task DeployAsync_DuplicateIdNotDeleted()
     {
         var localTriggers = GetLocalConfigs();
         localTriggers.Add(
-            new TriggerConfig("id3x", "name3", "eventType", "cloud-code", "actionUrn", "")
-            { Path = "otherpath.tr" }
-        );
+            TriggerConfig.CreateWithId("id3x", "name3", "eventType", "cloud-code", "actionUrn", "", path: "otherpath.tr"));
         var remoteTriggers = GetRemoteConfigs();
 
         Mock<ITriggersClient> mockTriggersClient = new();
@@ -228,18 +276,9 @@ class TriggerDeploymentHandlerTests
     {
         var triggers = new List<ITriggerConfig>()
         {
-            new TriggerConfig("id1", "name1", "eventType", "cloud-code", "actionUrn", "")
-            {
-                Path = "path1"
-            },
-            new TriggerConfig("id2", "name2", "eventType", "cloud-code", "actionUrn", "")
-            {
-                Path = "path2"
-            },
-            new TriggerConfig("id3", "name3", "eventType", "cloud-code", "actionUrn", "data['someId'] == 'thisId'")
-            {
-                Path = "path3"
-            }
+            TriggerConfig.CreateWithId("id1", "name1", "eventType", "cloud-code", "actionUrn", "", path: "path1"),
+            TriggerConfig.CreateWithId("id2", "name2", "eventType", "cloud-code", "actionUrn", "", path: "path2"),
+            TriggerConfig.CreateWithId("id3", "name3", "eventType", "cloud-code", "actionUrn", "data['someId'] == 'thisId'", path: "path3"),
         };
         return triggers;
     }
@@ -249,14 +288,8 @@ class TriggerDeploymentHandlerTests
 
         var triggers = new List<ITriggerConfig>()
         {
-            new TriggerConfig("id1", "name1", "eventType", "cloud-code", "actionUrn", "")
-            {
-                Path = "Remote"
-            },
-            new TriggerConfig("id4", "name4", "eventType", "cloud-code", "actionUrn", "data['someId'] == 'thisId'")
-            {
-                Path = "Remote"
-            },
+            TriggerConfig.CreateWithId("id1", "name1", "eventType", "cloud-code", "actionUrn", "", path: "Remote"),
+            TriggerConfig.CreateWithId("id4", "name4", "eventType", "cloud-code", "actionUrn", "data['someId'] == 'thisId'", path: "Remote"),
         };
         return triggers;
     }

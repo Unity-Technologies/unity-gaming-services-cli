@@ -2,8 +2,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
+using Unity.Services.Cli.Authoring.DeploymentDefinition;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
@@ -18,7 +20,7 @@ static class FetchCommandHandler
         FetchInput input,
         IUnityEnvironment unityEnvironment,
         ILogger logger,
-        ICliDeploymentDefinitionService deploymentDefinitionService,
+        IAuthoringFileService deploymentDefinitionService,
         ILoadingIndicator loadingIndicator,
         IAnalyticsEventBuilder analyticsEventBuilder,
         CancellationToken cancellationToken)
@@ -42,7 +44,7 @@ static class FetchCommandHandler
         IUnityEnvironment unityEnvironment,
         ILogger logger,
         StatusContext? loadingContext,
-        ICliDeploymentDefinitionService definitionService,
+        IAuthoringFileService authoringFileService,
         IAnalyticsEventBuilder analyticsEventBuilder,
         CancellationToken cancellationToken)
     {
@@ -70,15 +72,16 @@ static class FetchCommandHandler
             .ToArray();
 
         var ddefResult = AuthoringHandlerCommon.GetDdefResult(
-            definitionService,
+            authoringFileService,
             logger,
             inputPaths,
-            fetchServices.SelectMany(ds => ds.FileExtensions));
+            fetchServices.SelectMany(ds => ds.FileExtensions).ToList());
 
         if (ddefResult == null)
         {
             return;
         }
+
 
         AuthoringHandlerCommon.SendAnalytics(analyticsEventBuilder, inputPaths, fetchServices);
 
@@ -89,11 +92,11 @@ static class FetchCommandHandler
             .Select<IFetchService, AuthoringResultServiceTask<FetchResult>>(
                 service =>
                 {
-                    var filePaths = service.FileExtensions
+                    var authoringFiles = service.FileExtensions
                         .SelectMany(extension => ddefResult.AllFilesByExtension[extension])
                         .ToArray();
 
-                    if (!input.Reconcile && !filePaths.Any())
+                    if (!input.Reconcile && !authoringFiles.Any())
                     {
                         // nothing to do for this service
                         return new AuthoringResultServiceTask<FetchResult>(
@@ -101,10 +104,14 @@ static class FetchCommandHandler
                             service.ServiceType);
                     }
 
+                    var targetVariantTags = FilterByDDef(ddefResult, input, ref authoringFiles, logger);
+
+                    AuthoringHandlerCommon.ReconcileVariantTags(input, authoringFiles, targetVariantTags);
+
                     return new AuthoringResultServiceTask<FetchResult>(
                         service.FetchAsync(
                             input,
-                            filePaths,
+                            authoringFiles,
                             projectId,
                             environmentId,
                             loadingContext,
@@ -134,5 +141,56 @@ static class FetchCommandHandler
             authoringResultServiceTask,
             totalResult,
             ddefResult);
+    }
+
+    /// <summary>
+    /// Applies filtering to authoring files based on the input path's associated deployment definition.
+    /// </summary>
+    static IReadOnlyList<string> FilterByDDef(
+        IDeploymentDefinitionFilteringResult ddefResult,
+        FetchInput input,
+        ref AuthoringFile[] authoringFiles,
+        ILogger logger)
+    {
+        ddefResult.DeploymentDefinitionByInputPath.TryGetValue(input.Path, out var ddef);
+
+        var absoluteDdefPath = ddef?.Path != null ? Path.GetFullPath(ddef.Path) : null;
+
+        var lookup = authoringFiles.ToLookup(f =>
+        {
+            var fileAbsolutePath = f.DeploymentDefinition?.Path != null
+                ? Path.GetFullPath(f.DeploymentDefinition.Path)
+                : null;
+
+            return Equals(fileAbsolutePath, absoluteDdefPath);
+        });
+
+        authoringFiles = lookup[true].ToArray();
+        var filteredOutFiles = lookup[false].ToArray();
+
+        LogIgnoredDeploymentDefinition(filteredOutFiles, logger);
+
+        return VariantTagsUtils.FromAdditionalProperties(ddef?.AdditionalProperties);
+    }
+
+    static void LogIgnoredDeploymentDefinition(AuthoringFile[] ignoredFile, ILogger logger)
+    {
+        var ignoredDdefPaths = ignoredFile
+            .Select(f => f.DeploymentDefinition?.Path)
+            .Where(path => !string.IsNullOrEmpty(path))
+            .Distinct()
+            .Cast<string>()
+            .ToList();
+
+        if (ignoredDdefPaths.Count != 0)
+        {
+            var relativePaths = ignoredDdefPaths.Select(path =>
+                Path.GetRelativePath(Directory.GetCurrentDirectory(), path));
+            var pathsList = string.Join($"{Environment.NewLine}  - ", relativePaths);
+
+            logger.LogInformation(
+                $"The files associated with the following deployment definition were ignored:{Environment.NewLine}  - {pathsList}{Environment.NewLine}" +
+                "To fetch these files, run fetch on the parent folder of each deployment definition.");
+        }
     }
 }

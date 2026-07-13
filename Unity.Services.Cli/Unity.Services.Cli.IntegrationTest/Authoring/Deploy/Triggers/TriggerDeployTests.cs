@@ -77,7 +77,7 @@ public class TriggersDeployTests : UgsCliFixture
         await CreateDeployTestFilesAsync(m_DeployedTestCases, m_DeployedContents);
         var deployedConfigFileString = string.Join(System.Environment.NewLine + "    ", m_DeployedTestCases.Select(r => $"'{r.ConfigFilePath}'"));
         await GetFullySetCli()
-            .DebugCommand($"deploy {k_TestDirectory} -p {CommonKeys.ValidProjectId} -e {CommonKeys.ValidEnvironmentName} -s triggers")
+            .Command($"deploy {k_TestDirectory} -p {CommonKeys.ValidProjectId} -e {CommonKeys.ValidEnvironmentName} -s triggers")
             .AssertStandardOutputContains($"Successfully deployed the following files:{System.Environment.NewLine}    {deployedConfigFileString}")
             .AssertNoErrors()
             .ExecuteAsync();
@@ -91,7 +91,7 @@ public class TriggersDeployTests : UgsCliFixture
         await CreateDeployTestFilesAsync(m_DeployedTestCases, m_DeployedContents);
         var deployedConfigFileString = string.Join(System.Environment.NewLine + "    ", m_DeployedTestCases.Select(r => $"'{r.ConfigFilePath}'"));
         await GetFullySetCli()
-            .DebugCommand($"deploy {k_TestDirectory} -s triggers")
+            .Command($"deploy {k_TestDirectory} -s triggers")
             .AssertStandardOutputContains($"Successfully deployed the following files:{System.Environment.NewLine}    {deployedConfigFileString}")
             .AssertNoErrors()
             .ExecuteAsync();

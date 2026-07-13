@@ -23,6 +23,12 @@ interface ITriggersService
         TriggerConfigBody config,
         CancellationToken cancellationToken = default);
 
+    Task<TriggerConfig> GetTriggerAsync(
+        string projectId,
+        string environmentId,
+        string triggerId,
+        CancellationToken cancellationToken = default);
+
     Task DeleteTriggerAsync(
         string projectId,
         string environmentId,

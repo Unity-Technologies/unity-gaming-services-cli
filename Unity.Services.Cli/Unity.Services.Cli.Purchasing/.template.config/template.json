@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Operate SDK Foundation team",
+  "classifications": [
+    "Console",
+    "UGS",
+    "CLI",
+    "Unity",
+    "Services",
+    "Purchasing",
+    "IAP"
+  ],
+  "identity": "Ugs.Cli.Purchasing",
+  "name": "UGS CLI Purchasing Module",
+  "shortName": "UgsCliPurchasing",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "Purchasing"
+}

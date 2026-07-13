@@ -13,22 +13,33 @@ static class GetHandler
         ConfigurationInput input, IConfigurationService service, ISystemEnvironmentProvider environmentProvider,
         ILogger logger, CancellationToken cancellationToken)
     {
-        string value;
-        try
-        {
-            value = await service.GetConfigArgumentsAsync(input.Key ?? "", cancellationToken) ?? "";
-        }
-        catch (Exception)
-        {
-            Keys.ConfigEnvironmentPairs.TryGetValue(input.Key ?? "", out var environmentKey);
+        string? value = null;
 
-            if (!string.IsNullOrEmpty(environmentKey))
+        if (Keys.ConfigEnvironmentPairs.TryGetValue(input.Key ?? "", out var environmentKey))
+        {
+            value = environmentProvider.GetSystemEnvironmentVariable(environmentKey, out _);
+            if (!string.IsNullOrWhiteSpace(value))
             {
-                value = environmentProvider.GetSystemEnvironmentVariable(environmentKey, out _) ??
-                    throw new MissingConfigurationException(input.Key ?? "", environmentKey);
+                logger.LogInformation($"Environment variable {environmentKey} has a value. It will be used instead of the saved configuration.");
             }
             else
             {
+                value = null; // reset value in case it is string.Empty or whitespace
+            }
+        }
+
+        if (value == null)
+        {
+            try
+            {
+                value = await service.GetConfigArgumentsAsync(input.Key ?? "", cancellationToken) ?? "";
+            }
+            catch (Exception)
+            {
+                if (!string.IsNullOrEmpty(environmentKey))
+                {
+                    throw new MissingConfigurationException(input.Key ?? "", environmentKey);
+                }
                 throw;
             }
         }

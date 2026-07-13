@@ -1,4 +1,3 @@
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
@@ -134,10 +133,10 @@ class CloudSaveModuleTests
     [TestCase(typeof(ICloudSaveDataService))]
     public void ConfigureCloudSaveRegistersExpectedServices(Type serviceType)
     {
-        EndpointHelper.InitializeNetworkTargetEndpoints(new[]
-        {
-            typeof(CloudSaveEndpoints).GetTypeInfo()
-        });
+        EndpointHelper.InitializeNetworkTargetEndpoints(
+        [
+            new CloudSaveEndpoints()
+        ]);
 
         var collection = new ServiceCollection();
         collection.AddSingleton(ServiceDescriptor.Singleton(new Mock<IDataApiAsync>().Object));

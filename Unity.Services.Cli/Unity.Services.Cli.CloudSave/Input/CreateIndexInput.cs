@@ -3,7 +3,7 @@ using Unity.Services.Cli.Common.Input;
 
 namespace Unity.Services.Cli.CloudSave.Input;
 
-class CreateIndexInput : CommonInput
+public class CreateIndexInput : CommonInput
 {
     /* Optional request body as file input or raw string. */
     protected const string JsonBodyDescription = "If this is a file path, the content of the file is used; otherwise, the raw string is used.";

@@ -1,0 +1,5 @@
+<Project>
+  <ItemGroup Condition="'$(MSBuildProjectName)' != 'Unity.Services.Cli.Analyzers' AND '$(MSBuildProjectName)' != 'Unity.Services.Cli.Generators'">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)Unity.Services.Cli.Analyzers\Unity.Services.Cli.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+</Project>

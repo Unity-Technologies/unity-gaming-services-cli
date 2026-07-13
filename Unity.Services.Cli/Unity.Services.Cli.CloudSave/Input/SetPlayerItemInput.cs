@@ -3,7 +3,7 @@ using Unity.Services.Cli.Common.Input;
 
 namespace Unity.Services.Cli.CloudSave.Input;
 
-class SetPlayerItemInput : CommonInput
+public class SetPlayerItemInput : CommonInput
 {
     public static readonly Option<string?> PlayerIdValue = new Option<string?>("--player-id", "The player ID to set the item for.")
     {

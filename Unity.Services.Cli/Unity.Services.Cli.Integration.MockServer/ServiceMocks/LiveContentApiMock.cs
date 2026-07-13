@@ -14,11 +14,11 @@ public class LiveContentApiMock : IServiceApiMock
 {
     const string k_BasePath = "/v1";
 
-    static readonly LcmGetFiles200ResponseInner k_UploadedConfigSample = new()
+    static readonly LcmGetAssets200ResponseInner k_UploadedConfigSample = new()
     {
         Id = "00000-0000-0000-0000-000000000000",
         Path = "configs/config.json",
-        Type = LcmGetFiles200ResponseInner.TypeEnum.Config,
+        Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
         ContentUri = "https://cdn.example.com/file/id",
         ContentType = "application/json",
         ContentHash = "456fjakj=z/zveds878",
@@ -29,15 +29,16 @@ public class LiveContentApiMock : IServiceApiMock
         Complete = true,
         Metadata = new Dictionary<string, object>
         {
-            ["key"] = "value"
+            ["key"] = "value",
+            ["deployedBy"] = "FILES.lcf"
         }
     };
 
-    static readonly LcmGetFiles200ResponseInner k_UploadedConfigSampleAtl = new()
+    static readonly LcmGetAssets200ResponseInner k_UploadedConfigSampleAtl = new()
     {
         Id = "00000-0000-0000-0000-000000000000",
         Path = "player.json",
-        Type = LcmGetFiles200ResponseInner.TypeEnum.Config,
+        Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
         ContentUri = "https://cdn.example.com/player.json",
         ContentType = "application/json",
         ContentHash = "000fjakj=z/zveds000",
@@ -48,16 +49,17 @@ public class LiveContentApiMock : IServiceApiMock
         Complete = true,
         Metadata = new Dictionary<string, object>
         {
-            ["key"] = "value"
+            ["key"] = "value",
+            ["deployedBy"] = "FILES.lcf"
         },
         Schemas = ["https://schema.unity.com/example"]
     };
 
-    static readonly LcmGetFiles200ResponseInner k_UploadedFileSample = new()
+    static readonly LcmGetAssets200ResponseInner k_UploadedFileSample = new()
     {
         Id = "00000-0000-0000-0000-000000000001",
         Path = "assets/background.ext",
-        Type = LcmGetFiles200ResponseInner.TypeEnum.File,
+        Type = LcmGetAssets200ResponseInner.TypeEnum.File,
         ContentUri = "invalidUrl",
         ContentType = "application/json",
         ContentHash = "456fjakj=z/zveds879",
@@ -68,15 +70,16 @@ public class LiveContentApiMock : IServiceApiMock
         Complete = true,
         Metadata = new Dictionary<string, object>
         {
-            ["type"] = "background"
+            ["type"] = "background",
+            ["deployedBy"] = "FILES.lcf"
         }
     };
 
-    static readonly LcmGetFiles200ResponseInner k_NotUploadedFileSample = new()
+    static readonly LcmGetAssets200ResponseInner k_NotUploadedFileSample = new()
     {
         Id = "00000-0000-0000-0000-000000000002",
         Path = "assets/file.ext",
-        Type = LcmGetFiles200ResponseInner.TypeEnum.File,
+        Type = LcmGetAssets200ResponseInner.TypeEnum.File,
         ContentUri = "https://cdn.example.com/file/id",
         ContentType = "application/json",
         ContentHash = "456fjakj=z/zveds879",
@@ -91,13 +94,13 @@ public class LiveContentApiMock : IServiceApiMock
         }
     };
 
-    static LcmGetFiles200ResponseInner CreateAuthoringFileSample0(string mockServerUrl)
+    static LcmGetAssets200ResponseInner CreateAuthoringFileSample0(string mockServerUrl)
     {
-        return new LcmGetFiles200ResponseInner
+        return new LcmGetAssets200ResponseInner
         {
             Id = "00000-0000-0000-0000-000000000000",
             Path = "file.0",
-            Type = LcmGetFiles200ResponseInner.TypeEnum.File,
+            Type = LcmGetAssets200ResponseInner.TypeEnum.File,
             ContentUri = $"{mockServerUrl}/content/example",
             ContentType = "strean/octet-stream",
             ContentHash = "056fjakj=z/zveds879",
@@ -107,16 +110,19 @@ public class LiveContentApiMock : IServiceApiMock
             UpdatedAt = DateTime.MinValue,
             Complete = true,
             Metadata = new Dictionary<string, object>()
+            {
+                ["deployedBy"] = "FILES.lcf"
+            }
         };
     }
 
-    static LcmGetFiles200ResponseInner CreateAuthoringFileSample1(string mockServerUrl)
+    static LcmGetAssets200ResponseInner CreateAuthoringFileSample1(string mockServerUrl)
     {
-        return new LcmGetFiles200ResponseInner
+        return new LcmGetAssets200ResponseInner
         {
             Id = "00000-0000-0000-0000-000000000001",
             Path = "file.1",
-            Type = LcmGetFiles200ResponseInner.TypeEnum.File,
+            Type = LcmGetAssets200ResponseInner.TypeEnum.File,
             ContentUri = $"{mockServerUrl}/content/example",
             ContentType = "strean/octet-stream",
             ContentHash = "156fjakj=z/zveds879",
@@ -126,38 +132,44 @@ public class LiveContentApiMock : IServiceApiMock
             UpdatedAt = DateTime.MinValue,
             Complete = true,
             Metadata = new Dictionary<string, object>()
+            {
+                ["deployedBy"] = "FILES.lcf"
+            }
         };
     }
 
-    static LcmGetFiles200ResponseInner CreateAuthoringFileSample2(string mockServerUrl)
+    static LcmGetAssets200ResponseInner CreateAuthoringFileSample2(string mockServerUrl)
     {
-        return new LcmGetFiles200ResponseInner
+        return new LcmGetAssets200ResponseInner
         {
             Id = "00000-0000-0000-0000-000000000002",
             Path = "file.2",
-            Type = LcmGetFiles200ResponseInner.TypeEnum.File,
+            Type = LcmGetAssets200ResponseInner.TypeEnum.File,
             ContentUri = $"{mockServerUrl}/content/example",
             ContentType = "application/octet-stream",
-            ContentHash = "ZoXNYrlfLFiBjLIOcpIWiw==",
+            ContentHash = "lZfYmIFPFlt+1hGHIsJCcf7IwSVNRuQ3rWqyQFB2Pi0=",
             ContentSize = 10,
             VariantTag = ["ios"],
             CreatedAt = DateTime.MinValue,
             UpdatedAt = DateTime.MinValue,
             Complete = true,
             Metadata = new Dictionary<string, object>()
+            {
+                ["deployedBy"] = "FILES.lcf"
+            }
         };
     }
 
-    static LcmGetFiles200ResponseInner CreateAuthoringFileSample3(string mockServerUrl)
+    static LcmGetAssets200ResponseInner CreateAuthoringFileSample3(string mockServerUrl)
     {
-        return new LcmGetFiles200ResponseInner
+        return new LcmGetAssets200ResponseInner
         {
             Id = "00000-0000-0000-0000-000000000002",
             Path = "file.3",
-            Type = LcmGetFiles200ResponseInner.TypeEnum.File,
+            Type = LcmGetAssets200ResponseInner.TypeEnum.File,
             ContentUri = $"{mockServerUrl}/content/example",
             ContentType = "application/octet-stream",
-            ContentHash = "ZoXNYrlfLFiBjLIOcpIWiw==",
+            ContentHash = "lZfYmIFPFlt+1hGHIsJCcf7IwSVNRuQ3rWqyQFB2Pi0=",
             ContentSize = 10,
             VariantTag = ["ios"],
             CreatedAt = DateTime.MinValue,
@@ -165,16 +177,19 @@ public class LiveContentApiMock : IServiceApiMock
             Complete = false,
             SignedUrl = $"{mockServerUrl}/upload/example",
             Metadata = new Dictionary<string, object>()
+            {
+                ["deployedBy"] = "FILES.lcf"
+            }
         };
     }
 
-    static LcmGetFiles200ResponseInner CreateAuthoringConfigSample0(string mockServerUrl)
+    static LcmGetAssets200ResponseInner CreateAuthoringConfigSample0(string mockServerUrl)
     {
-        return new LcmGetFiles200ResponseInner
+        return new LcmGetAssets200ResponseInner
         {
             Id = "00000-0000-0000-0000-000000000000",
             Path = "config.0",
-            Type = LcmGetFiles200ResponseInner.TypeEnum.Config,
+            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
             ContentUri = $"{mockServerUrl}/content/example",
             ContentType = "application/json",
             ContentHash = "056fjakj=z/zveds879",
@@ -187,13 +202,13 @@ public class LiveContentApiMock : IServiceApiMock
         };
     }
 
-    static LcmGetFiles200ResponseInner CreateAuthoringConfigSample1(string mockServerUrl)
+    static LcmGetAssets200ResponseInner CreateAuthoringConfigSample1(string mockServerUrl)
     {
-        return new LcmGetFiles200ResponseInner
+        return new LcmGetAssets200ResponseInner
         {
             Id = "00000-0000-0000-0000-000000000001",
             Path = "config.1",
-            Type = LcmGetFiles200ResponseInner.TypeEnum.Config,
+            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
             ContentUri = $"{mockServerUrl}/content/example",
             ContentType = "application/json",
             ContentHash = "aDk+03NSSYDPprDBxbLQuA==",
@@ -206,13 +221,13 @@ public class LiveContentApiMock : IServiceApiMock
         };
     }
 
-    static LcmGetFiles200ResponseInner CreateAuthoringConfigSample2(string mockServerUrl)
+    static LcmGetAssets200ResponseInner CreateAuthoringConfigSample2(string mockServerUrl)
     {
-        return new LcmGetFiles200ResponseInner
+        return new LcmGetAssets200ResponseInner
         {
             Id = "00000-0000-0000-0000-000000000001",
             Path = "config.2",
-            Type = LcmGetFiles200ResponseInner.TypeEnum.Config,
+            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
             ContentUri = $"{mockServerUrl}/content/example",
             ContentType = "application/json",
             ContentHash = "Mb2dejoHkpqptLY50Uf5hg==",
@@ -225,13 +240,13 @@ public class LiveContentApiMock : IServiceApiMock
         };
     }
 
-    static LcmGetFiles200ResponseInner CreateAuthoringConfigSample3(string mockServerUrl)
+    static LcmGetAssets200ResponseInner CreateAuthoringConfigSample3(string mockServerUrl)
     {
-        return new LcmGetFiles200ResponseInner
+        return new LcmGetAssets200ResponseInner
         {
             Id = "00000-0000-0000-0000-000000000001",
             Path = "config.3",
-            Type = LcmGetFiles200ResponseInner.TypeEnum.Config,
+            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
             ContentUri = $"{mockServerUrl}/content/example",
             ContentType = "application/json",
             ContentHash = "sB6WFUDVrrwLPKUWUfE/cA==",
@@ -244,13 +259,13 @@ public class LiveContentApiMock : IServiceApiMock
         };
     }
 
-    static LcmGetFiles200ResponseInner CreateAuthoringConfigSampleUpdate(string mockServerUrl)
+    static LcmGetAssets200ResponseInner CreateAuthoringConfigSampleUpdate(string mockServerUrl)
     {
-        return new LcmGetFiles200ResponseInner
+        return new LcmGetAssets200ResponseInner
         {
             Id = "00000-0000-0000-0000-000000000000",
             Path = "updated.lcc",
-            Type = LcmGetFiles200ResponseInner.TypeEnum.Config,
+            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
             ContentUri = $"{mockServerUrl}/content/example",
             ContentType = "application/json",
             ContentHash = "056fjakj=z/zveds879",
@@ -263,13 +278,13 @@ public class LiveContentApiMock : IServiceApiMock
         };
     }
 
-    static LcmGetFiles200ResponseInner CreateAuthoringConfigSampleNewRemote(string mockServerUrl)
+    static LcmGetAssets200ResponseInner CreateAuthoringConfigSampleNewRemote(string mockServerUrl)
     {
-        return new LcmGetFiles200ResponseInner
+        return new LcmGetAssets200ResponseInner
         {
             Id = "00000-0000-0000-0000-000000000001",
             Path = "new-remote.lcc",
-            Type = LcmGetFiles200ResponseInner.TypeEnum.Config,
+            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
             ContentUri = $"{mockServerUrl}/content/example",
             ContentType = "application/json",
             ContentHash = "aDk+03NSSYDPprDBxbLQuA==",
@@ -282,18 +297,75 @@ public class LiveContentApiMock : IServiceApiMock
         };
     }
 
-    static LcmGetFiles200ResponseInner CreateAuthoringConfigSampleNewLocal(string mockServerUrl)
+    static LcmGetAssets200ResponseInner CreateAuthoringConfigSampleNewLocal(string mockServerUrl)
     {
-        return new LcmGetFiles200ResponseInner
+        return new LcmGetAssets200ResponseInner
         {
             Id = "00000-0000-0000-0000-000000000001",
             Path = "new-local.lcc",
-            Type = LcmGetFiles200ResponseInner.TypeEnum.Config,
+            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
             ContentUri = $"{mockServerUrl}/content/example",
             ContentType = "application/json",
             ContentHash = "aDk+03NSSYDPprDBxbLQuA==",
             ContentSize = 14,
             VariantTag = [],
+            CreatedAt = DateTime.MinValue,
+            UpdatedAt = DateTime.MinValue,
+            Complete = true,
+            Metadata = new Dictionary<string, object>()
+        };
+    }
+
+    static LcmGetAssets200ResponseInner CreateAuthoringConfigVariantSampleUpdate(string mockServerUrl)
+    {
+        return new LcmGetAssets200ResponseInner
+        {
+            Id = "00000-0000-0000-0000-000000000000",
+            Path = "subfolder/config2.lcc",
+            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
+            ContentUri = $"{mockServerUrl}/content/example",
+            ContentType = "application/json",
+            ContentHash = "056fjakj=z/zveds879",
+            ContentSize = 10,
+            VariantTag = ["VARIANT1"],
+            CreatedAt = DateTime.MinValue,
+            UpdatedAt = DateTime.MinValue,
+            Complete = true,
+            Metadata = new Dictionary<string, object>()
+        };
+    }
+
+    static LcmGetAssets200ResponseInner CreateAuthoringConfigVariantSampleNewRemote(string mockServerUrl)
+    {
+        return new LcmGetAssets200ResponseInner
+        {
+            Id = "00000-0000-0000-0000-000000000001",
+            Path = "config2.lcc",
+            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
+            ContentUri = $"{mockServerUrl}/content/example",
+            ContentType = "application/json",
+            ContentHash = "aDk+03NSSYDPprDBxbLQuA==",
+            ContentSize = 14,
+            VariantTag = ["VARIANT1"],
+            CreatedAt = DateTime.MinValue,
+            UpdatedAt = DateTime.MinValue,
+            Complete = true,
+            Metadata = new Dictionary<string, object>()
+        };
+    }
+
+    static LcmGetAssets200ResponseInner CreateAuthoringConfigVariantSampleNewLocal(string mockServerUrl)
+    {
+        return new LcmGetAssets200ResponseInner
+        {
+            Id = "00000-0000-0000-0000-000000000001",
+            Path = "config1.lcc",
+            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
+            ContentUri = $"{mockServerUrl}/content/example",
+            ContentType = "application/json",
+            ContentHash = "aDk+03NSSYDPprDBxbLQuA==",
+            ContentSize = 14,
+            VariantTag = ["VARIANT1"],
             CreatedAt = DateTime.MinValue,
             UpdatedAt = DateTime.MinValue,
             Complete = true,
@@ -316,10 +388,7 @@ public class LiveContentApiMock : IServiceApiMock
         var responseHeaders = new Dictionary<string, WireMockList<string>>
         {
             { "Content-Type", new WireMockList<string>("application/json") },
-            {
-                "unity-ratelimit",
-                new WireMockList<string>("limit=40,remaining=39,reset=1;limit=100000,remaining=99999,reset=1800")
-            }
+            { "unity-ratelimit", new WireMockList<string>("limit=40,remaining=39,reset=1;limit=100000,remaining=99999,reset=1800") }
         };
 
         MockFilesGet(mockServer, responseHeaders);
@@ -331,11 +400,15 @@ public class LiveContentApiMock : IServiceApiMock
 
         MockConfigsGet(mockServer, responseHeaders);
         MockConfigGet(mockServer, responseHeaders);
+        MockConfigGetContent(mockServer, responseHeaders);
         MockConfigCreate(mockServer, responseHeaders);
         MockConfigUpdate(mockServer, responseHeaders);
         MockConfigDelete(mockServer, responseHeaders);
         MockConfigDeployOldDeleteMe(mockServer, responseHeaders);
-        MockConfigDeploy(mockServer, responseHeaders);
+
+        MockConfigList(mockServer, responseHeaders);
+        MockConfigVariantList(mockServer, responseHeaders);
+        MockConfigUpdateDeploy(mockServer, responseHeaders);
 
         MockContentDownloads(mockServer);
         MockS3Upload(mockServer);
@@ -356,7 +429,7 @@ public class LiveContentApiMock : IServiceApiMock
                 Response.Create()
                     .WithHeaders(responseHeaders)
                     .WithBodyAsJson(
-                        new List<LcmGetFiles200ResponseInner>
+                        new List<LcmGetAssets200ResponseInner>
                         {
                             k_UploadedFileSample,
                             k_NotUploadedFileSample
@@ -395,7 +468,6 @@ public class LiveContentApiMock : IServiceApiMock
                     .WithBodyAsJson(fileSample)
                     .WithStatusCode(200));
     }
-
 
     static void MockConfigCreate(
         WireMockServer mockServer,
@@ -470,10 +542,37 @@ public class LiveContentApiMock : IServiceApiMock
                 Response.Create()
                     .WithHeaders(responseHeaders)
                     .WithBodyAsJson(
-                        new List<LcmGetFiles200ResponseInner>
+                        new List<LcmGetAssets200ResponseInner>
                         {
                             k_UploadedConfigSample,
                             k_UploadedConfigSampleAtl
+                        })
+                    .WithStatusCode(200));
+    }
+
+    static void MockConfigGetContent(
+        WireMockServer mockServer,
+        Dictionary<string, WireMockList<string>> responseHeaders)
+    {
+        mockServer
+            .Given(
+                Request.Create()
+                    .WithPath(
+                        $"{k_BasePath}/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/configs/content/*")
+                    .UsingGet())
+            .RespondWith(
+                Response.Create()
+                    .WithHeaders(responseHeaders)
+                    .WithBodyAsJson(
+                        new Dictionary<string, object>
+                        {
+                            ["name"] = "test-live-content",
+                            ["settings"] = new Dictionary<string, object>
+                            {
+                                ["enabled"] = true,
+                                ["maxConnections"] = 100,
+                                ["timeout"] = 30
+                            }
                         })
                     .WithStatusCode(200));
     }
@@ -568,7 +667,7 @@ public class LiveContentApiMock : IServiceApiMock
                             {
                                 "contentType": "application/octet-stream",
                                 "contentSize": 12,
-                                "contentHash": "0QtMP/Ejsm3AaNQ6i+8tIw==",
+                                "contentHash": "4Kw2AQBd+hhk9Tkqq699iYsbW6uFTxrLRJG82Aa3aww=",
                             }
                             """
                         ))
@@ -644,7 +743,7 @@ public class LiveContentApiMock : IServiceApiMock
                 Response.Create()
                     .WithHeaders(responseHeaders)
                     .WithBodyAsJson(
-                        new List<LcmGetFiles200ResponseInner>
+                        new List<LcmGetAssets200ResponseInner>
                         {
                             authoringFileSample0,
                             authoringFileSample1,
@@ -666,7 +765,7 @@ public class LiveContentApiMock : IServiceApiMock
                                 {
                                     "path": "file.1",
                                     "contentSize": 9,
-                                    "contentHash": "kperP71WtC9lZihBGSOBJQ==",
+                                    "contentHash": "0ZiM0wGYJPB19hZ34ab1SxYDWGhIjkBRdX3eU63u+A8=",
                                     "contentType": "application/octet-stream",
                                     "variantTag": ["ios"],
                                 }
@@ -680,7 +779,7 @@ public class LiveContentApiMock : IServiceApiMock
                     .WithBodyAsJson(
                         new
                         {
-                            updated = new List<LcmGetFiles200ResponseInner>
+                            updated = new List<LcmGetAssets200ResponseInner>
                             {
                                 authoringFileSample1
                             },
@@ -702,7 +801,7 @@ public class LiveContentApiMock : IServiceApiMock
                                 {
                                     "path": "file.3",
                                     "contentSize": 9,
-                                    "contentHash": "ZoXNYrlfLFiBjLIOcpIWiw==",
+                                    "contentHash": "lZfYmIFPFlt+1hGHIsJCcf7IwSVNRuQ3rWqyQFB2Pi0=",
                                     "contentType": "application/octet-stream",
                                     "variantTag": ["ios"],
                                 }
@@ -716,7 +815,7 @@ public class LiveContentApiMock : IServiceApiMock
                     .WithBodyAsJson(
                         new
                         {
-                            created = new List<LcmGetFiles200ResponseInner>
+                            created = new List<LcmGetAssets200ResponseInner>
                             {
                                 authoringFileSample3
                             },
@@ -776,7 +875,7 @@ public class LiveContentApiMock : IServiceApiMock
                 Response.Create()
                     .WithHeaders(responseHeaders)
                     .WithBodyAsJson(
-                        new List<LcmGetFiles200ResponseInner>
+                        new List<LcmGetAssets200ResponseInner>
                         {
                             authoringConfigSample0,
                             authoringConfigSample1,
@@ -810,7 +909,7 @@ public class LiveContentApiMock : IServiceApiMock
                     .WithBodyAsJson(
                         new
                         {
-                            updated = new List<LcmGetFiles200ResponseInner>
+                            updated = new List<LcmGetAssets200ResponseInner>
                             {
                                 authoringConfigSample1
                             },
@@ -844,7 +943,7 @@ public class LiveContentApiMock : IServiceApiMock
                     .WithBodyAsJson(
                         new
                         {
-                            created = new List<LcmGetFiles200ResponseInner>
+                            created = new List<LcmGetAssets200ResponseInner>
                             {
                                 authoringConfigSample3
                             },
@@ -882,7 +981,7 @@ public class LiveContentApiMock : IServiceApiMock
                     .WithStatusCode(200));
     }
 
-    static void MockConfigDeploy(
+    static void MockConfigList(
         WireMockServer mockServer,
         Dictionary<string, WireMockList<string>> responseHeaders)
     {
@@ -901,18 +1000,86 @@ public class LiveContentApiMock : IServiceApiMock
                     .WithParam("noVariantTag", "true")
                     .WithParam("limit", "100")
                     .WithParam("start", "true")
-                    .WithParam("path", @"\.lcc(\.|$)")
+                    .WithParam("path", ".lcc")
                     .UsingGet())
             .RespondWith(
                 Response.Create()
                     .WithHeaders(responseHeaders)
                     .WithBodyAsJson(
-                        new List<LcmGetFiles200ResponseInner>
+                        new List<LcmGetAssets200ResponseInner>
                         {
                             authoringConfigSampleUpdated,
                             authoringConfigSampleNewRemote
                         })
                     .WithStatusCode(200));
+
+        // Mock the List single file
+        mockServer
+            .Given(
+                Request.Create()
+                    .WithPath(
+                        $"{k_BasePath}/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/configs/info"
+                    )
+                    .WithParam("noVariantTag", "true")
+                    .WithParam("limit", "100")
+                    .WithParam("start", "true")
+                    .WithParam("path", "updated.lcc")
+                    .UsingGet())
+            .RespondWith(
+                Response.Create()
+                    .WithHeaders(responseHeaders)
+                    .WithBodyAsJson(
+                        new List<LcmGetAssets200ResponseInner>
+                        {
+                            authoringConfigSampleUpdated,
+                        })
+                    .WithStatusCode(200));
+    }
+
+    static void MockConfigVariantList(
+        WireMockServer mockServer,
+        Dictionary<string, WireMockList<string>> responseHeaders)
+    {
+        var authoringConfigVariantSampleUpdated = CreateAuthoringConfigVariantSampleUpdate(mockServer.Url!);
+        var authoringConfigVariantSampleNewRemote = CreateAuthoringConfigVariantSampleNewRemote(mockServer.Url!);
+        var authoringConfigVariantSampleNewLocal = CreateAuthoringConfigVariantSampleNewLocal(mockServer.Url!);
+
+        // Mock the List
+        mockServer
+            .Given(
+                Request.Create()
+                    .WithPath(
+                        $"{k_BasePath}/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/configs/info"
+                    )
+                    .WithParam("variantTag", "variant1")
+                    .WithParam("limit", "100")
+                    .WithParam("start", "true")
+                    .WithParam("path", ".lcc")
+                    .UsingGet())
+            .RespondWith(
+                Response.Create()
+                    .WithHeaders(responseHeaders)
+                    .WithBodyAsJson(
+                        new List<LcmGetAssets200ResponseInner>
+                        {
+                            authoringConfigVariantSampleUpdated,
+                            authoringConfigVariantSampleNewRemote
+                        })
+                    .WithStatusCode(200));
+
+    }
+
+    static void MockConfigUpdateDeploy(
+        WireMockServer mockServer,
+        Dictionary<string, WireMockList<string>> responseHeaders)
+    {
+        var authoringConfigSampleUpdated = CreateAuthoringConfigSampleUpdate(mockServer.Url!);
+        var authoringConfigSampleNewRemote = CreateAuthoringConfigSampleNewRemote(mockServer.Url!);
+        var authoringConfigSampleNewLocal = CreateAuthoringConfigSampleNewLocal(mockServer.Url!);
+
+        var authoringConfigVariantSampleUpdated = CreateAuthoringConfigVariantSampleUpdate(mockServer.Url!);
+        var authoringConfigVariantSampleNewRemote = CreateAuthoringConfigVariantSampleNewRemote(mockServer.Url!);
+        var authoringConfigVariantSampleNewLocal = CreateAuthoringConfigVariantSampleNewLocal(mockServer.Url!);
 
         // Mock the Update Batch
         mockServer
@@ -927,6 +1094,10 @@ public class LiveContentApiMock : IServiceApiMock
                             [
                                 {
                                     "$path": "updated.lcc",
+                                },
+                                {
+                                    "$path": "subfolder/config2.lcc",
+                                    "$variantTag": ["variant1"],
                                 }
                             ]
                             """
@@ -938,8 +1109,9 @@ public class LiveContentApiMock : IServiceApiMock
                     .WithBodyAsJson(
                         new
                         {
-                            updated = new List<LcmGetFiles200ResponseInner>
+                            updated = new List<LcmGetAssets200ResponseInner>
                             {
+                                authoringConfigVariantSampleUpdated,
                                 authoringConfigSampleUpdated
                             },
                             error = new List<object>()
@@ -959,6 +1131,10 @@ public class LiveContentApiMock : IServiceApiMock
                             [
                                 {
                                     "$path": "new-local.lcc",
+                                },
+                                {
+                                    "$path": "config1.lcc",
+                                    "$variantTag": ["variant1"],
                                 }
                             ]
                             """
@@ -970,8 +1146,9 @@ public class LiveContentApiMock : IServiceApiMock
                     .WithBodyAsJson(
                         new
                         {
-                            created = new List<LcmGetFiles200ResponseInner>
+                            created = new List<LcmGetAssets200ResponseInner>
                             {
+                                authoringConfigVariantSampleNewLocal,
                                 authoringConfigSampleNewLocal
                             },
                             error = new List<object>()
@@ -990,7 +1167,11 @@ public class LiveContentApiMock : IServiceApiMock
                             """
                             [
                                 {
-                                    "path": "new-remote.lcc",
+                                    "path": "new-remote.lcc"
+                                },
+                                {
+                                    "path": "config2.lcc",
+                                    "variantTag": ["VARIANT1"]
                                 }
                             ]
                             """

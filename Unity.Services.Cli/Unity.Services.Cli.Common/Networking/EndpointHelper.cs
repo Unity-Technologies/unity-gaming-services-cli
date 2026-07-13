@@ -1,5 +1,3 @@
-using System.Reflection;
-
 namespace Unity.Services.Cli.Common.Networking;
 
 /// <summary>
@@ -13,19 +11,12 @@ public static class EndpointHelper
     internal static IReadOnlyDictionary<Type, NetworkTargetEndpoints> NetworkTargetEndpoints
         => k_NetworkTargetEndpoints;
 
-    public static void InitializeNetworkTargetEndpoints(IEnumerable<TypeInfo> definedTypes)
+    public static void InitializeNetworkTargetEndpoints(IEnumerable<NetworkTargetEndpoints> endpoints)
     {
         k_NetworkTargetEndpoints.Clear();
-        foreach (var definedType in definedTypes)
+        foreach (var endpoint in endpoints)
         {
-            if (definedType.IsAbstract
-                || definedType.IsGenericType
-                || !definedType.IsAssignableTo(typeof(NetworkTargetEndpoints)))
-            {
-                continue;
-            }
-
-            k_NetworkTargetEndpoints[definedType] = (NetworkTargetEndpoints)Activator.CreateInstance(definedType)!;
+            k_NetworkTargetEndpoints[endpoint.GetType()] = endpoint;
         }
     }
 

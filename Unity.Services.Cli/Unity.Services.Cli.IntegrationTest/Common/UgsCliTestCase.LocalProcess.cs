@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -14,14 +15,16 @@ public partial class UgsCliTestCase
         Task<int>? m_InnerTask;
         MemoryStream m_StdOutWriter;
         MemoryStream m_StdErrWriter;
+        readonly IDictionary<string, string?> m_EnvironmentVariables;
 
-        public LocalProcess(ProcessStartInfo info)
+        public LocalProcess(ProcessStartInfo info, IDictionary<string, string?> environmentVariables)
         {
             StartInfo = info;
             StandardError = null!;
             StandardOutput = null!;
             m_StdOutWriter = null!;
             m_StdErrWriter = null!;
+            m_EnvironmentVariables = environmentVariables;
         }
 
         public bool HasExited { get; private set; }
@@ -55,12 +58,16 @@ public partial class UgsCliTestCase
                 StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
             Environment.CurrentDirectory = UgsCliBuilder.RootDirectory;
+            foreach (var (k, v) in m_EnvironmentVariables)
+            {
+                Environment.SetEnvironmentVariable(k, v);
+            }
 
-            m_StdOutWriter= new MemoryStream(32*1024);
-            m_StdErrWriter = new MemoryStream(32*1024);
+            m_StdOutWriter = new MemoryStream(32 * 1024);
+            m_StdErrWriter = new MemoryStream(32 * 1024);
 
             var stdOutWrite = new StreamWriter(m_StdOutWriter) { AutoFlush = true };
-            var stdErrWrite = new StreamWriter(m_StdErrWriter){ AutoFlush = true };
+            var stdErrWrite = new StreamWriter(m_StdErrWriter) { AutoFlush = true };
             var logger = new Logger
             {
                 StdOut = stdOutWrite,

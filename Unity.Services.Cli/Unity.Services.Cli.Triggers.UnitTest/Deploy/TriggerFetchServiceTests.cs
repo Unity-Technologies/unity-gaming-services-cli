@@ -2,6 +2,7 @@ using NUnit.Framework;
 using Moq;
 using Newtonsoft.Json;
 using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Triggers.Deploy;
 using Unity.Services.Cli.Triggers.Fetch;
 using Unity.Services.Cli.Triggers.IO;
@@ -77,7 +78,7 @@ public class TriggerFetchServiceTests
         };
         var res = await m_FetchService!.FetchAsync(
             input,
-            new[] { "dir" },
+            [new AuthoringFile("dir")],
             string.Empty,
             string.Empty,
             null,
@@ -115,7 +116,7 @@ public class TriggerFetchServiceTests
         };
         var res = await m_FetchService!.FetchAsync(
             input,
-            new[] { "dir" },
+            [new AuthoringFile("dir")],
             string.Empty,
             string.Empty,
             null,

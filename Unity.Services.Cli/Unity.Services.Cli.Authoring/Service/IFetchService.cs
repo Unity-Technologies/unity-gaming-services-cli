@@ -8,7 +8,7 @@ public interface IFetchService : IAuthoringService
 {
     Task<FetchResult> FetchAsync(
         FetchInput input,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> filePaths,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,

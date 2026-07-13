@@ -38,7 +38,7 @@ public class AuthTests : UgsCliFixture
     [Ignore($"Please test it manually in {k_InteractiveLoginTestCase}. Look for solution automate this in future")]
     public async Task AuthLoginWithoutOption()
     {
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("login")
             .StandardInputWriteLine($"{CommonKeys.ValidServiceAccKeyId}")
             .StandardInputWriteLine($"{CommonKeys.ValidServiceAccSecretKey}")
@@ -56,7 +56,7 @@ public class AuthTests : UgsCliFixture
         await GetLoggedInCli()
             .Command("logout")
             .WaitForExit(AssertTokenNotSaved)
-            .AssertStandardErrorContains("Service Account key cleared from local configuration.")
+            .AssertStandardErrorContains("Login key cleared from local configuration.")
             .ExecuteAsync();
     }
 
@@ -69,11 +69,12 @@ public class AuthTests : UgsCliFixture
             .WaitForExit(AssertTokenNotSaved)
             .AssertStandardError(output =>
                 {
-                    StringAssert.Contains("Service Account key cleared from local configuration.", output);
-                    StringAssert.Contains("Because UGS_CLI_SERVICE_KEY_ID and" +
-                                          " UGS_CLI_SERVICE_SECRET_KEY are set, you will still be able to make" +
-                                          " authenticated service calls. Clear login-related system environment" +
-                                          " variables to fully logout.", output);
+                    StringAssert.Contains("Login key cleared from local configuration.", output);
+                    StringAssert.Contains("Because one or more of UGS_CLI_AUTH_TOKEN," +
+                                          " UGS_CLI_SERVICE_KEY_ID, UGS_CLI_SERVICE_SECRET_KEY or UGS_CLI_USE_HUB_AUTH is set," +
+                                          " you will still be able to make authenticated service calls." +
+                                          " Clear login-related system environment variables to fully" +
+                                          " logout.", output);
                 })
             .ExecuteAsync();
     }
@@ -81,9 +82,9 @@ public class AuthTests : UgsCliFixture
     [Test]
     public async Task AuthStatusReturnsLoggedOut()
     {
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("status")
-            .AssertStandardErrorContains("No Service Account key stored.")
+            .AssertStandardErrorContains("No credentials configured.")
             .ExecuteAsync();
     }
 
@@ -92,7 +93,7 @@ public class AuthTests : UgsCliFixture
     {
         await GetLoggedInCli()
             .Command("status")
-            .AssertStandardErrorContains("Using Service Account key from local configuration.")
+            .AssertStandardErrorContains("Using Service Account key from local configuration (saved via `ugs login`).")
             .ExecuteAsync();
     }
 
@@ -102,7 +103,7 @@ public class AuthTests : UgsCliFixture
         LoginWithEnvironment();
         await GetLoggedInCli()
             .Command("status")
-            .AssertStandardErrorContains("Using Service Account key from local configuration.")
+            .AssertStandardErrorContains("Using Service Account key from local configuration (saved via `ugs login`).")
             .ExecuteAsync();
     }
 
@@ -110,9 +111,10 @@ public class AuthTests : UgsCliFixture
     public async Task AuthStatusReturnsLoggedInWithEnvironmentVariables()
     {
         LoginWithEnvironment();
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("status")
-            .AssertStandardErrorContains("Using Service Account key from system environment variables.")
+            .AssertStandardErrorContains(
+                "Using Service Account key from UGS_CLI_SERVICE_KEY_ID and UGS_CLI_SERVICE_SECRET_KEY environment variables.")
             .ExecuteAsync();
     }
 

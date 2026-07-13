@@ -42,7 +42,9 @@ public class LobbyModule : ICommandModule
     public LobbyModule()
     {
         /* Bulk Update Lobby */
-        var bulkUpdateLobbyCommand = new LobbyCommand("bulk-update", "Bulk update a lobby.")
+        var bulkUpdateLobbyCommand = new LobbyCommand("bulk-update", new CommandDescription("Bulk update a lobby.")
+            .WithReturn("The full updated lobby JSON object.")
+            .Build())
         {
             CommonLobbyInput.LobbyIdArgument,
             RequiredBodyInput.RequestBodyArgument,
@@ -50,7 +52,9 @@ public class LobbyModule : ICommandModule
         bulkUpdateLobbyCommand.SetHandler<RequiredBodyInput, IUnityEnvironment, ILobbyService, ILogger, CancellationToken>(BulkUpdateLobbyHandler.BulkUpdateLobbyAsync);
 
         /* Create Lobby */
-        var createLobbyCommand = new LobbyCommand("create", "Create a new lobby.")
+        var createLobbyCommand = new LobbyCommand("create", new CommandDescription("Create a new lobby.")
+            .WithReturn("The full created lobby JSON object.")
+            .Build())
         {
             RequiredBodyInput.RequestBodyArgument,
             CommonLobbyInput.PlayerIdOption,
@@ -58,7 +62,9 @@ public class LobbyModule : ICommandModule
         createLobbyCommand.SetHandler<RequiredBodyInput, IUnityEnvironment, ILobbyService, ILogger, CancellationToken>(CreateLobbyHandler.CreateLobbyAsync);
 
         /* Delete Lobby */
-        var deleteLobbyCommand = new LobbyCommand("delete", "Delete a lobby.")
+        var deleteLobbyCommand = new LobbyCommand("delete", new CommandDescription("Delete a lobby.")
+            .WithReturn("Confirmation message.")
+            .Build())
         {
             CommonLobbyInput.LobbyIdArgument,
             CommonLobbyInput.PlayerIdOption,
@@ -66,21 +72,27 @@ public class LobbyModule : ICommandModule
         deleteLobbyCommand.SetHandler<CommonLobbyInput, IUnityEnvironment, ILobbyService, ILogger, CancellationToken>(DeleteLobbyHandler.DeleteLobbyAsync);
 
         /* Get Joined Lobbies */
-        var getJoinedLobbiesCommand = new LobbyCommand("get-joined", "Get the lobbies you are currently in.")
+        var getJoinedLobbiesCommand = new LobbyCommand("get-joined", new CommandDescription("Get the lobbies you are currently in.")
+            .WithReturn("JSON array of lobby ID strings.")
+            .Build())
         {
             PlayerInput.PlayerIdArgument,
         };
         getJoinedLobbiesCommand.SetHandler<PlayerInput, IUnityEnvironment, ILobbyService, ILogger, CancellationToken>(GetJoinedLobbiesHandler.GetJoinedLobbiesAsync);
 
         /* Get Hosted Lobbies */
-        var getHostedLobbiesCommand = new LobbyCommand("get-hosted", "Get the lobbies you are currently hosting.")
+        var getHostedLobbiesCommand = new LobbyCommand("get-hosted", new CommandDescription("Get the lobbies you are currently hosting.")
+            .WithReturn("JSON array of lobby ID strings.")
+            .Build())
         {
             CommonLobbyInput.PlayerIdOption,
         };
         getHostedLobbiesCommand.SetHandler<CommonLobbyInput, IUnityEnvironment, ILobbyService, ILogger, CancellationToken>(GetHostedLobbiesHandler.GetHostedLobbiesAsync);
 
         /* Get Lobby */
-        var getLobbyCommand = new LobbyCommand("get", "Get a lobby.")
+        var getLobbyCommand = new LobbyCommand("get", new CommandDescription("Get a lobby.")
+            .WithReturn("The full lobby JSON object.")
+            .Build())
         {
             CommonLobbyInput.LobbyIdArgument,
             CommonLobbyInput.PlayerIdOption,
@@ -88,7 +100,9 @@ public class LobbyModule : ICommandModule
         getLobbyCommand.SetHandler<CommonLobbyInput, IUnityEnvironment, ILobbyService, ILogger, CancellationToken>(GetLobbyHandler.GetLobbyAsync);
 
         /* Join Lobby */
-        var joinLobbyCommand = new LobbyCommand("join", "Join a lobby by ID or code.")
+        var joinLobbyCommand = new LobbyCommand("join", new CommandDescription("Join a lobby by ID or code.")
+            .WithReturn("The full lobby JSON object.")
+            .Build())
         {
             JoinInput.LobbyIdOption,
             JoinInput.LobbyCodeOption,
@@ -97,7 +111,9 @@ public class LobbyModule : ICommandModule
         joinLobbyCommand.SetHandler<JoinInput, IUnityEnvironment, ILobbyService, ILogger, CancellationToken>(JoinLobbyHandler.JoinLobbyAsync);
 
         /* Reconnect */
-        var reconnectCommand = new LobbyCommand("reconnect", "Reconnect to a lobby.")
+        var reconnectCommand = new LobbyCommand("reconnect", new CommandDescription("Reconnect to a lobby.")
+            .WithReturn("The full lobby JSON object.")
+            .Build())
         {
             CommonLobbyInput.LobbyIdArgument,
             PlayerInput.PlayerIdArgument,
@@ -105,7 +121,9 @@ public class LobbyModule : ICommandModule
         reconnectCommand.SetHandler<PlayerInput, IUnityEnvironment, ILobbyService, ILogger, CancellationToken>(ReconnectHandler.ReconnectAsync);
 
         /* Query Lobbies */
-        var queryLobbiesCommand = new LobbyCommand("query", "Query lobbies.")
+        var queryLobbiesCommand = new LobbyCommand("query", new CommandDescription("Query lobbies.")
+            .WithReturn("JSON query response with a paginated list of matching lobbies.")
+            .Build())
         {
             CommonLobbyInput.PlayerIdOption,
             LobbyBodyInput.JsonFileOrBodyOption,
@@ -113,7 +131,9 @@ public class LobbyModule : ICommandModule
         queryLobbiesCommand.SetHandler<CommonLobbyInput, IUnityEnvironment, ILobbyService, ILogger, CancellationToken>(QueryLobbiesHandler.QueryLobbiesAsync);
 
         /* Quick Join */
-        var quickJoinCommand = new LobbyCommand("quickjoin", "QuickJoin a lobby.")
+        var quickJoinCommand = new LobbyCommand("quickjoin", new CommandDescription("QuickJoin a lobby.")
+            .WithReturn("The full lobby JSON object.")
+            .Build())
         {
             LobbyBodyInput.QueryFilterArgument,
             LobbyBodyInput.PlayerDetailsArgument,
@@ -121,7 +141,9 @@ public class LobbyModule : ICommandModule
         quickJoinCommand.SetHandler<CommonLobbyInput, IUnityEnvironment, ILobbyService, ILogger, CancellationToken>(QuickJoinHandler.QuickJoinAsync);
 
         /* Remove Player */
-        var removePlayerCommand = new LobbyCommand("remove", "Remove a player from a lobby.")
+        var removePlayerCommand = new LobbyCommand("remove", new CommandDescription("Remove a player from a lobby.")
+            .WithReturn("Confirmation message.")
+            .Build())
         {
             CommonLobbyInput.LobbyIdArgument,
             PlayerInput.PlayerIdArgument,
@@ -129,7 +151,9 @@ public class LobbyModule : ICommandModule
         removePlayerCommand.SetHandler<PlayerInput, IUnityEnvironment, ILobbyService, ILogger, CancellationToken>(RemovePlayerHandler.RemovePlayerAsync);
 
         /* Update Player */
-        var updatePlayerCommand = new LobbyCommand("update", "Update a player in a lobby.")
+        var updatePlayerCommand = new LobbyCommand("update", new CommandDescription("Update a player in a lobby.")
+            .WithReturn("The full updated lobby JSON object.")
+            .Build())
         {
             CommonLobbyInput.LobbyIdArgument,
             PlayerInput.PlayerIdArgument,
@@ -145,7 +169,9 @@ public class LobbyModule : ICommandModule
         };
 
         /* Update Lobby Command */
-        var updateLobbyCommand = new LobbyCommand("update", "Update a lobby.")
+        var updateLobbyCommand = new LobbyCommand("update", new CommandDescription("Update a lobby.")
+            .WithReturn("The full updated lobby JSON object.")
+            .Build())
         {
             CommonLobbyInput.LobbyIdArgument,
             RequiredBodyInput.RequestBodyArgument,
@@ -154,7 +180,9 @@ public class LobbyModule : ICommandModule
         updateLobbyCommand.SetHandler<RequiredBodyInput, IUnityEnvironment, ILobbyService, ILogger, CancellationToken>(UpdateLobbyHandler.UpdateLobbyAsync);
 
         /* Heartbeat Command */
-        var heartbeatLobbyCommand = new LobbyCommand("heartbeat", "Heartbeat a lobby.")
+        var heartbeatLobbyCommand = new LobbyCommand("heartbeat", new CommandDescription("Heartbeat a lobby.")
+            .WithReturn("Confirmation message.")
+            .Build())
         {
             CommonLobbyInput.LobbyIdArgument,
             CommonLobbyInput.PlayerIdOption,
@@ -162,7 +190,9 @@ public class LobbyModule : ICommandModule
         heartbeatLobbyCommand.SetHandler<CommonLobbyInput, IUnityEnvironment, ILobbyService, ILogger, CancellationToken>(HeartbeatHandler.HeartbeatLobbyAsync);
 
         /* Request Token Command */
-        var requestTokenCommand = new LobbyCommand("request-token", "Request a token.")
+        var requestTokenCommand = new LobbyCommand("request-token", new CommandDescription("Request a token.")
+            .WithReturn("JSON dictionary mapping token type names to token data objects.")
+            .Build())
         {
             CommonLobbyInput.LobbyIdArgument,
             PlayerInput.PlayerIdArgument,
@@ -170,14 +200,18 @@ public class LobbyModule : ICommandModule
         };
         requestTokenCommand.SetHandler<LobbyTokenInput, IUnityEnvironment, ILobbyService, ILogger, CancellationToken>(RequestTokenHandler.RequestTokenAsync);
 
-        var configGetCommand = new Command("get", "Get a lobby config.")
+        var configGetCommand = new Command("get", new CommandDescription("Get a lobby config.")
+            .WithReturn("Raw JSON string of the lobby remote config.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption
         };
         configGetCommand.SetHandler<CommonInput, IUnityEnvironment, IRemoteConfigService, ILogger, CancellationToken>(ConfigGetHandler.ConfigGetAsync);
 
-        var configUpdateCommand = new Command("update", "Update an existing lobby config.")
+        var configUpdateCommand = new Command("update", new CommandDescription("Update an existing lobby config.")
+            .WithReturn("Confirmation message.")
+            .Build())
         {
             LobbyConfigUpdateInput.ConfigIdArgument,
             RequiredBodyInput.RequestBodyArgument,
@@ -191,7 +225,9 @@ public class LobbyModule : ICommandModule
             configUpdateCommand,
         };
 
-        var importCommand = new Command("import", "Import lobby configuration into an environment.")
+        var importCommand = new Command("import", new CommandDescription("Import lobby configuration into an environment.")
+            .WithReturn("Summary of created, updated, and deleted items.")
+            .Build())
         {
             ImportInput.InputDirectoryArgument,
             ImportInput.FileNameArgument,
@@ -207,7 +243,9 @@ public class LobbyModule : ICommandModule
             CancellationToken>(
             ImportHandler.ImportAsync);
 
-        var exportCommand = new Command("export", "Export lobby configuration from an environment.")
+        var exportCommand = new Command("export", new CommandDescription("Export lobby configuration from an environment.")
+            .WithReturn("Summary of exported items.")
+            .Build())
         {
             ExportInput.OutputDirectoryArgument,
             ExportInput.FileNameArgument,
@@ -224,7 +262,10 @@ public class LobbyModule : ICommandModule
 
 
         /* Root Command */
-        ModuleRootCommand = new("lobby", "Interact with the Lobby service.")
+        ModuleRootCommand = new("lobby", new CommandDescription("Interact with the Lobby service.")
+            .WithDocs("https://docs.unity.com/ugs/manual/lobby/manual")
+            .WithClientApi("https://services.docs.unity.com/lobby/v1/")
+            .Build())
         {
             bulkUpdateLobbyCommand,
             createLobbyCommand,
@@ -251,10 +292,9 @@ public class LobbyModule : ICommandModule
     /// </summary>
     public static void RegisterServices(HostBuilderContext hostBuilderContext, IServiceCollection serviceCollection)
     {
-        var serviceProvider = serviceCollection.BuildServiceProvider();
-        var authenticationService = serviceProvider.GetRequiredService<IServiceAccountAuthenticationService>();
         var validator = new ConfigurationValidator();
-        serviceCollection.AddSingleton<ILobbyService>(new LobbyService(validator, authenticationService, null, null));
+        serviceCollection.AddSingleton<ILobbyService>(s =>
+            new LobbyService(validator, s.GetRequiredService<IServiceAccountAuthenticationService>(), null, null));
         serviceCollection.AddTransient<LobbyImporter, LobbyImporter>();
         serviceCollection.AddTransient<LobbyExporter, LobbyExporter>();
     }

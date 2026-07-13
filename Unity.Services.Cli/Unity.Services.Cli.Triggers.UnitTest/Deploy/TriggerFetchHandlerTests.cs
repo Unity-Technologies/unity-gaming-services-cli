@@ -1,3 +1,4 @@
+using System.IO;
 using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
@@ -178,10 +179,70 @@ class TriggerFetchHandlerTests
     }
 
     [Test]
+    public async Task FetchAsync_WriteAllTextPreservesRemoteActionScopeType()
+    {
+        var localTriggers = new List<ITriggerConfig>
+        {
+            TriggerConfig.CreateWithId("id1", "name1", "eventType", "cloud-code", "actionUrn", "", path: "path1"),
+            TriggerConfig.CreateWithId("id3", "name3", "eventType", "cloud-code", "actionUrn", "", path: "path3"),
+        };
+        var remoteTriggers = new List<ITriggerConfig>
+        {
+            TriggerConfig.CreateWithId("id1", "name1", "eventType", "cloud-code", "actionUrn", "", actionScopeType: "Player", path: "Remote"),
+            TriggerConfig.CreateWithId("id2", "name2", "eventType", "cloud-code", "actionUrn", "", path: "Remote"),
+        };
+
+        Mock<ITriggersClient> mockTriggersClient = new();
+        Mock<IFileSystem> mockFileSystem = new();
+        var handler = new TriggersFetchHandler(mockTriggersClient.Object, mockFileSystem.Object, new TriggersSerializer());
+
+        mockTriggersClient
+            .Setup(c => c.List())
+            .ReturnsAsync(remoteTriggers.ToList());
+
+        await handler.FetchAsync("dir", localTriggers);
+
+        mockFileSystem.Verify(f => f.WriteAllText(
+                "path1",
+                It.Is<string>(s => s.Contains("Player")
+                    && (s.Contains("ActionScopeType") || s.Contains("actionScopeType"))),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task FetchAsync_ReconcileWrittenFileIncludesActionScopeType()
+    {
+        var localTriggers = GetLocalConfigs();
+        var remoteTriggers = new List<ITriggerConfig>
+        {
+            TriggerConfig.CreateWithId("id1", "name1", "eventType", "cloud-code", "actionUrn", "", path: "Remote"),
+            TriggerConfig.CreateWithId("id2", "name2", "eventType", "cloud-code", "actionUrn", "", actionScopeType: "Player", path: "Remote"),
+        };
+
+        Mock<ITriggersClient> mockTriggersClient = new();
+        Mock<IFileSystem> mockFileSystem = new();
+        var handler = new TriggersFetchHandler(mockTriggersClient.Object, mockFileSystem.Object, new TriggersSerializer());
+
+        mockTriggersClient
+            .Setup(c => c.List())
+            .ReturnsAsync(remoteTriggers.ToList());
+
+        await handler.FetchAsync("dir", localTriggers, reconcile: true);
+
+        mockFileSystem.Verify(f => f.WriteAllText(
+                Path.Combine("dir", "name2.tr"),
+                It.Is<string>(s => s.Contains("Player")
+                    && (s.Contains("ActionScopeType") || s.Contains("actionScopeType"))),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Test]
     public async Task FetchAsync_DuplicateNameNotDeleted()
     {
         var localTriggers = GetLocalConfigs();
-        var triggerConfig = new TriggerConfig("otherId", "name1", "changedEventType", "cloud-code", "actionUrn", "") { Path = "" };
+        var triggerConfig = TriggerConfig.CreateWithId("otherId", "name1", "changedEventType", "cloud-code", "actionUrn", "", path: "");
 
         localTriggers.Add(triggerConfig);
         var remoteTriggers = GetRemoteConfigs();
@@ -214,14 +275,8 @@ class TriggerFetchHandlerTests
     {
         var triggers = new List<ITriggerConfig>()
         {
-            new TriggerConfig("id1", "name1", "eventType", "cloud-code", "actionUrn", "")
-            {
-                Path = "path1"
-            },
-            new TriggerConfig("id3", "name3", "eventType", "cloud-code", "actionUrn", "")
-            {
-                Path = "path3"
-            }
+            TriggerConfig.CreateWithId("id1", "name1", "eventType", "cloud-code", "actionUrn", "", path: "path1"),
+            TriggerConfig.CreateWithId("id3", "name3", "eventType", "cloud-code", "actionUrn", "", path: "path3"),
         };
         return triggers;
     }
@@ -230,14 +285,8 @@ class TriggerFetchHandlerTests
     {
         var triggers = new List<ITriggerConfig>()
         {
-            new TriggerConfig("id1", "name1", "eventType", "cloud-code", "actionUrn", "")
-            {
-                Path = "Remote"
-            },
-            new TriggerConfig("id2", "name2", "eventType", "cloud-code", "actionUrn", "")
-            {
-                Path = "Remote"
-            },
+            TriggerConfig.CreateWithId("id1", "name1", "eventType", "cloud-code", "actionUrn", "", path: "Remote"),
+            TriggerConfig.CreateWithId("id2", "name2", "eventType", "cloud-code", "actionUrn", "", path: "Remote"),
         };
         return triggers;
     }

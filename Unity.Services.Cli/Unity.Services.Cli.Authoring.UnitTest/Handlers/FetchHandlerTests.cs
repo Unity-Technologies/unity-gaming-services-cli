@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -29,7 +28,7 @@ public class FetchHandlerTests
     readonly Mock<ILogger> m_Logger = new();
     readonly Mock<IServiceProvider> m_ServiceProvider = new();
     readonly Mock<IFetchService> m_FetchService = new();
-    readonly Mock<ICliDeploymentDefinitionService> m_DdefService = new();
+    readonly Mock<IAuthoringFileService> m_DdefService = new();
     readonly Mock<IAnalyticsEventBuilder> m_AnalyticsEventBuilder = new();
     readonly Mock<IUnityEnvironment> m_MockEnvironment = new();
 
@@ -48,15 +47,14 @@ public class FetchHandlerTests
             .Returns("mock_test");
         m_FetchService.Setup(s => s.FileExtensions)
             .Returns(
-                new[]
-                {
-                    ".test"
-                });
+            [
+                ".test"
+            ]);
 
         m_FetchService.Setup(
                 s => s.FetchAsync(
                     It.IsAny<FetchInput>(),
-                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<IReadOnlyList<AuthoringFile>>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<StatusContext?>(),
@@ -81,17 +79,18 @@ public class FetchHandlerTests
 
         m_DdefService
             .Setup(
-                x => x.GetFilesFromInput(
+                x => x.ResolveAuthoringFiles(
                     It.IsAny<IReadOnlyList<string>>(),
-                    It.IsAny<IEnumerable<string>>()))
+                    It.IsAny<IReadOnlyList<string>>()))
             .Returns(
                 new DeploymentDefinitionFilteringResult(
                     new DeploymentDefinitionFiles(),
-                    new Dictionary<string, IReadOnlyList<string>>
+                    new Dictionary<string, IReadOnlyList<AuthoringFile>>
                     {
-                        { ".test", new List<string> { "path.test"} },
-                        { ".test1", new List<string> { "path1.test1"} }
-                    }));
+                        { ".test", new List<AuthoringFile> { new("path.test") }},
+                        { ".test1", new List<AuthoringFile> { new("path1.test1") }}
+                    },
+                    new Dictionary<string, IDeploymentDefinition?>()));
     }
 
     class TestFetchService : IFetchService
@@ -102,24 +101,24 @@ public class FetchHandlerTests
 
         public string ServiceType => m_ServiceType;
         public string ServiceName => m_ServiceName;
-        public IReadOnlyList<string> FileExtensions => new[]
-        {
+        public IReadOnlyList<string> FileExtensions =>
+        [
             m_DeployFileExtension
-        };
+        ];
 
         public Task<FetchResult> FetchAsync(
             FetchInput input,
-            IReadOnlyList<string> filePaths,
+            IReadOnlyList<AuthoringFile> filePaths,
             string projectId,
             string environmentId,
             StatusContext? loadingContext,
             CancellationToken cancellationToken)
         {
             var res = new FetchResult(
-                StringsToDeployContent(new[] { "updated1" }),
-                StringsToDeployContent(new[] { "deleted1" }),
+                StringsToDeployContent(["updated1"]),
+                StringsToDeployContent(["deleted1"]),
                 Array.Empty<DeployContent>(),
-                StringsToDeployContent(new[] { "file1" }),
+                StringsToDeployContent(["file1"]),
                 Array.Empty<DeployContent>());
             return Task.FromResult(res);
         }
@@ -151,7 +150,7 @@ public class FetchHandlerTests
     {
         var mockLogger = new Mock<ILogger>();
         var fetchInput = new FetchInput { DryRun = dryRun };
-        var mockDdefService = new Mock<ICliDeploymentDefinitionService>();
+        var mockDdefService = new Mock<IAuthoringFileService>();
 
         await FetchCommandHandler.FetchAsync(
             m_Host.Object,
@@ -241,7 +240,7 @@ public class FetchHandlerTests
         m_FetchService.Verify(
             s => s.FetchAsync(
                 It.IsAny<FetchInput>(),
-                It.IsAny<List<string>>(),
+                It.IsAny<List<AuthoringFile>>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
@@ -274,7 +273,7 @@ public class FetchHandlerTests
         m_FetchService.Verify(
             s => s.FetchAsync(
                 It.IsAny<FetchInput>(),
-                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<AuthoringFile>>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
@@ -306,7 +305,7 @@ public class FetchHandlerTests
         m_FetchService.Verify(
             s => s.FetchAsync(
                 It.IsAny<FetchInput>(),
-                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<AuthoringFile>>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
@@ -338,7 +337,7 @@ public class FetchHandlerTests
         m_FetchService.Verify(
             s => s.FetchAsync(
                 It.IsAny<FetchInput>(),
-                It.IsAny<List<string>>(),
+                It.IsAny<List<AuthoringFile>>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
@@ -359,9 +358,9 @@ public class FetchHandlerTests
 
         m_DdefService
             .Setup(
-                s => s.GetFilesFromInput(
-                    It.IsAny<IEnumerable<string>>(),
-                    It.IsAny<IEnumerable<string>>()))
+                s => s.ResolveAuthoringFiles(
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<IReadOnlyList<string>>()))
             .Throws(
                 () =>
                     new MultipleDeploymentDefinitionInDirectoryException(
@@ -382,7 +381,7 @@ public class FetchHandlerTests
         m_FetchService.Verify(
             s => s.FetchAsync(
                 It.IsAny<FetchInput>(),
-                It.IsAny<List<string>>(),
+                It.IsAny<List<AuthoringFile>>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
@@ -403,9 +402,9 @@ public class FetchHandlerTests
 
         m_DdefService
             .Setup(
-                s => s.GetFilesFromInput(
-                    It.IsAny<IEnumerable<string>>(),
-                    It.IsAny<IEnumerable<string>>()))
+                s => s.ResolveAuthoringFiles(
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<IReadOnlyList<string>>()))
             .Throws(
                 new DeploymentDefinitionFileIntersectionException(
                     new Dictionary<IDeploymentDefinition, List<string>>(),
@@ -424,7 +423,7 @@ public class FetchHandlerTests
         m_FetchService.Verify(
             s => s.FetchAsync(
                 It.IsAny<FetchInput>(),
-                It.IsAny<List<string>>(),
+                It.IsAny<List<AuthoringFile>>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
@@ -447,9 +446,9 @@ public class FetchHandlerTests
         mockResult
             .Setup(r => r.AllFilesByExtension)
             .Returns(
-                new Dictionary<string, IReadOnlyList<string>>
+                new Dictionary<string, IReadOnlyList<AuthoringFile>>
                 {
-                    { ".test", new List<string>() }
+                    { ".test", new List<AuthoringFile>() }
                 });
         var mockFiles = new Mock<IDeploymentDefinitionFiles>();
         mockFiles
@@ -460,9 +459,9 @@ public class FetchHandlerTests
             .Returns(mockFiles.Object);
         m_DdefService
             .Setup(
-                s => s.GetFilesFromInput(
-                    It.IsAny<IEnumerable<string>>(),
-                    It.IsAny<IEnumerable<string>>()))
+                s => s.ResolveAuthoringFiles(
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<IReadOnlyList<string>>()))
             .Returns(mockResult.Object);
 
 
@@ -505,7 +504,7 @@ public class FetchHandlerTests
         m_FetchService.Verify(
             s => s.FetchAsync(
                 It.IsAny<FetchInput>(),
-                It.IsAny<List<string>>(),
+                It.IsAny<List<AuthoringFile>>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
@@ -528,7 +527,7 @@ public class FetchHandlerTests
 
         public Task<FetchResult> FetchAsync(
             FetchInput input,
-            IReadOnlyList<string> filePaths,
+            IReadOnlyList<AuthoringFile> filePaths,
             string projectId,
             string environmentId,
             StatusContext? loadingContext,
@@ -536,5 +535,411 @@ public class FetchHandlerTests
         {
             return Task.FromException<FetchResult>(new NullReferenceException());
         }
+    }
+
+    [Test]
+    public async Task FetchAsync_WithSingleDdef_FiltersOutNestedDdefFiles()
+    {
+        // Arrange
+        var input = new FetchInput
+        {
+            Services = new[] { "mock_test" },
+            Path = "player/"
+        };
+
+        // Setup: Create root and nested deployment definitions
+        var rootDdefPath = Path.GetFullPath("player/player.ddef");
+        var nestedDdefPath = Path.GetFullPath("player/ios/ios.ddef");
+
+        var rootDdef = new Mock<IDeploymentDefinition>();
+        rootDdef.Setup(d => d.Path).Returns(rootDdefPath);
+        rootDdef.Setup(d => d.AdditionalProperties).Returns(
+            new Dictionary<string, object> { ["variantTags"] = new[] { "player", "xbox" } });
+
+        var nestedDdef = new Mock<IDeploymentDefinition>();
+        nestedDdef.Setup(d => d.Path).Returns(nestedDdefPath);
+        nestedDdef.Setup(d => d.AdditionalProperties).Returns(
+            new Dictionary<string, object> { ["variantTags"] = new[] { "player", "ios" } });
+
+        // Create authoring files with different ddef paths
+        var authoringFiles = new List<AuthoringFile>
+        {
+            new AuthoringFile("player/asset.test", rootDdef.Object),
+            new AuthoringFile("player/coord.test", rootDdef.Object),
+            new AuthoringFile("player/ios/coord.test", nestedDdef.Object)
+        };
+
+        var ddefResult = new DeploymentDefinitionFilteringResult(
+            new DeploymentDefinitionFiles(),
+            new Dictionary<string, IReadOnlyList<AuthoringFile>>
+            {
+                { ".test", authoringFiles }
+            },
+            new Dictionary<string, IDeploymentDefinition?>
+            {
+                { "player/", rootDdef.Object }
+            });
+
+        m_DdefService
+            .Setup(s => s.ResolveAuthoringFiles(
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<string>>()))
+            .Returns(ddefResult);
+
+        // Act
+        await FetchCommandHandler.FetchAsync(
+            m_Host.Object,
+            input,
+            m_MockEnvironment.Object,
+            m_Logger.Object,
+            (StatusContext?)null,
+            m_DdefService.Object,
+            m_AnalyticsEventBuilder.Object,
+            CancellationToken.None);
+
+        // Assert: only files from root ddef were passed to the fetch service
+        m_FetchService.Verify(
+            s => s.FetchAsync(
+                It.IsAny<FetchInput>(),
+                It.Is<IReadOnlyList<AuthoringFile>>(files =>
+                    files.Count == 2 &&
+                    files.Any(f => f.Path == "player/asset.test") &&
+                    files.Any(f => f.Path == "player/coord.test") &&
+                    !files.Any(f => f.Path == "player/ios/coord.test")),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<StatusContext?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task FetchAsync_WithInputVariantTags_OverwritesTargetTags()
+    {
+        // Arrange
+        var input = new FetchInput
+        {
+            Services = new[] { "mock_test" },
+            Path = "player/",
+            VariantTags = new List<string> { "player", "ps5" },
+            UseForce = true
+        };
+
+        var rootDdefPath = Path.GetFullPath("player/player.ddef");
+        var rootDdef = new Mock<IDeploymentDefinition>();
+        rootDdef.Setup(d => d.Path).Returns(rootDdefPath);
+        rootDdef.Setup(d => d.AdditionalProperties).Returns(
+            new Dictionary<string, object> { ["variantTags"] = new[] { "player", "xbox" } });
+
+        var authoringFiles = new List<AuthoringFile>
+        {
+            new AuthoringFile("player/asset.test", rootDdef.Object)
+        };
+
+        var ddefResult = new DeploymentDefinitionFilteringResult(
+            new DeploymentDefinitionFiles(),
+            new Dictionary<string, IReadOnlyList<AuthoringFile>>
+            {
+                { ".test", authoringFiles }
+            },
+            new Dictionary<string, IDeploymentDefinition?>
+            {
+                { "player/", rootDdef.Object }
+            });
+
+        m_DdefService
+            .Setup(s => s.ResolveAuthoringFiles(
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<string>>()))
+            .Returns(ddefResult);
+
+        // Act
+        await FetchCommandHandler.FetchAsync(
+            m_Host.Object,
+            input,
+            m_MockEnvironment.Object,
+            m_Logger.Object,
+            (StatusContext?)null,
+            m_DdefService.Object,
+            m_AnalyticsEventBuilder.Object,
+            CancellationToken.None);
+
+        // Assert: files were passed with overwritten variant tags
+        m_FetchService.Verify(
+            s => s.FetchAsync(
+                It.Is<FetchInput>(i => i.VariantTags != null && i.VariantTags.SequenceEqual(new[] { "player", "ps5" })),
+                It.Is<IReadOnlyList<AuthoringFile>>(files =>
+                    files.Count == 1 &&
+                    files[0].VariantTags.SequenceEqual(new[] { "player", "ps5" })),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<StatusContext?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task FetchAsync_WithoutInputVariantTags_UsesTargetDdefTags()
+    {
+        // Arrange
+        var input = new FetchInput
+        {
+            Services = new[] { "mock_test" },
+            Path = "player/"
+        };
+
+        var rootDdefPath = Path.GetFullPath("player/player.ddef");
+        var rootDdef = new Mock<IDeploymentDefinition>();
+        rootDdef.Setup(d => d.Path).Returns(rootDdefPath);
+        rootDdef.Setup(d => d.AdditionalProperties).Returns(
+            new Dictionary<string, object> { ["variantTags"] = new[] { "player", "xbox" } });
+
+        var authoringFiles = new List<AuthoringFile>
+        {
+            new AuthoringFile("player/asset.test", rootDdef.Object)
+        };
+
+        var ddefResult = new DeploymentDefinitionFilteringResult(
+            new DeploymentDefinitionFiles(),
+            new Dictionary<string, IReadOnlyList<AuthoringFile>>
+            {
+                { ".test", authoringFiles }
+            },
+            new Dictionary<string, IDeploymentDefinition?>
+            {
+                { "player/", rootDdef.Object }
+            });
+
+        m_DdefService
+            .Setup(s => s.ResolveAuthoringFiles(
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<string>>()))
+            .Returns(ddefResult);
+
+        // Act
+        await FetchCommandHandler.FetchAsync(
+            m_Host.Object,
+            input,
+            m_MockEnvironment.Object,
+            m_Logger.Object,
+            (StatusContext?)null,
+            m_DdefService.Object,
+            m_AnalyticsEventBuilder.Object,
+            CancellationToken.None);
+
+        // Assert: input variant tags were populated with ddef tags
+        m_FetchService.Verify(
+            s => s.FetchAsync(
+                It.Is<FetchInput>(i =>
+                    i.VariantTags != null &&
+                    i.VariantTags.SequenceEqual(new[] { "player", "xbox" })),
+                It.IsAny<IReadOnlyList<AuthoringFile>>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<StatusContext?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task FetchAsync_WithNoDdefForInputPath_UsesEmptyVariantTags()
+    {
+        // Arrange
+        var input = new FetchInput
+        {
+            Services = new[] { "mock_test" },
+            Path = "player/"
+        };
+
+        var authoringFiles = new List<AuthoringFile>
+        {
+            new AuthoringFile("player/asset.test")
+        };
+
+        var ddefResult = new DeploymentDefinitionFilteringResult(
+            new DeploymentDefinitionFiles(),
+            new Dictionary<string, IReadOnlyList<AuthoringFile>>
+            {
+                { ".test", authoringFiles }
+            },
+            new Dictionary<string, IDeploymentDefinition?>
+            {
+                { "player/", null }
+            });
+
+        m_DdefService
+            .Setup(s => s.ResolveAuthoringFiles(
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<string>>()))
+            .Returns(ddefResult);
+
+        // Act
+        await FetchCommandHandler.FetchAsync(
+            m_Host.Object,
+            input,
+            m_MockEnvironment.Object,
+            m_Logger.Object,
+            (StatusContext?)null,
+            m_DdefService.Object,
+            m_AnalyticsEventBuilder.Object,
+            CancellationToken.None);
+
+        // Assert: input variant tags are empty
+        m_FetchService.Verify(
+            s => s.FetchAsync(
+                It.Is<FetchInput>(i =>
+                    i.VariantTags != null &&
+                    i.VariantTags.Count == 0),
+                It.IsAny<IReadOnlyList<AuthoringFile>>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<StatusContext?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task FetchAsync_WithMultipleDdefsInResult_OnlyProcessesMatchingOne()
+    {
+        var input = new FetchInput
+        {
+            Services = new[] { "mock_test" },
+            Path = "player/"
+        };
+
+        // Setup: Three different ddefs
+        var rootDdefPath = Path.GetFullPath("player/player.ddef");
+        var iosDdefPath = Path.GetFullPath("player/ios/ios.ddef");
+        var androidDdefPath = Path.GetFullPath("player/android/android.ddef");
+
+        var rootDdef = new Mock<IDeploymentDefinition>();
+        rootDdef.Setup(d => d.Path).Returns(rootDdefPath);
+        rootDdef.Setup(d => d.AdditionalProperties).Returns(
+            new Dictionary<string, object> { ["variantTags"] = new[] { "player", "xbox" } });
+
+        var iosDdef = new Mock<IDeploymentDefinition>();
+        iosDdef.Setup(d => d.Path).Returns(iosDdefPath);
+        iosDdef.Setup(d => d.AdditionalProperties).Returns(
+            new Dictionary<string, object> { ["variantTags"] = new[] { "player", "ios" } });
+
+        var androidDdef = new Mock<IDeploymentDefinition>();
+        androidDdef.Setup(d => d.Path).Returns(androidDdefPath);
+        androidDdef.Setup(d => d.AdditionalProperties).Returns(
+            new Dictionary<string, object> { ["variantTags"] = new[] { "player", "android" } });
+
+        var authoringFiles = new List<AuthoringFile>
+        {
+            new AuthoringFile("player/asset.test", rootDdef.Object),
+            new AuthoringFile("player/coord.test", rootDdef.Object),
+            new AuthoringFile("player/ios/ios_coord.test", iosDdef.Object),
+            new AuthoringFile("player/android/android_coord.test", androidDdef.Object)
+        };
+
+        var ddefResult = new DeploymentDefinitionFilteringResult(
+            new DeploymentDefinitionFiles(),
+            new Dictionary<string, IReadOnlyList<AuthoringFile>>
+            {
+                { ".test", authoringFiles }
+            },
+            new Dictionary<string, IDeploymentDefinition?>
+            {
+                { "player/", rootDdef.Object }
+            });
+
+        m_DdefService
+            .Setup(s => s.ResolveAuthoringFiles(
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<string>>()))
+            .Returns(ddefResult);
+
+        await FetchCommandHandler.FetchAsync(
+            m_Host.Object,
+            input,
+            m_MockEnvironment.Object,
+            m_Logger.Object,
+            (StatusContext?)null,
+            m_DdefService.Object,
+            m_AnalyticsEventBuilder.Object,
+            CancellationToken.None);
+
+        // Verify only root ddef files are processed
+        m_FetchService.Verify(
+            s => s.FetchAsync(
+                It.IsAny<FetchInput>(),
+                It.Is<IReadOnlyList<AuthoringFile>>(files =>
+                    files.Count == 2 &&
+                    files.Any(f => f.Path == "player/asset.test") &&
+                    files.Any(f => f.Path == "player/coord.test") &&
+                    !files.Any(f => f.Path == "player/ios/ios_coord.test") &&
+                    !files.Any(f => f.Path == "player/android/android_coord.test")),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<StatusContext?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task FetchAsync_WithFilesWithoutDdef_HandledCorrectly()
+    {
+        var input = new FetchInput
+        {
+            Services = new[] { "mock_test" },
+            Path = "player/"
+        };
+
+        var rootDdefPath = Path.GetFullPath("player/player.ddef");
+        var rootDdef = new Mock<IDeploymentDefinition>();
+        rootDdef.Setup(d => d.Path).Returns(rootDdefPath);
+        rootDdef.Setup(d => d.AdditionalProperties).Returns(
+            new Dictionary<string, object> { ["variantTags"] = new[] { "player", "xbox" } });
+
+        // Mix of files with and without ddef
+        var authoringFiles = new List<AuthoringFile>
+        {
+            new AuthoringFile("player/asset.test", rootDdef.Object),
+            new AuthoringFile("player/standalone.test") // No ddef
+        };
+
+        var ddefResult = new DeploymentDefinitionFilteringResult(
+            new DeploymentDefinitionFiles(),
+            new Dictionary<string, IReadOnlyList<AuthoringFile>>
+            {
+                { ".test", authoringFiles }
+            },
+            new Dictionary<string, IDeploymentDefinition?>
+            {
+                { "player/", rootDdef.Object }
+            });
+
+        m_DdefService
+            .Setup(s => s.ResolveAuthoringFiles(
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<string>>()))
+            .Returns(ddefResult);
+
+        // Act
+        await FetchCommandHandler.FetchAsync(
+            m_Host.Object,
+            input,
+            m_MockEnvironment.Object,
+            m_Logger.Object,
+            (StatusContext?)null,
+            m_DdefService.Object,
+            m_AnalyticsEventBuilder.Object,
+            CancellationToken.None);
+
+        // Assert: only files with matching ddef are processed
+        m_FetchService.Verify(
+            s => s.FetchAsync(
+                It.IsAny<FetchInput>(),
+                It.Is<IReadOnlyList<AuthoringFile>>(files =>
+                    files.Count == 1 &&
+                    files[0].Path == "player/asset.test"),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<StatusContext?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 }

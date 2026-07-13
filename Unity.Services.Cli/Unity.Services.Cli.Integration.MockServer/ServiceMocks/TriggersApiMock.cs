@@ -22,7 +22,7 @@ public class TriggersApiMock : IServiceApiMock
     public static readonly TriggerConfigListItem TriggerListItem1 = new(
         Guid.Parse("00000000-0000-0000-0000-000000000001"), DateTime.Now, DateTime.Now, "Trigger1",
         "eventType", "cloud-code", "cloudcode:blah"
-    );
+    ) { ActionScopeType = "Player" };
     public static readonly TriggerConfigListItem TriggerListItem2 = new(
         Guid.Parse("00000000-0000-0000-0000-000000000002"), DateTime.Now, DateTime.Now, "Trigger2",
         "eventType", "cloud-code", "cloudcode:blah"

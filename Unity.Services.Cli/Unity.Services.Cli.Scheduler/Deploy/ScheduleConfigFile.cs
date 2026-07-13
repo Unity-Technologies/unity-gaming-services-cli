@@ -37,7 +37,7 @@ public class ScheduleConfigFile : IFileTemplate
                 new ("Schedule2",
                     "EventType2",
                     "one-time",
-                    DateTime.Now.AddHours(1).ToString("yyyy-MM-dd'T'HH:mm:ss.fffK"),
+                    DateTime.Parse("2030-12-01").AddHours(1).ToString("yyyy-MM-dd'T'HH:mm:ss.fffK"),
                     1,
                     "{ \"message\": \"Hello, world!\"}")
             },

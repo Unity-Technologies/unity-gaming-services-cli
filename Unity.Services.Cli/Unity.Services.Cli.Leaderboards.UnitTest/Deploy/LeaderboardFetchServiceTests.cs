@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using Moq;
 using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Leaderboards.Deploy;
@@ -8,6 +9,7 @@ using Unity.Services.Leaderboards.Authoring.Core.Deploy;
 using Unity.Services.Leaderboards.Authoring.Core.Fetch;
 using Unity.Services.Leaderboards.Authoring.Core.Model;
 using Unity.Services.Leaderboards.Authoring.Core.Service;
+using FetchResult = Unity.Services.Leaderboards.Authoring.Core.Fetch.FetchResult;
 
 namespace Unity.Services.Cli.Leaderboards.UnitTest.Deploy;
 
@@ -78,7 +80,7 @@ public class LeaderboardFetchServiceTests
         };
         var res = await m_FetchService!.FetchAsync(
             input,
-            new[] { "dir" },
+            [new AuthoringFile("dir")],
             string.Empty,
             string.Empty,
             null,
@@ -115,7 +117,7 @@ public class LeaderboardFetchServiceTests
         };
         var res = await m_FetchService!.FetchAsync(
             input,
-            new[] { "dir" },
+            [new AuthoringFile("dir")],
             string.Empty,
             string.Empty,
             null,

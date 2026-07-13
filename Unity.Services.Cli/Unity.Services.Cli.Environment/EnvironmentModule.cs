@@ -31,7 +31,9 @@ public class EnvironmentModule : ICommandModule
     {
         ListCommand = new(
             "list",
-            "List environments")
+            new CommandDescription("List environments.")
+                .WithReturn("Table of environment names and IDs (active environment highlighted); or JSON array with --json.")
+                .Build())
         {
             CommonInput.CloudProjectIdOption
         };
@@ -47,7 +49,9 @@ public class EnvironmentModule : ICommandModule
 
         AddCommand = new(
             "add",
-            "Add a new environment")
+            new CommandDescription("Add a new environment.")
+                .WithReturn("Confirmation message.")
+                .Build())
         {
             EnvironmentInput.EnvironmentNameArgument,
             CommonInput.CloudProjectIdOption
@@ -57,7 +61,9 @@ public class EnvironmentModule : ICommandModule
 
         DeleteCommand = new(
             "delete",
-            "Delete an environment. User needs to authenticate with admin/owner permission to execute this command.")
+            new CommandDescription("Delete an environment. User needs to authenticate with admin/owner permission to execute this command.")
+                .WithReturn("Confirmation message.")
+                .Build())
         {
             EnvironmentInput.EnvironmentNameArgument,
             CommonInput.CloudProjectIdOption
@@ -68,7 +74,9 @@ public class EnvironmentModule : ICommandModule
 
         UseCommand = new(
             "use",
-            "Select the environment to use")
+            new CommandDescription("Select the environment to use.")
+                .WithReturn("Confirmation message.")
+                .Build())
         {
             EnvironmentInput.EnvironmentNameArgument
         };
@@ -88,15 +96,14 @@ public class EnvironmentModule : ICommandModule
 
     public static void RegisterServices(HostBuilderContext hostBuilderContext, IServiceCollection serviceCollection)
     {
-        var serviceProvider = serviceCollection.BuildServiceProvider();
-        var apiAsync = serviceProvider.GetRequiredService<IEnvironmentApi>();
         var validator = new ConfigurationValidator();
-        var authenticationService = serviceProvider.GetRequiredService<IServiceAccountAuthenticationService>();
-        var environmentService = new EnvironmentService(apiAsync, validator, authenticationService);
-        serviceCollection.AddSingleton<IEnvironmentService>(environmentService);
-
-        var unityEnvironment = new UnityEnvironment(environmentService, validator);
-        serviceCollection.AddSingleton<IUnityEnvironment>(unityEnvironment);
+        serviceCollection.AddSingleton<IEnvironmentService>(s =>
+            new EnvironmentService(
+                s.GetRequiredService<IEnvironmentApi>(),
+                validator,
+                s.GetRequiredService<IServiceAccountAuthenticationService>()));
+        serviceCollection.AddSingleton<IUnityEnvironment>(s =>
+            new UnityEnvironment(s.GetRequiredService<IEnvironmentService>(), validator));
 
         // Set retry policy
         Gateway.IdentityApiV1.Generated.Client.RetryConfiguration.RetryPolicy =

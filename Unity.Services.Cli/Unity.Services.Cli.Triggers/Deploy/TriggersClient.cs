@@ -63,6 +63,7 @@ class TriggersClient : ITriggersClient
                 triggerConfig.EventType,
                 triggerConfig.ActionType,
                 triggerConfig.ActionUrn,
+                triggerConfig.ActionScopeType,
                 triggerConfig.Filter,
                 ToApiWebhookConfigBody(triggerConfig.Webhook)),
             CancellationToken);
@@ -78,6 +79,7 @@ class TriggersClient : ITriggersClient
                 triggerConfig.EventType,
                 triggerConfig.ActionType,
                 triggerConfig.ActionUrn,
+                triggerConfig.ActionScopeType,
                 triggerConfig.Filter,
                 ToApiWebhookConfigBody(triggerConfig.Webhook)),
             CancellationToken);
@@ -108,6 +110,7 @@ class TriggersClient : ITriggersClient
         {
             ActionType = JsonConvert.SerializeObject(responseConfig.ActionType).Replace("\"", ""),
             ActionUrn = responseConfig.ActionUrn,
+            ActionScopeType = responseConfig.ActionScopeType,
             EventType = responseConfig.EventType,
             Id = responseConfig.Id.ToString(),
             Name = responseConfig.Name,
@@ -129,7 +132,7 @@ class TriggersClient : ITriggersClient
         return new WebhookDto(
             apiWebhook.Url,
             apiWebhook.Method,
-            headers,
+            headers ?? new Dictionary<string, string>(),
             apiWebhook.PayloadTemplate
         );
     }

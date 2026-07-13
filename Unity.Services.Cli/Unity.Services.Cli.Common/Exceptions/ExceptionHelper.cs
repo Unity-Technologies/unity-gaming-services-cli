@@ -20,9 +20,9 @@ using LobbyApiException = Unity.Services.MpsLobby.LobbyApiV1.Generated.Client.Ap
 using LeaderboardApiException = Unity.Services.Gateway.LeaderboardApiV1.Generated.Client.ApiException;
 using PlayerAdminApiException = Unity.Services.Gateway.PlayerAdminApiV3.Generated.Client.ApiException;
 using PlayerAuthException = Unity.Services.Gateway.PlayerAuthApiV1.Generated.Client.ApiException;
-using HostingApiException = Unity.Services.Gateway.GameServerHostingApiV1.Generated.Client.ApiException;
 using LiveReleasesApiException = Unity.Services.Gateway.LiveReleasesApiV1.Generated.Client.ApiException;
 using CloudSaveApiException = Unity.Services.Gateway.CloudSaveApiV1.Generated.Client.ApiException;
+using SchemaRegistryApiException = Unity.Services.Gateway.SchemaRegistryApiV1.Generated.Client.ApiException;
 
 namespace Unity.Services.Cli.Common.Exceptions;
 
@@ -110,6 +110,9 @@ public partial class ExceptionHelper
             case PlayerAuthException playerAuthApiException:
                 HandleApiException(exception, logger, playerAuthApiException.ErrorCode);
                 break;
+            case SchemaRegistryApiException schemaRegistryApiException:
+                HandleApiException(exception, logger, schemaRegistryApiException.ErrorCode);
+                break;
             case AggregateException aggregateException:
                 foreach (var ex in aggregateException.InnerExceptions)
                 {
@@ -126,9 +129,6 @@ public partial class ExceptionHelper
                 }
 
                 context.ExitCode = exitCode;
-                break;
-            case HostingApiException hostingException:
-                HandleApiException(exception, logger, hostingException.ErrorCode);
                 break;
             default:
                 ExecuteUnhandledExceptionFlow(exception, context, depth);

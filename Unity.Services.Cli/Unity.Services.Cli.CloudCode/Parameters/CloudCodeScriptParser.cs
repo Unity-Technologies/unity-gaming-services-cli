@@ -20,8 +20,7 @@ class CloudCodeScriptParser : ICloudCodeScriptParser
     static readonly Version k_MinimumVersion = new(14, 0, 0);
 
     internal static readonly string CloudCodePath = Path
-        .Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
-        "UnityServices", "CloudCode");
+        .Combine(Common.ConfigDirectory.GetPath(), "CloudCode");
 
     static readonly string k_ParameterScriptFile = Path
         .Combine(CloudCodePath, k_ParameterScriptFileName + "_" + k_CliVersion + k_ParameterScriptExtension);

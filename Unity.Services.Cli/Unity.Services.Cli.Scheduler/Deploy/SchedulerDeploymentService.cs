@@ -1,6 +1,7 @@
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.Scheduler.Authoring.Core.Deploy;
@@ -24,7 +25,7 @@ class SchedulerDeploymentService : SchedulerDeployFetchBase, IDeploymentService
 
     public async Task<DeploymentResult> Deploy(
         DeployInput deployInput,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> authoringFiles,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,
@@ -32,7 +33,7 @@ class SchedulerDeploymentService : SchedulerDeployFetchBase, IDeploymentService
     {
         await m_Client.Initialize(environmentId, projectId, cancellationToken);
         loadingContext?.Status($"Reading {ServiceType} files...");
-        var (deserializedFiles, failedToDeserialize) = await GetResourcesFromFiles(filePaths, cancellationToken);
+        var (deserializedFiles, failedToDeserialize) = await GetResourcesFromFiles(authoringFiles.ToPaths(), cancellationToken);
 
         loadingContext?.Status($"Deploying {ServiceType} files...");
         var res = await m_DeploymentHandler.DeployAsync(

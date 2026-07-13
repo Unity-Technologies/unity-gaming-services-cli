@@ -2,6 +2,7 @@ using Microsoft.Extensions.Hosting;
 using Moq;
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 
@@ -109,12 +110,30 @@ public static class TestsHelper
         }
     }
 
-    public static void AssertHasServiceSingleton<TService, TImplementation>(IEnumerable<ServiceDescriptor> services)
+    public static void AssertHasServiceSingleton<TService, TImplementation>(IList<ServiceDescriptor> services)
     {
         var registeredImplementationsForService = services.GroupBy(x => x.ServiceType)
             .First(x => x.Key == typeof(TService));
         Assert.AreEqual(1, registeredImplementationsForService.Count());
-        Assert.IsInstanceOf<TImplementation>(registeredImplementationsForService.First().ImplementationInstance);
+        var descriptor = registeredImplementationsForService.First();
+        Assert.AreEqual(ServiceLifetime.Singleton, descriptor.Lifetime);
+        if (descriptor.ImplementationInstance != null)
+        {
+            Assert.IsInstanceOf<TImplementation>(descriptor.ImplementationInstance);
+        }
+        else if (descriptor.ImplementationFactory != null)
+        {
+            // Resolve the service at runtime to ensure wiring works
+            var service = new ServiceCollection()
+                .Add(services)
+                .BuildServiceProvider()
+                .GetService<TService>();
+            Assert.IsInstanceOf<TImplementation>(service);
+        }
+        else
+        {
+            Assert.AreEqual(typeof(TImplementation), descriptor.ImplementationType);
+        }
     }
 
     public static void AssertHasServiceType<TService>(IEnumerable<ServiceDescriptor> services)

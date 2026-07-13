@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine.Builder;
 using System.Linq;
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Unity.Services.Cli.Common;
 using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.Common.Validator;
+using Unity.Services.Cli.Economy.Input;
 using Unity.Services.Cli.Economy.Service;
 using Unity.Services.Cli.TestUtils;
 using Unity.Services.Gateway.EconomyApiV2.Generated.Api;
@@ -28,8 +28,7 @@ public class EconomyModuleTests
         TestsHelper.AssertContainsCommand(commandLineBuilder.Command, k_EconomyModule.ModuleRootCommand!.Name,
             out var resultCommand);
         Assert.AreEqual(k_EconomyModule.ModuleRootCommand, resultCommand);
-        Assert.NotNull(k_EconomyModule.GetResourcesCommand!.Handler);
-        Assert.NotNull(k_EconomyModule.GetPublishedCommand!.Handler);
+        Assert.NotNull(k_EconomyModule.ListCommand!.Handler);
         Assert.NotNull(k_EconomyModule.PublishCommand!.Handler);
         Assert.NotNull(k_EconomyModule.DeleteCommand!.Handler);
     }
@@ -46,11 +45,9 @@ public class EconomyModuleTests
     [Test]
     public void Commands_ContainsRequiredInputs()
     {
-        Assert.IsTrue(k_EconomyModule.GetResourcesCommand!.Options.Contains(CommonInput.CloudProjectIdOption));
-        Assert.IsTrue(k_EconomyModule.GetResourcesCommand.Options.Contains(CommonInput.EnvironmentNameOption));
-
-        Assert.IsTrue(k_EconomyModule.GetPublishedCommand!.Options.Contains(CommonInput.CloudProjectIdOption));
-        Assert.IsTrue(k_EconomyModule.GetPublishedCommand.Options.Contains(CommonInput.EnvironmentNameOption));
+        Assert.IsTrue(k_EconomyModule.ListCommand!.Options.Contains(EconomyInput.IncludeDraftOption));
+        Assert.IsTrue(k_EconomyModule.ListCommand.Options.Contains(CommonInput.CloudProjectIdOption));
+        Assert.IsTrue(k_EconomyModule.ListCommand.Options.Contains(CommonInput.EnvironmentNameOption));
 
         Assert.IsTrue(k_EconomyModule.PublishCommand!.Options.Contains(CommonInput.CloudProjectIdOption));
         Assert.IsTrue(k_EconomyModule.PublishCommand.Options.Contains(CommonInput.EnvironmentNameOption));
@@ -64,10 +61,10 @@ public class EconomyModuleTests
     [TestCase(typeof(IEconomyAdminApiAsync))]
     public void ConfigureEconomyRegistersExpectedServices(Type serviceType)
     {
-        EndpointHelper.InitializeNetworkTargetEndpoints(new[]
-        {
-            typeof(UnityServicesGatewayEndpoints).GetTypeInfo()
-        });
+        EndpointHelper.InitializeNetworkTargetEndpoints(
+        [
+            new UnityServicesGatewayEndpoints()
+        ]);
         var services = new List<ServiceDescriptor>();
         var hostBuilder = TestsHelper.CreateAndSetupMockHostBuilder(services);
         hostBuilder.ConfigureServices(EconomyModule.RegisterServices);

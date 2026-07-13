@@ -7,6 +7,7 @@ using Moq;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.CloudCode.Authoring;
 using Unity.Services.Cli.CloudCode.Authoring.Fetch;
 using Unity.Services.Cli.CloudCode.Deploy;
@@ -98,24 +99,24 @@ class JavaScriptFetchServiceTests
         Assert.That(result.Failed.Count, Is.EqualTo(expectedResult.Failed.Count));
     }
 
-    void SetupLocalResources(out FetchInput input, out List<IScript> scripts, out List<string> files)
+    void SetupLocalResources(out FetchInput input, out List<IScript> scripts, out List<AuthoringFile> files)
     {
         input = new FetchInput
         {
             Path = ".",
         };
-        files = new List<string>
-        {
-            "foo.js",
-            "bar/foobar.js"
-        };
-        var filesInstance = new List<string>(files);
-        scripts = files.Select(x => new ScriptInfo(ScriptName.FromPath(x)))
+        files =
+        [
+            new AuthoringFile("foo.js"),
+            new AuthoringFile("bar/foobar.js")
+        ];
+        var filesInstance = new List<AuthoringFile>(files);
+        scripts = files.ToPaths().Select(x => new ScriptInfo(ScriptName.FromPath(x)))
             .Cast<IScript>()
             .ToList();
         m_ScriptsLoader.Setup(
                 x => x.LoadScriptsAsync(
-                    filesInstance,
+                    filesInstance.ToPaths(),
                     CloudCodeConstants.ServiceTypeScripts,
                     CloudCodeConstants.FileExtensionJavaScript,
                     m_InputParser.Object,
@@ -130,7 +131,7 @@ class JavaScriptFetchServiceTests
         SetupLocalResources(out var input, out var scripts, out var files);
 
         var resources = await m_Service.GetResourcesFromFilesAsync(
-            files,
+            files.ToPaths(),
             CancellationToken.None);
 
         Assert.That(resources.LoadedScripts, Is.SameAs(scripts));
@@ -175,7 +176,7 @@ class JavaScriptFetchServiceTests
 
         var actualResult = await m_Service.FetchAsync(
             input,
-            new[] { "hello.js" },
+            [new AuthoringFile("hello.js")],
             string.Empty,
             string.Empty,
             null!,

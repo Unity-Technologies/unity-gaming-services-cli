@@ -2,11 +2,12 @@ using Moq;
 using NUnit.Framework;
 using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Fetch;
 using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Model;
-using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Results;
 using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Service;
 using Unity.Services.Cli.Access.Deploy;
 using Unity.Services.Cli.Access.UnitTest.Utils;
 using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.Authoring.Model;
+using FetchResult = Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Results.FetchResult;
 
 namespace Unity.Services.Cli.Access.UnitTest.Deploy;
 
@@ -80,7 +81,7 @@ public class ProjectAccessFetchServiceTests
 
         var result = await m_FetchService!.FetchAsync(
             input,
-            Array.Empty<string>(),
+            Array.Empty<AuthoringFile>(),
             String.Empty,
             string.Empty,
             null,

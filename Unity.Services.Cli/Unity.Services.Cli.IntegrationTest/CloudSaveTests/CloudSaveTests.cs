@@ -63,7 +63,7 @@ public class CloudSaveTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-save data index list")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_NotLoggedInOutput)
@@ -75,7 +75,7 @@ public class CloudSaveTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-save data index list")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingProjectIdOutput)
@@ -87,7 +87,7 @@ public class CloudSaveTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-save data index list --project-id \"\"")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingProjectIdOutput)
@@ -99,7 +99,7 @@ public class CloudSaveTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-save data index list")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingEnvironmentNameOutput)
@@ -115,7 +115,6 @@ public class CloudSaveTests : UgsCliFixture
         await GetLoggedInCli()
             .Command($"cloud-save data index list")
             .AssertNoErrors()
-            .DebugCommand("CloudSave_ListIndexes_SucceedsWithValidInput")
             .ExecuteAsync();
     }
 
@@ -128,7 +127,6 @@ public class CloudSaveTests : UgsCliFixture
         await GetLoggedInCli()
             .Command($"cloud-save data custom list --limit 2 --start \"someId\"")
             .AssertNoErrors()
-            .DebugCommand("CloudSave_ListCustomIds_SucceedsWithValidInput")
             .ExecuteAsync();
     }
 
@@ -141,7 +139,6 @@ public class CloudSaveTests : UgsCliFixture
         await GetLoggedInCli()
             .Command($"cloud-save data custom list")
             .AssertNoErrors()
-            .DebugCommand("CloudSave_ListCustomIds_SucceedsWithNoInput")
             .ExecuteAsync();
     }
 
@@ -154,7 +151,6 @@ public class CloudSaveTests : UgsCliFixture
         await GetLoggedInCli()
             .Command($"cloud-save data player list --limit 2 --start \"someId\"")
             .AssertNoErrors()
-            .DebugCommand("CloudSave_ListPlayerIds_SucceedsWithValidInput")
             .ExecuteAsync();
     }
 
@@ -167,7 +163,6 @@ public class CloudSaveTests : UgsCliFixture
         await GetLoggedInCli()
             .Command($"cloud-save data player list")
             .AssertNoErrors()
-            .DebugCommand("CloudSave_ListPlayerIds_SucceedsWithNoInput")
             .ExecuteAsync();
     }
 
@@ -357,7 +352,7 @@ public class CloudSaveTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-save data index player create --visibility {k_Default}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_NotLoggedInOutput)
@@ -369,7 +364,7 @@ public class CloudSaveTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-save data index player create --visibility {k_Default}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingProjectIdOutput)
@@ -381,7 +376,7 @@ public class CloudSaveTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-save data index player create --visibility {k_Default}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingEnvironmentNameOutput)
@@ -393,7 +388,7 @@ public class CloudSaveTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-save data index player create --visibility {k_Default}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingProjectIdOutput)
@@ -505,7 +500,7 @@ public class CloudSaveTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-save data index custom create --visibility {k_Default}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_NotLoggedInOutput)
@@ -517,7 +512,7 @@ public class CloudSaveTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-save data index custom create --visibility {k_Default}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingProjectIdOutput)
@@ -529,7 +524,7 @@ public class CloudSaveTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-save data index custom create --visibility {k_Default}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingEnvironmentNameOutput)
@@ -541,7 +536,7 @@ public class CloudSaveTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-save data index custom create --visibility {k_Default}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingProjectIdOutput)

@@ -26,6 +26,8 @@ public class LeaderboardSetupFailureTests : UgsCliFixture
     }
 
     [TestCase("leaderboards list")]
+    [TestCase("leaderboards create createBody.lb")]
+    [TestCase("leaderboards update foo-pid createBody.lb")]
     [TestCase("leaderboards delete foo-id")]
     [TestCase("leaderboards get foo-id")]
     [TestCase("leaderboards reset foo-id")]
@@ -41,6 +43,8 @@ public class LeaderboardSetupFailureTests : UgsCliFixture
     }
 
     [TestCase("leaderboards list")]
+    [TestCase("leaderboards create createBody.lb")]
+    [TestCase("leaderboards update foo-pid createBody.lb")]
     [TestCase("leaderboards delete foo-id")]
     [TestCase("leaderboards get foo-id")]
     [TestCase("leaderboards reset foo-id")]
@@ -49,7 +53,7 @@ public class LeaderboardSetupFailureTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command(command)
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_LoggedOutErrorMessage)
@@ -57,6 +61,8 @@ public class LeaderboardSetupFailureTests : UgsCliFixture
     }
 
     [TestCase("leaderboards list")]
+    [TestCase("leaderboards create createBody.lb")]
+    [TestCase("leaderboards update foo-pid createBody.lb")]
     [TestCase("leaderboards delete foo-id")]
     [TestCase("leaderboards get foo-id")]
     [TestCase("leaderboards reset foo-id")]

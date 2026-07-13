@@ -1,6 +1,8 @@
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Service;
+using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.ConfigApi;
 using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Fetch;
 using FetchResult = Unity.Services.Cli.Authoring.Model.FetchResult;
@@ -27,7 +29,7 @@ class MatchmakerFetchService : IFetchService
 
     public async Task<FetchResult> FetchAsync(
         FetchInput input,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> authoringFiles,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,
@@ -40,7 +42,7 @@ class MatchmakerFetchService : IFetchService
             throw new MatchmakerException("The provided path is not a directory.");
         }
 
-        var res = await m_FetchHandler.FetchAsync(input.Path, filePaths, input.Reconcile, input.DryRun, cancellationToken);
+        var res = await m_FetchHandler.FetchAsync(input.Path, authoringFiles.ToPaths(), input.Reconcile, input.DryRun, cancellationToken);
 
         if (!string.IsNullOrEmpty(res.AbortMessage))
             throw new MatchmakerException(res.AbortMessage);

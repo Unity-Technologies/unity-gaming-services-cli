@@ -44,12 +44,9 @@ class QueueConfigTemplate : QueueConfig, IFileTemplate
                     }
                 }
             },
-            MatchHosting = new MultiplayConfig
+            MatchHosting = new MatchIdConfig
             {
-                Type = IMatchHostingConfig.MatchHostingType.Multiplay,
-                FleetName = "my fleet",
-                BuildConfigurationName = "my build configuration",
-                DefaultQoSRegionName = "North America"
+                Type = IMatchHostingConfig.MatchHostingType.MatchId
             }
         };
     }

@@ -1,4 +1,6 @@
+using System;
 using System.Runtime.CompilerServices;
+using Unity.Services.Cli.Common.Models;
 
 [assembly: InternalsVisibleTo("Unity.Services.Cli.IntegrationTest")]
 
@@ -21,9 +23,12 @@ public abstract class NetworkTargetEndpoints
     protected abstract string Staging { get; }
 
     /// <summary>
-    /// URL to use when targeting mock server.
+    /// URL to use when targeting mock server. Reads from UGS_CLI_MOCK_SERVER_URL env var at runtime,
+    /// falling back to http://localhost:8080.
     /// </summary>
-    public static readonly string MockServer = "http://localhost:8080";
+    public static string MockServer =>
+        Environment.GetEnvironmentVariable(Models.Keys.EnvironmentKeys.MockServerUrl)
+        ?? "http://localhost:8080";
 
     public string Current
     {

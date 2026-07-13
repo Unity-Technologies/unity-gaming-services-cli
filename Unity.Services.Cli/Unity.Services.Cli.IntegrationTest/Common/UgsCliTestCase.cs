@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +16,9 @@ namespace Unity.Services.Cli.IntegrationTest.Common;
 /// </summary>
 public partial class UgsCliTestCase
 {
-    IDictionary<string, string>? m_EnvironmentVariables;
+    static readonly ActivitySource k_ActivitySource = new(nameof(UgsCliTestCase));
+
+    readonly IDictionary<string, string?> m_EnvironmentVariables = new Dictionary<string, string?>();
 
     IProcess? m_LastProcess;
 
@@ -54,7 +57,7 @@ public partial class UgsCliTestCase
     {
         NetworkTargetEndpoints.UseMockEndpoints = true;
         var processStartInfo = GetProcessStartInfo(arguments);
-        var process = new LocalProcess(processStartInfo);
+        var process = new LocalProcess(processStartInfo, m_EnvironmentVariables);
         return Command(process);
     }
 
@@ -63,11 +66,12 @@ public partial class UgsCliTestCase
         m_Tasks.Add(
             async cancellationToken =>
             {
+                using var activity = k_ActivitySource.StartActivity();
                 m_ProcessStartState[process] = false;
                 if (m_LastProcess != null)
                 {
                     EnsureProcessStarted();
-                    await m_LastProcess!.WaitForExitAsync(cancellationToken);
+                    await WaitForLastProcessExitAsync(cancellationToken);
                 }
 
                 m_LastProcess = process;
@@ -104,11 +108,14 @@ public partial class UgsCliTestCase
     /// </summary>
     /// <param name="environmentVariables">A dictionary of strings representing environment variables and their values</param>
     /// <returns>Instance of the test case</returns>
-    public UgsCliTestCase WithEnvironmentVariables(IDictionary<string, string> environmentVariables)
+    public UgsCliTestCase WithEnvironmentVariables(IDictionary<string, string?> environmentVariables)
     {
         m_Tasks.Add(_ =>
         {
-            m_EnvironmentVariables = environmentVariables;
+            foreach (var (k, v) in environmentVariables)
+            {
+                m_EnvironmentVariables[k] = v;
+            }
             return Task.CompletedTask;
         });
         return this;
@@ -123,6 +130,7 @@ public partial class UgsCliTestCase
     {
         m_Tasks.Add(async cancellationToken =>
         {
+            using var activity = k_ActivitySource.StartActivity($"StandardInputWriteLine({input})");
             EnsureProcessStarted();
             await m_LastProcess!.StandardInput.WriteLineAsync(new StringBuilder(input), cancellationToken);
         });
@@ -138,6 +146,7 @@ public partial class UgsCliTestCase
     {
         m_Tasks.Add(async cancellationToken =>
         {
+            using var activity = k_ActivitySource.StartActivity($"StandardInputWrite({input})");
             EnsureProcessStarted();
             await m_LastProcess!.StandardInput.WriteAsync(new StringBuilder(input), cancellationToken);
         });
@@ -153,13 +162,14 @@ public partial class UgsCliTestCase
     {
         m_Tasks.Add(async cancellationToken =>
         {
+            using var activity = k_ActivitySource.StartActivity();
             EnsureProcessStarted();
-            await m_LastProcess!.WaitForExitAsync(cancellationToken);
-            if (exitCode != m_LastProcess.ExitCode)
+            await WaitForLastProcessExitAsync(cancellationToken);
+            if (exitCode != m_LastProcess!.ExitCode)
             {
                 var output = await m_LastProcess.StandardOutput.ReadToEndAsync();
                 throw new AssertionException(
-                    $"{k_CliName}{m_LastProcess.StartInfo.Arguments}{System.Environment.NewLine}{output}{System.Environment.NewLine}Expected Exit Code: {exitCode}{System.Environment.NewLine}But was: {m_LastProcess.ExitCode}");
+                    $"{k_CliName}{m_LastProcess.StartInfo.Arguments}{Environment.NewLine}{output}{Environment.NewLine}Expected Exit Code: {exitCode}{Environment.NewLine}But was: {m_LastProcess.ExitCode}");
             }
         });
         return this;
@@ -175,9 +185,10 @@ public partial class UgsCliTestCase
     {
         m_Tasks.Add(async cancellationToken =>
         {
+            using var activity = k_ActivitySource.StartActivity();
             EnsureProcessStarted();
-            await m_LastProcess!.WaitForExitAsync(cancellationToken);
-            var output = await m_LastProcess.StandardOutput.ReadToEndAsync(cancellationToken);
+            await WaitForLastProcessExitAsync(cancellationToken);
+            var output = await m_LastProcess!.StandardOutput.ReadToEndAsync(cancellationToken);
             try
             {
                 outputHandler(output);
@@ -200,9 +211,10 @@ public partial class UgsCliTestCase
     {
         m_Tasks.Add(async cancellationToken =>
         {
+            using var activity = k_ActivitySource.StartActivity();
             EnsureProcessStarted();
-            await m_LastProcess!.WaitForExitAsync(cancellationToken);
-            var output = await m_LastProcess.StandardOutput.ReadToEndAsync();
+            await WaitForLastProcessExitAsync(cancellationToken);
+            var output = await m_LastProcess!.StandardOutput.ReadToEndAsync();
             StringAssert.Contains(expectedOutput, output, "stdout is not as expected");
         });
         return this;
@@ -218,16 +230,17 @@ public partial class UgsCliTestCase
     {
         m_Tasks.Add(async cancellationToken =>
         {
+            using var activity = k_ActivitySource.StartActivity();
             EnsureProcessStarted();
-            await m_LastProcess!.WaitForExitAsync(cancellationToken);
-            var error = await m_LastProcess.StandardError.ReadToEndAsync();
+            await WaitForLastProcessExitAsync(cancellationToken);
+            var error = await m_LastProcess!.StandardError.ReadToEndAsync();
             try
             {
                 outputHandler(error);
             }
             catch (AssertionException)
             {
-                TestContext.Write($"{k_CliName}{m_LastProcess.StartInfo.Arguments}{System.Environment.NewLine}{error}");
+                TestContext.Write($"{k_CliName}{m_LastProcess.StartInfo.Arguments}{Environment.NewLine}{error}");
                 throw;
             }
         });
@@ -243,9 +256,10 @@ public partial class UgsCliTestCase
     {
         m_Tasks.Add(async cancellationToken =>
         {
+            using var activity = k_ActivitySource.StartActivity();
             EnsureProcessStarted();
-            await m_LastProcess!.WaitForExitAsync(cancellationToken);
-            var output = await m_LastProcess.StandardError.ReadToEndAsync();
+            await WaitForLastProcessExitAsync(cancellationToken);
+            var output = await m_LastProcess!.StandardError.ReadToEndAsync();
             StringAssert.Contains(expectedError, output, "stderr is not as expected");
         });
         return this;
@@ -272,7 +286,7 @@ public partial class UgsCliTestCase
         m_Tasks.Add(async cancellationToken =>
         {
             EnsureProcessStarted();
-            await m_LastProcess!.WaitForExitAsync(cancellationToken);
+            await WaitForLastProcessExitAsync(cancellationToken);
             callback();
         });
         return this;
@@ -284,9 +298,9 @@ public partial class UgsCliTestCase
     /// <param name="cancellationToken">Cancellation token to cancel the execution of the test case</param>
     public async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        foreach (var task in m_Tasks)
+        for (var i = 0; i < m_Tasks.Count; i++)
         {
-            await task(cancellationToken);
+            await m_Tasks[i](cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
         }
 
@@ -294,13 +308,22 @@ public partial class UgsCliTestCase
         {
             try
             {
-                await m_LastProcess!.WaitForExitAsync(cancellationToken);
+                await WaitForLastProcessExitAsync(cancellationToken);
             }
             finally
             {
                 m_LastProcess!.Dispose();
             }
         }
+    }
+
+    async Task WaitForLastProcessExitAsync(
+        CancellationToken cancellationToken,
+        [CallerMemberName] string caller = "")
+    {
+        using var activity = k_ActivitySource.StartActivity(
+            $"WaitForExitAsync({m_LastProcess!.StartInfo.Arguments}) from {caller}");
+        await m_LastProcess!.WaitForExitAsync(cancellationToken);
     }
 
     void EnsureProcessStarted()

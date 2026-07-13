@@ -1,6 +1,8 @@
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Service;
+using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.Triggers.Deploy;
 using Unity.Services.Cli.Triggers.IO;
 using Unity.Services.DeploymentApi.Editor;
@@ -35,7 +37,7 @@ class TriggersFetchService : TriggerDeployFetchBase, IFetchService
 
     public async Task<FetchResult> FetchAsync(
         FetchInput input,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> filePaths,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,
@@ -43,7 +45,7 @@ class TriggersFetchService : TriggerDeployFetchBase, IFetchService
     {
         m_Client.Initialize(environmentId, projectId, cancellationToken);
         loadingContext?.Status($"Reading {ServiceType} files...");
-        var (deserializedFiles, failedToDeserialize) = await GetResourcesFromFiles(filePaths, cancellationToken);
+        var (deserializedFiles, failedToDeserialize) = await GetResourcesFromFiles(filePaths.ToPaths(), cancellationToken);
 
         loadingContext?.Status($"Fetching {ServiceType} files...");
         var res = await m_FetchHandler.FetchAsync(
@@ -66,7 +68,7 @@ class TriggersFetchService : TriggerDeployFetchBase, IFetchService
                     {
                         (TriggerConfig)t
                     }),
-                t.Path, 100, Statuses.Deployed));
+                t.Path, 100, Unity.Services.Triggers.Authoring.Core.Model.Statuses.Deployed));
 
         return new TriggersFetchResult(
             res.Updated,

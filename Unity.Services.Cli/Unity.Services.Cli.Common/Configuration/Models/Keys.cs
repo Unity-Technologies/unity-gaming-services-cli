@@ -34,8 +34,8 @@ public static class Keys
 
         public static readonly IReadOnlyList<string> Keys = new List<string>
         {
-            ProjectId,
             EnvironmentName,
+            ProjectId,
             BucketName,
         };
     }
@@ -49,6 +49,9 @@ public static class Keys
         public const string EnvironmentName = "UGS_CLI_ENVIRONMENT_NAME";
         public const string BucketName = "UGS_CLI_BUCKET_NAME";
         public const string ReleaseName = "UGS_CLI_RELEASE_NAME";
+
+        public const string ConfigDir = "UGS_CLI_CONFIG_DIR";
+        public const string MockServerUrl = "UGS_CLI_MOCK_SERVER_URL";
 
         public const string TelemetryDisabled = "UGS_CLI_TELEMETRY_DISABLED";
 

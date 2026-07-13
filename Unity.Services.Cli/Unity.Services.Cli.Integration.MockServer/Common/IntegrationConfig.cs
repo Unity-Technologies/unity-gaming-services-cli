@@ -6,6 +6,11 @@ namespace Unity.Services.Cli.MockServer.Common;
 public class IntegrationConfig : IDisposable
 {
     /// <summary>
+    /// Returns the isolated config directory for this fixture instance.
+    /// </summary>
+    public string ConfigDir { get; }
+
+    /// <summary>
     /// Returns the path to the configuration file used by the config module
     /// </summary>
     public string ConfigurationFile { get; }
@@ -17,13 +22,10 @@ public class IntegrationConfig : IDisposable
 
     public IntegrationConfig()
     {
-        var configDir = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "UnityServices");
-        Directory.CreateDirectory(configDir);
-        ConfigurationFile = Path.Combine(configDir, "Config.json");
-        CredentialsFile = Path.Combine(configDir, "credentials");
-
-        BackUpFile(ConfigurationFile);
-        BackUpFile(CredentialsFile);
+        ConfigDir = Path.Combine(Path.GetTempPath(), "ugs-test-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(ConfigDir);
+        ConfigurationFile = Path.Combine(ConfigDir, "Config.json");
+        CredentialsFile = Path.Combine(ConfigDir, "credentials");
     }
 
     public void SetCredentialValue(string credential)
@@ -47,34 +49,11 @@ public class IntegrationConfig : IDisposable
         File.WriteAllText(ConfigurationFile!, JsonConvert.SerializeObject(config, Formatting.Indented));
     }
 
-    void BackUpFile(string originalPath)
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(originalPath)!);
-
-        if (File.Exists(originalPath) && !File.Exists(GetBackUpConfigFile(originalPath)))
-        {
-            File.Move(originalPath, GetBackUpConfigFile(originalPath), true);
-        }
-    }
-
-    string GetBackUpConfigFile(string original) => original + $".{GetType()}.back";
-    void RestoreFile(string originalPath)
-    {
-        if (File.Exists(originalPath))
-        {
-            File.Delete(originalPath);
-        }
-
-        var backUpPath = GetBackUpConfigFile(originalPath);
-        if (File.Exists(backUpPath))
-        {
-            File.Move(backUpPath, originalPath, true);
-        }
-    }
-
     public void Dispose()
     {
-        RestoreFile(ConfigurationFile);
-        RestoreFile(CredentialsFile);
+        if (Directory.Exists(ConfigDir))
+        {
+            Directory.Delete(ConfigDir, recursive: true);
+        }
     }
 }

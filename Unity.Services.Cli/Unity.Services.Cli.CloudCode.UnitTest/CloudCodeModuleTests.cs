@@ -4,7 +4,6 @@ using System.CommandLine;
 using System.CommandLine.Builder;
 using System.IO.Abstractions;
 using System.Linq;
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
@@ -144,10 +143,9 @@ class CloudCodeModuleTests
     public void CloudCodeModuleRegistersServices(Type serviceType)
     {
         EndpointHelper.InitializeNetworkTargetEndpoints(
-            new[]
-            {
-                typeof(CloudCodeEndpoints).GetTypeInfo()
-            });
+        [
+            new CloudCodeEndpoints()
+        ]);
         var services = new List<ServiceDescriptor>();
         var hostBuilder = TestsHelper.CreateAndSetupMockHostBuilder(services);
         hostBuilder.ConfigureServices(CloudCodeModule.RegisterServices);

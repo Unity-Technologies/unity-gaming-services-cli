@@ -4,6 +4,7 @@ using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Model;
 using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Service;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.Authoring.Service;
 
 namespace Unity.Services.Cli.Access.Deploy;
@@ -38,14 +39,14 @@ class ProjectAccessFetchService : IFetchService
     };
     public async Task<FetchResult> FetchAsync(
         FetchInput input,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> authoringFiles,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,
         CancellationToken cancellationToken)
     {
         m_ProjectAccessClient.Initialize(environmentId, projectId, cancellationToken);
-        var loadResult = await m_AccessConfigConfigLoader.LoadFilesAsync(filePaths, cancellationToken);
+        var loadResult = await m_AccessConfigConfigLoader.LoadFilesAsync(authoringFiles.ToPaths(), cancellationToken);
         var configFiles = loadResult.Loaded.ToList();
 
         loadingContext?.Status($"Fetching {ServiceType} Files...");

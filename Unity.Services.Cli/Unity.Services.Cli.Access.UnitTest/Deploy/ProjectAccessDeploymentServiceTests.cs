@@ -7,6 +7,7 @@ using Unity.Services.Tooling.Editor.AccessControl.Authoring.Core.Service;
 using Unity.Services.Cli.Access.Deploy;
 using Unity.Services.Cli.Access.UnitTest.Utils;
 using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.Authoring.Model;
 
 namespace Unity.Services.Cli.Access.UnitTest.Deploy;
 
@@ -82,7 +83,7 @@ public class ProjectAccessDeploymentServiceTests
         };
         var result = await m_DeploymentService!.Deploy(
             input,
-            Array.Empty<string>(),
+            Array.Empty<AuthoringFile>(),
             String.Empty,
             string.Empty,
             null,

@@ -4,7 +4,9 @@ using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Persister;
 using Unity.Services.Cli.Common.SystemEnvironment;
 using Unity.Services.Cli.ServiceAccountAuthentication.Exceptions;
+using Unity.Services.Cli.ServiceAccountAuthentication.Hub;
 using Unity.Services.Cli.ServiceAccountAuthentication.Input;
+using Unity.Services.Cli.ServiceAccountAuthentication.Token;
 
 namespace Unity.Services.Cli.ServiceAccountAuthentication;
 
@@ -15,9 +17,12 @@ class AuthenticatorV1 : IAuthenticator
 {
     internal const string ServiceKeyId = "UGS_CLI_SERVICE_KEY_ID";
     internal const string ServiceSecretKey = "UGS_CLI_SERVICE_SECRET_KEY";
+    internal const string AuthToken = "UGS_CLI_AUTH_TOKEN";
+    internal const string HubAuthEnv = "UGS_CLI_USE_HUB_AUTH";
+    internal const string HubAuthMarker = "__HUB_AUTH__";
     internal const string EnvironmentVariablesAndConfigSetWarning
-        = $"Because {ServiceKeyId} and {ServiceSecretKey} are set, you will still be able to make authenticated"
-        + " service calls. Clear login-related system environment variables to fully logout.";
+        = $"Because one or more of {AuthToken}, {ServiceKeyId}, {ServiceSecretKey} or {HubAuthEnv} is set, you will still be able"
+        + " to make authenticated service calls. Clear login-related system environment variables to fully logout.";
 
     internal static readonly TextPrompt<string> KeyIdPrompt = new TextPrompt<string>("Enter your key-id:")
         .Validate(s => s.Any(char.IsWhiteSpace) ? ValidationResult.Error("key-id should not contain white space.") : ValidationResult.Success());
@@ -26,15 +31,20 @@ class AuthenticatorV1 : IAuthenticator
 
     readonly IPersister<string> m_Persister;
     readonly IConsolePrompt m_CliPrompt;
+    readonly IHubAuthProvider m_HubAuthProvider;
 
-    public AuthenticatorV1(IPersister<string> persister, IConsolePrompt cliPrompt)
+    public AuthenticatorV1(IPersister<string> persister, IConsolePrompt cliPrompt, IHubAuthProvider hubAuthProvider)
     {
         m_Persister = persister;
         m_CliPrompt = cliPrompt;
+        m_HubAuthProvider = hubAuthProvider;
     }
 
+    internal const string LoginMethodUnityHub = "Unity Hub";
+    internal const string LoginMethodServiceAccount = "Service Account";
+
     /// <inheritdoc cref="IAuthenticator.LoginAsync"/>
-    public async Task LoginAsync(LoginInput input, CancellationToken cancellationToken = default)
+    public async Task<LoginResult> LoginAsync(LoginInput input, CancellationToken cancellationToken = default)
     {
         string keyId;
         string secretKey;
@@ -43,19 +53,61 @@ class AuthenticatorV1 : IAuthenticator
         {
             (keyId, secretKey) = await ParseServiceAccountOptionsAsync(input);
         }
+        else if (input.HasUnityHubOption)
+        {
+            return await LoginWithHub(cancellationToken);
+        }
         else
         {
             if (!m_CliPrompt.InteractiveEnabled)
             {
+#if FEATURE_HUB_AUTH
+                var hubResult = await m_HubAuthProvider.TryLoginAsync(cancellationToken);
+                if (hubResult is not null)
+                {
+                    await m_Persister.SaveAsync(HubAuthMarker, cancellationToken);
+                    return hubResult;
+                }
+#endif
+
                 throw new InvalidLoginInputException($"Standard Input is redirected, please use the " +
                     $"\"{LoginInput.ServiceKeyIdAlias}\" and \"{LoginInput.ServiceSecretKeyAlias}\" options to login.");
             }
+
+#if FEATURE_HUB_AUTH
+            var loginMethod = await PromptForLoginMethodAsync(cancellationToken);
+            if (loginMethod == LoginMethodUnityHub)
+            {
+                return await LoginWithHub(cancellationToken);
+            }
+#endif
+
             (keyId, secretKey) = await PromptForServiceAccountKeysAsync(m_CliPrompt, cancellationToken);
         }
 
-        //TODO: validate token?
         var token = CreateToken(keyId, secretKey);
         await m_Persister.SaveAsync(token, cancellationToken);
+        return LoginResult.ServiceAccount;
+    }
+
+    async Task<LoginResult> LoginWithHub(CancellationToken cancellationToken)
+    {
+        var hubResult = await m_HubAuthProvider.TryLoginAsync(cancellationToken);
+        if (hubResult is not null)
+        {
+            await m_Persister.SaveAsync(HubAuthMarker, cancellationToken);
+            return hubResult;
+        }
+
+        throw new HubIpcUnavailableException(
+            "Unity Hub is not running or not signed in. Start Unity Hub and sign in, then try again.");
+    }
+
+    internal async Task<string> PromptForLoginMethodAsync(CancellationToken cancellationToken)
+    {
+        var choices = new List<string> { LoginMethodUnityHub, LoginMethodServiceAccount };
+        return await m_CliPrompt.SelectionPromptAsync(
+            "Choose a login method:", choices, cancellationToken, 10);
     }
 
     internal static async Task<(string, string)> PromptForServiceAccountKeysAsync(
@@ -68,6 +120,14 @@ class AuthenticatorV1 : IAuthenticator
 
     internal static async Task<(string keyId, string secretKey)> ParseServiceAccountOptionsAsync(LoginInput input)
     {
+#if FEATURE_HUB_AUTH
+        if (input.HasUnityHubOption && (input.ServiceKeyId is not null || input.HasSecretKeyOption))
+        {
+            throw new InvalidLoginInputException(
+                $"\"{LoginInput.ServiceUnityHubAlias}\" option must not be used with other inputs.");
+        }
+#endif
+
         var hasKeyIdOption = input.ServiceKeyId is not null;
         if (hasKeyIdOption != input.HasSecretKeyOption)
         {
@@ -117,14 +177,24 @@ class AuthenticatorV1 : IAuthenticator
     public static string? GetTokenFromEnvironmentVariables(ISystemEnvironmentProvider environmentProvider,
         out string warning)
     {
+        warning = "";
+
+        string? bearerToken = environmentProvider
+            .GetSystemEnvironmentVariable(AuthToken, out _);
+        if (!string.IsNullOrWhiteSpace(bearerToken))
+        {
+            warning = EnvironmentVariablesAndConfigSetWarning;
+            return AccessTokenHelper.BearerTokenSchemePrefix + bearerToken;
+        }
+
         string? serviceKey = environmentProvider
             .GetSystemEnvironmentVariable(ServiceKeyId, out _);
         string? serviceSecret = environmentProvider
             .GetSystemEnvironmentVariable(ServiceSecretKey, out _);
-        warning = "";
 
         if (!string.IsNullOrWhiteSpace(serviceKey) && !string.IsNullOrWhiteSpace(serviceSecret))
         {
+            warning = EnvironmentVariablesAndConfigSetWarning;
             return CreateToken(serviceKey, serviceSecret);
         }
 
@@ -135,7 +205,7 @@ class AuthenticatorV1 : IAuthenticator
     public async Task<LogoutResponse> LogoutAsync(ISystemEnvironmentProvider environmentProvider,
         CancellationToken cancellationToken = default)
     {
-        const string logoutInfo = "Service Account key cleared from local configuration.";
+        const string logoutInfo = "Login key cleared from local configuration.";
         string? environmentVarWarning = null;
 
         await m_Persister.DeleteAsync(cancellationToken);

@@ -1,14 +1,14 @@
 <RunSettings>
-  <RunConfiguration>  
+  <RunConfiguration>
     <ResultsDirectory>./TestResults</ResultsDirectory>
     <SolutionDirectory>./TestResults</SolutionDirectory>
     <TestSessionTimeout>3600000</TestSessionTimeout>
-  </RunConfiguration>  
+  </RunConfiguration>
   <LoggerRunSettings>
     <Loggers>
       <Logger friendlyName="console" enabled="True">
         <Configuration>
-            <Verbosity>quiet</Verbosity>
+          <Verbosity>normal</Verbosity>
         </Configuration>
       </Logger>
       <Logger friendlyName="html" enabled="True">

@@ -3,7 +3,7 @@ using Unity.Services.Cli.Common.Input;
 
 namespace Unity.Services.Cli.Triggers.Input;
 
-class DeleteTriggerInput : CommonInput
+public class DeleteTriggerInput : CommonInput
 {
     public static readonly Argument<string> TriggerIdArgument = new("trigger-id", "The ID of the trigger to delete.");
 

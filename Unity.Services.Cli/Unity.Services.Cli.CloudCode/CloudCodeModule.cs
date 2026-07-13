@@ -58,7 +58,9 @@ public class CloudCodeModule : ICommandModule
 
     public CloudCodeModule()
     {
-        ExportScriptsCommand = new Command("export", "Export Cloud Code scripts.")
+        ExportScriptsCommand = new Command("export", new CommandDescription("Export Cloud Code scripts.")
+            .WithReturn("A zip file written to the output directory containing all scripts.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -71,7 +73,9 @@ public class CloudCodeModule : ICommandModule
             CloudCodeScriptsExporter,
             ILoadingIndicator,
             CancellationToken>(ScriptExportHandler.ExportAsync);
-        ImportScriptsCommand = new Command("import", "Import Cloude Code scripts.")
+        ImportScriptsCommand = new Command("import", new CommandDescription("Import Cloud Code scripts.")
+            .WithReturn("Per-script status messages indicating created, updated, or deleted.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -86,7 +90,9 @@ public class CloudCodeModule : ICommandModule
             ILoadingIndicator,
             CancellationToken>(
             ImportHandler.ImportAsync);
-        ListCommand = new Command("list", "List Cloud-Code scripts.")
+        ListCommand = new Command("list", new CommandDescription("List Cloud-Code scripts.")
+            .WithReturn("List of scripts with name and datePublished.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption
@@ -100,7 +106,9 @@ public class CloudCodeModule : ICommandModule
             CancellationToken>(
             ListHandler.ListAsync);
 
-        PublishCommand = new Command("publish", "Publish Cloud-Code scripts.")
+        PublishCommand = new Command("publish", new CommandDescription("Publish Cloud-Code scripts.")
+            .WithReturn("The published version number and publish timestamp.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -116,7 +124,9 @@ public class CloudCodeModule : ICommandModule
             CancellationToken>(
             PublishHandler.PublishAsync);
 
-        DeleteCommand = new Command("delete", "Delete Cloud-Code scripts.")
+        DeleteCommand = new Command("delete", new CommandDescription("Delete Cloud-Code scripts.")
+            .WithReturn("Confirmation message.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -131,7 +141,9 @@ public class CloudCodeModule : ICommandModule
             CancellationToken>(
             DeleteHandler.DeleteAsync);
 
-        GetCommand = new Command("get", "Get a Cloud-Code script.")
+        GetCommand = new Command("get", new CommandDescription("Get a Cloud-Code script.")
+            .WithReturn("Script details with name, language, type, versions, and activeScript (version, datePublished, params, code).")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -146,7 +158,9 @@ public class CloudCodeModule : ICommandModule
             CancellationToken>(
             GetHandler.GetAsync);
 
-        CreateCommand = new Command("create", "Create a Cloud-Code script.")
+        CreateCommand = new Command("create", new CommandDescription("Create a Cloud-Code script.")
+            .WithReturn("Confirmation message.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -165,7 +179,9 @@ public class CloudCodeModule : ICommandModule
             CancellationToken>(
             CreateHandler.CreateAsync);
 
-        UpdateCommand = new Command("update", "Update a Cloud-Code script.")
+        UpdateCommand = new Command("update", new CommandDescription("Update a Cloud-Code script.")
+            .WithReturn("Confirmation message.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -203,7 +219,10 @@ public class CloudCodeModule : ICommandModule
 
         ModuleRootCommand = new Command(
             "cloud-code",
-            "Manage Cloud-Code scripts and modules.")
+            new CommandDescription("Manage Cloud-Code scripts and modules.")
+                .WithDocs("https://docs.unity.com/ugs/manual/cloud-code/manual")
+                .WithAdminApi("https://services.docs.unity.com/cloud-code-admin/v1/")
+                .Build())
         {
             ScriptsCommand
         };
@@ -217,7 +236,9 @@ public class CloudCodeModule : ICommandModule
     {
         var getModuleCommand = new Command(
             "get",
-            "Get a Cloud-Code module.")
+            new CommandDescription("Get a Cloud-Code module.")
+                .WithReturn("Module details with name, language, dateModified, dateCreated, tags, signedDownloadUrl, and endpoints.")
+                .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -234,7 +255,9 @@ public class CloudCodeModule : ICommandModule
 
         var deleteModuleCommand = new Command(
             "delete",
-            "Delete a Cloud-Code module.")
+            new CommandDescription("Delete a Cloud-Code module.")
+                .WithReturn("Confirmation message.")
+                .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -245,7 +268,9 @@ public class CloudCodeModule : ICommandModule
 
         var listModuleCommand = new Command(
             "list",
-            "List Cloud-Code modules.")
+            new CommandDescription("List Cloud-Code modules.")
+                .WithReturn("List of modules with name and dateModified.")
+                .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption
@@ -253,7 +278,9 @@ public class CloudCodeModule : ICommandModule
         listModuleCommand.SetHandler<CommonInput, IUnityEnvironment, ICloudCodeService, ILogger, ILoadingIndicator,
             CancellationToken>(ListModulesHandler.ListModulesAsync);
 
-        var exportModulesCommand = new Command("export", "Export Cloud Code modules.")
+        var exportModulesCommand = new Command("export", new CommandDescription("Export Cloud Code modules.")
+            .WithReturn("A zip file written to the output directory containing all module binaries.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -267,7 +294,9 @@ public class CloudCodeModule : ICommandModule
             ILoadingIndicator,
             CancellationToken>(ModuleExportHandler.ExportAsync);
 
-        var importModulesCommand = new Command("import", "Import Cloud-Code modules.")
+        var importModulesCommand = new Command("import", new CommandDescription("Import Cloud-Code modules.")
+            .WithReturn("Per-module status messages indicating created, updated, or deleted.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -301,12 +330,36 @@ public class CloudCodeModule : ICommandModule
             ILoadingIndicator,
             CancellationToken>(
             NewFileModuleHandler.CreateNewModule);
+        FileTemplateRegistry.Register(
+            newFileCommand,
+            ".sln, .csproj, .cs",
+            "Creates a .NET solution with a class library project.");
+
+        var getSpecModuleCommand = new Command(
+            "get-spec",
+            new CommandDescription("Get the OpenAPI spec for a Cloud-Code module.")
+                .WithReturn("The raw OpenAPI YAML specification for the module's endpoints.")
+                .Build())
+        {
+            CommonInput.CloudProjectIdOption,
+            CommonInput.EnvironmentNameOption,
+            CloudCodeInput.ModuleNameArgument
+        };
+        getSpecModuleCommand.SetHandler<
+            CloudCodeInput,
+            IUnityEnvironment,
+            ICloudCodeService,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken>(
+            GetModuleSpecHandler.GetModuleSpecAsync);
 
         var modulesHandlerCommand = new Command(
             "modules",
             "Manage Cloud-Code modules.")
         {
             getModuleCommand,
+            getSpecModuleCommand,
             listModuleCommand,
             deleteModuleCommand,
             exportModulesCommand,

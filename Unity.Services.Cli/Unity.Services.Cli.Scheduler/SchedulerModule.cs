@@ -29,7 +29,7 @@ namespace Unity.Services.Cli.Scheduler;
 /// </summary>
 public class SchedulerModule : ICommandModule
 {
-    class SchedulerInput : CommonInput
+    public class SchedulerInput : CommonInput
     {
         public static readonly Argument<string> AddressArgument = new(
             "address",
@@ -52,7 +52,9 @@ public class SchedulerModule : ICommandModule
 
     public SchedulerModule()
     {
-        var schedulerListCommand = new Command("list", "List online schedules.")
+        var schedulerListCommand = new Command("list", new CommandDescription("List online schedules.")
+            .WithReturn("List of schedule items with name, eventName, scheduleType, schedule, payloadVersion, and payload.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -66,7 +68,10 @@ public class SchedulerModule : ICommandModule
             CancellationToken>(
             SchedulerListHandler.SchedulerListHandlerHandlerAsync);
 
-        ModuleRootCommand = new("scheduler", "Scheduler module root command.")
+        ModuleRootCommand = new("scheduler", new CommandDescription("Manage Scheduler.")
+            .WithDocs("https://docs.unity.com/en-us/triggers/tutorials/schedule-events")
+            .WithAdminApi("https://services.docs.unity.com/scheduler-admin/v1/")
+            .Build())
         {
             ModuleRootCommand.AddNewFileCommand<ScheduleConfigFile>("Schedule"),
             schedulerListCommand

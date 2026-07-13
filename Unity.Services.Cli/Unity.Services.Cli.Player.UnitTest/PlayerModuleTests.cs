@@ -1,5 +1,4 @@
 using System.CommandLine.Builder;
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
@@ -61,11 +60,11 @@ public class PlayerModuleTests
     [Test]
     public void RegisterServices_ExpectedServices()
     {
-        EndpointHelper.InitializeNetworkTargetEndpoints(new[]
-        {
-            typeof(PlayerAdminEndpoints).GetTypeInfo(),
-            typeof(PlayerAuthEndpoints).GetTypeInfo(),
-        });
+        EndpointHelper.InitializeNetworkTargetEndpoints(
+        [
+            new PlayerAdminEndpoints(),
+            new PlayerAuthEndpoints()
+        ]);
 
         var services = new List<ServiceDescriptor>
         {

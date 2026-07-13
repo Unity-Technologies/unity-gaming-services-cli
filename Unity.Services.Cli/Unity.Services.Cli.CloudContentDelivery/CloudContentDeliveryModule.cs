@@ -28,7 +28,10 @@ public class CloudContentDeliveryModule : ICommandModule
 {
     public CloudContentDeliveryModule()
     {
-        ModuleRootCommand = new Command("ccd", "Manage Cloud Content Delivery.");
+        ModuleRootCommand = new Command("ccd", new CommandDescription("Manage Cloud Content Delivery.")
+            .WithDocs("https://docs.unity.com/ugs/manual/ccd/manual")
+            .WithAdminApi("https://services.docs.unity.com/content-delivery-management/v1/")
+            .Build());
         RegisterModulesCommands(ModuleRootCommand);
     }
 
@@ -102,7 +105,9 @@ public class CloudContentDeliveryModule : ICommandModule
     {
         var listBucketHandlerCommand = new Command(
             "list",
-            "List buckets for a project.")
+            new CommandDescription("List buckets for a project.")
+                .WithReturn("List of buckets with id and name.")
+                .Build())
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -124,7 +129,9 @@ public class CloudContentDeliveryModule : ICommandModule
 
         var createBucketHandlerCommand = new Command(
             "create",
-            "Create bucket for a project.")
+            new CommandDescription("Create bucket for a project.")
+                .WithReturn("Bucket details with id, name, description, private, environmentId, environmentName, and permissions.")
+                .Build())
         {
             CloudContentDeliveryInput.BucketNameArgument,
             CommonInput.EnvironmentNameOption,
@@ -143,7 +150,9 @@ public class CloudContentDeliveryModule : ICommandModule
 
         var deleteBucketHandlerCommand = new Command(
             "delete",
-            "Delete buckets.")
+            new CommandDescription("Delete buckets.")
+                .WithReturn("Confirmation message.")
+                .Build())
         {
             CloudContentDeliveryInput.BucketNameArgument,
             CommonInput.EnvironmentNameOption,
@@ -161,7 +170,9 @@ public class CloudContentDeliveryModule : ICommandModule
 
         var infoBucketHandlerCommand = new Command(
             "info",
-            "Get bucket info.")
+            new CommandDescription("Get bucket info.")
+                .WithReturn("Bucket details with id, name, description, private, environmentId, environmentName, and permissions.")
+                .Build())
         {
             CloudContentDeliveryInput.BucketNameArgument,
             CommonInput.EnvironmentNameOption,
@@ -179,7 +190,9 @@ public class CloudContentDeliveryModule : ICommandModule
 
         var permissionsBucketUpdateHandlerCommand = new Command(
             "update",
-            "Manage permissions for a bucket.")
+            new CommandDescription("Update permissions for a bucket.")
+                .WithReturn("The updated permission with action, permission, and role.")
+                .Build())
         {
             CloudContentDeliveryInput.BucketNameArgument,
             CommonInput.EnvironmentNameOption,
@@ -222,7 +235,9 @@ public class CloudContentDeliveryModule : ICommandModule
     {
         var createReleaseHandlerCommand = new Command(
             "create",
-            "Create release from latest version of current bucket.")
+            new CommandDescription("Create release from latest version of current bucket.")
+                .WithReturn("Release details with releaseId, releaseNum, contentSize, contentHash, badges, notes, and metadata.")
+                .Build())
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -243,7 +258,9 @@ public class CloudContentDeliveryModule : ICommandModule
 
         var infoReleaseHandlerCommand = new Command(
             "info",
-            "Get release info for specific release.")
+            new CommandDescription("Get release info for specific release.")
+                .WithReturn("Release details with releaseId, releaseNum, contentSize, contentHash, badges, notes, and metadata.")
+                .Build())
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -262,7 +279,9 @@ public class CloudContentDeliveryModule : ICommandModule
             GetReleaseHandler.GetAsync);
         var listReleaseHandlerCommand = new Command(
             "list",
-            "List releases for current bucket.")
+            new CommandDescription("List releases for current bucket.")
+                .WithReturn("List of releases with releaseId and releaseNum.")
+                .Build())
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -290,7 +309,9 @@ public class CloudContentDeliveryModule : ICommandModule
 
         var promoteReleaseHandlerCommand = new Command(
             "promote",
-            "Promote release to another bucket.")
+            new CommandDescription("Promote release to another bucket.")
+                .WithReturn("The promotionId for tracking the promotion status.")
+                .Build())
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -313,7 +334,9 @@ public class CloudContentDeliveryModule : ICommandModule
 
         var promotionsStatusReleaseHandlerCommand = new Command(
             "status",
-            "Check promotion status.")
+            new CommandDescription("Check promotion status.")
+                .WithReturn("Promotion details with promotionId, promotionStatus, source/target bucket and environment info.")
+                .Build())
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -338,7 +361,9 @@ public class CloudContentDeliveryModule : ICommandModule
 
         var updateReleaseHandlerCommand = new Command(
             "update",
-            "Update an existing Release.")
+            new CommandDescription("Update an existing Release.")
+                .WithReturn("Release details with releaseId, releaseNum, contentSize, contentHash, badges, notes, and metadata.")
+                .Build())
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -375,7 +400,9 @@ public class CloudContentDeliveryModule : ICommandModule
     {
         var copyEntryHandlerCommand = new Command(
             "copy",
-            "Create entry for current bucket from a local file.")
+            new CommandDescription("Create entry for current bucket from a local file.")
+                .WithReturn("Entry details with entryid, path, currentVersionid, contentType, contentSize, contentHash, labels, and metadata.")
+                .Build())
         {
             CloudContentDeliveryInput.LocalPathArgument,
             CloudContentDeliveryInput.RemotePathArgument,
@@ -398,7 +425,9 @@ public class CloudContentDeliveryModule : ICommandModule
 
         var deleteEntryHandlerCommand = new Command(
             "delete",
-            "Delete entry from current bucket.")
+            new CommandDescription("Delete entry from current bucket.")
+                .WithReturn("Confirmation message.")
+                .Build())
         {
             CloudContentDeliveryInput.EntryPathArgument,
             CommonInput.EnvironmentNameOption,
@@ -418,7 +447,9 @@ public class CloudContentDeliveryModule : ICommandModule
 
         var downloadEntryHandlerCommand = new Command(
             "download",
-            "Download entry content from current bucket.")
+            new CommandDescription("Download entry content from current bucket.")
+                .WithReturn("Writes file content to a local file named after the entry.")
+                .Build())
         {
             CloudContentDeliveryInput.EntryPathArgument,
             CommonInput.EnvironmentNameOption,
@@ -439,7 +470,9 @@ public class CloudContentDeliveryModule : ICommandModule
 
         var infoEntryHandlerCommand = new Command(
             "info",
-            "Get entry info from current bucket.")
+            new CommandDescription("Get entry info from current bucket.")
+                .WithReturn("Entry details with entryid, path, currentVersionid, contentType, contentSize, contentHash, labels, and metadata.")
+                .Build())
         {
             CloudContentDeliveryInput.EntryPathArgument,
             CommonInput.EnvironmentNameOption,
@@ -460,7 +493,9 @@ public class CloudContentDeliveryModule : ICommandModule
 
         var listEntryHandlerCommand = new Command(
             "list",
-            "List entries for current bucket.")
+            new CommandDescription("List entries for current bucket.")
+                .WithReturn("List of entries with id and name (path).")
+                .Build())
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -488,7 +523,12 @@ public class CloudContentDeliveryModule : ICommandModule
 
         var syncEntryHandlerCommand = new Command(
             "sync",
-            "Sync entries from local directory for current bucket.\nAutomatically creates, updates, and deletes entries\nwithin the bucket to match the files in the local directory.")
+            new CommandDescription(
+                "Sync entries from local directory for current bucket.\n"
+                + "Automatically creates, updates, and deletes entries\n"
+                + "within the bucket to match the files in the local directory.")
+                .WithReturn("Operation summary with counts of added, updated, deleted, and skipped entries; includes release and badge info if requested.")
+                .Build())
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -523,7 +563,9 @@ public class CloudContentDeliveryModule : ICommandModule
 
         var updateEntryHandlerCommand = new Command(
             "update",
-            "Update entry for current bucket.")
+            new CommandDescription("Update entry for current bucket.")
+                .WithReturn("Entry details with entryid, path, currentVersionid, contentType, contentSize, contentHash, labels, and metadata.")
+                .Build())
         {
             CloudContentDeliveryInput.EntryPathArgument,
             CommonInput.EnvironmentNameOption,
@@ -563,7 +605,9 @@ public class CloudContentDeliveryModule : ICommandModule
     {
         var createBadgeHandlerCommand = new Command(
             "create",
-            "Create a new badge or move an existing one")
+            new CommandDescription("Create a new badge or move an existing one.")
+                .WithReturn("Badge details with name, releaseId, releaseNum, and created timestamp.")
+                .Build())
         {
             CloudContentDeliveryInput.ReleaseNumArgument,
             CloudContentDeliveryInput.BadgeNameArgument,
@@ -584,7 +628,9 @@ public class CloudContentDeliveryModule : ICommandModule
 
         var listBadgeHandlerCommand = new Command(
             "list",
-            "List badges in the current bucket.")
+            new CommandDescription("List badges in the current bucket.")
+                .WithReturn("List of badges with name, releaseId, and releaseNum.")
+                .Build())
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -608,7 +654,9 @@ public class CloudContentDeliveryModule : ICommandModule
 
         var deleteBadgeHandlerCommand = new Command(
             "delete",
-            "Delete a badge.")
+            new CommandDescription("Delete a badge.")
+                .WithReturn("Confirmation message.")
+                .Build())
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,

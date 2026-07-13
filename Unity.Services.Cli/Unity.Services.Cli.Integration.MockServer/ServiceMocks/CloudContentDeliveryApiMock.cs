@@ -72,7 +72,7 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
         PromotedFromRelease = new Guid(k_Uuid)
     };
 
-    static readonly CcdCreateOrUpdateEntryBatch200ResponseInner k_Entry = new()
+    readonly CcdCreateOrUpdateEntryBatch200ResponseInner m_Entry = new()
     {
         Complete = true,
         ContentHash = "ac043a397e20f96d5ddffb8b16d5defd",
@@ -88,7 +88,6 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
         },
         Metadata = "{}",
         Path = "images/image.jpg",
-        SignedUrl = "http://localhost:8080/ccd/upload"
     };
 
     static readonly CcdGetBucket200Response k_BucketResponse = new()
@@ -101,10 +100,7 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
         Private = true
     };
 
-    static readonly List<CcdCreateOrUpdateEntryBatch200ResponseInner> k_Entries = new()
-    {
-        k_Entry
-    };
+    List<CcdCreateOrUpdateEntryBatch200ResponseInner> Entries => new() { m_Entry };
 
     public Task<IReadOnlyList<MappingModel>> CreateMappingModels()
     {
@@ -114,6 +110,8 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
 
     public void CustomMock(WireMockServer mockServer)
     {
+        m_Entry.SignedUrl = $"{mockServer.Url}/ccd/upload";
+
         // Define the response headers
         var responseHeaders = new Dictionary<string, WireMockList<string>>
         {
@@ -457,7 +455,7 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
                     .WithStatusCode(200));
     }
 
-    static void MockGetAllEntries(
+    void MockGetAllEntries(
         WireMockServer mockServer,
         Dictionary<string, WireMockList<string>> responseHeaders)
     {
@@ -483,12 +481,12 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
             .RespondWith(
                 Response.Create()
                     .WithHeaders(responseHeaders)
-                    .WithBodyAsJson(k_Entries)
+                    .WithBodyAsJson(Entries)
                     .WithStatusCode(200));
 
     }
 
-    static void MockGetEntry(
+    void MockGetEntry(
         WireMockServer mockServer,
         Dictionary<string, WireMockList<string>> responseHeaders)
     {
@@ -501,11 +499,11 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
             .RespondWith(
                 Response.Create()
                     .WithHeaders(responseHeaders)
-                    .WithBodyAsJson(k_Entry)
+                    .WithBodyAsJson(m_Entry)
                     .WithStatusCode(200));
     }
 
-    static void MockCreateOrUpdateEntry(
+    void MockCreateOrUpdateEntry(
         WireMockServer mockServer,
         Dictionary<string, WireMockList<string>> responseHeaders)
     {
@@ -518,11 +516,11 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
             .RespondWith(
                 Response.Create()
                     .WithHeaders(responseHeaders)
-                    .WithBodyAsJson(k_Entry)
+                    .WithBodyAsJson(m_Entry)
                     .WithStatusCode(200));
     }
 
-    static void MockCreateOrUpdateEntries(
+    void MockCreateOrUpdateEntries(
         WireMockServer mockServer,
         Dictionary<string, WireMockList<string>> responseHeaders)
     {
@@ -536,11 +534,11 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
             .RespondWith(
                 Response.Create()
                     .WithHeaders(responseHeaders)
-                    .WithBodyAsJson(k_Entries)
+                    .WithBodyAsJson(Entries)
                     .WithStatusCode(200));
     }
 
-    static void MockPutEntry(
+    void MockPutEntry(
         WireMockServer mockServer,
         Dictionary<string, WireMockList<string>> responseHeaders)
     {
@@ -553,7 +551,7 @@ public class CloudContentDeliveryApiMock : IServiceApiMock
             .RespondWith(
                 Response.Create()
                     .WithHeaders(responseHeaders)
-                    .WithBodyAsJson(k_Entry)
+                    .WithBodyAsJson(m_Entry)
                     .WithStatusCode(200));
     }
 

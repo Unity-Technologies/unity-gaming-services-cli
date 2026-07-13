@@ -1,5 +1,4 @@
 using System.CommandLine.Builder;
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Service;
@@ -33,11 +32,11 @@ public class MatchmakerModuleTest
     [TestCase(typeof(IFetchService))]
     public void ConfigureMatchmakerRegistersExpectedServices(Type serviceType)
     {
-        EndpointHelper.InitializeNetworkTargetEndpoints(new[]
-        {
-            typeof(UnityServicesGatewayEndpoints).GetTypeInfo(),
-            typeof(AdminApiTargetEndpoint).GetTypeInfo()
-        });
+        EndpointHelper.InitializeNetworkTargetEndpoints(
+        [
+            new UnityServicesGatewayEndpoints(),
+            new AdminApiTargetEndpoint()
+        ]);
         var services = new List<ServiceDescriptor>();
         var hostBuilder = TestsHelper.CreateAndSetupMockHostBuilder(services);
         hostBuilder.ConfigureServices(MatchmakerModule.RegisterServices);
@@ -53,5 +52,29 @@ public class MatchmakerModuleTest
             out var resultCommand);
 
         Assert.That(resultCommand, Is.EqualTo(k_MatchmakerModule.ModuleRootCommand));
+    }
+
+    [Test]
+    public void BuildCommands_ContainsEnvironmentConfigCommand()
+    {
+        TestsHelper.AssertContainsCommand(
+            k_MatchmakerModule.ModuleRootCommand!, "environment-config", out var environmentConfigCommand);
+        TestsHelper.AssertContainsCommand(environmentConfigCommand, "get", out _);
+    }
+
+    [Test]
+    public void BuildCommands_ContainsQueueCommand()
+    {
+        TestsHelper.AssertContainsCommand(
+            k_MatchmakerModule.ModuleRootCommand!, "queue", out var queueCommand);
+        TestsHelper.AssertContainsCommand(queueCommand, "list", out _);
+    }
+
+    [Test]
+    public void BuildCommands_ContainsRestrictionsCommand()
+    {
+        TestsHelper.AssertContainsCommand(
+            k_MatchmakerModule.ModuleRootCommand!, "restrictions", out var restrictionsCommand);
+        TestsHelper.AssertContainsCommand(restrictionsCommand, "get", out _);
     }
 }

@@ -21,7 +21,9 @@ public class ConfigurationModule : ICommandModule
     {
         GetCommand = new(
             "get",
-            "Get the value of a configuration for the given key")
+            new CommandDescription("Get the value of a configuration for the given key.")
+                .WithReturn("The config value string.")
+                .Build())
         {
             ConfigurationInput.KeyArgument
         };
@@ -29,7 +31,9 @@ public class ConfigurationModule : ICommandModule
             ILogger, CancellationToken>(GetHandler.GetAsync);
 
         SetCommand = new(
-            "set", "Update configuration with a value for the given key")
+            "set", new CommandDescription("Update configuration with a value for the given key.")
+                .WithReturn("Confirmation message.")
+                .Build())
         {
             ConfigurationInput.KeyArgument,
             ConfigurationInput.ValueArgument
@@ -37,7 +41,9 @@ public class ConfigurationModule : ICommandModule
         SetCommand.SetHandler<ConfigurationInput, IConfigurationService, ILogger, CancellationToken>(
             SetHandler.SetAsync);
 
-        DeleteCommand = new("delete", "Delete the value of a key in configuration")
+        DeleteCommand = new("delete", new CommandDescription("Delete the value of a key in configuration.")
+            .WithReturn("Confirmation message.")
+            .Build())
         {
             ConfigurationInput.KeysOption,
             ConfigurationInput.TargetAllKeysOption,
@@ -58,8 +64,7 @@ public class ConfigurationModule : ICommandModule
 
     public static void RegisterServices(HostBuilderContext hostBuilderContext, IServiceCollection serviceCollection)
     {
-        var configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "UnityServices/Config.json");
+        var configPath = Path.Combine(ConfigDirectory.GetPath(), "Config.json");
         var persister = new JsonFilePersister<Models.Configuration>(configPath);
         serviceCollection.AddSingleton<IPersister<Models.Configuration>>(persister);
         var configurationValidator = new ConfigurationValidator();

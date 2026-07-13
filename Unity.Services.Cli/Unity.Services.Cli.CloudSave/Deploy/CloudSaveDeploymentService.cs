@@ -1,6 +1,7 @@
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.CloudSave.Authoring.Core.Deploy;
@@ -37,7 +38,7 @@ class CloudSaveDeploymentService : IDeploymentService
 
     public async Task<DeploymentResult> Deploy(
         DeployInput deployInput,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> authoringFiles,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,
@@ -45,7 +46,7 @@ class CloudSaveDeploymentService : IDeploymentService
     {
         await m_Client.Initialize(environmentId, projectId, cancellationToken);
         loadingContext?.Status($"Reading {m_ServiceType} files...");
-        var(loaded, failedToLoad) = await GetResourcesFromFiles(filePaths);
+        var(loaded, failedToLoad) = await GetResourcesFromFiles(authoringFiles.ToPaths());
 
         loadingContext?.Status($"Deploying {m_ServiceType} files...");
         var res = await m_DeploymentHandler.DeployAsync(

@@ -8,7 +8,7 @@ public interface IDeploymentService : IAuthoringService
 {
     Task<DeploymentResult> Deploy(
         DeployInput deployInput,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> filePaths,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,

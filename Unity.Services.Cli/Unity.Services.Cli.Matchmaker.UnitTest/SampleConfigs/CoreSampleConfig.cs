@@ -14,15 +14,7 @@ class CoreSampleConfig
             Enabled = true,
             Name = new Core.PoolName("TestPool"),
             TimeoutSeconds = 0,
-            MatchHosting = new Core.MultiplayConfig()
-            {
-                FleetName = "TestFleet",
-                BuildConfigurationName = "TestBuildConfig",
-                DefaultQoSRegionName = "NorthAmerica",
-                ModuleName = "module",
-                AllocateFunctionName = "allocate",
-                PollFunctionName = "poll",
-            },
+            MatchHosting = new Core.MatchIdConfig(),
             MatchLogic = new Core.MatchLogicRulesConfig()
             {
                 Name = "TestMatchLogic",

@@ -1,6 +1,7 @@
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.CloudCode.Authoring;
 using Unity.Services.Cli.CloudCode.Model;
@@ -54,7 +55,7 @@ class CloudCodeScriptDeploymentService : IDeploymentService
 
     public async Task<DeploymentResult> Deploy(
         DeployInput deployInput,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> authoringFiles,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,
@@ -70,7 +71,7 @@ class CloudCodeScriptDeploymentService : IDeploymentService
         {
             loadTasks.Add(
                 CloudCodeScriptsLoader.LoadScriptsAsync(
-                    filePaths,
+                    authoringFiles.ToPaths(),
                     m_ServiceType,
                     extension,
                     CloudCodeInputParser,

@@ -2,6 +2,7 @@ using Spectre.Console;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.RemoteConfig.Model;
 using Unity.Services.DeploymentApi.Editor;
@@ -43,7 +44,7 @@ class RemoteConfigFetchService : IFetchService
 
     public async Task<FetchResult> FetchAsync(
         FetchInput input,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> authoringFiles,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,
@@ -52,7 +53,7 @@ class RemoteConfigFetchService : IFetchService
         m_RemoteConfigClient.Initialize(projectId, environmentId, cancellationToken);
 
         var loadResult = await m_RemoteConfigScriptsLoader
-            .LoadScriptsAsync(filePaths, cancellationToken);
+            .LoadScriptsAsync(authoringFiles.ToPaths(), cancellationToken);
         var configFiles = loadResult.Loaded.ToList();
 
         loadingContext?.Status($"Fetching {ServiceType} Files...");

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,6 +12,8 @@ public partial class UgsCliTestCase
     class ExternalProcess : IProcess
     {
         const int k_Timeout = 45;
+
+        bool m_HasWaited;
 
         public ExternalProcess(Process innerProcess)
         {
@@ -24,11 +27,14 @@ public partial class UgsCliTestCase
         public bool HasExited => InnerProcess.HasExited;
         public async Task WaitForExitAsync(CancellationToken cancellationToken = default)
         {
+            if (m_HasWaited)
+                return;
+
+            var stdoutTask = InnerProcess.StandardOutput.ReadToEndAsync(cancellationToken);
+            var stderrTask = InnerProcess.StandardError.ReadToEndAsync(cancellationToken);
+
             try
             {
-                StandardOutput = InnerProcess.StandardOutput;
-                StandardError = InnerProcess.StandardError;
-
                 await InnerProcess
                     .WaitForExitAsync(cancellationToken)
                     .WaitAsync(TimeSpan.FromSeconds(k_Timeout), cancellationToken);
@@ -36,8 +42,11 @@ public partial class UgsCliTestCase
             catch (TimeoutException)
             {
                 InnerProcess.Kill();
-                StandardError = InnerProcess.StandardOutput;
             }
+
+            StandardOutput = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(await stdoutTask)));
+            StandardError = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(await stderrTask)));
+            m_HasWaited = true;
         }
 
         public int ExitCode => InnerProcess.ExitCode;

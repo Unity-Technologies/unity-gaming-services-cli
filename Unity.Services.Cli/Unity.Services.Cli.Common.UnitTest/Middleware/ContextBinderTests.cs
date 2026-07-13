@@ -2,11 +2,11 @@ using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
 using System.CommandLine.Parsing;
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Moq;
 using NUnit.Framework;
+using Unity.Services.Cli;
 using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.Common.Middleware;
 using Unity.Services.Cli.Common.Networking;
@@ -37,11 +37,10 @@ class ContextBinderTests
     [OneTimeSetUp]
     public void Setup()
     {
-        var types = new List<TypeInfo>
-        {
-            typeof(TelemetryApiEndpoints).GetTypeInfo(),
-        };
-        EndpointHelper.InitializeNetworkTargetEndpoints(types);
+        EndpointHelper.InitializeNetworkTargetEndpoints(
+        [
+            new TelemetryApiEndpoints()
+        ]);
     }
 
     [SetUp]
@@ -119,7 +118,28 @@ class ContextBinderTests
     }
 
     [Test]
-    public void ConfigBinding_HasPriorityOverEnvironmentBinding()
+    public void InputBinding_HasPriorityOverEnvironmentBinding()
+    {
+        System.Environment.SetEnvironmentVariable(TestInput.EnvironmentBindingName, "value");
+
+        var optionArgs = new[]
+        {
+            k_Command,
+            k_TestStringValue,
+        };
+        var setCommand = new Command(k_Command, "")
+        {
+            TestInput.ValueStringArgument,
+        };
+
+        var parser = BuildCommandWithInputParserWithMockedConfigModule(setCommand);
+        parser.InvokeAsync(optionArgs);
+
+        Assert.AreEqual(k_TestStringValue, m_TestInput!.StringArgValue);
+    }
+
+    [Test]
+    public void EnvironmentBinding_HasPriorityOverConfigBinding()
     {
         System.Environment.SetEnvironmentVariable(TestInput.EnvironmentBindingName, "value");
         var optionArgs = new[] { k_Command };
@@ -128,7 +148,7 @@ class ContextBinderTests
         var parser = BuildCommandWithInputParserWithMockedConfigModule(setCommand);
         parser.InvokeAsync(optionArgs);
 
-        Assert.AreEqual(k_GetConfigMockedReturnValue, m_TestInput!.StringArgValue);
+        Assert.AreEqual("value", m_TestInput!.StringArgValue);
     }
 
     [Test]
@@ -276,7 +296,7 @@ class ContextBinderTests
                 host.ConfigureServices(serviceCollection => serviceCollection
                     .AddSingleton(mockAnalyticEventFactory.Object));
             })
-            .AddCommandInputParserMiddleware();
+            .AddCommandInputParserMiddleware(CommonInputRegistry.GetAllInputTypes(), CommonInputRegistry.CreateInstance);
 
         command.SetHandler((TestInput input) => { m_TestInput = input; });
         m_CommandLineBuilder.Command.AddCommand(command);
@@ -307,7 +327,7 @@ class ContextBinderTests
                     host.ConfigureServices(serviceCollection => serviceCollection
                         .AddSingleton(mockAnalyticEventFactory.Object));
                 })
-            .AddCommandInputParserMiddleware();
+            .AddCommandInputParserMiddleware(CommonInputRegistry.GetAllInputTypes(), CommonInputRegistry.CreateInstance);
 
         command.SetHandler((TestInput input) => { m_TestInput = input; });
         m_CommandLineBuilder.Command.AddCommand(command);

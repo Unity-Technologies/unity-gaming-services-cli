@@ -36,12 +36,6 @@ public class LobbyTests : UgsCliFixture
         await MockApi.MockServiceAsync(new LobbyApiMock());
     }
 
-    [OneTimeTearDown]
-    public void OneTimeTearDown()
-    {
-        MockApi.Server?.Dispose();
-    }
-
     [SetUp]
     public void SetUp()
     {
@@ -78,7 +72,7 @@ public class LobbyTests : UgsCliFixture
         SetConfigValue("environment-id", CommonKeys.ValidEnvironmentId);
 
         var expectedMsg = "'project-id' is not set in project configuration";
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"lobby get {k_LobbyId} {k_DefaultOptions}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(expectedMsg)
@@ -89,7 +83,7 @@ public class LobbyTests : UgsCliFixture
     public async Task CommandThrowsIfEnvironmentNameIsMissing()
     {
         var expectedMsg = "'environment-name' is not set in project configuration";
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"lobby get {k_LobbyId} {k_DefaultOptions}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(expectedMsg)

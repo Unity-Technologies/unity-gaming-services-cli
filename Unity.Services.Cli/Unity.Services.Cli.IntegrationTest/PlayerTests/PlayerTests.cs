@@ -36,7 +36,7 @@ public class PlayerTests : UgsCliFixture
     {
         var expectedMsg = "You are not logged into any service account. Please login using the 'ugs login' command.";
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("player create")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(expectedMsg)
@@ -70,7 +70,7 @@ public class PlayerTests : UgsCliFixture
     {
         var expectedMsg = "You are not logged into any service account. Please login using the 'ugs login' command.";
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"player delete {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(expectedMsg)
@@ -116,7 +116,7 @@ public class PlayerTests : UgsCliFixture
     {
         var expectedMsg = "You are not logged into any service account. Please login using the 'ugs login' command.";
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"player disable {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(expectedMsg)
@@ -162,7 +162,7 @@ public class PlayerTests : UgsCliFixture
     {
         var expectedMsg = "You are not logged into any service account. Please login using the 'ugs login' command.";
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"player enable {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(expectedMsg)
@@ -208,7 +208,7 @@ public class PlayerTests : UgsCliFixture
     {
         var expectedMsg = "You are not logged into any service account. Please login using the 'ugs login' command.";
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"player get {PlayerApiMock.PlayerId}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(expectedMsg)
@@ -266,7 +266,7 @@ public class PlayerTests : UgsCliFixture
     {
         var expectedMsg = "You are not logged into any service account. Please login using the 'ugs login' command.";
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"player list")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(expectedMsg)

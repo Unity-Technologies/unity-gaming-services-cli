@@ -49,6 +49,19 @@ public class CommonInput
         Arity = ArgumentArity.Zero,
     };
 
+    public static readonly Option<List<string>?> VariantTagsOption = new(
+        new[]
+        {
+            "-t",
+            "--tag",
+            "--variant-tag"
+        },
+        description: "Resource tags. Repeatable for multiple tags.")
+    {
+        Arity = ArgumentArity.ZeroOrMore,
+        AllowMultipleArgumentsPerToken = false
+    };
+
     [EnvironmentBinding(Keys.EnvironmentKeys.EnvironmentName)]
     [ConfigBinding(Keys.ConfigKeys.EnvironmentName)]
     [InputBinding(nameof(EnvironmentNameOption))]
@@ -68,4 +81,7 @@ public class CommonInput
 
     [InputBinding(nameof(UseForceOption))]
     public bool UseForce { get; set; }
+
+    [InputBinding(nameof(VariantTagsOption))]
+    public List<string>? VariantTags { get; set; }
 }

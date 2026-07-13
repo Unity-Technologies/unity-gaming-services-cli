@@ -1,4 +1,3 @@
-using System.Reflection;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Networking;
 
@@ -8,36 +7,29 @@ namespace Unity.Services.Cli.Common.UnitTest;
 class EndpointHelperTests
 {
     [Test]
-    public void InitializeNetworkTargetEndpointsFiltersInstantiableEndpointsTypesOnly()
+    public void InitializeNetworkTargetEndpointsRegistersEndpoints()
     {
-        var expectedEndpointsType = typeof(UnityServicesGatewayEndpoints);
-        var types = new[]
+        var endpoints = new NetworkTargetEndpoints[]
         {
-            typeof(EndpointHelper).GetTypeInfo(),
-            typeof(int).GetTypeInfo(),
-            typeof(NetworkTargetEndpoints).GetTypeInfo(),
-            expectedEndpointsType.GetTypeInfo(),
+            new UnityServicesGatewayEndpoints(),
         };
 
-        EndpointHelper.InitializeNetworkTargetEndpoints(types);
+        EndpointHelper.InitializeNetworkTargetEndpoints(endpoints);
 
         Assert.AreEqual(1, EndpointHelper.NetworkTargetEndpoints.Count);
-        Assert.IsInstanceOf<UnityServicesGatewayEndpoints>(EndpointHelper.NetworkTargetEndpoints[expectedEndpointsType]);
+        Assert.IsInstanceOf<UnityServicesGatewayEndpoints>(
+            EndpointHelper.NetworkTargetEndpoints[typeof(UnityServicesGatewayEndpoints)]);
     }
 
     [Test]
     public void InitializeNetworkTargetEndpointsClearsEndpointsMapAtEachCall()
     {
-        var types = new List<TypeInfo>
-        {
-            typeof(UnityServicesGatewayEndpoints).GetTypeInfo(),
-        };
-        EndpointHelper.InitializeNetworkTargetEndpoints(types);
+        EndpointHelper.InitializeNetworkTargetEndpoints(
+            [new UnityServicesGatewayEndpoints()]);
         CollectionAssert.IsNotEmpty(EndpointHelper.NetworkTargetEndpoints);
 
-        types.Clear();
-        EndpointHelper.InitializeNetworkTargetEndpoints(types);
-
+        EndpointHelper.InitializeNetworkTargetEndpoints(
+            Array.Empty<NetworkTargetEndpoints>());
         CollectionAssert.IsEmpty(EndpointHelper.NetworkTargetEndpoints);
     }
 }

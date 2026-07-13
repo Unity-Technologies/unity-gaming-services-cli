@@ -155,6 +155,204 @@ public class LeaderboardsService : ILeaderboardsService
         return response;
     }
 
+    public async Task<ApiResponse<LeaderboardScoresPage>> GetLeaderboardScoresAsync(
+        string projectId, string environmentId, string leaderboardId,
+        int? offset, int? limit, CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.GetLeaderboardScoresWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            leaderboardId, offset, limit, cancellationToken: cancellationToken);
+    }
+
+    public async Task<ApiResponse<LeaderboardEntryWithUpdatedTime>> GetLeaderboardPlayerScoreAsync(
+        string projectId, string environmentId, string leaderboardId,
+        string playerId, CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.GetLeaderboardPlayerScoreWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            leaderboardId, playerId, cancellationToken: cancellationToken);
+    }
+
+    public async Task<ApiResponse<LeaderboardScores>> GetLeaderboardScoresPlayerRangeAsync(
+        string projectId, string environmentId, string leaderboardId,
+        string playerId, int? rangeLimit, CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.GetLeaderboardScoresPlayerRangeWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            leaderboardId, playerId, rangeLimit, cancellationToken: cancellationToken);
+    }
+
+    public async Task<ApiResponse<LeaderboardTierScoresPage>> GetLeaderboardScoresByTierAsync(
+        string projectId, string environmentId, string leaderboardId,
+        string tierId, int? offset, int? limit, CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.GetLeaderboardScoresByTierWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            leaderboardId, tierId, offset, limit, cancellationToken: cancellationToken);
+    }
+
+    public async Task<ApiResponse<LeaderboardScoresWithNotFoundPlayerIds>> GetLeaderboardScoresByPlayerIdsAsync(
+        string projectId, string environmentId, string leaderboardId,
+        List<string> playerIds, CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.GetLeaderboardScoresByPlayerIdsWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            leaderboardId, new LeaderboardPlayerIds(playerIds), cancellationToken: cancellationToken);
+    }
+
+    public async Task<ApiResponse<object>> DeleteLeaderboardPlayerScoreAsync(
+        string projectId, string environmentId, string leaderboardId,
+        string playerId, CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.DeleteLeaderboardPlayerScoreWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            leaderboardId, playerId, cancellationToken: cancellationToken);
+    }
+
+    public async Task<ApiResponse<object>> PurgeLeaderboardPlayerScoresAsync(
+        string projectId, string environmentId, string playerId,
+        CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.DeleteLeaderboardPlayerScoreAllLeaderboardsWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            playerId, cancellationToken: cancellationToken);
+    }
+
+    public async Task<ApiResponse<BucketsPage>> GetLeaderboardBucketsAsync(
+        string projectId, string environmentId, string leaderboardId,
+        int? offset, int? limit, CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.GetLeaderboardBucketsWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            leaderboardId, offset, limit, cancellationToken: cancellationToken);
+    }
+
+    public async Task<ApiResponse<LeaderboardScoresPage>> GetLeaderboardBucketScoresAsync(
+        string projectId, string environmentId, string leaderboardId,
+        string bucketId, int? offset, int? limit, CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.GetLeaderboardBucketScoresWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            leaderboardId, Guid.Parse(bucketId), offset, limit, cancellationToken: cancellationToken);
+    }
+
+    public async Task<ApiResponse<LeaderboardTierScoresPage>> GetLeaderboardBucketScoresByTierAsync(
+        string projectId, string environmentId, string leaderboardId,
+        string bucketId, string tierId, int? offset, int? limit, CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.GetLeaderboardBucketScoresByTierWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            leaderboardId, Guid.Parse(bucketId), tierId, offset, limit, cancellationToken: cancellationToken);
+    }
+
+    public async Task<ApiResponse<LeaderboardVersionScoresPage>> GetLeaderboardVersionScoresAsync(
+        string projectId, string environmentId, string leaderboardId,
+        string versionId, int? offset, int? limit, CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.GetLeaderboardVersionScoresWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            leaderboardId, versionId, offset, limit, cancellationToken: cancellationToken);
+    }
+
+    public async Task<ApiResponse<LeaderboardVersionTierScoresPage>> GetLeaderboardVersionScoresByTierAsync(
+        string projectId, string environmentId, string leaderboardId,
+        string versionId, string tierId, int? offset, int? limit, CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.GetLeaderboardVersionScoresByTierWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            leaderboardId, versionId, tierId, offset, limit, cancellationToken: cancellationToken);
+    }
+
+    public async Task<ApiResponse<VersionBucketsPage>> GetLeaderboardVersionBucketsAsync(
+        string projectId, string environmentId, string leaderboardId,
+        string versionId, int? offset, int? limit, CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.GetLeaderboardVersionBucketsWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            leaderboardId, versionId, offset, limit, cancellationToken: cancellationToken);
+    }
+
+    public async Task<ApiResponse<LeaderboardVersionScoresPage>> GetLeaderboardVersionBucketScoresAsync(
+        string projectId, string environmentId, string leaderboardId,
+        string versionId, string bucketId, int? offset, int? limit, CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.GetLeaderboardVersionBucketScoresWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            leaderboardId, versionId, Guid.Parse(bucketId), offset, limit, cancellationToken: cancellationToken);
+    }
+
+    public async Task<ApiResponse<LeaderboardVersionTierScoresPage>> GetLeaderboardVersionBucketScoresByTierAsync(
+        string projectId, string environmentId, string leaderboardId,
+        string versionId, string bucketId, string tierId, int? offset, int? limit, CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.GetLeaderboardVersionBucketScoresByTierWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            leaderboardId, versionId, Guid.Parse(bucketId), tierId, offset, limit, cancellationToken: cancellationToken);
+    }
+
+    public async Task<ApiResponse<LeaderboardVersionEntry>> GetLeaderboardVersionPlayerScoreAsync(
+        string projectId, string environmentId, string leaderboardId,
+        string versionId, string playerId, CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.GetLeaderboardVersionPlayerScoreWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            leaderboardId, versionId, playerId, cancellationToken: cancellationToken);
+    }
+
+    public async Task<ApiResponse<LeaderboardVersionRange>> GetLeaderboardVersionScoresPlayerRangeAsync(
+        string projectId, string environmentId, string leaderboardId,
+        string versionId, string playerId, int? rangeLimit, CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.GetLeaderboardVersionScoresPlayerRangeWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            leaderboardId, versionId, playerId, rangeLimit, cancellationToken: cancellationToken);
+    }
+
+    public async Task<ApiResponse<LeaderboardVersionScoresByPlayerIds>> GetLeaderboardVersionScoresByPlayerIdsAsync(
+        string projectId, string environmentId, string leaderboardId,
+        string versionId, List<string> playerIds, CancellationToken cancellationToken)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+        return await m_LeaderboardsApiAsync.GetLeaderboardScoresByPlayerIdsArchiveVersionWithHttpInfoAsync(
+            Guid.Parse(projectId), Guid.Parse(environmentId),
+            leaderboardId, versionId, new LeaderboardPlayerIds(playerIds), cancellationToken: cancellationToken);
+    }
+
     internal async Task AuthorizeServiceAsync(CancellationToken cancellationToken = default)
     {
         var token = await m_AuthenticationService.GetAccessTokenAsync(cancellationToken);

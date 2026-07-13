@@ -15,6 +15,16 @@
       "commandName": "Project",
       "workingDirectory": "$(SolutionDir)/../",
       "commandLineArgs": "--print-tree --print-tree-show-hidden"
+    },
+    "Unity.Services.Cli.PrintHelp": {
+      "commandName": "Project",
+      "workingDirectory": "$(SolutionDir)/../",
+      "commandLineArgs": "--help-all"
+    },
+    "Unity.Services.Cli.PrintHelpFull": {
+      "commandName": "Project",
+      "workingDirectory": "$(SolutionDir)/../",
+      "commandLineArgs": "--help-all --help-all-show-hidden"
     }
   }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Economy.Authoring;
 using Unity.Services.Cli.Economy.Authoring.Fetch;
@@ -52,11 +53,11 @@ class EconomyFetchServiceTests
     [Test]
     public async Task FetchAsyncReturnFetchResult()
     {
-        var filePaths = new List<string>()
+        var filePaths = new List<AuthoringFile>()
         {
-            "resource1.ec",
-            "resource2.ec",
-            "resource3.ec"
+            new AuthoringFile("resource1.ec"),
+            new AuthoringFile("resource2.ec"),
+            new AuthoringFile("resource3.ec")
         };
 
         EconomyCurrency createdResource = new EconomyCurrency("RESOURCE_1")
@@ -114,7 +115,7 @@ class EconomyFetchServiceTests
         for (int i = 0; i < filePaths.Count; i++)
         {
             k_EconomyResourcesLoader.Setup(e =>
-                    e.LoadResourceAsync(filePaths[i], CancellationToken.None))
+                    e.LoadResourceAsync(filePaths[i].Path, CancellationToken.None))
                 .ReturnsAsync(economyResources[i]);
         }
 

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ugs-config-schemas.unity3d.com/v1/purchasing/ucat.schema.json",
+  "uSKU": "com.example.sku",
+  "type": "consumable",
+  "productDetails": [
+    {
+      "title": "Title",
+      "description": "Description",
+      "language": "en-US"
+    }
+  ],
+  "pricing": [
+    {
+      "currencyCode": "USD",
+      "amount": 4.99
+    }
+  ]
+}

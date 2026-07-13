@@ -38,11 +38,16 @@ class CommonModuleTests
     {
         m_MockSystemEnvironmentProvider.Reset();
         m_MockAnalyticEventFactory.Reset();
+        var endpoints = new NetworkTargetEndpoints[]
+        {
+            new UnityServicesGatewayEndpoints(),
+            new TelemetryApiEndpoints()
+        };
         m_CommandLineBuilder = new(new RootCommand("Test root command"));
         m_Parser = m_CommandLineBuilder.UseHost(_ => Host.CreateDefaultBuilder(),
             host =>
             {
-                CommonModule.ConfigureCommonServices(host, new Logger(), AnsiConsole.Create(new AnsiConsoleSettings()), m_MockAnalyticEventFactory.Object);
+                CommonModule.ConfigureCommonServices(host, new Logger(), AnsiConsole.Create(new AnsiConsoleSettings()), m_MockAnalyticEventFactory.Object, endpoints);
 
             }).UseDefaults().AddGlobalCommonOptions().Build();
         m_Parser!.InvokeAsync("");
@@ -145,7 +150,7 @@ class CommonModuleTests
     public void CreateTelemetrySender_SetsBaseProductTags()
     {
         var telemetrySender = CommonModule.CreateTelemetrySender(m_MockSystemEnvironmentProvider.Object);
-        StringAssert.AreEqualIgnoringCase(telemetrySender.ProductTags[TagKeys.ProductName], CommonModule.cliProductName);
+        StringAssert.AreEqualIgnoringCase(telemetrySender.ProductTags[TagKeys.ProductName], CommonModule.CliProductName);
         StringAssert.AreEqualIgnoringCase(telemetrySender.ProductTags[TagKeys.CliVersion], TelemetryConfigurationProvider.GetCliVersion());
     }
 }

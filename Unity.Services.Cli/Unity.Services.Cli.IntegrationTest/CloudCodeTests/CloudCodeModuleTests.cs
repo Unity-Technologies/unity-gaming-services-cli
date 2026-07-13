@@ -60,7 +60,7 @@ public class CloudCodeModuleTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("cloud-code modules list")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_LoggedOutErrorMessage)
@@ -99,7 +99,7 @@ public class CloudCodeModuleTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-code modules delete {k_ValidModuleName}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_ProjectIdNotSetErrorMessage)
@@ -112,7 +112,7 @@ public class CloudCodeModuleTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"cloud-code modules delete {k_ValidModuleName}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_LoggedOutErrorMessage)
@@ -166,7 +166,7 @@ public class CloudCodeModuleTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command(command)
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardOutputContains(expectedStandardOutput)
@@ -192,7 +192,7 @@ public class CloudCodeModuleTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command(command)
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardOutputContains(expectedStandardOutput)

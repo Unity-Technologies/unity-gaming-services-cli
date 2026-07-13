@@ -32,10 +32,7 @@
       "backfillEnabled": false
     },
     "matchHosting": {
-      "type": "Multiplay",
-      "fleetName": "my fleet",
-      "buildConfigurationName": "my build configuration",
-      "defaultQoSRegionName": "North America"
+      "type": "MatchId"
     }
   },
   "filteredPools": []

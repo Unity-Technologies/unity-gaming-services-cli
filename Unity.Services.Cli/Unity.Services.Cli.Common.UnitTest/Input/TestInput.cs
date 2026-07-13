@@ -4,7 +4,7 @@ using Unity.Services.Cli.Common.SystemEnvironment;
 
 namespace Unity.Services.Cli.Common.UnitTest;
 
-class TestInput : CommonInput
+public class TestInput : CommonInput
 {
     public const string EnvironmentBindingName = "UGS_CLI_TEST_KEY_0003";
     public const string ConfigBindingName = "test-key-0003";

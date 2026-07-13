@@ -2,6 +2,7 @@ using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.CloudSave.Deploy;
 using Unity.Services.Cli.CloudSave.Fetch;
 using Unity.Services.DeploymentApi.Editor;
@@ -10,6 +11,7 @@ using Unity.Services.CloudSave.Authoring.Core.Fetch;
 using Unity.Services.CloudSave.Authoring.Core.IO;
 using Unity.Services.CloudSave.Authoring.Core.Model;
 using Unity.Services.CloudSave.Authoring.Core.Service;
+using FetchResult = Unity.Services.CloudSave.Authoring.Core.Fetch.FetchResult;
 
 namespace Unity.Services.Cli.CloudSave.UnitTest.Authoring;
 
@@ -98,8 +100,8 @@ public class CloudSaveFetchServiceTests
             input,
             new[]
             {
-                $"first_conf{Constants.SimpleFileExtension}",
-                $"second_conf{Constants.SimpleFileExtension}"
+                new AuthoringFile($"first_conf{Constants.SimpleFileExtension}"),
+                new AuthoringFile($"second_conf{Constants.SimpleFileExtension}")
             },
             String.Empty,
             string.Empty,
@@ -142,9 +144,9 @@ public class CloudSaveFetchServiceTests
             input,
             new[]
             {
-                $"first_conf{Constants.SimpleFileExtension}",
-                $"second_conf{Constants.SimpleFileExtension}",
-                $"fail_path{Constants.SimpleFileExtension}"
+                new AuthoringFile($"first_conf{Constants.SimpleFileExtension}"),
+                new AuthoringFile($"second_conf{Constants.SimpleFileExtension}"),
+                new AuthoringFile($"fail_path{Constants.SimpleFileExtension}")
             },
             string.Empty,
             string.Empty,

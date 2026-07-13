@@ -30,14 +30,8 @@ class GeneratedSampleConfig
                 name: "TestPool",
                 enabled: true,
                 matchHosting: new Generated.MatchHosting(
-                    new Generated.MultiplayHostingConfig(
-                        type: Generated.MultiplayHostingConfig.TypeEnum.Multiplay,
-                        fleetId: "e8b109e1-6746-4ce6-9c21-3330509554a1",
-                        buildConfigurationId: "74874928923749",
-                        defaultQoSRegionId: "3eac13c4-bf61-4b05-83df-eed5732ad305",
-                        moduleName: "module",
-                        allocateFunctionName: "allocate",
-                        pollFunctionName: "poll"
+                    new Generated.MatchIdHostingConfig(
+                        type: Generated.MatchIdHostingConfig.TypeEnum.MatchId
                     )),
                 matchLogic: new Generated.Rules(
                     name: "TestMatchLogic",

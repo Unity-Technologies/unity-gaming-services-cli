@@ -22,6 +22,10 @@ class LeaderboardsServiceTests
     const string k_InvalidEnvironmentId = "foo";
     const string k_LeaderboardId = "leaderboard_id";
     const bool k_Archive = true;
+    const string k_PlayerId = "player1";
+    const string k_VersionId = "version1";
+    const string k_TierId = "tier1";
+    const string k_BucketId = "00000000-0000-0000-0000-000000000001";
 
     readonly Mock<IConfigurationValidator> m_ValidatorObject = new();
     readonly Mock<IServiceAccountAuthenticationService> m_AuthenticationServiceObject = new();
@@ -252,6 +256,413 @@ class LeaderboardsServiceTests
                 Guid.Parse(TestValues.ValidEnvironmentId),
                 k_LeaderboardId,
                 k_Archive,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task GetLeaderboardScoresAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        await m_LeaderboardsService!.GetLeaderboardScoresAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, null, null, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.GetLeaderboardScoresWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_LeaderboardId,
+                null,
+                null,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task GetLeaderboardPlayerScoreAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        await m_LeaderboardsService!.GetLeaderboardPlayerScoreAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, k_PlayerId, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.GetLeaderboardPlayerScoreWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_LeaderboardId,
+                k_PlayerId,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task GetLeaderboardScoresPlayerRangeAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        await m_LeaderboardsService!.GetLeaderboardScoresPlayerRangeAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, k_PlayerId, null, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.GetLeaderboardScoresPlayerRangeWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_LeaderboardId,
+                k_PlayerId,
+                null,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task GetLeaderboardScoresByTierAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        await m_LeaderboardsService!.GetLeaderboardScoresByTierAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, k_TierId, null, null, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.GetLeaderboardScoresByTierWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_LeaderboardId,
+                k_TierId,
+                null,
+                null,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task GetLeaderboardScoresByPlayerIdsAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        var playerIds = new List<string> { k_PlayerId };
+        await m_LeaderboardsService!.GetLeaderboardScoresByPlayerIdsAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, playerIds, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.GetLeaderboardScoresByPlayerIdsWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_LeaderboardId,
+                It.IsAny<LeaderboardPlayerIds>(),
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task DeleteLeaderboardPlayerScoreAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        await m_LeaderboardsService!.DeleteLeaderboardPlayerScoreAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, k_PlayerId, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.DeleteLeaderboardPlayerScoreWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_LeaderboardId,
+                k_PlayerId,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task PurgeLeaderboardPlayerScoresAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        await m_LeaderboardsService!.PurgeLeaderboardPlayerScoresAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_PlayerId, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.DeleteLeaderboardPlayerScoreAllLeaderboardsWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_PlayerId,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task GetLeaderboardBucketsAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        await m_LeaderboardsService!.GetLeaderboardBucketsAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, null, null, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.GetLeaderboardBucketsWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_LeaderboardId,
+                null,
+                null,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task GetLeaderboardBucketScoresAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        await m_LeaderboardsService!.GetLeaderboardBucketScoresAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, k_BucketId, null, null, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.GetLeaderboardBucketScoresWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_LeaderboardId,
+                Guid.Parse(k_BucketId),
+                null,
+                null,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task GetLeaderboardBucketScoresByTierAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        await m_LeaderboardsService!.GetLeaderboardBucketScoresByTierAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, k_BucketId, k_TierId, null, null, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.GetLeaderboardBucketScoresByTierWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_LeaderboardId,
+                Guid.Parse(k_BucketId),
+                k_TierId,
+                null,
+                null,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task GetLeaderboardVersionScoresAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        await m_LeaderboardsService!.GetLeaderboardVersionScoresAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, k_VersionId, null, null, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.GetLeaderboardVersionScoresWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_LeaderboardId,
+                k_VersionId,
+                null,
+                null,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task GetLeaderboardVersionScoresByTierAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        await m_LeaderboardsService!.GetLeaderboardVersionScoresByTierAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, k_VersionId, k_TierId, null, null, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.GetLeaderboardVersionScoresByTierWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_LeaderboardId,
+                k_VersionId,
+                k_TierId,
+                null,
+                null,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task GetLeaderboardVersionBucketsAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        await m_LeaderboardsService!.GetLeaderboardVersionBucketsAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, k_VersionId, null, null, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.GetLeaderboardVersionBucketsWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_LeaderboardId,
+                k_VersionId,
+                null,
+                null,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task GetLeaderboardVersionBucketScoresAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        await m_LeaderboardsService!.GetLeaderboardVersionBucketScoresAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, k_VersionId, k_BucketId, null, null, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.GetLeaderboardVersionBucketScoresWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_LeaderboardId,
+                k_VersionId,
+                Guid.Parse(k_BucketId),
+                null,
+                null,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task GetLeaderboardVersionBucketScoresByTierAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        await m_LeaderboardsService!.GetLeaderboardVersionBucketScoresByTierAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, k_VersionId, k_BucketId, k_TierId, null, null, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.GetLeaderboardVersionBucketScoresByTierWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_LeaderboardId,
+                k_VersionId,
+                Guid.Parse(k_BucketId),
+                k_TierId,
+                null,
+                null,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task GetLeaderboardVersionPlayerScoreAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        await m_LeaderboardsService!.GetLeaderboardVersionPlayerScoreAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, k_VersionId, k_PlayerId, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.GetLeaderboardVersionPlayerScoreWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_LeaderboardId,
+                k_VersionId,
+                k_PlayerId,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task GetLeaderboardVersionScoresPlayerRangeAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        await m_LeaderboardsService!.GetLeaderboardVersionScoresPlayerRangeAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, k_VersionId, k_PlayerId, null, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.GetLeaderboardVersionScoresPlayerRangeWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_LeaderboardId,
+                k_VersionId,
+                k_PlayerId,
+                null,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task GetLeaderboardVersionScoresByPlayerIdsAsync_Succeeded()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        var playerIds = new List<string> { k_PlayerId };
+        await m_LeaderboardsService!.GetLeaderboardVersionScoresByPlayerIdsAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_LeaderboardId, k_VersionId, playerIds, CancellationToken.None);
+
+        m_LeaderboardApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            a => a.GetLeaderboardScoresByPlayerIdsArchiveVersionWithHttpInfoAsync(
+                Guid.Parse(TestValues.ValidProjectId),
+                Guid.Parse(TestValues.ValidEnvironmentId),
+                k_LeaderboardId,
+                k_VersionId,
+                It.IsAny<LeaderboardPlayerIds>(),
                 0,
                 CancellationToken.None),
             Times.Once);

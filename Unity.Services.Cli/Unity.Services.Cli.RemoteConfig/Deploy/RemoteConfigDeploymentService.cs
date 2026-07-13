@@ -1,6 +1,7 @@
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.RemoteConfig.Exceptions;
 using Unity.Services.Cli.RemoteConfig.Model;
@@ -45,7 +46,7 @@ partial class RemoteConfigDeploymentService : IDeploymentService
 
     public async Task<DeploymentResult> Deploy(
         DeployInput deployInput,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> authoringFiles,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,
@@ -53,7 +54,7 @@ partial class RemoteConfigDeploymentService : IDeploymentService
     {
         DeployResult deploymentResult = null!;
         m_RemoteConfigClient.Initialize(projectId, environmentId, cancellationToken);
-        var loadResult = await m_RemoteConfigScriptsLoader.LoadScriptsAsync(filePaths, cancellationToken);
+        var loadResult = await m_RemoteConfigScriptsLoader.LoadScriptsAsync(authoringFiles.ToPaths(), cancellationToken);
         var configFiles = loadResult.Loaded.ToList();
         loadingContext?.Status($"Deploying {m_ServiceType} Files...");
 

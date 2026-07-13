@@ -1,4 +1,3 @@
-using System.Reflection;
 using Newtonsoft.Json;
 
 namespace Unity.Services.Cli.Common.Models;
@@ -18,33 +17,56 @@ public class Configuration
 
     public string? GetValue(string key)
     {
-        return GetType()
-            .GetProperties()
-            .First(property => GetJsonPropertyName(property) == key)
-            .GetValue(this) as string;
+        return key switch
+        {
+            Keys.ConfigKeys.EnvironmentName => EnvironmentName,
+            Keys.ConfigKeys.ProjectId => CloudProjectId,
+            Keys.ConfigKeys.BucketName => CloudBucketName,
+            _ => throw new ArgumentException($"Unknown configuration key: {key}", nameof(key))
+        };
     }
 
     public void SetValue(string key, string value)
     {
-        GetType()
-            .GetProperties()
-            .First(property => GetJsonPropertyName(property) == key)
-            .SetValue(this, value);
+        switch (key)
+        {
+            case Keys.ConfigKeys.EnvironmentName:
+                EnvironmentName = value;
+                break;
+            case Keys.ConfigKeys.ProjectId:
+                CloudProjectId = value;
+                break;
+            case Keys.ConfigKeys.BucketName:
+                CloudBucketName = value;
+                break;
+            default:
+                throw new ArgumentException($"Unknown configuration key: {key}", nameof(key));
+        }
     }
 
     public void DeleteValue(string key)
     {
-        GetType()
-            .GetProperties()
-            .First(property => GetJsonPropertyName(property) == key)
-            .SetValue(this, null);
+        switch (key)
+        {
+            case Keys.ConfigKeys.EnvironmentName:
+                EnvironmentName = null;
+                break;
+            case Keys.ConfigKeys.ProjectId:
+                CloudProjectId = null;
+                break;
+            case Keys.ConfigKeys.BucketName:
+                CloudBucketName = null;
+                break;
+            default:
+                throw new ArgumentException($"Unknown configuration key: {key}", nameof(key));
+        }
     }
 
     public IEnumerable<(string? key, string? value)> List()
     {
-        return GetType()
-            .GetProperties()
-            .Select(property => (GetJsonPropertyName(property), property.GetValue(this) as string));
+        yield return (Keys.ConfigKeys.EnvironmentName, EnvironmentName);
+        yield return (Keys.ConfigKeys.ProjectId, CloudProjectId);
+        yield return (Keys.ConfigKeys.BucketName, CloudBucketName);
     }
 
     /// <summary>
@@ -53,14 +75,6 @@ public class Configuration
     /// <returns></returns>
     public static IList<string?> GetKeys()
     {
-        return typeof(Configuration)
-            .GetProperties()
-            .Select(GetJsonPropertyName)
-            .ToList();
-    }
-
-    static string? GetJsonPropertyName(PropertyInfo propertyInfo)
-    {
-        return propertyInfo.GetCustomAttribute<JsonPropertyAttribute>()?.PropertyName;
+        return Keys.ConfigKeys.Keys.ToList<string?>();
     }
 }

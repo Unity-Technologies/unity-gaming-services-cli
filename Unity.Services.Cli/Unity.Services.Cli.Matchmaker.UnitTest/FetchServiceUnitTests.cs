@@ -2,6 +2,7 @@ using NUnit.Framework;
 using Moq;
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Matchmaker.Service;
 using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.ConfigApi;
 using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Fetch;
@@ -30,7 +31,7 @@ public class MatchmakerFetchServiceUnitTests
             });
         var service = new MatchmakerFetchService(mockClient.Object, mockFetchHandler.Object);
         var fetchInput = new FetchInput();
-        var filePaths = new List<string> { "test.mme" };
+        var filePaths = new List<AuthoringFile> { new("test.mme") };
         var projectId = "testProjectId";
         var environmentId = "testEnvironmentId";
         var cancellationToken = new CancellationToken();
@@ -52,7 +53,7 @@ public class MatchmakerFetchServiceUnitTests
             .ReturnsAsync(new FetchResult { AbortMessage = "Abort" });
         var service = new MatchmakerFetchService(mockClient.Object, mockFetchHandler.Object);
         var fetchInput = new FetchInput();
-        var filePaths = new List<string> { "test.mm" };
+        var filePaths = new List<AuthoringFile> { new("test.mm") };
         var projectId = "testProjectId";
         var environmentId = "testEnvironmentId";
         var cancellationToken = new CancellationToken();

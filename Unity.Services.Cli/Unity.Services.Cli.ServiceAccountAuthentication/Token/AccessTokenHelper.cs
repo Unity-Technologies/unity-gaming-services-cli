@@ -8,13 +8,27 @@ public static class AccessTokenHelper
     public const string HeaderKey = "Authorization";
 
     /// <summary>
+    /// Marker prefix used to flag a token as a Bearer JWT (e.g. one minted via
+    /// <c>UGS_CLI_AUTH_TOKEN</c>). The prefix is stripped before the header is
+    /// emitted; tokens without it default to <c>Basic</c> service-account auth.
+    /// </summary>
+    public const string BearerTokenSchemePrefix = "Bearer:";
+
+    /// <summary>
     /// Create a ready to send header value for this token.
     /// </summary>
     /// <param name="token">
     /// The token to convert.
     /// </param>
     public static string ToHeaderValue(this string token)
-        => $"Basic {token}";
+    {
+        if (token?.StartsWith(BearerTokenSchemePrefix, StringComparison.Ordinal) == true)
+        {
+            return $"Bearer {token.Substring(BearerTokenSchemePrefix.Length)}";
+        }
+
+        return $"Basic {token}";
+    }
 
     /// <summary>
     /// Set the header of the provided token in this header collection.

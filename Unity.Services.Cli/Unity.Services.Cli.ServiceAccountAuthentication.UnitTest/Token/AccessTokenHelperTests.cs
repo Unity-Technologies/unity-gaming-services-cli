@@ -18,6 +18,29 @@ class AccessTokenHelperTests
     }
 
     [Test]
+    public void ToHeaderValueOnNullTokenFallsBackToBasic()
+    {
+        // Existing callers (e.g. SchedulerClient) construct a header value
+        // from an authentication service that may legitimately return null
+        // in test/mock setups. Preserve the prior pre-Bearer-patch behaviour:
+        // emit "Basic " (with no token) rather than NREing.
+        var headerValue = AccessTokenHelper.ToHeaderValue(null!);
+
+        Assert.AreEqual("Basic ", headerValue);
+    }
+
+    [Test]
+    public void ToHeaderValueEmitsBearerSchemeWhenTokenHasBearerPrefix()
+    {
+        const string jwt = "eyJhbGciOiJSUzI1NiJ9.payload.sig";
+        var prefixed = AccessTokenHelper.BearerTokenSchemePrefix + jwt;
+
+        var headerValue = AccessTokenHelper.ToHeaderValue(prefixed);
+
+        Assert.AreEqual($"Bearer {jwt}", headerValue);
+    }
+
+    [Test]
     public void SetAccessTokenHeaderCreatesEntryIfNoneExist()
     {
         const string token = "test token";

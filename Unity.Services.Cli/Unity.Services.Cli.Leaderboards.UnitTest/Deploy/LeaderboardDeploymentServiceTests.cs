@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using Moq;
 using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Leaderboards.Deploy;
 using Unity.Services.Leaderboards.Authoring.Core.Deploy;
 using Unity.Services.Leaderboards.Authoring.Core.Model;
@@ -73,7 +74,7 @@ public class LeaderboardDeploymentServiceTests
         };
         var res = await m_DeploymentService!.Deploy(
             input,
-            Array.Empty<string>(),
+            Array.Empty<AuthoringFile>(),
             String.Empty,
             string.Empty,
             null,
@@ -109,7 +110,7 @@ public class LeaderboardDeploymentServiceTests
         };
         var res = await m_DeploymentService!.Deploy(
             input,
-            new[] { "dir" },
+            [new AuthoringFile("dir")],
             string.Empty,
             string.Empty,
             null,

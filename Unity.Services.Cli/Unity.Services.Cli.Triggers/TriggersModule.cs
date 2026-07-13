@@ -32,18 +32,98 @@ public class TriggersModule : ICommandModule
 {
     public Command? ModuleRootCommand { get; }
 
-    static readonly Command k_ListCommand = new("list", "List trigger configurations.")
+    static readonly Command k_ListCommand = new("list", new CommandDescription("List trigger configurations.")
+        .WithReturn("JSON array of triggers with id, name, eventType, actionType, actionUrn, and timestamps.")
+        .Build())
     {
         ListTriggersInput.LimitOption,
         CommonInput.CloudProjectIdOption,
         CommonInput.EnvironmentNameOption,
     };
 
-    static readonly Command k_DeleteCommand = new("delete", "Delete a trigger configuration.")
+    static readonly Command k_GetCommand = new("get", new CommandDescription("Get a trigger configuration by ID.")
+        .WithReturn("JSON trigger object with id, name, eventType, actionType, actionUrn, filter, and optional webhook config.")
+        .Build())
+    {
+        GetTriggerInput.TriggerIdArgument,
+        CommonInput.CloudProjectIdOption,
+        CommonInput.EnvironmentNameOption,
+    };
+
+    static readonly Command k_DeleteCommand = new("delete", new CommandDescription("Delete a trigger configuration.")
+        .WithReturn("Confirmation message.")
+        .Build())
     {
         DeleteTriggerInput.TriggerIdArgument,
         CommonInput.CloudProjectIdOption,
         CommonInput.EnvironmentNameOption,
+    };
+
+    static readonly Command k_DlqListCommand = new("list", new CommandDescription("List failed events in the Dead Letter Queue.")
+        .WithReturn("JSON array of DLQ event objects.")
+        .Build())
+    {
+        ListDlqEventsInput.LimitOption,
+        ListDlqEventsInput.StatusOption,
+        ListDlqEventsInput.CreatedFromOption,
+        ListDlqEventsInput.CreatedToOption,
+        ListDlqEventsInput.ResolutionActionOption,
+        ListDlqEventsInput.EventIdOption,
+        CommonInput.CloudProjectIdOption,
+        CommonInput.EnvironmentNameOption,
+    };
+
+    static readonly Command k_DlqGetCommand = new("get", new CommandDescription("Get a DLQ event by ID.")
+        .WithReturn("JSON DLQ event object.")
+        .Build())
+    {
+        DlqEventInput.EventIdArgument,
+        CommonInput.CloudProjectIdOption,
+        CommonInput.EnvironmentNameOption,
+    };
+
+    static readonly Command k_DlqReplayCommand = new("replay", new CommandDescription("Queue a failed DLQ event for replay.")
+        .WithReturn("Confirmation message.")
+        .Build())
+    {
+        DlqEventInput.EventIdArgument,
+        CommonInput.CloudProjectIdOption,
+        CommonInput.EnvironmentNameOption,
+    };
+
+    static readonly Command k_DlqDiscardCommand = new("discard", new CommandDescription("Discard a DLQ event without reprocessing.")
+        .WithReturn("Confirmation message.")
+        .Build())
+    {
+        DlqEventInput.EventIdArgument,
+        CommonInput.CloudProjectIdOption,
+        CommonInput.EnvironmentNameOption,
+    };
+
+    static readonly Command k_DlqReplayAllCommand = new("replay-all", new CommandDescription("Queue all pending DLQ events for replay.")
+        .WithReturn("JSON with count of events queued.")
+        .Build())
+    {
+        CommonInput.CloudProjectIdOption,
+        CommonInput.EnvironmentNameOption,
+    };
+
+    static readonly Command k_DlqDiscardAllCommand = new("discard-all", new CommandDescription("Discard all pending DLQ events.")
+        .WithReturn("JSON with count of events discarded.")
+        .Build())
+    {
+        CommonInput.CloudProjectIdOption,
+        CommonInput.EnvironmentNameOption,
+    };
+
+    static readonly Command k_DlqCommand = new("dlq", "Dead Letter Queue management for failed trigger events.")
+    {
+        k_DlqListCommand,
+        k_DlqGetCommand,
+        k_DlqReplayCommand,
+        k_DlqDiscardCommand,
+        k_DlqReplayAllCommand,
+        k_DlqDiscardAllCommand,
     };
 
     public TriggersModule()
@@ -56,6 +136,14 @@ public class TriggersModule : ICommandModule
             ILoadingIndicator,
             CancellationToken>(ListTriggersHandler.ListAsync);
 
+        k_GetCommand.SetHandler<
+            GetTriggerInput,
+            IUnityEnvironment,
+            ITriggersService,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken>(GetTriggerHandler.GetAsync);
+
         k_DeleteCommand.SetHandler<
             DeleteTriggerInput,
             IUnityEnvironment,
@@ -64,11 +152,64 @@ public class TriggersModule : ICommandModule
             ILoadingIndicator,
             CancellationToken>(DeleteTriggersHandler.DeleteAsync);
 
-        ModuleRootCommand = new("triggers", "Triggers module root command.")
+        k_DlqListCommand.SetHandler<
+            ListDlqEventsInput,
+            IUnityEnvironment,
+            IDlqService,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken>(ListDlqEventsHandler.ListAsync);
+
+        k_DlqGetCommand.SetHandler<
+            DlqEventInput,
+            IUnityEnvironment,
+            IDlqService,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken>(GetDlqEventHandler.GetAsync);
+
+        k_DlqReplayCommand.SetHandler<
+            DlqEventInput,
+            IUnityEnvironment,
+            IDlqService,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken>(ReplayDlqEventHandler.ReplayAsync);
+
+        k_DlqDiscardCommand.SetHandler<
+            DlqEventInput,
+            IUnityEnvironment,
+            IDlqService,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken>(DiscardDlqEventHandler.DiscardAsync);
+
+        k_DlqReplayAllCommand.SetHandler<
+            CommonInput,
+            IUnityEnvironment,
+            IDlqService,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken>(ReplayAllDlqEventsHandler.ReplayAllAsync);
+
+        k_DlqDiscardAllCommand.SetHandler<
+            CommonInput,
+            IUnityEnvironment,
+            IDlqService,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken>(DiscardAllDlqEventsHandler.DiscardAllAsync);
+
+        ModuleRootCommand = new("triggers", new CommandDescription("Manage Triggers.")
+            .WithDocs("https://docs.unity.com/en-us/triggers/tutorials/define-triggers/rest-api")
+            .WithAdminApi("https://services.docs.unity.com/triggers-admin/v1/")
+            .Build())
         {
             ModuleRootCommand.AddNewFileCommand<TriggersConfigFile>("Trigger"),
             k_ListCommand,
+            k_GetCommand,
             k_DeleteCommand,
+            k_DlqCommand,
         };
 
         ModuleRootCommand.AddAlias("tr");
@@ -86,7 +227,9 @@ public class TriggersModule : ICommandModule
         config.DefaultHeaders.SetXClientIdHeader();
         serviceCollection.AddTransient<ITriggersSerializer, TriggersSerializer>();
         serviceCollection.AddTransient<ITriggersApiAsync, TriggersApi>(_ => new TriggersApi(config));
+        serviceCollection.AddTransient<IDLQApiAsync, DLQApi>(_ => new DLQApi(config));
         serviceCollection.AddSingleton<ITriggersService, TriggersService>();
+        serviceCollection.AddSingleton<IDlqService, DlqService>();
         serviceCollection.AddSingleton<ITriggersClient, TriggersClient>();
         // Registers services required for Deployment/Fetch
         // Register the command handler

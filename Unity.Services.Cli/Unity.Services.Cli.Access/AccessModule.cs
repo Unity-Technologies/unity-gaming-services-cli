@@ -41,7 +41,9 @@ public class AccessModule : ICommandModule
 
     public AccessModule()
     {
-        GetProjectPolicyCommand = new Command("get-project-policy", "retrieves policies for a project and environment")
+        GetProjectPolicyCommand = new Command("get-project-policy", new CommandDescription("Retrieves policies for a project and environment.")
+            .WithReturn("JSON object with policy statements, each containing sid, action, effect, principal, and resource.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption
@@ -52,7 +54,9 @@ public class AccessModule : ICommandModule
                 GetProjectPolicyHandler.GetProjectPolicyAsync);
 
         GetPlayerPolicyCommand = new Command("get-player-policy",
-            "retrieves policies for a player in a project and environment")
+            new CommandDescription("Retrieves policies for a player in a project and environment.")
+                .WithReturn("JSON object with playerId and statements, each containing sid, action, effect, principal, and resource.")
+                .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -64,7 +68,9 @@ public class AccessModule : ICommandModule
                 CancellationToken>(GetPlayerPolicyHandler.GetPlayerPolicyAsync);
 
         GetAllPlayerPoliciesCommand = new Command("get-all-player-policies",
-            "retrieves all players policies for a project and environment")
+            new CommandDescription("Retrieves all players policies for a project and environment.")
+                .WithReturn("JSON array of player policies, each with playerId and statements.")
+                .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -75,7 +81,9 @@ public class AccessModule : ICommandModule
                 CancellationToken>(GetAllPlayerPoliciesHandler.GetAllPlayerPoliciesAsync);
 
         UpsertProjectPolicyCommand = new Command("upsert-project-policy",
-            "upsert statement in project policy")
+            new CommandDescription("Upsert statement in project policy.")
+                .WithReturn("Confirmation message.")
+                .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -87,7 +95,9 @@ public class AccessModule : ICommandModule
                 CancellationToken>(UpsertProjectPolicyHandler.UpsertProjectPolicyAsync);
 
         UpsertPlayerPolicyCommand = new Command("upsert-player-policy",
-            "upsert statements in player policy")
+            new CommandDescription("Upsert statements in player policy.")
+                .WithReturn("Confirmation message.")
+                .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -100,7 +110,9 @@ public class AccessModule : ICommandModule
                 CancellationToken>(UpsertPlayerPolicyHandler.UpsertPlayerPolicyAsync);
 
         DeleteProjectPolicyStatementsCommand =
-            new Command("delete-project-policy-statements", "delete statements in project policy")
+            new Command("delete-project-policy-statements", new CommandDescription("Delete statements in project policy.")
+                .WithReturn("Confirmation message.")
+                .Build())
             {
                 CommonInput.CloudProjectIdOption,
                 CommonInput.EnvironmentNameOption,
@@ -112,7 +124,9 @@ public class AccessModule : ICommandModule
                 CancellationToken>(DeleteProjectPolicyStatementsHandler.DeleteProjectPolicyStatementsAsync);
 
         DeletePlayerPolicyStatementsCommand =
-            new Command("delete-player-policy-statements", "delete statements in player policy")
+            new Command("delete-player-policy-statements", new CommandDescription("Delete statements in player policy.")
+                .WithReturn("Confirmation message.")
+                .Build())
             {
                 CommonInput.CloudProjectIdOption,
                 CommonInput.EnvironmentNameOption,
@@ -124,7 +138,10 @@ public class AccessModule : ICommandModule
             .SetHandler<AccessInput, IUnityEnvironment, IAccessService, ILogger, ILoadingIndicator,
                 CancellationToken>(DeletePlayerPolicyStatementsHandler.DeletePlayerPolicyStatementsAsync);
 
-        ModuleRootCommand = new Command("access", "Manage resource policies to restrict read/write access")
+        ModuleRootCommand = new Command("access", new CommandDescription("Manage resource policies to restrict read/write access.")
+            .WithDocs("https://docs.unity.com/en-us/services/access-control")
+            .WithAdminApi("https://services.docs.unity.com/access/v1/")
+            .Build())
         {
             GetProjectPolicyCommand,
             GetPlayerPolicyCommand,

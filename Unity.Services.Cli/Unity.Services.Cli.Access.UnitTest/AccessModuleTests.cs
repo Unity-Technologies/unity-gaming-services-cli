@@ -1,5 +1,4 @@
 using System.CommandLine.Builder;
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Unity.Services.Cli.Access.Input;
@@ -119,10 +118,10 @@ public class AccessModuleTests
     [TestCase(typeof(IAccessService))]
     public void AccessModuleModuleRegistersServices(Type serviceType)
     {
-        EndpointHelper.InitializeNetworkTargetEndpoints(new[]
-        {
-            typeof(AccessEndpoints).GetTypeInfo()
-        });
+        EndpointHelper.InitializeNetworkTargetEndpoints(
+        [
+            new AccessEndpoints()
+        ]);
         var services = new List<ServiceDescriptor>();
         var hostBuilder = TestsHelper.CreateAndSetupMockHostBuilder(services);
         hostBuilder.ConfigureServices(AccessModule.RegisterServices);

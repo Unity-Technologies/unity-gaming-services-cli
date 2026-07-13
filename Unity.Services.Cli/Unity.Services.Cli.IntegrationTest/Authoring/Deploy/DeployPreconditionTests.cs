@@ -66,7 +66,7 @@ public class DeployPreconditionTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"deploy .")
             .AssertStandardErrorContains($"[Error]: {Environment.NewLine}    You are not logged into any service account. Please login using the 'ugs login' command.")
             .AssertExitCode(ExitCode.HandledError)

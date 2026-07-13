@@ -1,11 +1,13 @@
 using Moq;
 using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Scheduler.Deploy;
 using Unity.Services.Cli.Scheduler.Fetch;
 using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.Scheduler.Authoring.Core.Fetch;
 using Unity.Services.Scheduler.Authoring.Core.Model;
 using Unity.Services.Scheduler.Authoring.Core.Service;
+using FetchResult = Unity.Services.Scheduler.Authoring.Core.Fetch.FetchResult;
 
 namespace Unity.Services.Cli.Scheduler.UnitTest.Deploy;
 
@@ -90,7 +92,7 @@ public class SchedulerFetchServiceTests
         };
         var res = await m_FetchService!.FetchAsync(
             input,
-            new[] { "dir" },
+            [new AuthoringFile("dir")],
             string.Empty,
             string.Empty,
             null,
@@ -144,7 +146,7 @@ public class SchedulerFetchServiceTests
         };
         var res = await m_FetchService!.FetchAsync(
             input,
-            new[] { "dir" },
+            [new AuthoringFile("dir")],
             string.Empty,
             string.Empty,
             null,

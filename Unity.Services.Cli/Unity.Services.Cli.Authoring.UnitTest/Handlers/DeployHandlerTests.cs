@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -6,6 +5,7 @@ using Moq;
 using NUnit.Framework;
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.DeploymentDefinition;
+using Unity.Services.Cli.Authoring.Exceptions;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Logging;
@@ -30,11 +30,12 @@ public class DeployHandlerTests
     readonly Mock<IServiceProvider> m_ServiceProvider = new();
     readonly Mock<IDeploymentService> m_DeploymentService = new();
     readonly Mock<IUnityEnvironment> m_UnityEnvironment = new();
-    readonly Mock<ICliDeploymentDefinitionService> m_DdefService = new();
+    readonly Mock<IAuthoringFileService> m_DdefService = new();
     readonly Mock<IAnalyticsEventBuilder> m_AnalyticsEventBuilder = new();
     readonly ServiceTypesBridge m_Bridge = new();
 
     const string k_ValidEnvironmentId = "00000000-0000-0000-0000-000000000000";
+
     public class TestDeploymentService : IDeploymentService
     {
         string m_ServiceType = "Test";
@@ -49,10 +50,16 @@ public class DeployHandlerTests
             m_DeployFileExtension
         };
 
-        public Task<DeploymentResult> Deploy(DeployInput deployInput, IReadOnlyList<string> filePaths, string projectId, string environmentId,
-            StatusContext? loadingContext, CancellationToken cancellationToken)
+        public Task<DeploymentResult> Deploy(
+            DeployInput deployInput,
+            IReadOnlyList<AuthoringFile> filePaths,
+            string projectId,
+            string environmentId,
+            StatusContext? loadingContext,
+            CancellationToken cancellationToken)
         {
-            return Task.FromResult(new DeploymentResult(
+            return Task.FromResult(
+                new DeploymentResult(
                     new List<DeployContent>(),
                     new List<DeployContent>(),
                     new List<DeployContent>(),
@@ -75,21 +82,27 @@ public class DeployHandlerTests
             m_DeployFileExtension
         };
 
-        public Task<DeploymentResult> Deploy(DeployInput deployInput, IReadOnlyList<string> filePaths, string projectId, string environmentId,
-            StatusContext? loadingContext, CancellationToken cancellationToken)
+        public Task<DeploymentResult> Deploy(
+            DeployInput deployInput,
+            IReadOnlyList<AuthoringFile> filePaths,
+            string projectId,
+            string environmentId,
+            StatusContext? loadingContext,
+            CancellationToken cancellationToken)
         {
-            return Task.FromResult(new DeploymentResult(
-                new List<DeployContent>(),
-                new List<DeployContent>(),
-                new List<DeployContent>(),
-                new List<DeployContent>()
-                {
-                    new ("success", "type", "path_1")
-                },
-                new List<DeployContent>()
-                {
-                    new ("failure", "type", "path_2")
-                }));
+            return Task.FromResult(
+                new DeploymentResult(
+                    new List<DeployContent>(),
+                    new List<DeployContent>(),
+                    new List<DeployContent>(),
+                    new List<DeployContent>()
+                    {
+                        new("success", "type", "path_1")
+                    },
+                    new List<DeployContent>()
+                    {
+                        new("failure", "type", "path_2")
+                    }));
         }
     }
 
@@ -107,8 +120,13 @@ public class DeployHandlerTests
             m_DeployFileExtension
         };
 
-        public Task<DeploymentResult> Deploy(DeployInput deployInput, IReadOnlyList<string> filePaths, string projectId, string environmentId,
-            StatusContext? loadingContext, CancellationToken cancellationToken)
+        public Task<DeploymentResult> Deploy(
+            DeployInput deployInput,
+            IReadOnlyList<AuthoringFile> filePaths,
+            string projectId,
+            string environmentId,
+            StatusContext? loadingContext,
+            CancellationToken cancellationToken)
         {
             return Task.FromException<DeploymentResult>(new NotImplementedException());
         }
@@ -133,14 +151,13 @@ public class DeployHandlerTests
                     ".test"
                 });
 
-        m_DeploymentService.Setup(
-                s => s.Deploy(
-                    It.IsAny<DeployInput>(),
-                    It.IsAny<IReadOnlyList<string>>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<StatusContext?>(),
-                    It.IsAny<CancellationToken>()))
+        m_DeploymentService.Setup(s => s.Deploy(
+                It.IsAny<DeployInput>(),
+                It.IsAny<IReadOnlyList<AuthoringFile>>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<StatusContext?>(),
+                It.IsAny<CancellationToken>()))
             .Returns(
                 Task.FromResult(
                     new DeploymentResult(
@@ -158,20 +175,31 @@ public class DeployHandlerTests
         m_Host.Setup(x => x.Services)
             .Returns(provider);
 
-        m_UnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None)).Returns(Task.FromResult(k_ValidEnvironmentId));
+        m_UnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
+            .Returns(Task.FromResult(k_ValidEnvironmentId));
         m_DdefService
-            .Setup(
-                x => x.GetFilesFromInput(
-                    It.IsAny<IReadOnlyList<string>>(),
-                    It.IsAny<IEnumerable<string>>()))
+            .Setup(x => x.ResolveAuthoringFiles(
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<string>>()))
             .Returns(
                 new DeploymentDefinitionFilteringResult(
                     new DeploymentDefinitionFiles(),
-                    new Dictionary<string, IReadOnlyList<string>>
+                    new Dictionary<string, IReadOnlyList<AuthoringFile>>
                     {
-                        { ".test", new List<string> { "path.test"} },
-                        { ".test1", new List<string> { "path1.test1"} }
-                    }));
+                        {
+                            ".test", new List<AuthoringFile>
+                            {
+                                new("path.test")
+                            }
+                        },
+                        {
+                            ".test1", new List<AuthoringFile>
+                            {
+                                new("path1.test1")
+                            }
+                        }
+                    },
+                    new Dictionary<string, IDeploymentDefinition?>()));
     }
 
     [Test]
@@ -190,7 +218,8 @@ public class DeployHandlerTests
             CancellationToken.None);
 
         mockLoadingIndicator.Verify(
-            ex => ex.StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?, Task>>()), Times.Once);
+            ex => ex.StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?, Task>>()),
+            Times.Once);
     }
 
 
@@ -198,7 +227,8 @@ public class DeployHandlerTests
     public async Task DeployAsync_CallsGetServicesCorrectly()
     {
         await DeployCommandHandler.DeployAsync(
-            m_Host.Object, new DeployInput(),
+            m_Host.Object,
+            new DeployInput(),
             m_UnityEnvironment.Object,
             m_Logger.Object,
             (StatusContext)null!,
@@ -206,7 +236,11 @@ public class DeployHandlerTests
             m_AnalyticsEventBuilder.Object,
             CancellationToken.None);
 
-        TestsHelper.VerifyLoggerWasCalled(m_Logger, LogLevel.Critical, LoggerExtension.ResultEventId, Times.Once);
+        TestsHelper.VerifyLoggerWasCalled(
+            m_Logger,
+            LogLevel.Critical,
+            LoggerExtension.ResultEventId,
+            Times.Once);
     }
 
     [Test]
@@ -222,7 +256,8 @@ public class DeployHandlerTests
         Assert.ThrowsAsync<DeploymentFailureException>(async () =>
         {
             await DeployCommandHandler.DeployAsync(
-                m_Host.Object, new DeployInput(),
+                m_Host.Object,
+                new DeployInput(),
                 m_UnityEnvironment.Object,
                 m_Logger.Object,
                 (StatusContext)null!,
@@ -245,7 +280,8 @@ public class DeployHandlerTests
         Assert.ThrowsAsync<AggregateException>(async () =>
         {
             await DeployCommandHandler.DeployAsync(
-                m_Host.Object, new DeployInput(),
+                m_Host.Object,
+                new DeployInput(),
                 m_UnityEnvironment.Object,
                 m_Logger.Object,
                 (StatusContext)null!,
@@ -253,7 +289,6 @@ public class DeployHandlerTests
                 m_AnalyticsEventBuilder.Object,
                 CancellationToken.None);
         });
-
     }
 
     [Test]
@@ -277,7 +312,7 @@ public class DeployHandlerTests
         m_DeploymentService.Verify(
             s => s.Deploy(
                 It.IsAny<DeployInput>(),
-                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<AuthoringFile>>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
@@ -310,7 +345,7 @@ public class DeployHandlerTests
         m_DeploymentService.Verify(
             s => s.Deploy(
                 It.IsAny<DeployInput>(),
-                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<AuthoringFile>>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
@@ -342,7 +377,7 @@ public class DeployHandlerTests
         m_DeploymentService.Verify(
             s => s.Deploy(
                 It.IsAny<DeployInput>(),
-                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<AuthoringFile>>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
@@ -374,7 +409,7 @@ public class DeployHandlerTests
         m_DeploymentService.Verify(
             s => s.Deploy(
                 It.IsAny<DeployInput>(),
-                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<AuthoringFile>>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
@@ -423,16 +458,14 @@ public class DeployHandlerTests
         };
 
         m_DdefService
-            .Setup(
-                s => s.GetFilesFromInput(
-                    It.IsAny<IEnumerable<string>>(),
-                    It.IsAny<IEnumerable<string>>()))
-            .Throws(
-                () =>
-                    new MultipleDeploymentDefinitionInDirectoryException(
-                        new Mock<IDeploymentDefinition>().Object,
-                        new Mock<IDeploymentDefinition>().Object,
-                        "path"));
+            .Setup(s => s.ResolveAuthoringFiles(
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<string>>()))
+            .Throws(() =>
+                new MultipleDeploymentDefinitionInDirectoryException(
+                    new Mock<IDeploymentDefinition>().Object,
+                    new Mock<IDeploymentDefinition>().Object,
+                    "path"));
 
         await DeployCommandHandler.DeployAsync(
             m_Host.Object,
@@ -447,7 +480,7 @@ public class DeployHandlerTests
         m_DeploymentService.Verify(
             s => s.Deploy(
                 It.IsAny<DeployInput>(),
-                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<AuthoringFile>>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
@@ -467,10 +500,9 @@ public class DeployHandlerTests
         };
 
         m_DdefService
-            .Setup(
-                s => s.GetFilesFromInput(
-                    It.IsAny<IEnumerable<string>>(),
-                    It.IsAny<IEnumerable<string>>()))
+            .Setup(s => s.ResolveAuthoringFiles(
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<string>>()))
             .Throws(
                 new DeploymentDefinitionFileIntersectionException(
                     new Dictionary<IDeploymentDefinition, List<string>>(),
@@ -489,7 +521,7 @@ public class DeployHandlerTests
         m_DeploymentService.Verify(
             s => s.Deploy(
                 It.IsAny<DeployInput>(),
-                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<AuthoringFile>>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
@@ -512,9 +544,9 @@ public class DeployHandlerTests
         mockResult
             .Setup(r => r.AllFilesByExtension)
             .Returns(
-                new Dictionary<string, IReadOnlyList<string>>
+                new Dictionary<string, IReadOnlyList<AuthoringFile>>
                 {
-                    { ".test", new List<string>() }
+                    { ".test", new List<AuthoringFile>() }
                 });
         var mockFiles = new Mock<IDeploymentDefinitionFiles>();
         mockFiles
@@ -524,10 +556,9 @@ public class DeployHandlerTests
             .Setup(r => r.DefinitionFiles)
             .Returns(mockFiles.Object);
         m_DdefService
-            .Setup(
-                s => s.GetFilesFromInput(
-                    It.IsAny<IEnumerable<string>>(),
-                    It.IsAny<IEnumerable<string>>()))
+            .Setup(s => s.ResolveAuthoringFiles(
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<string>>()))
             .Returns(mockResult.Object);
 
         await DeployCommandHandler.DeployAsync(
@@ -542,4 +573,6 @@ public class DeployHandlerTests
 
         mockResult.Verify(r => r.GetExclusionsLogMessage(), Times.Once);
     }
+
+
 }

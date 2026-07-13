@@ -135,7 +135,7 @@ public class CloudCodeDeploymentServiceTests
 
         var result = await m_DeploymentService!.Deploy(
             input,
-            k_ValidFilePaths,
+            k_ValidFilePaths.Select(p => new AuthoringFile(p)).ToList(),
             TestValues.ValidProjectId,
             TestValues.ValidEnvironmentId,
             null!,
@@ -175,7 +175,7 @@ public class CloudCodeDeploymentServiceTests
 
         var result = await m_DeploymentService!.Deploy(
             input,
-            k_ValidFilePaths,
+            k_ValidFilePaths.Select(p => new AuthoringFile(p)).ToList(),
             TestValues.ValidProjectId,
             TestValues.ValidEnvironmentId,
             null!,
@@ -201,7 +201,7 @@ public class CloudCodeDeploymentServiceTests
         Assert.DoesNotThrowAsync(
             () => m_DeploymentService!.Deploy(
                 input,
-                k_ValidFilePaths,
+                k_ValidFilePaths.Select(p => new AuthoringFile(p)).ToList(),
                 TestValues.ValidProjectId,
                 TestValues.ValidEnvironmentId,
                 null!,

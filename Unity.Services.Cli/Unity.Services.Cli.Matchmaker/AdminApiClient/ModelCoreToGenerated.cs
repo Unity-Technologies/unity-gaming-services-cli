@@ -37,57 +37,15 @@ static class ModelCoreToGenerated
         bool dryRun)
     {
         var errors = new List<Core.ErrorResponse>();
-        if (matchHostingConfig is Core.MultiplayConfig multiplayConfig)
+        if (matchHostingConfig is Core.MultiplayConfig)
         {
-            var fleet = availableMultiplayResources.Fleets.Find(f => f.Name == multiplayConfig.FleetName);
-            if (fleet.Name == null)
-            {
-                errors.Add(
-                    new Core.ErrorResponse()
-                    {
-                        ResultCode = "InvalidMultiplayFleetName",
-                        Message = $"Fleet named '{multiplayConfig.FleetName}' not found."
-                    });
-            }
-            else
-            {
-                var qosRegion = fleet.QosRegions.Find(r => r.Name == multiplayConfig.DefaultQoSRegionName);
-                var buildConfig = fleet.BuildConfigs.Find(b => b.Name == multiplayConfig.BuildConfigurationName);
-                if (buildConfig.Name == null)
+            errors.Add(
+                new Core.ErrorResponse()
                 {
-                    errors.Add(
-                        new Core.ErrorResponse()
-                        {
-                            ResultCode = "InvalidBuildConfigurationName",
-                            Message = $"Build configuration named '{multiplayConfig.BuildConfigurationName}' not found in fleet named '{multiplayConfig.FleetName}'."
-                        });
-                }
-                else if (qosRegion.Name == null)
-                {
-                    errors.Add(
-                        new Core.ErrorResponse()
-                        {
-                            ResultCode = "InvalidDefaultQoSRegion",
-                            Message = $"QoS region named '{multiplayConfig.DefaultQoSRegionName}' not found for fleet named '{multiplayConfig.FleetName}'."
-                        });
-                }
-                else
-                {
-                    if (!dryRun)
-                    {
-                        return (new Generated.MatchHosting(
-                            new Generated.MultiplayHostingConfig(
-                                type: Generated.MultiplayHostingConfig.TypeEnum.Multiplay,
-                                fleetId: fleet.Id,
-                                buildConfigurationId: buildConfig.Id,
-                                defaultQoSRegionId: qosRegion.Id,
-                                moduleName: multiplayConfig.ModuleName ?? string.Empty,
-                                allocateFunctionName: multiplayConfig.AllocateFunctionName ?? string.Empty,
-                                pollFunctionName: multiplayConfig.PollFunctionName ?? string.Empty
-                            )), errors);
-                    }
-                }
-            }
+                    ResultCode = "UnsupportedMultiplayHosting",
+                    Message = "Multiplay hosting is no longer supported. Pools using Multiplay hosting cannot be deployed."
+                });
+            return (new Generated.MatchHosting(new Generated.MatchIdHostingConfig(type: Generated.MatchIdHostingConfig.TypeEnum.MatchId)), errors);
         }
         else if (matchHostingConfig is Core.CloudCodeConfig cloudCodeConfig)
         {

@@ -25,8 +25,8 @@ using Unity.Services.Cli.Common.Telemetry;
 using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
 using Unity.Services.Cli.Common.Telemetry.AnalyticEvent.AnalyticEventFactory;
 using Unity.Services.Cli.Authoring;
-using Unity.Services.Cli.GameServerHosting;
 using Unity.Services.Cli.Matchmaker;
+using Unity.Services.Cli.Observability;
 
 #if FEATURE_ECONOMY
 using Unity.Services.Cli.Economy;
@@ -42,6 +42,7 @@ using Unity.Services.Cli.Access;
 using Unity.Services.Cli.Scheduler;
 using Unity.Services.Cli.CloudSave;
 using Unity.Services.Cli.CloudContentDelivery;
+using Unity.Services.Cli.Purchasing;
 
 namespace Unity.Services.Cli;
 
@@ -72,7 +73,8 @@ public static partial class Program
                         host,
                         logger,
                         ansiConsole,
-                        analyticEventFactory);
+                        analyticEventFactory,
+                        EndpointRegistry.GetAllEndpoints());
                     telemetrySender = CommonModule.CreateTelemetrySender(systemEnvironmentProvider);
 
                     host.ConfigureServices(ConfigurationModule.RegisterServices);
@@ -84,7 +86,6 @@ public static partial class Program
                     host.ConfigureServices(SchedulerModule.RegisterServices);
                     host.ConfigureServices(RemoteConfigModule.RegisterServices);
                     host.ConfigureServices(AccessModule.RegisterServices);
-                    host.ConfigureServices(GameServerHostingModule.RegisterServices);
                     host.ConfigureServices(LobbyModule.RegisterServices);
 #if FEATURE_ECONOMY
                     host.ConfigureServices(EconomyModule.RegisterServices);
@@ -97,6 +98,8 @@ public static partial class Program
                     host.ConfigureServices(PlayerModule.RegisterServices);
                     host.ConfigureServices(CloudContentDeliveryModule.RegisterServices);
                     host.ConfigureServices(MatchmakerModule.RegisterServices);
+                    host.ConfigureServices(ObservabilityModule.RegisterServices);
+                    host.ConfigureServices(PurchasingModule.RegisterServices);
                     host.ConfigureServices(serviceCollection => serviceCollection
                         .AddSingleton<ISystemEnvironmentProvider>(systemEnvironmentProvider));
 
@@ -124,6 +127,8 @@ public static partial class Program
                     helpSectionDelegates.Remove(HelpBuilder.Default.SubcommandsSection());
                     helpSectionDelegates.Add(SubcommandsSectionDelegate(ctx, ansiConsole));
 
+                    helpSectionDelegates.Add(FileTemplateSectionDelegate());
+
                     return helpSectionDelegates.AsEnumerable();
                 });
             })
@@ -141,10 +146,11 @@ public static partial class Program
                 }
             )
             .UseTreePrinter()
+            .UseHelpPrinter()
             .CancelOnProcessTermination()
             .AddLoggerMiddleware(logger)
             .AddGlobalCommonOptions()
-            .AddCommandInputParserMiddleware()
+            .AddCommandInputParserMiddleware(CommonInputRegistry.GetAllInputTypes(), CommonInputRegistry.CreateInstance)
             .AddCliServicesMiddleware(services)
             .AddModule(new AuthenticationModule())
             .AddModule(new CloudCodeModule())
@@ -165,11 +171,12 @@ public static partial class Program
 #endif
             .AddModule(new CloudSaveModule())
             .AddModule(new LobbyModule())
-            .AddModule(new GameServerHostingModule())
             .AddModule(new PlayerModule())
             .AddModule(new RemoteConfigModule())
             .AddModule(new CloudContentDeliveryModule())
             .AddModule(new MatchmakerModule())
+            .AddModule(new ObservabilityModule())
+            .AddModule(new PurchasingModule())
             .Build();
 
         return await parser
@@ -206,6 +213,21 @@ public static partial class Program
 
             ansiConsole.Markup($"Commands:{System.Environment.NewLine}");
             helpContext.HelpBuilder.WriteColumns(subcommands, helpContext);
+        };
+    }
+
+    static HelpSectionDelegate FileTemplateSectionDelegate()
+    {
+        return helpContext =>
+        {
+            var template = FileTemplateRegistry.GetTemplate(helpContext.Command);
+            if (template.HasValue && !string.IsNullOrEmpty(template.Value.BodyText))
+            {
+                helpContext.Output.WriteLine();
+                helpContext.Output.WriteLine($"File Extension: {template.Value.Extension}");
+                helpContext.Output.WriteLine("Template:");
+                helpContext.Output.WriteLine(template.Value.BodyText);
+            }
         };
     }
 

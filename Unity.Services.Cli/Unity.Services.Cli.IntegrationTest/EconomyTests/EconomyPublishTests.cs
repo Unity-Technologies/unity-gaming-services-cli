@@ -32,7 +32,7 @@ public class EconomyPublishTests : UgsCliFixture
         MockApi.Server?.ResetMappings();
     }
 
-    #region get-published
+    #region list
 
     [Test]
     public async Task GetPublished_ThrowsWhenNotAuthenticated()
@@ -40,8 +40,8 @@ public class EconomyPublishTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
-            .Command("economy get-published")
+        await NewUgsCliTestCase()
+            .Command("economy list")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_NotLoggedInOutput)
             .ExecuteAsync();
@@ -52,8 +52,8 @@ public class EconomyPublishTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
-            .Command($"economy get-published")
+        await NewUgsCliTestCase()
+            .Command($"economy list")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingProjectIdOutput)
             .ExecuteAsync();
@@ -64,8 +64,8 @@ public class EconomyPublishTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
-            .Command($"economy get-published --project-id \"\"")
+        await NewUgsCliTestCase()
+            .Command($"economy list --project-id \"\"")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingProjectIdOutput)
             .ExecuteAsync();
@@ -76,8 +76,8 @@ public class EconomyPublishTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
 
-        await new UgsCliTestCase()
-            .Command($"economy get-published")
+        await NewUgsCliTestCase()
+            .Command($"economy list")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingEnvironmentNameOutput)
             .ExecuteAsync();
@@ -90,7 +90,7 @@ public class EconomyPublishTests : UgsCliFixture
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
         await GetLoggedInCli()
-            .Command($"economy get-published")
+            .Command($"economy list")
             .AssertNoErrors()
             .ExecuteAsync();
     }
@@ -102,7 +102,7 @@ public class EconomyPublishTests : UgsCliFixture
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
         await GetLoggedInCli()
-            .Command($"economy get-published -j")
+            .Command($"economy list -j")
             .AssertNoErrors()
             .ExecuteAsync();
     }
@@ -115,7 +115,7 @@ public class EconomyPublishTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("economy publish")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_NotLoggedInOutput)
@@ -127,7 +127,7 @@ public class EconomyPublishTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"economy publish")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingProjectIdOutput)
@@ -139,7 +139,7 @@ public class EconomyPublishTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"economy publish --project-id \"\"")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingProjectIdOutput)
@@ -151,7 +151,7 @@ public class EconomyPublishTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"economy publish")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingEnvironmentNameOutput)

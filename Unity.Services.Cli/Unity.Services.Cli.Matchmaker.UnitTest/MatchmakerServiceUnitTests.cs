@@ -238,4 +238,42 @@ public class MatchmakerServiceTests
         // Assert
         m_MockMatchmakerAdminApi.Verify(x => x.DeleteQueueAsync(It.IsAny<string>(), It.IsAny<string>(), queueName, false, It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Test]
+    public async Task GetRestrictions_ReturnsRestrictions()
+    {
+        // Arrange
+        var expectedRestrictions = new Generated.Restrictions(
+            maxQueues: 10,
+            maxPoolsPerQueue: 5,
+            maxPoolVariants: 3,
+            maxMatchTeams: 2,
+            maxMatchRules: 25,
+            maxTeamRules: 25,
+            maxRuleRelaxations: 25,
+            maxPlayersPerTicket: 20,
+            maxPoolTimeout: 300);
+        m_MockMatchmakerAdminApi.Setup(x => x.GetRestrictionsWithHttpInfoAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ApiResponse<Generated.Restrictions>(HttpStatusCode.OK, expectedRestrictions));
+
+        // Act
+        var restrictions = await m_Service.GetRestrictions();
+
+        // Assert
+        Assert.That(restrictions, Is.EqualTo(expectedRestrictions));
+    }
+
+    [Test]
+    public async Task GetNonExistingRestrictions_ReturnsEmptyRestrictions()
+    {
+        // Arrange
+        m_MockMatchmakerAdminApi.Setup(x => x.GetRestrictionsWithHttpInfoAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Throws(new ApiException(404, "Not found"));
+
+        // Act
+        var restrictions = await m_Service.GetRestrictions();
+
+        // Assert
+        Assert.That(restrictions, Is.Not.Null);
+    }
 }

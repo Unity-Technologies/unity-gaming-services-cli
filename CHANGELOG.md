@@ -5,7 +5,35 @@ All notable changes to UGS CLI will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [1.9.0] - 2026-04-20
+## [Unreleased]
+
+### Breaking
+- **BREAKING**: Bumped to version 2.0.0 — the following are backwards-incompatible changes.
+- [Game Server Hosting] Removed all Multiplay Hosting (Game Server Hosting) commands as the service is being decommissioned. The `multiplay-hosting`, `mh`, `gsh`, and `game-server-hosting` commands are no longer available.
+- [Matchmaker] Multiplay hosting is no longer supported in Matchmaker pools. Deploy and fetch operations will skip pools that use Multiplay hosting and report an error for those pools.
+- [Matchmaker] The `ugs matchmaker new-file` template now generates a MatchId hosting configuration instead of Multiplay.
+- Environment variables now take priority over stored configuration. Making the priority ARGS, ENV, CONFIG.
+
+### Added
+- [Purchasing] Add `purchasing list` command to list In-App Purchasing catalog items.
+- [Purchasing] Add `purchasing new-file` command to create a new catalog item file.
+- [Purchasing] Add `deploy` command for In-App Purchasing catalog items. Supports `--dry-run` and `--reconcile` flags.
+- [Purchasing] Add `fetch` command for In-App Purchasing catalog items. Supports `--dry-run` and `--reconcile` flags.
+- [Leaderboards] Add `leaderboards scores list` command to list scores for a leaderboard. Supports `--tier` and `--version` flags for filtered and archived queries.
+- [Leaderboards] Add `leaderboards scores get` command to get a player's score. Supports `--version` flag for archived versions.
+- [Leaderboards] Add `leaderboards scores get-range` command to get scores around a player. Supports `--version` flag.
+- [Leaderboards] Add `leaderboards scores get-by-player-ids` command to get scores for specific players. Supports `--version` flag.
+- [Leaderboards] Add `leaderboards scores delete` command to delete a player's score from a leaderboard.
+- [Leaderboards] Add `leaderboards scores purge` command to purge a player's scores from all leaderboards.
+- [Leaderboards] Add `leaderboards buckets list` command to list buckets for a leaderboard. Supports `--version` flag.
+- [Leaderboards] Add `leaderboards buckets scores` command to list scores in a bucket. Supports `--tier` and `--version` flags.
+- [Leaderboards] Ungate `leaderboards create` and `leaderboards update` commands for release builds.
+- [Cloud Code] Add `cloud-code modules get-spec` command to get the OpenAPI spec for a module.
+- [Matchmaker] Add `matchmaker environment-config get` command to retrieve environment configuration.
+- [Matchmaker] Add `matchmaker queue list` command to list all matchmaker queues.
+- [Matchmaker] Add `matchmaker restrictions get` command to retrieve environment restrictions.
+- [Login] Add `login` option for Unity Hub that can be used via prompt, `--unity-hub` flag or `UGS_CLI_USE_HUB_AUTH`.
+- Allow changing the config directory via `UGS_CLI_CONFIG_DIR`.
 
 ### Changed
 - [Cloud Code] Module template now includes a test project, a `.gitignore`, and targets .NET 9.
@@ -16,7 +44,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - [Cloud Code] Fully implement Get Module API return fields.
 - [Cloud Code] Add option to choose .NET version during module creation.
 - [Triggers] Add commands to list and delete triggers.
-- [Triggers] Add support for webhook triggers
+- [Authoring] Deployment Definitions are now loaded when targeting a folder with the `fetch` or `deploy` command
+- [Triggers] Add support for providing an actionScopeType in trigger config.
+- [Triggers] Add `triggers get` command to get a trigger configuration by ID.
+- [Triggers] Add `triggers dlq list` command to list failed DLQ events.
+- [Triggers] Add `triggers dlq get` command to get a DLQ event by ID.
+- [Triggers] Add `triggers dlq replay` command to replay a failed DLQ event.
+- [Triggers] Add `triggers dlq discard` command to discard a DLQ event.
+- [Triggers] Add `triggers dlq replay-all` command to replay all pending DLQ events.
+- [Triggers] Add `triggers dlq discard-all` command to discard all pending DLQ events.
+- CLI builds are now done using .NET AOT for performance and size improvements.
 
 ## [1.8.0] - 2025-07-23
 

@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -11,11 +11,12 @@
   <ItemGroup>
     <PackageReference Include="Unity.Services.Gateway.CloudSaveApiV1.Generated" Version="1.0.7" />
     <PackageReference Include="Unity.Services.Gateway.ContentDeliveryManagementApiV1.Generated" Version="0.1.4" />
-    <PackageReference Include="Unity.Services.Gateway.LiveContentApiV1.Generated" Version="1.3.3" />
+    <PackageReference Include="Unity.Services.Gateway.LiveContentApiV1.Generated" Version="1.3.4" />
     <PackageReference Include="Unity.Services.Gateway.LiveReleasesApiV1.Generated" Version="1.0.5" />
-    <PackageReference Include="Unity.Services.Gateway.TriggersApiV1.Generated" Version="1.1.3" />
+    <PackageReference Include="Unity.Services.Gateway.TriggersApiV1.Generated" Version="1.2.0" />
     <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.3.0" />
     <PackageReference Include="Unity.Services.Gateway.LeaderboardApiV1.Generated" Version="1.0.7-beta" />
+    <PackageReference Include="Unity.Services.Gateway.ObservabilityApiV1.Generated" Version="1.0.0" />
     <PackageReference Include="WireMock.Net" Version="1.5.41" />
     <PackageReference Include="WireMock.Net.OpenApiParser" Version="1.5.41" />
   </ItemGroup>

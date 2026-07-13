@@ -1,15 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <LangVersion>10</LangVersion>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
     <AssemblyName>ugs</AssemblyName>
-    <VersionPrefix>1.9.0</VersionPrefix>
-    <VersionSuffix></VersionSuffix>
+    <VersionPrefix>2.0.0</VersionPrefix>
+    <VersionSuffix>exp.1</VersionSuffix>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <PublishAot>true</PublishAot>
+    <!-- Suppress ILC trim/AOT warnings from third-party assemblies and existing reflection patterns -->
+    <NoWarn>$(NoWarn);IL2104;IL3053;IL3002;IL3050;IL2026;IL2062;IL2065;IL2067;IL2070;IL2075</NoWarn>
+    <!-- Only trim assemblies that explicitly opt in; preserves our code and third-party libs -->
+    <TrimMode>partial</TrimMode>
+    <!-- Re-enable System.Text.Json reflection for third-party libs that use it -->
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
   </PropertyGroup>
+  <ItemGroup>
+    <TrimmerRootDescriptor Include="TrimmerRoots.xml" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -18,11 +28,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Api" Version="1.2.0" />
     <PackageReference Include="Polly" Version="8.3.1" />
     <PackageReference Include="Polly.Extensions.Http" Version="3.0.0" />
     <PackageReference Include="System.CommandLine.Hosting" Version="0.4.0-alpha.22272.1" />
     <ProjectReference Include="..\Unity.Services.Cli.CloudContentDelivery\Unity.Services.Cli.CloudContentDelivery.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.Purchasing\Unity.Services.Cli.Purchasing.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Matchmaker\Unity.Services.Cli.Matchmaker.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.Observability\Unity.Services.Cli.Observability.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Player\Unity.Services.Cli.Player.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Access\Unity.Services.Cli.Access.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.CloudCode\Unity.Services.Cli.CloudCode.csproj" />
@@ -31,13 +44,13 @@
     <ProjectReference Include="..\Unity.Services.Cli.Economy\Unity.Services.Cli.Economy.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Environment\Unity.Services.Cli.Environment.csproj" PrivateAssets="All" />
     <ProjectReference Include="..\Unity.Services.Cli.Leaderboards\Unity.Services.Cli.Leaderboards.csproj" />
-    <ProjectReference Include="..\Unity.Services.Cli.GameServerHosting\Unity.Services.Cli.GameServerHosting.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Scheduler\Unity.Services.Cli.Scheduler.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.RemoteConfig\Unity.Services.Cli.RemoteConfig.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Lobby\Unity.Services.Cli.Lobby.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Triggers\Unity.Services.Cli.Triggers.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.CloudSave\Unity.Services.Cli.CloudSave.csproj" />
+    <ProjectReference Include="..\Unity.Services.Cli.Generators\Unity.Services.Cli.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="../../CHANGELOG.md">

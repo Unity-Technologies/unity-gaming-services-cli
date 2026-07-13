@@ -6,9 +6,9 @@ namespace Unity.Services.Cli.Authoring.Service;
 
 public class DeployFileService : IDeployFileService
 {
-    readonly IFile m_File;
-    readonly IDirectory m_Directory;
-    readonly IPath m_Path;
+    protected readonly IFile m_File;
+    protected readonly IDirectory m_Directory;
+    protected readonly IPath m_Path;
     public DeployFileService(IFile file, IDirectory directory, IPath path)
     {
         m_File = file;
@@ -48,7 +48,7 @@ public class DeployFileService : IDeployFileService
 
         if (m_File.Exists(fullPath))
         {
-            if (string.Equals(Path.GetExtension(fullPath), extension))
+            if (fullPath.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
             {
                 files.Add(fullPath);
             }

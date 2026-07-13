@@ -1,6 +1,8 @@
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Service;
+using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.CloudContentDelivery.Authoring.Core.Fetch;
 using Unity.Services.CloudContentDelivery.Authoring.Core.Model;
 using Unity.Services.CloudContentDelivery.Authoring.Core.Service;
@@ -33,7 +35,7 @@ class CloudContentDeliveryFetchService : IFetchService
 
     public async Task<FetchResult> FetchAsync(
         FetchInput input,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> authoringFiles,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,
@@ -41,7 +43,7 @@ class CloudContentDeliveryFetchService : IFetchService
     {
         m_Client.Initialize(environmentId, projectId, cancellationToken);
         loadingContext?.Status($"Reading {k_ServiceType} files...");
-        var resources = await GetResourcesFromFiles(filePaths);
+        var resources = await GetResourcesFromFiles(authoringFiles.ToPaths());
 
         loadingContext?.Status($"Fetching {k_ServiceType} files...");
         var res = await m_FetchHandler.FetchAsync(

@@ -10,7 +10,8 @@
       "Name": "Trigger 2",
       "EventType": "EventType2",
       "ActionType": "cloud-code",
-      "ActionUrn": "urn:ugs:cloud-code:MyModule/MyFunction"
+      "ActionUrn": "urn:ugs:cloud-code:MyModule/MyFunction",
+      "ActionScopeType": "Player"
     },
     {
       "Name": "Trigger 3",

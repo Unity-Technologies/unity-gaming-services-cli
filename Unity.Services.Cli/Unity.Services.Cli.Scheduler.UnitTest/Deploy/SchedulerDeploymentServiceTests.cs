@@ -1,5 +1,6 @@
 using Moq;
 using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Scheduler.Deploy;
 using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.Scheduler.Authoring.Core.Deploy;
@@ -80,7 +81,7 @@ public class SchedulerDeploymentServiceTests
         };
         var res = await m_DeploymentService!.Deploy(
             input,
-            new[] { "path"},
+            [new AuthoringFile("path")],
             String.Empty,
             string.Empty,
             null,
@@ -132,7 +133,7 @@ public class SchedulerDeploymentServiceTests
         };
         var res = await m_DeploymentService!.Deploy(
             input,
-            new[] { "dir" },
+            [new AuthoringFile("dir")],
             string.Empty,
             string.Empty,
             null,

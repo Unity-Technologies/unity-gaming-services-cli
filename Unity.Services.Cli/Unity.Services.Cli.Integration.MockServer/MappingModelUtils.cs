@@ -69,14 +69,23 @@ public static class MappingModelUtils
         if (inputSpec.StartsWith("https"))
         {
             await using var stream = await GetOpenApiStream(inputSpec, 3);
-            models = parser.FromStream(stream, settings, out var diagnostic);
-
-            if (!models.Any())
+            try
             {
-                foreach (var error in diagnostic.Errors)
+                models = parser.FromStream(stream, settings, out var diagnostic);
+
+                if (!models.Any())
                 {
-                    await Console.Error.WriteLineAsync(error.ToString());
+                    foreach (var error in diagnostic.Errors)
+                    {
+                        await Console.Error.WriteLineAsync(error.ToString());
+                    }
                 }
+            }
+            catch (ArgumentException ex)
+            {
+                await Console.Error.WriteLineAsync(
+                    $"[WireMock] OpenAPI parser failed for '{inputSpec}'; falling back to custom mocks only. Error: {ex.Message}");
+                models = Enumerable.Empty<MappingModel>();
             }
         }
         else
@@ -89,13 +98,22 @@ public static class MappingModelUtils
                 throw new FileNotFoundException($"Open API source does not exist: {openApiPath}");
             }
             await using var stream = File.Open(openApiPath, FileMode.Open);
-            models = parser.FromStream(stream, settings, out var diagnostic);
-            if (!models.Any())
+            try
             {
-                foreach (var error in diagnostic.Errors)
+                models = parser.FromStream(stream, settings, out var diagnostic);
+                if (!models.Any())
                 {
-                    await Console.Error.WriteLineAsync(error.ToString());
+                    foreach (var error in diagnostic.Errors)
+                    {
+                        await Console.Error.WriteLineAsync(error.ToString());
+                    }
                 }
+            }
+            catch (ArgumentException ex)
+            {
+                await Console.Error.WriteLineAsync(
+                    $"[WireMock] OpenAPI parser failed for '{inputSpec}'; falling back to custom mocks only. Error: {ex.Message}");
+                models = Enumerable.Empty<MappingModel>();
             }
         }
 

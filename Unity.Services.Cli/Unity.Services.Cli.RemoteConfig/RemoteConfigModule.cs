@@ -37,7 +37,9 @@ public class RemoteConfigModule : ICommandModule
     {
         ExportCommand = new Command(
             name: "export",
-            description: "Export Environment in a file")
+            description: new CommandDescription("Export Environment in a file.")
+                .WithReturn("Summary of exported config items.")
+                .Build())
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -49,7 +51,9 @@ public class RemoteConfigModule : ICommandModule
 
         ImportCommand = new Command(
             name: "import",
-            description: "Import Environment from a file")
+            description: new CommandDescription("Import Environment from a file.")
+                .WithReturn("Summary of created, updated, and deleted config items.")
+                .Build())
         {
             CommonInput.EnvironmentNameOption,
             CommonInput.CloudProjectIdOption,
@@ -62,7 +66,10 @@ public class RemoteConfigModule : ICommandModule
 
         ModuleRootCommand = new Command(
             name: "remote-config",
-            description: "Manage RemoteConfig.")
+            description: new CommandDescription("Manage RemoteConfig.")
+                .WithDocs("https://docs.unity.com/ugs/manual/remote-config/manual")
+                .WithAdminApi("https://services.docs.unity.com/remote-config-admin/v1/")
+                .Build())
         {
             ModuleRootCommand.AddNewFileCommand<RemoteConfigTemplate>("Remote Config"),
             ExportCommand,

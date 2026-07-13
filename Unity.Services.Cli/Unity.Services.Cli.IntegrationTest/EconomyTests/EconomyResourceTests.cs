@@ -33,7 +33,7 @@ public class EconomyResourceTests : UgsCliFixture
         MockApi.Server?.ResetMappings();
     }
 
-    #region get-resources
+    #region list --include-draft
 
     [Test]
     public async Task Get_ThrowsWhenNotAuthenticated()
@@ -41,8 +41,8 @@ public class EconomyResourceTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
-            .Command("economy get-resources")
+        await NewUgsCliTestCase()
+            .Command("economy list --include-draft")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_NotLoggedInOutput)
             .ExecuteAsync();
@@ -53,8 +53,8 @@ public class EconomyResourceTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
-            .Command($"economy get-resources")
+        await NewUgsCliTestCase()
+            .Command($"economy list --include-draft")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingProjectIdOutput)
             .ExecuteAsync();
@@ -65,8 +65,8 @@ public class EconomyResourceTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
-            .Command($"economy get-resources --project-id \"\"")
+        await NewUgsCliTestCase()
+            .Command($"economy list --include-draft --project-id \"\"")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingProjectIdOutput)
             .ExecuteAsync();
@@ -77,8 +77,8 @@ public class EconomyResourceTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
 
-        await new UgsCliTestCase()
-            .Command($"economy get-resources")
+        await NewUgsCliTestCase()
+            .Command($"economy list --include-draft")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingEnvironmentNameOutput)
             .ExecuteAsync();
@@ -91,7 +91,7 @@ public class EconomyResourceTests : UgsCliFixture
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
         await GetLoggedInCli()
-            .Command($"economy get-resources")
+            .Command($"economy list --include-draft")
             .AssertNoErrors()
             .ExecuteAsync();
     }
@@ -104,7 +104,7 @@ public class EconomyResourceTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("economy delete SWORD")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_NotLoggedInOutput)
@@ -116,7 +116,7 @@ public class EconomyResourceTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"economy delete SWORD")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingProjectIdOutput)
@@ -128,7 +128,7 @@ public class EconomyResourceTests : UgsCliFixture
     {
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"economy delete SWORD --project-id \"\"")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingProjectIdOutput)
@@ -140,7 +140,7 @@ public class EconomyResourceTests : UgsCliFixture
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"economy delete SWORD")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_MissingEnvironmentNameOutput)

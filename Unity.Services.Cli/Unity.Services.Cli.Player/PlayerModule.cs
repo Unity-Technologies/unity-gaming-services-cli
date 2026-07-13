@@ -31,41 +31,53 @@ public class PlayerModule : ICommandModule
 
     public PlayerModule()
     {
-        CreateCommand = new Command("create", "Create player account in Unity Authentication Service")
+        CreateCommand = new Command("create", new CommandDescription("Create player account in Unity Authentication Service.")
+            .WithReturn("Confirmation message with the new player ID.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption
         };
         CreateCommand.SetHandler<PlayerInput, IPlayerService, ILogger, ILoadingIndicator, CancellationToken>(CreateHandler.CreateAsync);
 
-        DeleteCommand = new Command("delete", "Delete player account in Unity Authentication Service")
+        DeleteCommand = new Command("delete", new CommandDescription("Delete player account in Unity Authentication Service.")
+            .WithReturn("Confirmation message.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             PlayerInput.PlayerIdArgument
         };
         DeleteCommand.SetHandler<PlayerInput, IPlayerService, ILogger, ILoadingIndicator, CancellationToken>(DeleteHandler.DeleteAsync);
 
-        DisableCommand = new Command("disable", "Disable player account in Unity Authentication Service")
+        DisableCommand = new Command("disable", new CommandDescription("Disable player account in Unity Authentication Service.")
+            .WithReturn("Confirmation message.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             PlayerInput.PlayerIdArgument
         };
         DisableCommand.SetHandler<PlayerInput, IPlayerService, ILogger, ILoadingIndicator, CancellationToken>(DisableHandler.DisableAsync);
 
-        EnableCommand = new Command("enable", "Enable player account in Unity Authentication Service")
+        EnableCommand = new Command("enable", new CommandDescription("Enable player account in Unity Authentication Service.")
+            .WithReturn("Confirmation message.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             PlayerInput.PlayerIdArgument
         };
         EnableCommand.SetHandler<PlayerInput, IPlayerService, ILogger, ILoadingIndicator, CancellationToken>(EnableHandler.EnableAsync);
 
-        GetCommand = new Command("get", "Get player account information in Unity Authentication Service")
+        GetCommand = new Command("get", new CommandDescription("Get player account information in Unity Authentication Service.")
+            .WithReturn("JSON player object with id, disabled status, externalIds, createdAt, and lastLoginAt.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             PlayerInput.PlayerIdArgument
         };
         GetCommand.SetHandler<PlayerInput, IPlayerService, ILogger, ILoadingIndicator, CancellationToken>(GetHandler.GetAsync);
 
-        ListCommand = new Command("list", "Return a list of the project's players and their information in Unity Authentication Service")
+        ListCommand = new Command("list", new CommandDescription("Return a list of the project's players and their information in Unity Authentication Service.")
+            .WithReturn("JSON with next pagination token and results array of players with id, disabled, externalIds, createdAt, and lastLoginAt.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             PlayerInput.PlayersLimitOption,
@@ -73,7 +85,11 @@ public class PlayerModule : ICommandModule
         };
         ListCommand.SetHandler<PlayerInput, IPlayerService, ILogger, ILoadingIndicator, CancellationToken>(ListHandler.ListAsync);
 
-        ModuleRootCommand = new("player", "Manage your player accounts in Unity Authentication Service")
+        ModuleRootCommand = new("player", new CommandDescription("Manage your player accounts in Unity Authentication Service.")
+            .WithDocs("https://docs.unity.com/ugs/manual/authentication/manual")
+            .WithAdminApi("https://services.docs.unity.com/player-auth-admin/v1/")
+            .WithClientApi("https://services.docs.unity.com/player-auth/v1/")
+            .Build())
         {
             CreateCommand,
             DeleteCommand,

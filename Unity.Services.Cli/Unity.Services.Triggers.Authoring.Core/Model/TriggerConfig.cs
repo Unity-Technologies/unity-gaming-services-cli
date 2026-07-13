@@ -21,6 +21,8 @@ namespace Unity.Services.Triggers.Authoring.Core.Model
         [DataMember]
         public string ActionUrn { get; set; }
         [DataMember]
+        public string ActionScopeType { get; set; }
+        [DataMember]
         public string Filter { get; set; }
         [DataMember]
         public WebhookConfig Webhook { get; set; }
@@ -38,23 +40,46 @@ namespace Unity.Services.Triggers.Authoring.Core.Model
         }
 
         [JsonConstructor]
-        public TriggerConfig(string name, string eventType, string actionType, string actionUrn, string filter, WebhookConfig webhook = null)
+        public TriggerConfig(string name, string eventType, string actionType, string actionUrn, string filter, string actionScopeType = null, WebhookConfig webhook = null)
         {
             Name = name;
             EventType = eventType;
             ActionType = actionType;
             ActionUrn = actionUrn;
+            ActionScopeType = actionScopeType;
             Filter = filter;
             Webhook = webhook;
         }
 
-        public TriggerConfig(string id, string name, string eventType, string actionType, string actionUrn, string filter, WebhookConfig webhook = null)
+        /// <summary>
+        /// Creates a trigger with a known deployment id. Use when the first string is an id (not a display name), so the call is not ambiguous with the JSON deserialization constructor.
+        /// </summary>
+        /// <param name="path">When non-null, assigns <see cref="Path"/> (including empty string).</param>
+        public static TriggerConfig CreateWithId(
+            string id,
+            string name,
+            string eventType,
+            string actionType,
+            string actionUrn,
+            string filter,
+            string actionScopeType = null,
+            WebhookConfig webhook = null,
+            string path = null)
+        {
+            var config = new TriggerConfig(id, name, eventType, actionType, actionUrn, filter, actionScopeType, webhook);
+            if (path != null)
+                config.Path = path;
+            return config;
+        }
+
+        TriggerConfig(string id, string name, string eventType, string actionType, string actionUrn, string filter, string actionScopeType = null, WebhookConfig webhook = null)
         {
             Id = id;
             Name = name;
             EventType = eventType;
             ActionType = actionType;
             ActionUrn = actionUrn;
+            ActionScopeType = actionScopeType;
             Filter = filter;
             Webhook = webhook;
         }

@@ -3,6 +3,7 @@ using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -57,14 +58,15 @@ public static class ContextBinder
         return builder;
     }
 
-    public static CommandLineBuilder AddCommandInputParserMiddleware(this CommandLineBuilder builder)
+    public static CommandLineBuilder AddCommandInputParserMiddleware(
+        this CommandLineBuilder builder, Type[] inputTypes, Func<Type, object> factory)
     {
         builder.AddMiddleware(AddInputParserToContext);
         return builder;
 
         void AddInputParserToContext(InvocationContext context)
         {
-            var customInputTypes = GetCustomInputTypes();
+            var customInputTypes = inputTypes;
             foreach (var inputType in customInputTypes)
             {
                 context.BindingContext.AddService(inputType, _ =>
@@ -73,25 +75,16 @@ public static class ContextBinder
                     var configService = host.Services.GetRequiredService<IConfigurationService>();
                     var envUtilities = host.Services.GetRequiredService<ISystemEnvironmentProvider>();
                     var logger = host.Services.GetRequiredService<ILoggerProvider>().CreateLogger("");
-                    var inputInstance = Activator.CreateInstance(inputType)!;
+                    var inputInstance = factory(inputType);
                     var memberInfos = inputType.GetMembers(k_InputMemberFlags);
-                    SetInputFromEnvironment(inputInstance, envUtilities, logger, context, memberInfos);
                     SetInputFromConfigAsync(inputInstance, configService, logger, context, memberInfos).Wait();
+                    SetInputFromEnvironment(inputInstance, envUtilities, logger, context, memberInfos);
                     SetInputFromParseResult(inputType, context.ParseResult, inputInstance);
                     SetUnityEnvironment(inputInstance, context);
                     SetAnalyticEventFactory(inputInstance, context);
                     return inputInstance;
                 });
             }
-        }
-
-        static IEnumerable<Type> GetCustomInputTypes()
-        {
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .Where(assembly => assembly.FullName?.StartsWith("Unity.Services.Cli") ?? true)
-                .SelectMany(assembly => assembly.GetTypes())
-                .Where(type => type.IsAssignableTo(typeof(CommonInput)))
-                .ToArray();
         }
     }
 
@@ -112,7 +105,14 @@ public static class ContextBinder
         unityEnv.SetProjectId(((CommonInput)inputInstance).CloudProjectId);
     }
 
-    internal static void SetInputFromParseResult(Type inputType, ParseResult parseResult, object inputInstance)
+    internal static void SetInputFromParseResult(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.PublicMethods
+            | DynamicallyAccessedMemberTypes.PublicFields
+            | DynamicallyAccessedMemberTypes.PublicNestedTypes
+            | DynamicallyAccessedMemberTypes.PublicProperties
+            | DynamicallyAccessedMemberTypes.PublicEvents)]
+        Type inputType, ParseResult parseResult, object inputInstance)
     {
         var members = inputType.GetMembers(k_InputMemberFlags)
             .Where(IsMemberBoundToInputDefinition);
@@ -123,7 +123,8 @@ public static class ContextBinder
     }
 
     internal static void SetInputMember(
-        IReflect inputType, ParseResult parseResult, object inputInstance, MemberInfo member)
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        Type inputType, ParseResult parseResult, object inputInstance, MemberInfo member)
     {
         var memberName = member.GetCustomAttribute<InputBindingAttribute>()!.InputName;
         if (!TryGetSymbol<Symbol>(inputType, memberName, out var symbol))
@@ -218,7 +219,9 @@ public static class ContextBinder
             _ => throw new ArgumentOutOfRangeException(nameof(symbol))
         };
 
-    internal static bool TryGetSymbol<TSymbol>(IReflect inputType, string memberName, out TSymbol? symbol)
+    internal static bool TryGetSymbol<TSymbol>(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        Type inputType, string memberName, out TSymbol? symbol)
         where TSymbol : Symbol
     {
         const BindingFlags symbolFlags = BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy;

@@ -19,10 +19,10 @@ public class RowContent
     {
         Name = item.Name;
         Service = service;
-        Type =  ((ITypedItem)item).Type;
-        Status =  item.Status.Message;
+        Type = ((ITypedItem)item).Type;
+        Status = item.Status.Message;
         Details = item.Status.MessageDetail;
-        Severity =  item.Status.MessageSeverity.ToString();
+        Severity = item.Status.MessageSeverity.ToString();
         Path = item.Path;
     }
 

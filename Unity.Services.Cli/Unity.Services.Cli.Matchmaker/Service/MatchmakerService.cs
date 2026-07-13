@@ -10,6 +10,7 @@ using Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Client;
 using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
 using EnvironmentConfig = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model.EnvironmentConfig;
 using QueueConfig = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model.QueueConfig;
+using Restrictions = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model.Restrictions;
 
 
 namespace Unity.Services.Cli.Matchmaker.Service;
@@ -163,5 +164,25 @@ class MatchmakerService : IMatchmakerService
             queueName,
             dryRun,
             cancellationToken: ct);
+    }
+
+    public async Task<Restrictions> GetRestrictions(CancellationToken ct = default)
+    {
+        ApiResponse<Restrictions>? response;
+        try
+        {
+            response = await m_MatchmakerAdminApi.GetRestrictionsWithHttpInfoAsync(
+                m_ProjectId,
+                m_EnvironmentId,
+                cancellationToken: ct);
+        }
+        catch (ApiException e)
+        {
+            if (e.ErrorCode == (int)HttpStatusCode.NotFound)
+                return new Restrictions();
+            throw;
+        }
+
+        return response.Data;
     }
 }

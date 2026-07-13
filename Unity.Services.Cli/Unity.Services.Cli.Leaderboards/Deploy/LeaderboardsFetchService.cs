@@ -1,6 +1,8 @@
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Service;
+using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.Leaderboards.Authoring.Core.Fetch;
@@ -45,7 +47,7 @@ class LeaderboardFetchService : IFetchService
     };
     public async Task<FetchResult> FetchAsync(
         FetchInput input,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> authoringFiles,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,
@@ -54,7 +56,7 @@ class LeaderboardFetchService : IFetchService
         m_Client.Initialize(environmentId, projectId, cancellationToken);
 
         var leaderboards = await m_LeaderboardsConfigLoader
-            .LoadConfigsAsync(filePaths, cancellationToken);
+            .LoadConfigsAsync(authoringFiles.ToPaths(), cancellationToken);
 
         var deployStatusList = await m_FetchHandler.FetchAsync(
             input.Path,

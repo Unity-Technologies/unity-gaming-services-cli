@@ -1,6 +1,7 @@
 using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
 using EnvironmentConfig = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model.EnvironmentConfig;
 using QueueConfig = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model.QueueConfig;
+using Restrictions = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model.Restrictions;
 
 namespace Unity.Services.Cli.Matchmaker.Service;
 
@@ -17,4 +18,6 @@ interface IMatchmakerService
     Task<List<ErrorResponse>> UpsertQueueConfig(QueueConfig queueConfig, bool dryRun, CancellationToken ct = default);
 
     Task DeleteQueue(string queueName, bool dryRun, CancellationToken ct = default);
+
+    Task<Restrictions> GetRestrictions(CancellationToken ct = default);
 }

@@ -1,15 +1,10 @@
-using System.Reflection;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Networking;
-using Unity.Services.Cli.GameServerHosting.Service;
 using Unity.Services.Cli.Matchmaker.Parser;
 using Unity.Services.Cli.Matchmaker.Service;
 using Unity.Services.Cli.Matchmaker.UnitTest.SampleConfigs;
-using Unity.Services.Cli.ServiceAccountAuthentication;
-using Unity.Services.Gateway.GameServerHostingApiV1.Generated.Model;
 using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.ConfigApi;
 using Core = Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
 using Generated = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model;
@@ -20,60 +15,40 @@ namespace Unity.Services.Cli.Matchmaker.UnitTest;
 [TestFixture]
 class AdminApiClientUnitTests
 {
-    Mock<IServiceAccountAuthenticationService> m_MockSaAuthService = null!;
-
     [SetUp]
     public void Setup()
     {
-        var types = new List<TypeInfo>
-        {
-            typeof(AdminApiTargetEndpoint).GetTypeInfo(),
-            typeof(UnityServicesGatewayEndpoints).GetTypeInfo(),
-        };
-        EndpointHelper.InitializeNetworkTargetEndpoints(types);
-        m_MockSaAuthService = new Mock<IServiceAccountAuthenticationService>();
-        m_MockSaAuthService.Setup(x => x.GetAccessTokenAsync(default)).Returns(Task.FromResult("token"));
-        var configClient = new Mock<IConfigApiClient>();
-        new ServiceCollection()
-            .AddSingleton(m_MockSaAuthService.Object)
-            .AddSingleton(configClient.Object)
-            .BuildServiceProvider();
+        EndpointHelper.InitializeNetworkTargetEndpoints(
+        [
+            new AdminApiTargetEndpoint(),
+            new UnityServicesGatewayEndpoints()
+        ]);
     }
 
     [Test]
     public async Task GetEnvironmentConfigNotFound()
     {
-        // Setup
-        var multiplaySampleConfig = new MultiplaySampleConfig();
-        var gshService = new Mock<IGameServerHostingService>();
-        gshService.Setup(f => f.FleetsApi.ListFleets(It.IsAny<Guid>(), It.IsAny<Guid>(), default)).Returns(multiplaySampleConfig.RemoteFleets);
         var configService = new Mock<IMatchmakerService>();
         configService
             .Setup(x => x.GetEnvironmentConfig(default))
             .Returns(Task.FromResult((false, new Generated.EnvironmentConfig())));
 
-        var client = new AdminApiClient.MatchmakerAdminClient(configService.Object, gshService.Object);
+        var client = new AdminApiClient.MatchmakerAdminClient(configService.Object);
 
-        // Test
         await client.Initialize(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), default);
         var (exist, _) = await client.GetEnvironmentConfig(default);
 
-        // Assert
         Assert.That(exist, Is.EqualTo(false));
     }
 
     [Test]
     public async Task GetEnvironmentConfig()
     {
-        // Setup
-        var multiplaySampleConfig = new MultiplaySampleConfig();
         var removeEnvConfig = new Generated.EnvironmentConfig()
         {
             Enabled = true,
             DefaultQueueName = "Test"
         };
-        var gshService = new Mock<IGameServerHostingService>();
-        gshService.Setup(f => f.FleetsApi.ListFleets(It.IsAny<Guid>(), It.IsAny<Guid>(), default)).Returns(multiplaySampleConfig.RemoteFleets);
         var configService = new Mock<IMatchmakerService>();
         configService
             .Setup(x => x.GetEnvironmentConfig(default))
@@ -84,13 +59,11 @@ class AdminApiClientUnitTests
             DefaultQueueName = new Core.QueueName("Test")
         };
 
-        var client = new AdminApiClient.MatchmakerAdminClient(configService.Object, gshService.Object);
+        var client = new AdminApiClient.MatchmakerAdminClient(configService.Object);
 
-        // Test
         await client.Initialize(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), default);
         var actualConfig = await client.GetEnvironmentConfig(default);
 
-        // Assert
         var actualJson = JsonConvert.SerializeObject(actualConfig.Item2, MatchmakerConfigParser.JsonSerializerSettings);
         var expectedJson = JsonConvert.SerializeObject(expectedConfig, MatchmakerConfigParser.JsonSerializerSettings);
         Assert.That(actualJson, Is.EqualTo(expectedJson));
@@ -99,10 +72,6 @@ class AdminApiClientUnitTests
     [Test]
     public async Task UpsertEnvironmentConfig()
     {
-        // Setup
-        var multiplaySampleConfig = new MultiplaySampleConfig();
-        var gshService = new Mock<IGameServerHostingService>();
-        gshService.Setup(f => f.FleetsApi.ListFleets(It.IsAny<Guid>(), It.IsAny<Guid>(), default)).Returns(multiplaySampleConfig.RemoteFleets);
         var configService = new Mock<IMatchmakerService>();
         configService
             .Setup(x => x.UpsertEnvironmentConfig(It.IsAny<Generated.EnvironmentConfig>(), false, default))
@@ -112,11 +81,10 @@ class AdminApiClientUnitTests
             Enabled = true,
             DefaultQueueName = new Core.QueueName("Test")
         };
-        var client = new AdminApiClient.MatchmakerAdminClient(configService.Object, gshService.Object);
+        var client = new AdminApiClient.MatchmakerAdminClient(configService.Object);
         await client.Initialize(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), default);
         var errors = await client.UpsertEnvironmentConfig(localConfig, false, default);
 
-        // Assert
         Assert.That(configService.Invocations.Count, Is.EqualTo(2));
         var actualEnvConfig = JsonConvert.SerializeObject(configService.Invocations[1].Arguments[0]);
         var expectedConfig = JsonConvert.SerializeObject(new Generated.EnvironmentConfig()
@@ -133,11 +101,7 @@ class AdminApiClientUnitTests
     [Test]
     public async Task ListQueues()
     {
-        // Setup
-        var multiplaySampleConfig = new MultiplaySampleConfig();
         var coreSampleConfig = new CoreSampleConfig();
-        var gshService = new Mock<IGameServerHostingService>();
-        gshService.Setup(f => f.FleetsApi.ListFleets(It.IsAny<Guid>(), It.IsAny<Guid>(), default)).Returns(multiplaySampleConfig.RemoteFleets);
         var configService = new Mock<IMatchmakerService>();
         configService
             .Setup(x => x.ListQueues(default))
@@ -152,13 +116,11 @@ class AdminApiClientUnitTests
             coreSampleConfig.EmptyQueueConfig
         };
 
-        var client = new AdminApiClient.MatchmakerAdminClient(configService.Object, gshService.Object);
+        var client = new AdminApiClient.MatchmakerAdminClient(configService.Object);
 
-        // Test
         await client.Initialize(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), default);
         var actualConfig = await client.ListQueues(default);
 
-        // Assert
         Assert.That(actualConfig.Count, Is.EqualTo(2));
         Assert.That(actualConfig[0].Item2, Is.Empty);
         Assert.That(actualConfig[1].Item2, Is.Empty);
@@ -169,14 +131,9 @@ class AdminApiClientUnitTests
         expectedJson = JsonConvert.SerializeObject(expectedQueueConfigs[1], MatchmakerConfigParser.JsonSerializerSettings);
         Assert.That(expectedJson, Is.EqualTo(actualJson));
 
-        // Multiplay extra fields on default pool
-        var defaultPoolHosting = actualConfig[0].Item1.DefaultPool!.MatchHosting as Core.MultiplayConfig;
-        Assert.That(defaultPoolHosting, Is.Not.Null);
-        Assert.That(defaultPoolHosting!.ModuleName, Is.EqualTo("module"));
-        Assert.That(defaultPoolHosting!.AllocateFunctionName, Is.EqualTo("allocate"));
-        Assert.That(defaultPoolHosting!.PollFunctionName, Is.EqualTo("poll"));
+        var defaultPoolHosting = actualConfig[0].Item1.DefaultPool!.MatchHosting;
+        Assert.That(defaultPoolHosting, Is.TypeOf<Core.MatchIdConfig>());
 
-        // Filtered pools: one MatchId and one CloudCode
         Assert.That(actualConfig[0].Item1.FilteredPools!.Count, Is.EqualTo(2));
 
         var filtered0 = actualConfig[0].Item1.FilteredPools![0].MatchHosting;
@@ -196,23 +153,17 @@ class AdminApiClientUnitTests
     [TestCase(false)]
     public async Task UpsertQueue(bool emptyQueue)
     {
-        // Setup
-        var multiplaySampleConfig = new MultiplaySampleConfig();
         var coreSampleConfig = new CoreSampleConfig();
-        var gshService = new Mock<IGameServerHostingService>();
-        gshService.Setup(f => f.FleetsApi.ListFleets(It.IsAny<Guid>(), It.IsAny<Guid>(), default)).Returns(multiplaySampleConfig.RemoteFleets);
         var configService = new Mock<IMatchmakerService>();
         configService
             .Setup(x => x.UpsertQueueConfig(It.IsAny<Generated.QueueConfig>(), false, default))
             .Returns(Task.FromResult(new List<Core.ErrorResponse>() { new() { ResultCode = "MockedFailedValidation", Message = "Mocked failed validation" } }));
 
-        var client = new AdminApiClient.MatchmakerAdminClient(configService.Object, gshService.Object);
+        var client = new AdminApiClient.MatchmakerAdminClient(configService.Object);
 
-        // Test
         await client.Initialize(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), default);
-        var errors = await client.UpsertQueue(emptyQueue ? coreSampleConfig.EmptyQueueConfig : coreSampleConfig.QueueConfig, multiplaySampleConfig.LocalResources, false);
+        var errors = await client.UpsertQueue(emptyQueue ? coreSampleConfig.EmptyQueueConfig : coreSampleConfig.QueueConfig, new Core.MultiplayResources(), false);
 
-        // Assert
         Assert.That(configService.Invocations.Count, Is.EqualTo(2));
         var that = configService.Invocations[1].Arguments[0];
         var actualEnvConfig = JsonConvert.SerializeObject(that, MatchmakerConfigParser.JsonSerializerSettings);
@@ -223,157 +174,111 @@ class AdminApiClientUnitTests
     }
 
     [Test]
-    public async Task UpsertQueueInvalidMultiplayConfig()
+    public async Task UpsertQueueWithMultiplayConfigReturnsError()
     {
-        // Setup
-        var multiplaySampleConfig = new MultiplaySampleConfig();
-        var coreSampleConfig = new CoreSampleConfig();
-        var gshService = new Mock<IGameServerHostingService>();
-        gshService.Setup(f => f.FleetsApi.ListFleets(It.IsAny<Guid>(), It.IsAny<Guid>(), default)).Returns(multiplaySampleConfig.RemoteFleets);
-        var client = new AdminApiClient.MatchmakerAdminClient(new Mock<IMatchmakerService>().Object, gshService.Object);
-        var queue = coreSampleConfig.QueueConfig;
+        var configService = new Mock<IMatchmakerService>();
+        var client = new AdminApiClient.MatchmakerAdminClient(configService.Object);
         await client.Initialize(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), default);
 
-        // Test
-        var multiplayConfig = (Core.MultiplayConfig)queue.DefaultPool.MatchHosting;
-        multiplayConfig.DefaultQoSRegionName = "Invalid";
-        var errors = await client.UpsertQueue(coreSampleConfig.QueueConfig, multiplaySampleConfig.LocalResources, false);
+        var queue = new Core.QueueConfig
+        {
+            Name = new Core.QueueName("TestQueue"),
+            Enabled = true,
+            MaxPlayersPerTicket = 1,
+            DefaultPool = new Core.BasePoolConfig
+            {
+                Name = new Core.PoolName("TestPool"),
+                Enabled = true,
+                MatchHosting = new Core.MultiplayConfig
+                {
+                    FleetName = "SomeFleet",
+                    BuildConfigurationName = "SomeBuild",
+                    DefaultQoSRegionName = "SomeRegion"
+                },
+                MatchLogic = new Core.MatchLogicRulesConfig
+                {
+                    Name = "logic",
+                    MatchDefinition = new Core.RuleBasedMatchDefinition()
+                }
+            }
+        };
 
-        // Assert
+        var errors = await client.UpsertQueue(queue, new Core.MultiplayResources(), false);
+
         Assert.That(errors.Count, Is.EqualTo(1));
-        Assert.That(errors[0].ResultCode, Is.EqualTo("InvalidDefaultQoSRegion"));
-
-        // Test
-        multiplayConfig.BuildConfigurationName = "Invalid";
-        errors = await client.UpsertQueue(coreSampleConfig.QueueConfig, multiplaySampleConfig.LocalResources, false);
-
-        // Assert
-        Assert.That(errors.Count, Is.EqualTo(1));
-        Assert.That(errors[0].ResultCode, Is.EqualTo("InvalidBuildConfigurationName"));
-
-        // Test
-        multiplayConfig.FleetName = "Invalid";
-        errors = await client.UpsertQueue(coreSampleConfig.QueueConfig, multiplaySampleConfig.LocalResources, false);
-
-        // Assert
-        Assert.That(errors.Count, Is.EqualTo(1));
-        Assert.That(errors[0].ResultCode, Is.EqualTo("InvalidMultiplayFleetName"));
+        Assert.That(errors[0].ResultCode, Is.EqualTo("UnsupportedMultiplayHosting"));
     }
 
-
     [Test]
-    public async Task GetQueueInvalidMultiplayConfig()
+    public async Task ListQueuesWithMultiplayPoolReturnsError()
     {
-        // Setup
-        var multiplaySampleConfig = new MultiplaySampleConfig();
-        var gshService = new Mock<IGameServerHostingService>();
         var configService = new Mock<IMatchmakerService>();
-        var multiplayConfig = multiplaySampleConfig.RemoteFleets;
         configService.Setup(f => f.ListQueues(default))
-            .ReturnsAsync(new List<Generated.QueueConfig>() { GeneratedSampleConfig.QueueConfig });
-        var client = new AdminApiClient.MatchmakerAdminClient(configService.Object, gshService.Object);
+            .ReturnsAsync(new List<Generated.QueueConfig>()
+            {
+                new Generated.QueueConfig(
+                    name: "TestQueue",
+                    enabled: true,
+                    maxPlayersPerTicket: 1,
+                    defaultPool: new Generated.BasePoolConfig(
+                        name: "TestPool",
+                        enabled: true,
+                        matchHosting: new Generated.MatchHosting(
+                            new Generated.MultiplayHostingConfig(
+                                type: Generated.MultiplayHostingConfig.TypeEnum.Multiplay,
+                                fleetId: "some-fleet-id",
+                                buildConfigurationId: "some-build-id",
+                                defaultQoSRegionId: "some-region-id"
+                            )),
+                        matchLogic: new Generated.Rules(
+                            name: "logic",
+                            backfillEnabled: false,
+                            matchDefinition: new Generated.RuleBasedMatchDefinition(
+                                matchRules: new List<Generated.Rule>(),
+                                teams: new List<Generated.RuleBasedTeamDefinition>()
+                            )),
+                        variants: new List<Generated.PoolConfig>()
+                    ),
+                    filteredPools: new List<Generated.FilteredPoolConfig>()
+                )
+            });
 
-        // Setup
-        multiplayConfig[0].Regions[0].RegionID = new Guid();
-        gshService.Setup(f => f.FleetsApi.ListFleets(It.IsAny<Guid>(), It.IsAny<Guid>(), default)).Returns(multiplayConfig);
-        await client.Initialize(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+        var client = new AdminApiClient.MatchmakerAdminClient(configService.Object);
+        await client.Initialize(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), default);
 
-        // Test
         var response = await client.ListQueues();
 
-        // Assert
         Assert.That(response.Count, Is.EqualTo(1));
         Assert.That(response[0].Item2.Count, Is.EqualTo(1));
-        Assert.That(response[0].Item2[0].ResultCode, Is.EqualTo("InvalidDefaultQoSRegion"));
-
-        // Setup
-        multiplayConfig[0].BuildConfigurations[0].Id = 0;
-        gshService.Setup(f => f.FleetsApi.ListFleets(It.IsAny<Guid>(), It.IsAny<Guid>(), default)).Returns(multiplayConfig);
-        await client.Initialize(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
-
-        // Test
-        response = await client.ListQueues();
-
-        // Assert
-        Assert.That(response.Count, Is.EqualTo(1));
-        Assert.That(response[0].Item2.Count, Is.EqualTo(1));
-        Assert.That(response[0].Item2[0].ResultCode, Is.EqualTo("InvalidBuildConfigurationId"));
-
-        // Setup
-        multiplayConfig[0].Id = new Guid();
-        gshService.Setup(f => f.FleetsApi.ListFleets(It.IsAny<Guid>(), It.IsAny<Guid>(), default)).Returns(multiplayConfig);
-        await client.Initialize(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
-
-        // Test
-        response = await client.ListQueues();
-
-        // Assert
-        Assert.That(response.Count, Is.EqualTo(1));
-        Assert.That(response[0].Item2.Count, Is.EqualTo(1));
-        Assert.That(response[0].Item2[0].ResultCode, Is.EqualTo("InvalidMultiplayFleetId"));
+        Assert.That(response[0].Item2[0].ResultCode, Is.EqualTo("UnsupportedMultiplayHosting"));
     }
 
     [Test]
     public async Task DeleteQueue()
     {
-        // Setup
         var configService = new Mock<IMatchmakerService>();
         configService
             .Setup(x => x.DeleteQueue("ToDelete", false, default))
             .Returns(Task.FromResult(new List<Core.ErrorResponse>()));
 
-        var client = new AdminApiClient.MatchmakerAdminClient(configService.Object, new Mock<IGameServerHostingService>().Object);
+        var client = new AdminApiClient.MatchmakerAdminClient(configService.Object);
 
-        // Test
         await client.DeleteQueue(new Core.QueueName("ToDelete"), false);
 
-        // Assert
         Assert.That(configService.Invocations.Count, Is.EqualTo(1));
         var name = configService.Invocations[0].Arguments[0];
         Assert.That(name, Is.EqualTo("ToDelete"));
     }
 
     [Test]
-    public void InitializeAdminClientInvalidMultiplayConfig()
+    public void GetRemoteMultiplayResourcesReturnsEmpty()
     {
-        // Setup
-        var servers = new Servers(
-            new FleetServerBreakdown(new ServerStatus()),
-            new FleetServerBreakdown(new ServerStatus()),
-            new FleetServerBreakdown(new ServerStatus()));
-        var gshService = new Mock<IGameServerHostingService>();
-        gshService.Setup(x => x.FleetsApi.ListFleets(It.IsAny<Guid>(), It.IsAny<Guid>(), 0))
-            .Returns(
-            [
-                new FleetListItem(
-                    buildConfigurations: [new BuildConfiguration1(name: "")],
-                    regions: [],
-                    name: "missing-region",
-                    osName: "",
-                    servers: servers),
-                new FleetListItem(
-                    buildConfigurations: [],
-                    regions: [new FleetRegion(regionName: "")],
-                    name: "missing-build-configuration",
-                    osName: "",
-                    servers: servers),
-                new FleetListItem(
-                    buildConfigurations: [new BuildConfiguration1(name: "")],
-                    regions: [new FleetRegion(regionName: "")],
-                    name: "valid",
-                    osName: "",
-                    servers: servers)
-            ]);
+        var configService = new Mock<IMatchmakerService>();
+        var client = new AdminApiClient.MatchmakerAdminClient(configService.Object);
 
-        var client = new AdminApiClient.MatchmakerAdminClient(
-            new Mock<IMatchmakerService>().Object,
-            gshService.Object);
+        var resources = ((IConfigApiClient)client).GetRemoteMultiplayResources();
 
-        // Test & Assert
-        var ex = Assert.ThrowsAsync<MatchmakerException>(
-            async () => await client.Initialize(Guid.NewGuid().ToString(), Guid.NewGuid().ToString()));
-        Assert.That(ex?.Message, Contains.Substring("missing-region"));
-        Assert.That(ex?.Message, Contains.Substring("missing-build-configuration"));
-        Assert.That(ex?.Message, !Contains.Substring("valid"));
+        Assert.That(resources, Is.Not.Null);
+        Assert.That(resources.Fleets, Is.Null.Or.Empty);
     }
 }

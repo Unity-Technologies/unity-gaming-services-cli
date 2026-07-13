@@ -1,6 +1,8 @@
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Service;
+using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Economy.Editor.Authoring.Core.Fetch;
 using Unity.Services.Economy.Editor.Authoring.Core.Model;
@@ -39,7 +41,7 @@ class EconomyFetchService : IFetchService
 
     public async Task<FetchResult> FetchAsync(
         FetchInput input,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> authoringFiles,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,
@@ -48,7 +50,7 @@ class EconomyFetchService : IFetchService
         m_Client.Initialize(environmentId, projectId, cancellationToken);
         loadingContext?.Status($"Reading {ServiceType} files...");
 
-        var tasks = filePaths
+        var tasks = authoringFiles.ToPaths()
             .Select(path => m_EconomyResourcesLoader.LoadResourceAsync(path, cancellationToken))
             .ToList();
 

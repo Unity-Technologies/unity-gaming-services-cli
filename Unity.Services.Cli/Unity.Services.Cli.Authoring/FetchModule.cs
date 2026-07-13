@@ -24,7 +24,9 @@ public class FetchModule : ICommandModule
         ObfuscatedInputs.Instance.NonObfuscatedOptions.Add(FetchInput.ServiceOptions);
         ModuleRootCommand = new Command(
             "fetch",
-            $"Fetch configuration files of supported services from the backend.")
+            new CommandDescription("Fetch configuration files of supported services from the backend.")
+                .WithReturn("List of fetched files grouped by status; or JSON list containing name, path and status with --json.")
+                .Build())
         {
             FetchInput.PathArgument,
             FetchInput.ReconcileOption,
@@ -38,7 +40,7 @@ public class FetchModule : ICommandModule
             FetchInput,
             IUnityEnvironment,
             ILogger,
-            ICliDeploymentDefinitionService,
+            IAuthoringFileService,
             ILoadingIndicator,
             IAnalyticsEventBuilder,
             CancellationToken>(

@@ -12,6 +12,7 @@ using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.Common.Services;
 using Unity.Services.Cli.Common.Telemetry.AnalyticEvent;
 using Unity.Services.Cli.Common.Utils;
+using Unity.Services.Deployment.Core.Model;
 using Unity.Services.DeploymentApi.Editor;
 
 namespace Unity.Services.Cli.Authoring.UnitTest.Handlers;
@@ -57,10 +58,10 @@ public class AuthoringCommandHandlerTests
         m_Host.Setup(x => x.Services)
             .Returns(provider);
 
-    var ddefServiceMock = GetDdefServiceMock(new Dictionary<string, IReadOnlyList<string>>
+    var ddefServiceMock = GetDdefServiceMock(new Dictionary<string, IReadOnlyList<AuthoringFile>>
         {
-            { ".test1", new[] {"path1.test1"}},
-            { ".test2", Array.Empty<string>() }
+            { ".test1", [new AuthoringFile("path1.test1")] },
+            { ".test2", [] }
         });
 
     await DeployCommandHandler.DeployAsync(
@@ -75,7 +76,7 @@ public class AuthoringCommandHandlerTests
         // Verify services are called / not
         mockService1.Verify(serv1 => serv1
             .Deploy(It.IsAny<DeployInput>(),
-                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<AuthoringFile>>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
@@ -86,7 +87,7 @@ public class AuthoringCommandHandlerTests
 
         mockService2.Verify(serv2 => serv2
                 .Deploy(It.IsAny<DeployInput>(),
-                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<IReadOnlyList<AuthoringFile>>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<StatusContext?>(),
@@ -109,10 +110,10 @@ public class AuthoringCommandHandlerTests
         m_Host.Setup(x => x.Services)
             .Returns(provider);
 
-        var ddefServiceMock = GetDdefServiceMock(new Dictionary<string, IReadOnlyList<string>>
+        var ddefServiceMock = GetDdefServiceMock(new Dictionary<string, IReadOnlyList<AuthoringFile>>
         {
-            { ".test1", new[] {"path1.test1"}},
-            { ".test2", Array.Empty<string>() }
+            { ".test1", [new AuthoringFile("path1.test1")]},
+            { ".test2", [] }
         });
 
         await DeployCommandHandler.DeployAsync(
@@ -127,7 +128,7 @@ public class AuthoringCommandHandlerTests
         // Verify services are called / not
         mockService1.Verify(serv1 => serv1
                 .Deploy(It.IsAny<DeployInput>(),
-                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<IReadOnlyList<AuthoringFile>>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<StatusContext?>(),
@@ -138,7 +139,7 @@ public class AuthoringCommandHandlerTests
 
         mockService2.Verify(serv2 => serv2
                 .Deploy(It.IsAny<DeployInput>(),
-                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<IReadOnlyList<AuthoringFile>>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<StatusContext?>(),
@@ -163,10 +164,10 @@ public class AuthoringCommandHandlerTests
         m_Host.Setup(x => x.Services)
             .Returns(provider);
 
-    var ddefServiceMock = GetDdefServiceMock(new Dictionary<string, IReadOnlyList<string>>
+    var ddefServiceMock = GetDdefServiceMock(new Dictionary<string, IReadOnlyList<AuthoringFile>>
         {
-            { ".test1", new[] {"path1.test1"}},
-            { ".test2", Array.Empty<string>()}
+            { ".test1", [new AuthoringFile("path1.test1")]},
+            { ".test2", []}
         });
 
     await FetchCommandHandler.FetchAsync(
@@ -182,7 +183,7 @@ public class AuthoringCommandHandlerTests
         // Verify services are called / not
         mockService1.Verify(serv1 => serv1
             .FetchAsync(It.IsAny<FetchInput>(),
-                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<IReadOnlyList<AuthoringFile>>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<StatusContext?>(),
@@ -193,7 +194,7 @@ public class AuthoringCommandHandlerTests
 
         mockService2.Verify(serv2 => serv2
                 .FetchAsync(It.IsAny<FetchInput>(),
-                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<IReadOnlyList<AuthoringFile>>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<StatusContext?>(),
@@ -216,10 +217,10 @@ public class AuthoringCommandHandlerTests
         m_Host.Setup(x => x.Services)
             .Returns(provider);
 
-        var ddefServiceMock = GetDdefServiceMock(new Dictionary<string, IReadOnlyList<string>>
+        var ddefServiceMock = GetDdefServiceMock(new Dictionary<string, IReadOnlyList<AuthoringFile>>
         {
-            { ".test1", new[] {"path1.test1"}},
-            { ".test2", Array.Empty<string>()}
+            { ".test1", [new AuthoringFile("path1.test1")] },
+            { ".test2", []}
         });
 
         await FetchCommandHandler.FetchAsync(
@@ -235,7 +236,7 @@ public class AuthoringCommandHandlerTests
         // Verify services are called / not
         mockService1.Verify(serv1 => serv1
                 .FetchAsync(It.IsAny<FetchInput>(),
-                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<IReadOnlyList<AuthoringFile>>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<StatusContext?>(),
@@ -246,7 +247,7 @@ public class AuthoringCommandHandlerTests
 
         mockService2.Verify(serv2 => serv2
                 .FetchAsync(It.IsAny<FetchInput>(),
-                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<IReadOnlyList<AuthoringFile>>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<StatusContext?>(),
@@ -272,7 +273,7 @@ public class AuthoringCommandHandlerTests
         deploymentService.Setup(
                 s => s.Deploy(
                     It.IsAny<DeployInput>(),
-                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<IReadOnlyList<AuthoringFile>>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<StatusContext?>(),
@@ -304,7 +305,7 @@ public class AuthoringCommandHandlerTests
         fetchService.Setup(
                 s => s.FetchAsync(
                     It.IsAny<FetchInput>(),
-                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<IReadOnlyList<AuthoringFile>>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<StatusContext?>(),
@@ -320,18 +321,19 @@ public class AuthoringCommandHandlerTests
         return fetchService;
     }
 
-    static Mock<ICliDeploymentDefinitionService> GetDdefServiceMock(Dictionary<string, IReadOnlyList<string>> filesByExtension)
+    static Mock<IAuthoringFileService> GetDdefServiceMock(Dictionary<string, IReadOnlyList<AuthoringFile>> filesByExtension)
     {
-        var ddefServiceMock = new Mock<ICliDeploymentDefinitionService>();
+        var ddefServiceMock = new Mock<IAuthoringFileService>();
         ddefServiceMock
             .Setup(
-                x => x.GetFilesFromInput(
+                x => x.ResolveAuthoringFiles(
                     It.IsAny<IReadOnlyList<string>>(),
-                    It.IsAny<IEnumerable<string>>()))
+                    It.IsAny<IReadOnlyList<string>>()))
             .Returns(
                 new DeploymentDefinitionFilteringResult(
                     new DeploymentDefinitionFiles(),
-                    filesByExtension));
+                    filesByExtension,
+                    new Dictionary<string, IDeploymentDefinition?>()));
         return ddefServiceMock;
     }
 }

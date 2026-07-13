@@ -59,7 +59,7 @@ public class AccessTests : UgsCliFixture
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command(command)
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(k_LoggedOutErrorMessage)
@@ -185,7 +185,7 @@ public class AccessTests : UgsCliFixture
         }
     }
 
-    static async Task AssertSuccess(string command, string? expectedStdErr = null, string? expectedStdOut = null)
+    async Task AssertSuccess(string command, string? expectedStdErr = null, string? expectedStdOut = null)
     {
         var test = GetLoggedInCli()
             .Command(command);
@@ -201,7 +201,7 @@ public class AccessTests : UgsCliFixture
         await test.ExecuteAsync();
     }
 
-    static async Task AssertException(string command, string expectedMessage)
+    async Task AssertException(string command, string expectedMessage)
     {
         await GetLoggedInCli()
             .Command(command)

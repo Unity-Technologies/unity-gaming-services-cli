@@ -84,6 +84,24 @@ class TriggersService : ITriggersService
             cancellationToken: cancellationToken);
     }
 
+    public async Task<TriggerConfig> GetTriggerAsync(
+        string projectId,
+        string environmentId,
+        string triggerId,
+        CancellationToken cancellationToken = default)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+
+        var response = await m_TriggersApiAsync.GetTriggerConfigAsync(
+            Guid.Parse(projectId),
+            Guid.Parse(environmentId),
+            Guid.Parse(triggerId),
+            cancellationToken: cancellationToken);
+
+        return response;
+    }
+
     public async Task DeleteTriggerAsync(
         string projectId,
         string environmentId,

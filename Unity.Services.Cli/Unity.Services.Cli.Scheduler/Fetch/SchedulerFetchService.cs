@@ -1,6 +1,8 @@
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Service;
+using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.Scheduler.Deploy;
 using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.Scheduler.Authoring.Core.Fetch;
@@ -27,7 +29,7 @@ class SchedulerFetchService : SchedulerDeployFetchBase, IFetchService
 
     public async Task<FetchResult> FetchAsync(
         FetchInput input,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> authoringFiles,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,
@@ -35,7 +37,7 @@ class SchedulerFetchService : SchedulerDeployFetchBase, IFetchService
     {
         await m_Client.Initialize(environmentId, projectId, cancellationToken);
         loadingContext?.Status($"Reading {ServiceType} files...");
-        var (deserializedFiles, failedToDeserialize) = await GetResourcesFromFiles(filePaths, cancellationToken);
+        var (deserializedFiles, failedToDeserialize) = await GetResourcesFromFiles(authoringFiles.ToPaths(), cancellationToken);
 
         loadingContext?.Status($"Fetching {ServiceType} files...");
         var res = await m_FetchHandler.FetchAsync(

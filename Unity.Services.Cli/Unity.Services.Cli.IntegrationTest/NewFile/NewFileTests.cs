@@ -12,6 +12,8 @@ public class NewFileTests : UgsCliFixture
     const string k_RemoteConfigFileExtension = ".rc";
     const string k_CloudCodeFileExtension = ".js";
     const string k_EconomyFileExtension = ".ec";
+    const string k_PurchasingFileExtension = ".ucat";
+    const string k_PurchasingCsvFileExtension = ".catalog.csv";
 
     [TearDown]
     public void TearDown()
@@ -30,6 +32,16 @@ public class NewFileTests : UgsCliFixture
         {
             File.Delete(Path.Combine(UgsCliBuilder.RootDirectory, $"{k_NewFileBaseName}{k_EconomyFileExtension}"));
         }
+
+        if (File.Exists(Path.Combine(UgsCliBuilder.RootDirectory, $"{k_NewFileBaseName}{k_PurchasingFileExtension}")))
+        {
+            File.Delete(Path.Combine(UgsCliBuilder.RootDirectory, $"{k_NewFileBaseName}{k_PurchasingFileExtension}"));
+        }
+
+        if (File.Exists(Path.Combine(UgsCliBuilder.RootDirectory, $"{k_NewFileBaseName}{k_PurchasingCsvFileExtension}")))
+        {
+            File.Delete(Path.Combine(UgsCliBuilder.RootDirectory, $"{k_NewFileBaseName}{k_PurchasingCsvFileExtension}"));
+        }
     }
 
     [TestCase("remote-config", k_RemoteConfigFileExtension)]
@@ -41,8 +53,19 @@ public class NewFileTests : UgsCliFixture
     {
         var newFileOutPutString = $"[Information]: {Environment.NewLine}    Config file {k_NewFileBaseName}{serviceExtension} created successfully!{Environment.NewLine}";
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"{fullParentCommand} new-file")
+            .AssertStandardErrorContains(newFileOutPutString)
+            .ExecuteAsync();
+    }
+
+    [Test]
+    public async Task NewCsvFileCreatedWithNoErrorsAndCorrectOutput()
+    {
+        var newFileOutPutString = $"[Information]: {Environment.NewLine}    Config file {k_NewFileBaseName}{k_PurchasingCsvFileExtension} created successfully!{Environment.NewLine}";
+
+        await NewUgsCliTestCase()
+            .Command("purchasing new-file --csv")
             .AssertStandardErrorContains(newFileOutPutString)
             .ExecuteAsync();
     }

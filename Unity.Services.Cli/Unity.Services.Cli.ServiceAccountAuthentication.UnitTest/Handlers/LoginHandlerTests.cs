@@ -23,12 +23,28 @@ class LoginHandlerTests
     public async Task LoginAsyncCallsRegisteredAuthenticatorLogin()
     {
         Mock<IAuthenticator> mockAuthenticator = new();
+        mockAuthenticator.Setup(a => a.LoginAsync(It.IsAny<LoginInput>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(LoginResult.ServiceAccount);
         var input = new LoginInput();
 
         await LoginHandler.LoginAsync(
             input, mockAuthenticator.Object, m_MockHelper.MockLogger.Object, CancellationToken.None);
 
         mockAuthenticator.Verify(a => a.LoginAsync(input, CancellationToken.None));
+        TestsHelper.VerifyLoggerWasCalled(m_MockHelper.MockLogger, LogLevel.Information);
+    }
+
+    [Test]
+    public async Task LoginAsyncLogsHubDisplayNameWhenResultHasDisplayName()
+    {
+        Mock<IAuthenticator> mockAuthenticator = new();
+        mockAuthenticator.Setup(a => a.LoginAsync(It.IsAny<LoginInput>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new LoginResult("Test User"));
+        var input = new LoginInput();
+
+        await LoginHandler.LoginAsync(
+            input, mockAuthenticator.Object, m_MockHelper.MockLogger.Object, CancellationToken.None);
+
         TestsHelper.VerifyLoggerWasCalled(m_MockHelper.MockLogger, LogLevel.Information);
     }
 }

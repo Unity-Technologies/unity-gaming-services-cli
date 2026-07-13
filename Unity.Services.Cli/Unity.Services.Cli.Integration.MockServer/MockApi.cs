@@ -9,31 +9,30 @@ public class MockApi : IDisposable
     /// <summary>
     /// Mock server of the API
     /// </summary>
-    public WireMockServer? Server { get; }
-
-
-    string m_ServiceUrl;
+    public WireMockServer Server { get; }
 
     /// <summary>
-    /// Construct MockApi with mock url
+    /// The URL the mock server is listening on
     /// </summary>
-    /// <param name="url">Local url that the mock server is listening to</param>
-    public MockApi(string url)
+    public string Url => Server.Url!;
+
+    /// <summary>
+    /// Construct MockApi on a random available port
+    /// </summary>
+    public MockApi()
     {
-        m_ServiceUrl = url;
         Server = WireMockServer.Start(new WireMockServerSettings
         {
-            AllowCSharpCodeMatcher = true,
-            Urls = new[] { m_ServiceUrl },
-            StartAdminInterface = true,
-            ReadStaticMappings = true,
-            WatchStaticMappings = true,
-            WatchStaticMappingsInSubdirectories = true,
+            AllowCSharpCodeMatcher = false,
+            StartAdminInterface = false,
+            ReadStaticMappings = false,
+            WatchStaticMappings = false,
+            WatchStaticMappingsInSubdirectories = false,
             Logger = new WireMockConsoleLogger(),
             SaveUnmatchedRequests = true
         });
 
-        Console.WriteLine("WireMockServer listening at {0}", m_ServiceUrl);
+        Console.WriteLine("WireMockServer listening at {0}", Url);
     }
 
     public async Task MockServiceAsync(IServiceApiMock serviceMock)
@@ -41,13 +40,13 @@ public class MockApi : IDisposable
         var mappingModels = await serviceMock.CreateMappingModels();
         if (mappingModels.Count > 0)
         {
-            Server!.WithMapping(mappingModels.ToArray());
+            Server.WithMapping(mappingModels.ToArray());
         }
         serviceMock.CustomMock(Server!);
     }
 
     public void Dispose()
     {
-        Server?.Dispose();
+        Server.Dispose();
     }
 }

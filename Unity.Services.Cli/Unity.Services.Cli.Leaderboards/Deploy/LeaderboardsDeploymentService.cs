@@ -1,6 +1,7 @@
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.Leaderboards.Authoring.Core.Deploy;
@@ -40,7 +41,7 @@ class LeaderboardDeploymentService : IDeploymentService
 
     public async Task<DeploymentResult> Deploy(
         DeployInput deployInput,
-        IReadOnlyList<string> filePaths,
+        IReadOnlyList<AuthoringFile> authoringFiles,
         string projectId,
         string environmentId,
         StatusContext? loadingContext,
@@ -48,7 +49,7 @@ class LeaderboardDeploymentService : IDeploymentService
     {
         m_Client.Initialize(environmentId, projectId, cancellationToken);
 
-        var files = await m_LeaderboardsConfigLoader.LoadConfigsAsync(filePaths, cancellationToken);
+        var files = await m_LeaderboardsConfigLoader.LoadConfigsAsync(authoringFiles.ToPaths(), cancellationToken);
 
         var deployStatusList = await m_DeploymentHandler.DeployAsync(
             files.Loaded,

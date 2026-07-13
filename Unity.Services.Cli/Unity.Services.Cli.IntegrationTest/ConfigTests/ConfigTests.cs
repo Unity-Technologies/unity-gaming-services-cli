@@ -29,7 +29,7 @@ public class ConfigTests : UgsCliFixture
     [Test]
     public async Task ConfigSetSavesToConfigFile()
     {
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("config set environment-name test-123")
             .WaitForExit(() => AssertConfigValue("environment-name", "test-123"))
             .ExecuteAsync();
@@ -40,7 +40,7 @@ public class ConfigTests : UgsCliFixture
     {
         SetConfigValue("environment-name", "test-123");
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("config get environment-name")
             .AssertNoErrors()
             .AssertStandardOutputContains("test-123")
@@ -51,7 +51,7 @@ public class ConfigTests : UgsCliFixture
     public async Task ConfigGetJsonReturnsJson()
     {
         var expected = JsonConvert.SerializeObject("some-value");
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("config set environment-name some-value")
             .Command("config get environment-name -j")
             .AssertStandardErrorContains(string.Empty)
@@ -64,7 +64,7 @@ public class ConfigTests : UgsCliFixture
     {
         const string expectedError = ConfigurationValidator.EnvironmentNameInvalidMessage;
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("config set environment-name test@")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(expectedError)
@@ -74,7 +74,7 @@ public class ConfigTests : UgsCliFixture
     [Test]
     public async Task ConfigSetProjectIdFails()
     {
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("config set project-id 1")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains("Your project-id is not valid. Valid input should have characters 0-9, a-f, A-F and follow the format XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX.")
@@ -86,7 +86,7 @@ public class ConfigTests : UgsCliFixture
     {
         var expectedError = "key 'invalid-key' not allowed. Allowed values: environment-name,project-id,bucket-name";
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("config set invalid-key random-value")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardError(error => Assert.AreEqual(expectedError, error.Trim()))
@@ -99,7 +99,7 @@ public class ConfigTests : UgsCliFixture
         string expectedError = string.Format("'{0}' is not set in project configuration. '{1}' is not set in system" +
                                              " environment variables.", Keys.ConfigKeys.ProjectId, Keys.EnvironmentKeys.ProjectId);
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("config get project-id")
             .AssertStandardError(output => StringAssert.Contains(expectedError, output))
             .AssertExitCode(ExitCode.HandledError)
@@ -112,9 +112,9 @@ public class ConfigTests : UgsCliFixture
         System.Environment.SetEnvironmentVariable(Keys.EnvironmentKeys.EnvironmentName, "test-value");
         string expected = "test-value";
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("config get environment-name")
-            .AssertNoErrors()
+            .AssertStandardErrorContains("Environment variable UGS_CLI_ENVIRONMENT_NAME has a value. It will be used instead of the saved configuration.")
             .AssertStandardOutput(output => StringAssert.Contains(expected, output))
             .ExecuteAsync();
     }
@@ -133,7 +133,7 @@ public class ConfigTests : UgsCliFixture
         SetConfigValue(Keys.ConfigKeys.EnvironmentName, "test-123");
         SetConfigValue(Keys.ConfigKeys.ProjectId, "00000000-0000-0000-0000-000000000000");
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"config delete -k {Keys.ConfigKeys.EnvironmentName} {Keys.ConfigKeys.ProjectId} -f")
             .AssertStandardErrorContains(expectedError)
             .WaitForExit(() =>
@@ -150,7 +150,7 @@ public class ConfigTests : UgsCliFixture
         const string expectedError = "All keys were deleted from local configuration.";
         SetConfigValue(Keys.ConfigKeys.EnvironmentName, "test-123");
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("config delete -a -f")
             .AssertStandardErrorContains(expectedError)
             .WaitForExit(() => AssertConfigValue(Keys.ConfigKeys.EnvironmentName, null))
@@ -162,7 +162,7 @@ public class ConfigTests : UgsCliFixture
     {
         const string expectedError = "Your invalid-key is not valid. Invalid key";
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("config delete -k invalid-key -f")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(expectedError)
@@ -175,7 +175,7 @@ public class ConfigTests : UgsCliFixture
         const string expectedError = $"Having both {ConfigurationInput.KeysLongAlias} and " +
                                      $"{ConfigurationInput.TargetAllKeysLongAlias} options simultaneously is unsupported.";
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"config delete -k {Keys.ConfigKeys.EnvironmentName} -a -f")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(expectedError)
@@ -189,7 +189,7 @@ public class ConfigTests : UgsCliFixture
                                      $"{ConfigurationInput.KeysLongAlias} option. To delete all keys, use the " +
                                      $"{ConfigurationInput.TargetAllKeysLongAlias} option.";
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("config delete")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(expectedError)
@@ -201,7 +201,7 @@ public class ConfigTests : UgsCliFixture
     {
         const string expectedError = "This is a destructive operation, use the --force option to continue.";
 
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command($"config delete -k {Keys.ConfigKeys.EnvironmentName}")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardErrorContains(expectedError)

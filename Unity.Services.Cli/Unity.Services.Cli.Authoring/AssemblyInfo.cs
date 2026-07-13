@@ -1,0 +1,17 @@
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("Unity.Services.Cli.Triggers.UnitTest")]
+[assembly: InternalsVisibleTo("Unity.Services.Cli.Scheduler.UnitTest")]
+[assembly: InternalsVisibleTo("Unity.Services.Cli.RemoteConfig.UnitTest")]
+[assembly: InternalsVisibleTo("Unity.Services.Cli.ModuleTemplate.UnitTest")]
+[assembly: InternalsVisibleTo("Unity.Services.Cli.Matchmaker.UnitTest")]
+[assembly: InternalsVisibleTo("Unity.Services.Cli.LiveContent.UnitTest")]
+[assembly: InternalsVisibleTo("Unity.Services.Cli.Leaderboards.UnitTest")]
+[assembly: InternalsVisibleTo("Unity.Services.Cli.Economy.UnitTest")]
+[assembly: InternalsVisibleTo("Unity.Services.Cli.CloudSave.UnitTest")]
+[assembly: InternalsVisibleTo("Unity.Services.Cli.CloudCode.UnitTest")]
+[assembly: InternalsVisibleTo("Unity.Services.Cli.Economy.UnitTest")]
+[assembly: InternalsVisibleTo("Unity.Services.Cli.Analytics.UnitTest")]
+[assembly: InternalsVisibleTo("Unity.Services.Cli.Purchasing.UnitTest")]
+[assembly: InternalsVisibleTo("Unity.Services.Cli.SchemaRegistry.UnitTest")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

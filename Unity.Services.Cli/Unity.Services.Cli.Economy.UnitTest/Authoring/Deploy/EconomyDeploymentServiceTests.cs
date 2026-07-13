@@ -7,6 +7,7 @@ using Moq;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
+using Unity.Services.Cli.Authoring.Utils;
 using Unity.Services.Cli.Economy.Authoring;
 using Unity.Services.Cli.Economy.Authoring.Deploy;
 using Unity.Services.Economy.Editor.Authoring.Core.Deploy;
@@ -22,12 +23,12 @@ public class EconomyDeploymentServiceTests
     const string k_ValidProjectId = "00000000-0000-0000-0000-000000000000";
     const string k_ValidEnvironmentId = "00000000-0000-0000-0000-000000000000";
 
-    static readonly List<string> k_ValidFilePaths = new()
+    static readonly List<AuthoringFile> k_ValidFilePaths = new()
     {
-        "test_1.ec",
-        "test_2.ec",
-        "test_3.ec",
-        "test_4.ec"
+        new AuthoringFile("test_1.ec"),
+        new AuthoringFile("test_2.ec"),
+        new AuthoringFile("test_3.ec"),
+        new AuthoringFile("test_4.ec")
     };
 
     DeployInput m_DefaultInput = new()
@@ -102,7 +103,7 @@ public class EconomyDeploymentServiceTests
         for (int i = 0; i < k_ValidFilePaths.Count; i++)
         {
             m_MockEconomyResourcesLoader.Setup(d =>
-                    d.LoadResourceAsync(k_ValidFilePaths[i], It.IsAny<CancellationToken>()))
+                    d.LoadResourceAsync(k_ValidFilePaths[i].Path, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(s_ResourcesList[i]);
         }
 
@@ -148,7 +149,7 @@ public class EconomyDeploymentServiceTests
 
         m_MockEconomyResourcesLoader.Verify(x =>
                 x.LoadResourceAsync(
-                    k_ValidFilePaths[0],
+                    k_ValidFilePaths[0].Path,
                     CancellationToken.None),
             Times.Once);
     }

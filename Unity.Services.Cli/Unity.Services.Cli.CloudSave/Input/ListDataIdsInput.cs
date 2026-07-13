@@ -3,7 +3,7 @@ using Unity.Services.Cli.Common.Input;
 
 namespace Unity.Services.Cli.CloudSave.Input;
 
-class ListDataIdsInput : CommonInput
+public class ListDataIdsInput : CommonInput
 {
     public static readonly Option<string?> StartOption = new Option<string?>("--start", "The custom data ID to start the page from. If not specified, the first page will be returned.");
     [InputBinding(nameof(StartOption))]

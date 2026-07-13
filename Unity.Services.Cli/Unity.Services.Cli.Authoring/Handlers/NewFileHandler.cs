@@ -13,14 +13,17 @@ public static class NewFileHandler
     public static Command AddNewFileCommand<T>(this Command? self, string serviceName, string defaultFileName = "new_file")
         where T : IFileTemplate, new()
     {
+        var template = new T();
         Command newFileCommand = new("new-file", $"Create new {serviceName} config file.")
         {
             NewFileInput.FileArgument,
             CommonInput.UseForceOption
         };
 
+        FileTemplateRegistry.Register(newFileCommand, template.Extension, template.FileBodyText);
+
         newFileCommand.SetHandler<NewFileInput, IFile, ILogger, CancellationToken>
-        ((input, file, logger, token) => NewFileAsync(input, file, new T(), logger, token, defaultFileName));
+        ((input, file, logger, token) => NewFileAsync(input, file, template, logger, token, defaultFileName));
 
         return newFileCommand;
     }

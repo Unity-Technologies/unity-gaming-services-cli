@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Networking;
+using Unity.Services.Cli.Common.Models;
 using Unity.Services.Cli.IntegrationTest.Common;
 using Unity.Services.Cli.MockServer;
 using Unity.Services.Cli.MockServer.Common;
@@ -19,69 +22,86 @@ public abstract class UgsCliFixture
 #if DISABLE_CLI_REBUILD
     static Task? s_BuildCliTask = Task.CompletedTask;
 #else
-    /// <summary>
-    /// Build task to rebuild CLI for mock server
-    /// </summary>
     static Task? s_BuildCliTask;
 #endif
+
+    static readonly SemaphoreSlim k_BuildLock = new(1, 1);
+    static readonly ActivitySource k_TestActivity = new(nameof(UgsCliFixture));
 
     /// <summary>
     /// Returns the path to the configuration file used by the config module
     /// </summary>
     protected string ConfigurationFile => m_IntegrationConfig.ConfigurationFile;
-
     /// <summary>
     /// Returns the path to the configuration file used by the auth module
     /// </summary>
     protected string CredentialsFile => m_IntegrationConfig.CredentialsFile;
-
-    protected readonly MockApi MockApi = new(NetworkTargetEndpoints.MockServer);
+    /// <summary>
+    /// Api server used for mocking service requests
+    /// </summary>
+    protected MockApi MockApi { get; private set; } = null!;
 
     readonly IntegrationConfig m_IntegrationConfig = new();
-    Stopwatch? m_Stopwatch;
+    Activity? m_CurrentTest;
+
+    static UgsCliFixture()
+    {
+        ActivitySource.AddActivityListener(new()
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
+            ActivityStopped = activity =>
+            {
+                TestContext.Progress.WriteLine(
+                    $"[Timing] {activity.OperationName} took {activity.Duration.TotalMilliseconds}ms");
+            }
+        });
+    }
+
+    [OneTimeSetUp]
+    public async Task OneTimeSetUpBase()
+    {
+        MockApi = new MockApi();
+        await BuildCliIfNeeded();
+    }
 
     [OneTimeTearDown]
-    public void DisposeMockServer()
+    public void OneTimeTearDownBase()
     {
-        MockApi.Server?.Dispose();
-    }
-    [OneTimeTearDown]
-    public void DisposeIntegrationConfig()
-    {
+        MockApi.Dispose();
         m_IntegrationConfig.Dispose();
     }
 
     [SetUp]
     public void TestOutputTrackingSetup()
     {
-        Console.WriteLine($"Running Test '{TestContext.CurrentContext.Test.Name}' ...");
-        m_Stopwatch = Stopwatch.StartNew();
+        m_CurrentTest = k_TestActivity.StartActivity(TestContext.CurrentContext.Test.Name);
     }
 
     [TearDown]
     public void TestOutputTrackingTeardown()
     {
-        string? timeElapsedStr = null;
-        if (m_Stopwatch != null)
-        {
-            m_Stopwatch!.Stop();
-            timeElapsedStr = $"in {m_Stopwatch.Elapsed.Milliseconds} ms";
-        }
-
-        var printLine =
-            $"Finished Test '{TestContext.CurrentContext.Test.Name}' {timeElapsedStr ?? string.Empty}";
-        Console.WriteLine(printLine);
+        m_CurrentTest?.Dispose();
     }
 
-    [OneTimeSetUp]
-    public async Task BuildCliIfNeeded()
+    static async Task BuildCliIfNeeded()
     {
-        if (s_BuildCliTask == null)
+        using var build = k_TestActivity.StartActivity();
+
+        await k_BuildLock.WaitAsync();
+        try
         {
-            await TestContext.Progress.WriteLineAsync("Building UGS CLI...");
-            s_BuildCliTask = UgsCliBuilder.Build();
-            await s_BuildCliTask;
+            if (s_BuildCliTask == null)
+            {
+                s_BuildCliTask = UgsCliBuilder.Build();
+            }
         }
+        finally
+        {
+            k_BuildLock.Release();
+        }
+
+        await s_BuildCliTask;
     }
 
     protected void SetConfigValue(string key, string value)
@@ -111,9 +131,19 @@ public abstract class UgsCliFixture
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
     }
 
-    protected static UgsCliTestCase GetLoggedInCli()
+    protected UgsCliTestCase NewUgsCliTestCase()
     {
         return new UgsCliTestCase()
+            .WithEnvironmentVariables(new Dictionary<string, string?>
+            {
+                [Keys.EnvironmentKeys.ConfigDir] = m_IntegrationConfig.ConfigDir,
+                [Keys.EnvironmentKeys.MockServerUrl] = MockApi.Url
+            });
+    }
+
+    protected UgsCliTestCase GetLoggedInCli()
+    {
+        return NewUgsCliTestCase()
             .Command($"login --service-key-id {CommonKeys.ValidServiceAccKeyId} --secret-key-stdin")
             .StandardInputWriteLine(CommonKeys.ValidServiceAccSecretKey);
     }

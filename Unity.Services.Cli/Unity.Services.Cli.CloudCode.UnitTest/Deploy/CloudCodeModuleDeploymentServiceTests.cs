@@ -163,7 +163,7 @@ public class CloudCodeModuleDeploymentServiceTests
 
         var result = await m_DeploymentService!.Deploy(
             input,
-            k_ValidCcmFilePaths,
+            k_ValidCcmFilePaths.Select(p => new AuthoringFile(p)).ToList(),
             TestValues.ValidProjectId,
             TestValues.ValidEnvironmentId,
             null!,
@@ -244,7 +244,7 @@ public class CloudCodeModuleDeploymentServiceTests
 
         var result = await m_DeploymentService!.Deploy(
             input,
-            k_ValidCcmFilePaths,
+            k_ValidCcmFilePaths.Select(p => new AuthoringFile(p)).ToList(),
             TestValues.ValidProjectId,
             TestValues.ValidEnvironmentId,
             null!,
@@ -284,7 +284,7 @@ public class CloudCodeModuleDeploymentServiceTests
         Assert.DoesNotThrowAsync(
             () => m_DeploymentService!.Deploy(
                 input,
-                k_ValidCcmFilePaths,
+                k_ValidCcmFilePaths.Select(p => new AuthoringFile(p)).ToList(),
                 TestValues.ValidProjectId,
                 TestValues.ValidEnvironmentId,
                 null!,
@@ -358,7 +358,7 @@ public class CloudCodeModuleDeploymentServiceTests
 
         var result = await m_DeploymentService!.Deploy(
             input,
-            k_ValidCcmFilePaths,
+            k_ValidCcmFilePaths.Select(p => new AuthoringFile(p)).ToList(),
             TestValues.ValidProjectId,
             TestValues.ValidEnvironmentId,
             null!,

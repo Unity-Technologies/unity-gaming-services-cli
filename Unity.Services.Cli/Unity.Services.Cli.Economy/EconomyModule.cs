@@ -32,8 +32,7 @@ namespace Unity.Services.Cli.Economy;
 public class EconomyModule : ICommandModule
 {
     public Command ModuleRootCommand { get; }
-    internal Command GetResourcesCommand { get; }
-    internal Command GetPublishedCommand { get; }
+    internal Command ListCommand { get; }
     internal Command PublishCommand { get; }
     internal Command DeleteCommand { get; }
     internal Command CurrencyCommand { get; }
@@ -43,27 +42,24 @@ public class EconomyModule : ICommandModule
 
     public EconomyModule()
     {
-        GetResourcesCommand = new Command(
-            "get-resources",
-            "Get Economy resources.")
+        ListCommand = new Command(
+            "list",
+            new CommandDescription("List Economy resources. Returns published resources by default; use --include-draft for draft resources.")
+                .WithReturn("JSON array of resources (currencies, inventory items, virtual/real-money purchases) with id, name, type, type-specific fields, customData, and timestamps.")
+                .Build())
         {
+            EconomyInput.IncludeDraftOption,
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption
         };
-        GetResourcesCommand.SetHandler<CommonInput, IUnityEnvironment, IEconomyService, IMicrosoftLogger, ILoadingIndicator, CancellationToken>(GetResourcesHandler.GetAsync);
-
-        GetPublishedCommand = new Command(
-            "get-published",
-            "Get published Economy resources.")
-        {
-            CommonInput.CloudProjectIdOption,
-            CommonInput.EnvironmentNameOption
-        };
-        GetPublishedCommand.SetHandler<CommonInput, IUnityEnvironment, IEconomyService, IMicrosoftLogger, ILoadingIndicator, CancellationToken>(GetPublishedHandler.GetAsync);
+        ListCommand.AddAlias("l");
+        ListCommand.SetHandler<EconomyInput, IUnityEnvironment, IEconomyService, IMicrosoftLogger, ILoadingIndicator, CancellationToken>(ListHandler.ListAsync);
 
         PublishCommand = new Command(
             "publish",
-            "Publish your Economy configuration.")
+            new CommandDescription("Publish your Economy configuration.")
+                .WithReturn("Confirmation message.")
+                .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption
@@ -72,7 +68,9 @@ public class EconomyModule : ICommandModule
 
         DeleteCommand = new Command(
             "delete",
-            "Delete an Economy resource.")
+            new CommandDescription("Delete an Economy resource.")
+                .WithReturn("Confirmation message.")
+                .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
@@ -101,11 +99,13 @@ public class EconomyModule : ICommandModule
         };
         RealMoneyPurchaseCommand.AddAlias("rmp");
 
-        ModuleRootCommand = new("economy", "Manage your Economy configuration.")
+        ModuleRootCommand = new("economy", new CommandDescription("Manage your Economy configuration.")
+            .WithDocs("https://docs.unity.com/ugs/manual/economy/manual")
+            .WithAdminApi("https://services.docs.unity.com/economy-admin/v2/")
+            .Build())
         {
             DeleteCommand,
-            GetPublishedCommand,
-            GetResourcesCommand,
+            ListCommand,
             PublishCommand,
             InventoryItemCommand,
             CurrencyCommand,

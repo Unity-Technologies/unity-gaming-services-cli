@@ -18,7 +18,15 @@ public class TriggerClientTests
 
     public TriggerClientTests()
     {
-        m_Trigger = new("1", "Trigger1", "EventType1", "cloud-code", "actionUrn", "") { Path = k_Path };
+        m_Trigger = TriggerConfig.CreateWithId(
+            "1",
+            "Trigger1",
+            "EventType1",
+            "cloud-code",
+            "actionUrn",
+            "",
+            actionScopeType: "Player",
+            path: k_Path);
     }
 
     [Test]
@@ -66,7 +74,7 @@ public class TriggerClientTests
                     TestValues.ValidProjectId,
                     TestValues.ValidEnvironmentId,
                     m_Trigger.Id,
-                    It.Is<TriggerConfigBody>(l => l.Name == m_Trigger.Name),
+                    It.Is<TriggerConfigBody>(l => l.Name == m_Trigger.Name && l.ActionScopeType == m_Trigger.ActionScopeType),
                     It.IsAny<CancellationToken>()),
                     Times.Once());
     }
@@ -98,7 +106,7 @@ public class TriggerClientTests
                 s => s.CreateTriggerAsync(
                     TestValues.ValidProjectId,
                     TestValues.ValidEnvironmentId,
-                    It.Is<TriggerConfigBody>(l => l.Name == m_Trigger.Name),
+                    It.Is<TriggerConfigBody>(l => l.Name == m_Trigger.Name && l.ActionScopeType == m_Trigger.ActionScopeType),
                     It.IsAny<CancellationToken>()),
                 Times.Once());
     }

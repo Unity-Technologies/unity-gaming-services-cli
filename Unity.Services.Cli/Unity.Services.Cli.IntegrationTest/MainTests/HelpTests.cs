@@ -18,7 +18,7 @@ public class HelpTests : UgsCliFixture
     [TestCaseSource(nameof(s_HelpTestCases))]
     public async Task HelpCommandContains(string arguments, string regexOutput)
     {
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command(arguments)
             .AssertNoErrors()
             .AssertStandardOutput(output => StringAssert.IsMatch(regexOutput, output))
@@ -28,7 +28,7 @@ public class HelpTests : UgsCliFixture
     [Test]
     public async Task NoArgumentsShowsMainHelp()
     {
-        await new UgsCliTestCase()
+        await NewUgsCliTestCase()
             .Command("")
             .AssertExitCode(ExitCode.HandledError)
             .AssertStandardOutput(output => StringAssert.IsMatch($"Usage:\\s*{Regex.Escape("ugs [command] [options]")}", output))

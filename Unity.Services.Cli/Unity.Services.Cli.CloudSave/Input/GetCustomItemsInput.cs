@@ -3,7 +3,7 @@ using Unity.Services.Cli.Common.Input;
 
 namespace Unity.Services.Cli.CloudSave.Input;
 
-class GetCustomItemsInput : CommonInput
+public class GetCustomItemsInput : CommonInput
 {
     public static readonly Option<string?> CustomIdValue = new Option<string?>("--custom-id", "The custom entity ID to set the item for.")
     {

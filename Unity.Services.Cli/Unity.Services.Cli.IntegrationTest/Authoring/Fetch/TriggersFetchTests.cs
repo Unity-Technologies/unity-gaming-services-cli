@@ -99,7 +99,7 @@ public class TriggersFetchTests : UgsCliFixture
                 failed: Array.Empty<IDeploymentItem>()
             );
         await GetFullySetCli()
-            .DebugCommand($"fetch {k_TestDirectory} -s triggers")
+            .Command($"fetch {k_TestDirectory} -s triggers")
             .AssertStandardOutputContains(expectedResult.ToString())
             .AssertNoErrors()
             .ExecuteAsync();
@@ -122,7 +122,7 @@ public class TriggersFetchTests : UgsCliFixture
             failed: Array.Empty<IDeploymentItem>()
         );
         await GetFullySetCli()
-            .DebugCommand($"fetch {k_TestDirectory} --reconcile -s triggers")
+            .Command($"fetch {k_TestDirectory} --reconcile -s triggers")
             .AssertStandardOutputContains(expectedResult.ToString())
             .AssertNoErrors()
             .ExecuteAsync();
@@ -144,7 +144,7 @@ public class TriggersFetchTests : UgsCliFixture
 
         var ex = expectedResult.ToString();
         await GetFullySetCli()
-            .DebugCommand($"fetch {k_TestDirectory} --dry-run -s triggers")
+            .Command($"fetch {k_TestDirectory} --dry-run -s triggers")
             .AssertStandardOutputContains(ex)
             .AssertNoErrors()
             .ExecuteAsync();
@@ -168,7 +168,7 @@ public class TriggersFetchTests : UgsCliFixture
             dryRun: true
         );
         await GetFullySetCli()
-            .DebugCommand($"fetch {k_TestDirectory} --reconcile --dry-run -s triggers")
+            .Command($"fetch {k_TestDirectory} --reconcile --dry-run -s triggers")
             .AssertStandardOutputContains(expectedResult.ToString())
             .AssertNoErrors()
             .ExecuteAsync();
@@ -178,10 +178,14 @@ public class TriggersFetchTests : UgsCliFixture
     public async Task FetchToValidConfigFromDuplicateIdFails()
     {
         var localTriggers = m_LocalTriggers!.Append(
-            new TriggerConfig("00000000-0000-0000-0000-000000000001", "Trigger1", "EventType1", "ActionType1", "ActionUrn1", "data['someId'] == 'thisId'")
-            {
-                Path = Path.Combine(k_TestDirectory, "Trigger1.tr")
-            }).ToList();
+            TriggerConfig.CreateWithId(
+                "00000000-0000-0000-0000-000000000001",
+                "Trigger1",
+                "EventType1",
+                "ActionType1",
+                "ActionUrn1",
+                "data['someId'] == 'thisId'",
+                path: Path.Combine(k_TestDirectory, "Trigger1.tr"))).ToList();
         await CreateDeployFileAsync(localTriggers);
 
         foreach (var tr in localTriggers)
@@ -201,7 +205,7 @@ public class TriggersFetchTests : UgsCliFixture
             failed: new IDeploymentItem[] { localTriggers[0], localTriggers[1] }
         );
         await GetFullySetCli()
-            .DebugCommand($"fetch {k_TestDirectory} -s triggers")
+            .Command($"fetch {k_TestDirectory} -s triggers")
             .AssertStandardOutputContains(expectedResult.ToString())
             .ExecuteAsync();
     }
