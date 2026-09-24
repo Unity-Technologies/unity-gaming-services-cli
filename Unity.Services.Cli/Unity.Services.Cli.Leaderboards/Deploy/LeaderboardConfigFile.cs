@@ -63,6 +63,17 @@ class LeaderboardConfigFile : IFileTemplate
     [JsonIgnore]
     public string FileBodyText => JsonConvert.SerializeObject(this, GetSerializationSettings());
 
+    [JsonIgnore]
+    public string HelpBodyText
+    {
+        get
+        {
+            var helpFile = new LeaderboardConfigFile();
+            helpFile.ResetConfig!.Start = new DateTime(2099, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            return JsonConvert.SerializeObject(helpFile, GetSerializationSettings());
+        }
+    }
+
     public static JsonSerializerSettings GetSerializationSettings()
     {
         var settings = new JsonSerializerSettings()

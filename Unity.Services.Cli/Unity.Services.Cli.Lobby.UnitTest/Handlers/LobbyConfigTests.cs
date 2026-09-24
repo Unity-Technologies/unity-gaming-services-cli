@@ -62,9 +62,8 @@ public class LobbyConfigTests
     [Test]
     public void TryParse_FailsWithNoConfigs()
     {
-        var configResponse = new List<RemoteConfigValue>();
         var json = JsonConvert.SerializeObject(
-            configResponse,
+            new RemoteConfigResponse(),
             new JsonSerializerSettings
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
@@ -73,6 +72,24 @@ public class LobbyConfigTests
         var success = LobbyConfig.TryParse(json, out var lobbyConfig);
         Assert.False(success);
         Assert.Null(lobbyConfig);
+    }
+
+    [Test]
+    public void TryParse_ThrowsOnMalformedJson()
+    {
+        Assert.That(
+            () => LobbyConfig.TryParse("not valid json {{{", out _),
+            Throws.InstanceOf<JsonException>());
+    }
+
+    [TestCase(null)]
+    [TestCase("")]
+    [TestCase("   ")]
+    public void TryParse_ThrowsOnNullOrEmptyResponse(string? response)
+    {
+        Assert.That(
+            () => LobbyConfig.TryParse(response!, out _),
+            Throws.InstanceOf<ArgumentNullException>());
     }
 
     static RemoteConfigResponse NewDefaultConfig(bool includeMockConfig = true)

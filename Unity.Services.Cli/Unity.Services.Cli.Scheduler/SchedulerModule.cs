@@ -11,16 +11,16 @@ using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.Common.Utils;
+using Unity.Services.Cli.Scheduler.Authoring;
 using Unity.Services.Cli.Scheduler.Deploy;
 using Unity.Services.Cli.Scheduler.Fetch;
 using Unity.Services.Cli.Scheduler.Handlers;
 using Unity.Services.Gateway.SchedulerApiV1.Generated.Api;
-using Unity.Services.Scheduler.Authoring.Core.Deploy;
-using Unity.Services.Scheduler.Authoring.Core.Fetch;
-using Unity.Services.Scheduler.Authoring.Core.Serialization;
-using Unity.Services.Scheduler.Authoring.Core.Service;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Deploy;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Fetch;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.IO;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Service;
 using FileSystem = Unity.Services.Cli.Scheduler.IO.FileSystem;
-using IFileSystem = Unity.Services.Scheduler.Authoring.Core.IO.IFileSystem;
 
 namespace Unity.Services.Cli.Scheduler;
 
@@ -68,7 +68,7 @@ public class SchedulerModule : ICommandModule
             CancellationToken>(
             SchedulerListHandler.SchedulerListHandlerHandlerAsync);
 
-        ModuleRootCommand = new("scheduler", new CommandDescription("Manage Scheduler.")
+        ModuleRootCommand = new Command("scheduler", new CommandDescription("Manage Scheduler.")
             .WithDocs("https://docs.unity.com/en-us/triggers/tutorials/schedule-events")
             .WithAdminApi("https://services.docs.unity.com/scheduler-admin/v1/")
             .Build())
@@ -86,7 +86,8 @@ public class SchedulerModule : ICommandModule
     {
         var config = new Gateway.SchedulerApiV1.Generated.Client.Configuration
         {
-            BasePath = EndpointHelper.GetCurrentEndpointFor<SchedulerEndpoints>()
+            BasePath = EndpointHelper.GetCurrentEndpointFor<SchedulerEndpoints>(),
+            UserAgent = RequestHeaderHelper.UserAgent,
         };
         config.DefaultHeaders.SetXClientIdHeader();
 
@@ -94,13 +95,13 @@ public class SchedulerModule : ICommandModule
         serviceCollection.AddSingleton<ISchedulerApiAsync, SchedulerApi>(_ => new SchedulerApi(config));
 
         serviceCollection.AddTransient<IDeploymentService, SchedulerDeploymentService>();
-        serviceCollection.AddTransient<IScheduleDeploymentHandler, SchedulerDeploymentHandler>();
+        serviceCollection.AddTransient<ISchedulerDeploymentHandler, SchedulerDeploymentHandler>();
         serviceCollection.AddTransient<IFetchService, SchedulerFetchService>();
-        serviceCollection.AddTransient<IScheduleFetchHandler, SchedulerFetchHandler>();
+        serviceCollection.AddTransient<ISchedulerFetchHandler, SchedulerFetchHandler>();
+        serviceCollection.AddTransient<Tooling.Editor.Scheduler.Authoring.Core.Logger.ILogger, SchedulerAuthoringLogger>();
 
         serviceCollection.AddTransient<IFileSystem, FileSystem>();
-        serviceCollection.AddTransient<IScheduleResourceLoader, ScheduleResourceLoader>();
-        serviceCollection.AddSingleton<ISchedulesSerializer, SchedulesSerializer>();
+        serviceCollection.AddTransient<ISchedulerResourceLoader, SchedulerResourceLoader>();
 
         var retryAfterPolicy = Policy
             .HandleResult<RestResponse>(r => r.StatusCode == HttpStatusCode.TooManyRequests && r.Headers != null)

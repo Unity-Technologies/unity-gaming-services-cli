@@ -44,7 +44,9 @@ class CloudCodeService : ICloudCodeService
         {
             var response = await m_CloudCodeAsyncApi.ListScriptsAsync(projectId, environmentId, ListLimit,
                 afterScript?.Name, cancellationToken: cancellationToken);
-            var responseList = response.Results.ToList();
+            // A project with no scripts yields an empty body, so both the response and its results
+            // can be null rather than an empty array.
+            var responseList = response?.Results?.ToList() ?? new List<ListScriptsResponseResultsInner>();
             resultsCount = responseList.Count;
             if (resultsCount < ListLimit)
             {
@@ -225,9 +227,90 @@ class CloudCodeService : ICloudCodeService
         await m_CloudCodeAsyncApi.DeleteModuleAsync(projectId, environmentId, moduleName, cancellationToken: cancellationToken);
     }
 
+    /// <inheritdoc cref="ICloudCodeService.DeleteModuleVersionAsync" />
+    public async Task DeleteModuleVersionAsync(string projectId, string environmentId, string? moduleName,
+        long version, CancellationToken cancellationToken = default)
+    {
+        await AuthorizeService(cancellationToken);
+
+        ThrowIfModuleNameInvalid(moduleName);
+
+        m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
+        m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentId, environmentId);
+
+        try
+        {
+            await m_CloudCodeAsyncApi.DeleteModuleVersionAsync(
+                projectId,
+                environmentId,
+                moduleName,
+                version,
+                cancellationToken: cancellationToken);
+        }
+        catch (ApiException ex)
+        {
+            // Each status maps to a distinct message. The wording follows the API's own vocabulary:
+            // a module has a "live" version, where a script has an "active" one.
+            throw (HttpStatusCode)ex.ErrorCode switch
+            {
+                HttpStatusCode.BadRequest => new CliException(
+                    $"'{version}' is not a valid module version. Provide a version number as listed by"
+                    + $" 'ugs cloud-code modules get {moduleName} --versions'.", ExitCode.HandledError),
+                HttpStatusCode.Forbidden => new CliException(
+                    "Module versions are not enabled for this project, so there is no version to delete.",
+                    ExitCode.HandledError),
+                HttpStatusCode.NotFound => new CliException(
+                    $"Version '{version}' of module '{moduleName}' could not be found.", ExitCode.HandledError),
+                HttpStatusCode.Conflict => new CliException(
+                    $"Version '{version}' of module '{moduleName}' cannot be deleted because it is the live"
+                    + " version or is assigned to a release.", ExitCode.HandledError),
+                _ => ex
+            };
+        }
+    }
+
+    /// <inheritdoc cref="ICloudCodeService.DeleteScriptVersionAsync" />
+    public async Task DeleteScriptVersionAsync(string projectId, string environmentId, string? scriptName,
+        int version, CancellationToken cancellationToken = default)
+    {
+        await AuthorizeService(cancellationToken);
+
+        ThrowIfScriptNameInvalid(scriptName);
+
+        m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
+        m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentId, environmentId);
+
+        try
+        {
+            await m_CloudCodeAsyncApi.DeleteScriptVersionAsync(
+                projectId,
+                environmentId,
+                scriptName,
+                version,
+                cancellationToken: cancellationToken);
+        }
+        catch (ApiException ex)
+        {
+            // No Forbidden case: unlike modules, the script version route is not gated on the module
+            // versions feature flag, so a 403 cannot arise here.
+            throw (HttpStatusCode)ex.ErrorCode switch
+            {
+                HttpStatusCode.BadRequest => new CliException(
+                    $"'{version}' is not a valid script version. Provide a version number as listed by"
+                    + $" 'ugs cloud-code scripts get {scriptName} --versions'.", ExitCode.HandledError),
+                HttpStatusCode.NotFound => new CliException(
+                    $"Version '{version}' of script '{scriptName}' could not be found.", ExitCode.HandledError),
+                HttpStatusCode.Conflict => new CliException(
+                    $"Version '{version}' of script '{scriptName}' cannot be deleted because it is the active"
+                    + " version or is assigned to a release.", ExitCode.HandledError),
+                _ => ex
+            };
+        }
+    }
+
     /// <inheritdoc cref="ICloudCodeService.GetModuleSpecAsync" />
     public async Task<string> GetModuleSpecAsync(string projectId, string environmentId, string moduleName,
-        CancellationToken cancellationToken = default)
+        string? version = null, CancellationToken cancellationToken = default)
     {
         await AuthorizeService(cancellationToken);
         ThrowIfModuleNameInvalid(moduleName);
@@ -235,7 +318,12 @@ class CloudCodeService : ICloudCodeService
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentId, environmentId);
 
-        return await m_CloudCodeAsyncApi.ModuleSpecAsync(projectId, environmentId, moduleName, cancellationToken: cancellationToken);
+        return await m_CloudCodeAsyncApi.ModuleSpecAsync(
+            projectId,
+            environmentId,
+            moduleName,
+            version: version,
+            cancellationToken: cancellationToken);
     }
 
     public async Task<IEnumerable<ListModulesResponseResultsInner>> ListModulesAsync(string projectId, string environmentId,
@@ -250,9 +338,12 @@ class CloudCodeService : ICloudCodeService
         do
         {
             var response = await m_CloudCodeAsyncApi.ListModulesAsync(projectId, environmentId, after: pageToken, cancellationToken: cancellationToken);
-            results.AddRange(response.Results.ToList());
+            // A project with no modules yields an empty body, so both the response and its results
+            // can be null rather than an empty array.
+            results.AddRange(response?.Results ?? new List<ListModulesResponseResultsInner>());
 
-            pageToken = response.NextPageToken;
+            // A null token would never equal "" and so would loop forever.
+            pageToken = response?.NextPageToken ?? "";
         }
         while (pageToken != "");
 

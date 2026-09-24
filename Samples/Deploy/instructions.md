@@ -8,7 +8,6 @@
 
 [Deploy Cloud Code Script](#deploy-cloud-code-script)<br>
 [Deploy Remote Config](#deploy-remote-config)<br>
-[Deploy Economy](#deploy-economy)<br>
 [Deploy Leaderboards](#deploy-leaderboards)<br>
 [Deploy Access](#deploy-access)<br>
 [Deploy Matchmaker](#deploy-matchmaker)<br>
@@ -74,38 +73,6 @@ To create a deployable remote config file, you need a `.rc` file with the follow
 }
 ```
 Please take [configuration.rc] as an example. For more details, please check [Remote Config files].
-
-## Deploy Economy
-
-Run command from [Samples/Deploy] directory:
-```
-ugs deploy ./Economy
-```
-
-You will find the resource from [CURRENCY.ecc], [INVENTORY_ITEM.eci], [VIRTUAL_PURCHASE.ecv] and [REAL_MONEY_PURCHASE.ecr] published in your dashboard for the configured project and environment.
-
-### Create Economy Files
-There are 4 file formats for Economy:
-- `.ecc` for Currency
-- `.eci` for Inventory Item
-- `.ecr` for Real Money Purchase
-- `.ecv` for Virtual Purchase
-
-All of the files, regardless of type, should contain a json containing the required information for the specific Economy resource. You can find out what information to put in each file by looking at the [Economy resource schemas].
-
-Some fields may be omitted from the resource file, such as `type` (inferred by file extension), `id` (defaults to be equal to name), `customData` and other optional fields.
-
-### File Content Examples
-File: GOLD.ecc
-```Json
-{
-  "name": "GOLD",
-  "initial": 10,
-  "max": 1000
-}
-```
-
-Check out examples for [CURRENCY.ecc], [INVENTORY_ITEM.eci], [VIRTUAL_PURCHASE.ecv] and [REAL_MONEY_PURCHASE.ecr].
 
 ## Deploy Leaderboards
 
@@ -240,7 +207,6 @@ You will find all the contents deployed in your dashboard for the configured pro
 [Remote Config files]: https://docs.unity3d.com/Packages/com.unity.remote-config@3.3/manual/Authoring/remote_config_files.html
 [Leaderboards API]: https://services.docs.unity.com/leaderboards-admin/
 [Leaderboards schema]: https://ugs-config-schemas.unity3d.com/v1/leaderboards.schema.json
-[Economy resource schemas]: https://services.docs.unity.com/economy-admin/v2#tag/Economy-Admin/operation/addConfigResource
 [Matchmaker Admin API]: https://services.docs.unity.com/matchmaker-admin/
 [Matchmaker Environment Config resource schema]: https://ugs-config-schemas.unity3d.com/v1/matchmaker/matchmaker-environment-config.schema.json
 [Matchmaker Queue resource schema]: https://ugs-config-schemas.unity3d.com/v1/matchmaker/matchmaker-queue.schema.json
@@ -248,16 +214,11 @@ You will find all the contents deployed in your dashboard for the configured pro
 [Module.ccm]: /Samples/Deploy/CloudCode/Module/Module.ccm
 [Script.js]: /Samples/Deploy/CloudCode/Script/Script.js
 [configuration.rc]: /Samples/Deploy/RemoteConfig/configuration.rc
-[resource.ec]: /Samples/Deploy/Economy/resource.ec
 [Samples/Deploy]: /Samples/Deploy
 [Deploy Command]: https://services.docs.unity.com/guides/ugs-cli/latest/general/troubleshooting/project-roles#deploy-command
 [Service Account]: https://services.docs.unity.com/docs/service-account-auth/index.html
 [Login]: https://services.docs.unity.com/guides/ugs-cli/latest/general/base-commands/authentication/login
 [configuration]: https://services.docs.unity.com/guides/ugs-cli/latest/general/base-commands/configuration/configuration-keys
-[CURRENCY.ecc]: /Samples/Deploy/Economy/CURRENCY.ecc
-[INVENTORY_ITEM.eci]: /Samples/Deploy/Economy/INVENTORY_ITEM.eci
-[VIRTUAL_PURCHASE.ecv]: /Samples/Deploy/Economy/VIRTUAL_MONEY_PURCHASE.ecv
-[REAL_MONEY_PURCHASE.ecr]: /Samples/Deploy/Economy/REAL_MONEY_PURCHASE.ecr
 [Access Control Documentation Portal]: https://docs.unity.com/ugs/en-us/manual/overview/manual/access-control
 [Access Control schema]: https://ugs-config-schemas.unity3d.com/v1/project-access-policy.schema.json
 [sample-policy.ac]: /Samples/Deploy/ProjectAccess/sample-policy.ac

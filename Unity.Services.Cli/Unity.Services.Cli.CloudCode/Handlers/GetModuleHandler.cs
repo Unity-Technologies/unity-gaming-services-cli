@@ -41,6 +41,6 @@ static class GetModuleHandler
         var moduleName = input.ModuleName;
 
         var module = await cloudCodeService.GetModuleAsync(projectId, environmentId, moduleName!, cancellationToken);
-        logger.LogResultValue(new GetModuleResponseOutput(module));
+        logger.LogResultValue(new GetModuleResponseOutput(module, input.Versions));
     }
 }

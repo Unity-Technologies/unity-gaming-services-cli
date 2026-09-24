@@ -8,9 +8,6 @@ namespace Unity.Services.Cli.Purchasing.Authoring;
 [Serializable]
 class CatalogItemConfigFile : CatalogItem, IFileTemplate
 {
-    [JsonProperty("$schema")]
-    public string Schema => "https://ugs-config-schemas.unity3d.com/v1/purchasing/ucat.schema.json";
-
     [JsonIgnore]
     public string Extension => Constants.FileExtension;
 
@@ -28,7 +25,7 @@ class CatalogItemConfigFile : CatalogItem, IFileTemplate
 
     public static JsonSerializerSettings GetSerializationSettings()
     {
-        var settings = new JsonSerializerSettings()
+        var settings = new JsonSerializerSettings
         {
             Converters = { new StringEnumConverter() },
             Formatting = Formatting.Indented,

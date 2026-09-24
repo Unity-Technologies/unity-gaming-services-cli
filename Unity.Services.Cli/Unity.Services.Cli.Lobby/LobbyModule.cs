@@ -1,17 +1,17 @@
+using System.IO.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.CommandLine;
-using Unity.Services.Cli.Authoring.Compression;
-using Unity.Services.Cli.Authoring.Export.Input;
-using Unity.Services.Cli.Authoring.Import.Input;
+using Unity.Services.Cli.Authoring.Handlers;
+using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.Common;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Common.Utils;
 using Unity.Services.Cli.Common.Validator;
+using Unity.Services.Cli.Lobby.Deploy;
 using Unity.Services.Cli.Lobby.Handlers;
-using Unity.Services.Cli.Lobby.Handlers.ImportExport;
 using Unity.Services.Cli.Lobby.Input;
 using Unity.Services.Cli.Lobby.Service;
 using Unity.Services.Cli.RemoteConfig.Service;
@@ -225,42 +225,6 @@ public class LobbyModule : ICommandModule
             configUpdateCommand,
         };
 
-        var importCommand = new Command("import", new CommandDescription("Import lobby configuration into an environment.")
-            .WithReturn("Summary of created, updated, and deleted items.")
-            .Build())
-        {
-            ImportInput.InputDirectoryArgument,
-            ImportInput.FileNameArgument,
-            CommonInput.CloudProjectIdOption,
-            CommonInput.EnvironmentNameOption,
-            ImportInput.DryRunOption,
-            ImportInput.ReconcileOption,
-        };
-        importCommand.SetHandler<
-            ImportInput,
-            LobbyImporter,
-            ILoadingIndicator,
-            CancellationToken>(
-            ImportHandler.ImportAsync);
-
-        var exportCommand = new Command("export", new CommandDescription("Export lobby configuration from an environment.")
-            .WithReturn("Summary of exported items.")
-            .Build())
-        {
-            ExportInput.OutputDirectoryArgument,
-            ExportInput.FileNameArgument,
-            CommonInput.CloudProjectIdOption,
-            CommonInput.EnvironmentNameOption,
-            ExportInput.DryRunOption,
-        };
-        exportCommand.SetHandler<
-            ExportInput,
-            LobbyExporter,
-            ILoadingIndicator,
-            CancellationToken>(ExportHandler.ExportAsync);
-
-
-
         /* Root Command */
         ModuleRootCommand = new("lobby", new CommandDescription("Interact with the Lobby service.")
             .WithDocs("https://docs.unity.com/ugs/manual/lobby/manual")
@@ -282,8 +246,7 @@ public class LobbyModule : ICommandModule
             requestTokenCommand,
             updateLobbyCommand,
             configCommand,
-            importCommand,
-            exportCommand,
+            ModuleRootCommand.AddNewFileCommand<LobbyConfigFile>("Lobby", "lobby"),
         };
     }
 
@@ -295,7 +258,11 @@ public class LobbyModule : ICommandModule
         var validator = new ConfigurationValidator();
         serviceCollection.AddSingleton<ILobbyService>(s =>
             new LobbyService(validator, s.GetRequiredService<IServiceAccountAuthenticationService>(), null, null));
-        serviceCollection.AddTransient<LobbyImporter, LobbyImporter>();
-        serviceCollection.AddTransient<LobbyExporter, LobbyExporter>();
+        serviceCollection.AddTransient<IFileSystem, FileSystem>();
+        serviceCollection.AddTransient<ILobbyResourceLoader, LobbyResourceLoader>();
+        serviceCollection.AddTransient<LobbyDeploymentHandler>();
+        serviceCollection.AddTransient<LobbyFetchHandler>();
+        serviceCollection.AddTransient<IDeploymentService, LobbyDeploymentService>();
+        serviceCollection.AddTransient<IFetchService, LobbyFetchService>();
     }
 }

@@ -72,7 +72,6 @@ public class AccessApiMock : IServiceApiMock
         MockGetProjectPolicy(mockServer);
         MockGetPlayerPolicy(mockServer);
         MockGetAllPlayerPolicies(mockServer);
-        MockUpsertProjectPolicy(mockServer);
         MockUpsertPlayerPolicy(mockServer);
         MockDeleteProjectPolicyStatements(mockServer);
         MockDeletePlayerPolicyStatements(mockServer);
@@ -103,13 +102,6 @@ public class AccessApiMock : IServiceApiMock
                 .WithHeaders(new Dictionary<string, string> { { "Content-Type", "application/json" } })
                 .WithBodyAsJson(GetPlayerPolicies())
                 .WithStatusCode(HttpStatusCode.OK));
-    }
-
-    void MockUpsertProjectPolicy(WireMockServer mockServer)
-    {
-        mockServer.Given(Request.Create().WithPath(m_ProjectPolicyUrl).UsingPatch())
-            .RespondWith(Response.Create()
-                .WithStatusCode(HttpStatusCode.NoContent));
     }
 
     void MockUpsertPlayerPolicy(WireMockServer mockServer)

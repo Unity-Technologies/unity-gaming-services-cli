@@ -28,9 +28,6 @@ using Unity.Services.Cli.Authoring;
 using Unity.Services.Cli.Matchmaker;
 using Unity.Services.Cli.Observability;
 
-#if FEATURE_ECONOMY
-using Unity.Services.Cli.Economy;
-#endif
 #if FEATURE_LEADERBOARDS
 using Unity.Services.Cli.Leaderboards;
 #endif
@@ -82,14 +79,12 @@ public static partial class Program
                     host.ConfigureServices(AuthenticationModule.RegisterServices);
                     host.ConfigureServices(EnvironmentModule.RegisterServices);
                     host.ConfigureServices(DeployModule.RegisterServices);
+                    host.ConfigureServices(ConfigAsCodeModule.RegisterServices);
                     host.ConfigureServices(CloudCodeModule.RegisterServices);
                     host.ConfigureServices(SchedulerModule.RegisterServices);
                     host.ConfigureServices(RemoteConfigModule.RegisterServices);
                     host.ConfigureServices(AccessModule.RegisterServices);
                     host.ConfigureServices(LobbyModule.RegisterServices);
-#if FEATURE_ECONOMY
-                    host.ConfigureServices(EconomyModule.RegisterServices);
-#endif
 #if FEATURE_TRIGGERS
                     host.ConfigureServices(TriggersModule.RegisterServices);
 #endif
@@ -158,10 +153,8 @@ public static partial class Program
             .AddModule(new ConfigurationModule())
             .AddModule(new DeployModule())
             .AddModule(new FetchModule())
+            .AddModule(new ConfigAsCodeModule())
             .AddModule(new AccessModule())
-#if FEATURE_ECONOMY
-            .AddModule(new EconomyModule())
-#endif
             .AddModule(new EnvironmentModule())
 #if FEATURE_LEADERBOARDS
             .AddModule(new LeaderboardsModule())

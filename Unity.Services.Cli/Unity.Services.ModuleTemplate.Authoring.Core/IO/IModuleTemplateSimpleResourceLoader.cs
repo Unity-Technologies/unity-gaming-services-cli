@@ -6,8 +6,8 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.IO
 {
     public interface IModuleTemplateSimpleResourceLoader
     {
-        Task<IResourceDeploymentItem> ReadResource(string path, CancellationToken token);
-        Task CreateOrUpdateResource(IResourceDeploymentItem deployableItem, CancellationToken token);
-        Task DeleteResource(IResourceDeploymentItem deploymentItem, CancellationToken token);
+        Task<SimpleResourceDeploymentItem> ReadResource(string path, CancellationToken token);
+        Task CreateOrUpdateResource(SimpleResourceDeploymentItem deployableItem, CancellationToken token);
+        Task DeleteResource(SimpleResourceDeploymentItem deploymentItem, CancellationToken token);
     }
 }

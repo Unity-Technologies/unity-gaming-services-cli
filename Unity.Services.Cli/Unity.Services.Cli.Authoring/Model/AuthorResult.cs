@@ -110,17 +110,17 @@ public abstract class AuthorResult
 
     public virtual TableContent ToTable(string service = "")
     {
-         var table = new TableContent
-         {
-             IsDryRun = DryRun
-         };
+        var table = new TableContent
+        {
+            IsDryRun = DryRun
+        };
 
-         table.AddRows(Updated.Select(i=> new RowContent(i, service)).ToList());
-         table.AddRows(Deleted.Select(i=> new RowContent(i, service)).ToList());
-         table.AddRows(Created.Select(i=> new RowContent(i, service)).ToList());
-         table.AddRows(Failed.Select(i=> new RowContent(i, service)).ToList());
+        table.AddRows(Updated.Select(i => new RowContent(i, service)).ToList());
+        table.AddRows(Deleted.Select(i => new RowContent(i, service)).ToList());
+        table.AddRows(Created.Select(i => new RowContent(i, service)).ToList());
+        table.AddRows(Failed.Select(i => new RowContent(i, service)).ToList());
 
-         return table;
+        return table;
     }
 
     void AppendFetched(StringBuilder builder)

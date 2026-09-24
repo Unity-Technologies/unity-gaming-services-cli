@@ -9,7 +9,6 @@ using Unity.Services.ModuleTemplate.Authoring.Core.Deploy;
 using Unity.Services.ModuleTemplate.Authoring.Core.IO;
 using Unity.Services.ModuleTemplate.Authoring.Core.Model;
 using Unity.Services.ModuleTemplate.Authoring.Core.Service;
-using Unity.Services.ModuleTemplate.Authoring.Core.Validations;
 
 namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
 {
@@ -28,7 +27,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
 
         public async Task<FetchResult> FetchAsync(
             string rootDirectory,
-            IReadOnlyList<ICompoundResourceDeploymentItem> compoundLocalResources,
+            IReadOnlyList<CompoundResourceDeploymentItem> compoundLocalResources,
             bool dryRun = false,
             bool reconcile = false,
             CancellationToken token = default)
@@ -39,12 +38,9 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
                 .SelectMany(c => c.Items)
                 .ToList();
 
-            var filteredLocalResources = DuplicateResourceValidation.FilterDuplicateResources(
-                localResources, out var duplicateGroups);
+            var filteredLocalResources = FilterInvalidItems(localResources);
 
-            UpdateDuplicateResourceStatus(duplicateGroups);
-
-            var remoteResources = (await GetRemoteItems(rootDirectory, token)).Cast<INestedResourceDeploymentItem>().ToList();
+            var remoteResources = (await GetRemoteItems(rootDirectory, token)).Cast<NestedResourceDeploymentItem>().ToList();
 
             SetupMaps(filteredLocalResources, remoteResources);
 
@@ -56,7 +52,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
                 .Where(DoesNotExistRemotely)
                 .ToList();
 
-            var toCreate = new List<INestedResourceDeploymentItem>();
+            var toCreate = new List<NestedResourceDeploymentItem>();
             if (reconcile)
             {
                 toCreate = remoteResources
@@ -108,10 +104,10 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
             return res;
         }
 
-        static (ICompoundResourceDeploymentItem, bool) GetDefaultFile(
+        static (CompoundResourceDeploymentItem, bool) GetDefaultFile(
             string rootDir,
-            IReadOnlyList<ICompoundResourceDeploymentItem> compoundLocalResources,
-            IReadOnlyList<INestedResourceDeploymentItem> toCreate)
+            IReadOnlyList<CompoundResourceDeploymentItem> compoundLocalResources,
+            IReadOnlyList<NestedResourceDeploymentItem> toCreate)
         {
             var defaultFile = compoundLocalResources
                 .FirstOrDefault(f => f.Name == FetchResultName);
@@ -133,16 +129,16 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
             return (defaultFile, created);
         }
 
-        static (List<ICompoundResourceDeploymentItem>, List<ICompoundResourceDeploymentItem>, List<ICompoundResourceDeploymentItem>)
+        static (List<CompoundResourceDeploymentItem>, List<CompoundResourceDeploymentItem>, List<CompoundResourceDeploymentItem>)
             GetAffectedResources(
-                IReadOnlyList<ICompoundResourceDeploymentItem> files,
-                IReadOnlyList<INestedResourceDeploymentItem> toCreate,
-                IReadOnlyList<INestedResourceDeploymentItem> toDelete)
+                IReadOnlyList<CompoundResourceDeploymentItem> files,
+                IReadOnlyList<NestedResourceDeploymentItem> toCreate,
+                IReadOnlyList<NestedResourceDeploymentItem> toDelete)
         {
             var toCreateFiles = toCreate.Select(i => i.Parent).Distinct().ToList();
             var otherFiles = files.Except(toCreateFiles).ToList();
-            var toUpdateFiles = new List<ICompoundResourceDeploymentItem>();
-            var toDeleteFiles = new List<ICompoundResourceDeploymentItem>();
+            var toUpdateFiles = new List<CompoundResourceDeploymentItem>();
+            var toDeleteFiles = new List<CompoundResourceDeploymentItem>();
             foreach (var file in otherFiles)
             {
                 //Avoid re-writting files where all resources failed to be written
@@ -161,17 +157,17 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
         }
 
         void CreateLocal(
-            IReadOnlyList<INestedResourceDeploymentItem> toCreate)
+            IReadOnlyList<NestedResourceDeploymentItem> toCreate)
         {
             foreach (var entry in toCreate)
             {
                 entry.Parent.Items.Add(
-                    (INestedResourceDeploymentItem) GetRemoteResourceItem(entry.Resource.Id));
+                    (NestedResourceDeploymentItem)GetRemoteResourceItem(entry.Resource.Id));
             }
         }
 
         void UpdateLocal(
-            IReadOnlyList<INestedResourceDeploymentItem> toUpdate)
+            IReadOnlyList<NestedResourceDeploymentItem> toUpdate)
         {
             foreach (var entry in toUpdate)
             {
@@ -182,7 +178,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
         }
 
         static void DeleteLocal(
-            IReadOnlyList<INestedResourceDeploymentItem> toDelete)
+            IReadOnlyList<NestedResourceDeploymentItem> toDelete)
         {
             foreach (var entry in toDelete)
             {
@@ -193,11 +189,11 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
             }
         }
 
-        List<(ICompoundResourceDeploymentItem, Task)> UpdateOrCreateResources(
-            List<ICompoundResourceDeploymentItem> filesToWrite,
+        List<(CompoundResourceDeploymentItem, Task)> UpdateOrCreateResources(
+            List<CompoundResourceDeploymentItem> filesToWrite,
             CancellationToken token)
         {
-            List<(ICompoundResourceDeploymentItem, Task)> updateTasks = new List<(ICompoundResourceDeploymentItem, Task)>();
+            List<(CompoundResourceDeploymentItem, Task)> updateTasks = new List<(CompoundResourceDeploymentItem, Task)>();
             foreach (var item in filesToWrite)
             {
                 var task = m_ResourceLoader.CreateOrUpdateResource(item, token);
@@ -207,9 +203,9 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
             return updateTasks;
         }
 
-        List<(ICompoundResourceDeploymentItem, Task)> DeleteResources(List<ICompoundResourceDeploymentItem> toDelete, CancellationToken token)
+        List<(CompoundResourceDeploymentItem, Task)> DeleteResources(List<CompoundResourceDeploymentItem> toDelete, CancellationToken token)
         {
-            List<(ICompoundResourceDeploymentItem, Task)> deleteTasks = new List<(ICompoundResourceDeploymentItem, Task)>();
+            List<(CompoundResourceDeploymentItem, Task)> deleteTasks = new List<(CompoundResourceDeploymentItem, Task)>();
             foreach (var resource in toDelete)
             {
                 var task = m_ResourceLoader.DeleteResource(
@@ -222,7 +218,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
         }
 
         protected async Task WaitForTasks(
-            List<(ICompoundResourceDeploymentItem, Task)> tasks,
+            List<(CompoundResourceDeploymentItem, Task)> tasks,
             string taskAction)
         {
             foreach (var (resource, task) in tasks)
@@ -241,10 +237,10 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
         }
 
         protected void UpdateCompoundDryRunResult(
-            IReadOnlyList<INestedResourceDeploymentItem> toUpdate,
-            IReadOnlyList<INestedResourceDeploymentItem> toDelete,
-            IReadOnlyList<INestedResourceDeploymentItem> toCreate,
-            IReadOnlyList<ICompoundResourceDeploymentItem> localCompoundItems,
+            IReadOnlyList<NestedResourceDeploymentItem> toUpdate,
+            IReadOnlyList<NestedResourceDeploymentItem> toDelete,
+            IReadOnlyList<NestedResourceDeploymentItem> toCreate,
+            IReadOnlyList<CompoundResourceDeploymentItem> localCompoundItems,
             bool defaultFileCreated)
         {
             base.UpdateDryRunResult(
@@ -268,7 +264,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
                         .Select(i => i.Parent)
                         .Distinct()
                         .ToList()
-                    : new List<ICompoundResourceDeploymentItem>();
+                    : new List<CompoundResourceDeploymentItem>();
 
             // Need to update the default file for added items, there's no better alternative
             if (!defaultFileCreated)
@@ -285,10 +281,10 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
         }
 
         protected void UpdateCompoundItemsStatus(
-            IReadOnlyList<ICompoundResourceDeploymentItem> localCompoundItems,
-            IReadOnlyList<INestedResourceDeploymentItem> toCreate,
-            IReadOnlyList<INestedResourceDeploymentItem> toUpdate,
-            IReadOnlyList<INestedResourceDeploymentItem> toDelete,
+            IReadOnlyList<CompoundResourceDeploymentItem> localCompoundItems,
+            IReadOnlyList<NestedResourceDeploymentItem> toCreate,
+            IReadOnlyList<NestedResourceDeploymentItem> toUpdate,
+            IReadOnlyList<NestedResourceDeploymentItem> toDelete,
             bool defaultFileWasCreated)
         {
             base.UpdateDryRunResult(toUpdate, toDelete, toCreate);
@@ -297,7 +293,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
                     .Select(i => i.Parent)
                     .Distinct()
                     .ToList()
-                : new List<ICompoundResourceDeploymentItem>();
+                : new List<CompoundResourceDeploymentItem>();
 
             foreach (var item in localCompoundItems)
             {
@@ -307,28 +303,27 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
         }
 
         void UpdateCompoundItemStatus(
-            ICompoundResourceDeploymentItem item,
+            CompoundResourceDeploymentItem item,
             int itemCount,
-            List<ICompoundResourceDeploymentItem> createdFiles)
+            List<CompoundResourceDeploymentItem> createdFiles)
         {
             var message = createdFiles.Contains(item) ? Constants.Created : Constants.Updated;
-            var failedItemCount =
-                item.Items.Count(nested => nested.Status.MessageSeverity != SeverityLevel.Success);
+            var failedItems = GetNestedFailedItems(item);
 
             if (itemCount == 0)
                 item.Status = GetSuccessStatus(
                     Constants.Deleted + "; All items were deleted, as they no longer exist remotely.");
-            else if (failedItemCount == 0)
+            else if (failedItems.Count == 0)
                 item.Status = GetSuccessStatus(message + "; All items were successfully fetched");
-            else if (failedItemCount != item.Items.Count)
-                item.Status = GetPartialStatus();
+            else if (failedItems.Count != item.Items.Count)
+                item.Status = GetPartialStatus("Some items were not fetched", failedItems);
             else //futureItemCount > 0 && failedItem == futureItemCount
-                item.Status = GetFailedStatus("No items were fetched");
+                item.Status = GetFailedStatus("No items were fetched", failedItems);
         }
 
-        protected override IResourceDeploymentItem CreateItem(string rootDirectory, IResource resource)
+        protected override SimpleResourceDeploymentItem CreateItem(string rootDirectory, SimpleResource resource)
         {
-            return new NestedResourceDeploymentItem(Path.Combine(rootDirectory,FetchResultName), resource);
+            return new NestedResourceDeploymentItem(Path.Combine(rootDirectory, FetchResultName), resource);
         }
 
         protected override DeploymentStatus GetSuccessStatus(string message)
@@ -336,13 +331,15 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
             return Statuses.GetFetched(message);
         }
 
-        protected override DeploymentStatus GetFailedStatus(string message)
+        protected override DeploymentStatus GetFailedStatus(string message, IReadOnlyList<IDeploymentItem> failedItems = null)
         {
+            message = $"{message}\n{GetNestedDetails(failedItems)}";
             return Statuses.GetFailedToFetch(message);
         }
 
-        protected override DeploymentStatus GetPartialStatus(string message = null)
+        protected override DeploymentStatus GetPartialStatus(string message, IReadOnlyList<IDeploymentItem> failedItems = null)
         {
+            message = $"{message}\n{GetNestedDetails(failedItems)}";
             return Statuses.GetPartialFetch(message);
         }
     }

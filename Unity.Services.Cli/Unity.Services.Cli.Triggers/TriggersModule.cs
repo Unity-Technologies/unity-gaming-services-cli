@@ -222,7 +222,8 @@ public class TriggersModule : ICommandModule
     {
         var config = new Gateway.TriggersApiV1.Generated.Client.Configuration
         {
-            BasePath = EndpointHelper.GetCurrentEndpointFor<TriggersEndpoints>()
+            BasePath = EndpointHelper.GetCurrentEndpointFor<TriggersEndpoints>(),
+            UserAgent = RequestHeaderHelper.UserAgent,
         };
         config.DefaultHeaders.SetXClientIdHeader();
         serviceCollection.AddTransient<ITriggersSerializer, TriggersSerializer>();

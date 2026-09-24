@@ -116,7 +116,8 @@ public class MatchmakerModule : ICommandModule
     {
         var config = new Gateway.MatchmakerAdminApiV3.Generated.Client.Configuration
         {
-            BasePath = EndpointHelper.GetCurrentEndpointFor<AdminApiTargetEndpoint>()
+            BasePath = EndpointHelper.GetCurrentEndpointFor<AdminApiTargetEndpoint>(),
+            UserAgent = RequestHeaderHelper.UserAgent,
         };
         config.DefaultHeaders.SetXClientIdHeader();
 

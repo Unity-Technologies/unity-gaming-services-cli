@@ -128,6 +128,7 @@ public class LiveReleasesApiMock : IServiceApiMock
         MockGetRelease(mockServer, responseHeaders);
         MockCreateRelease(mockServer, responseHeaders);
         MockUpdateRelease(mockServer, responseHeaders);
+        MockDeleteRelease(mockServer, responseHeaders);
         MockDeletePointer(mockServer, responseHeaders);
 
         MockGetPointers(mockServer, responseHeaders);
@@ -285,6 +286,21 @@ public class LiveReleasesApiMock : IServiceApiMock
                         .WithBodyAsJson(pointer.Value)
                         .WithStatusCode(201));
         }
+    }
+
+    static void MockDeleteRelease(WireMockServer mockServer, Dictionary<string, WireMockList<string>> responseHeaders)
+    {
+        mockServer
+            .Given(
+                Request.Create()
+                    .WithPath(
+                        $"{k_BasePath}/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/releases/Release-2"
+                    )
+                    .UsingDelete())
+            .RespondWith(
+                Response.Create()
+                    .WithHeaders(responseHeaders)
+                    .WithStatusCode(204));
     }
 
     static void MockDeletePointer(WireMockServer mockServer, Dictionary<string, WireMockList<string>> responseHeaders)

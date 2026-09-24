@@ -396,7 +396,8 @@ public class CloudSaveModule : ICommandModule
     {
         var config = new Gateway.CloudSaveApiV1.Generated.Client.Configuration
         {
-            BasePath = EndpointHelper.GetCurrentEndpointFor<CloudSaveEndpoints>()
+            BasePath = EndpointHelper.GetCurrentEndpointFor<CloudSaveEndpoints>(),
+            UserAgent = RequestHeaderHelper.UserAgent,
         };
         config.DefaultHeaders.SetXClientIdHeader();
         AsyncPolicy<RestResponse> retryAfterPolicy = Policy

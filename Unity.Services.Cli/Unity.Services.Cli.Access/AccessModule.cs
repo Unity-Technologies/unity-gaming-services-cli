@@ -29,128 +29,104 @@ namespace Unity.Services.Cli.Access;
 
 public class AccessModule : ICommandModule
 {
-    internal Command GetPlayerPolicyCommand;
-    internal Command GetProjectPolicyCommand;
-    internal Command GetAllPlayerPoliciesCommand;
-    internal Command UpsertProjectPolicyCommand;
-    internal Command UpsertPlayerPolicyCommand;
-    internal Command DeleteProjectPolicyStatementsCommand;
-    internal Command DeletePlayerPolicyStatementsCommand;
+    internal Command ProjectPolicyCommand;
+    internal Command PlayerPolicyCommand;
+    internal Command ProjectPolicyListCommand;
+    internal Command ProjectPolicyDeleteCommand;
+    internal Command PlayerPolicyListCommand;
+    internal Command PlayerPolicyUpdateCommand;
+    internal Command PlayerPolicyDeleteCommand;
     public Command ModuleRootCommand { get; }
-
 
     public AccessModule()
     {
-        GetProjectPolicyCommand = new Command("get-project-policy", new CommandDescription("Retrieves policies for a project and environment.")
+        ProjectPolicyListCommand = new Command("list", new CommandDescription("Retrieves policies for a project and environment.")
             .WithReturn("JSON object with policy statements, each containing sid, action, effect, principal, and resource.")
             .Build())
         {
             CommonInput.CloudProjectIdOption,
-            CommonInput.EnvironmentNameOption
+            CommonInput.EnvironmentNameOption,
         };
 
-        GetProjectPolicyCommand
+        ProjectPolicyListCommand
             .SetHandler<CommonInput, IUnityEnvironment, IAccessService, ILogger, ILoadingIndicator, CancellationToken>(
-                GetProjectPolicyHandler.GetProjectPolicyAsync);
+                ProjectPolicyListHandler.ListProjectPolicyAsync);
 
-        GetPlayerPolicyCommand = new Command("get-player-policy",
-            new CommandDescription("Retrieves policies for a player in a project and environment.")
-                .WithReturn("JSON object with playerId and statements, each containing sid, action, effect, principal, and resource.")
-                .Build())
+        ProjectPolicyDeleteCommand = new Command("delete", new CommandDescription("Delete statements from project policy by statement ID.")
+            .WithReturn("Confirmation message.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
-            AccessInput.PlayerIdArgument
+            AccessInput.StatementIdsArgument,
         };
 
-        GetPlayerPolicyCommand
-            .SetHandler<AccessInput, IUnityEnvironment, IAccessService, ILogger, ILoadingIndicator,
-                CancellationToken>(GetPlayerPolicyHandler.GetPlayerPolicyAsync);
+        ProjectPolicyDeleteCommand
+            .SetHandler<AccessInput, IUnityEnvironment, IAccessService, ILogger, ILoadingIndicator, CancellationToken>(
+                ProjectPolicyDeleteHandler.DeleteProjectPolicyAsync);
 
-        GetAllPlayerPoliciesCommand = new Command("get-all-player-policies",
-            new CommandDescription("Retrieves all players policies for a project and environment.")
-                .WithReturn("JSON array of player policies, each with playerId and statements.")
-                .Build())
+        ProjectPolicyCommand = new Command("project-policy", "Manage resource policies for a project.")
         {
-            CommonInput.CloudProjectIdOption,
-            CommonInput.EnvironmentNameOption,
+            ProjectPolicyListCommand,
+            ProjectPolicyDeleteCommand,
+            ProjectPolicyCommand.AddNewFileCommand<NewProjectAccessFile>("ProjectAccess"),
         };
 
-        GetAllPlayerPoliciesCommand
-            .SetHandler<CommonInput, IUnityEnvironment, IAccessService, ILogger, ILoadingIndicator,
-                CancellationToken>(GetAllPlayerPoliciesHandler.GetAllPlayerPoliciesAsync);
-
-        UpsertProjectPolicyCommand = new Command("upsert-project-policy",
-            new CommandDescription("Upsert statement in project policy.")
-                .WithReturn("Confirmation message.")
-                .Build())
+        PlayerPolicyListCommand = new Command("list", new CommandDescription("Retrieves player policies for a project and environment. Returns all player policies when --player-id is omitted, or the policy for the specified player when --player-id is provided.")
+            .WithReturn("JSON array of all player policies when no --player-id is specified, or a JSON object with playerId and statements when --player-id is provided.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
+            PlayerPolicyListInput.PlayerIdOption,
+        };
+
+        PlayerPolicyListCommand
+            .SetHandler<PlayerPolicyListInput, IUnityEnvironment, IAccessService, ILogger, ILoadingIndicator, CancellationToken>(
+                PlayerPolicyListHandler.ListPlayerPolicyAsync);
+
+        PlayerPolicyUpdateCommand = new Command("update", new CommandDescription("Upsert statements in player policy.")
+            .WithReturn("Confirmation message.")
+            .Build())
+        {
+            CommonInput.CloudProjectIdOption,
+            CommonInput.EnvironmentNameOption,
+            PlayerPolicyInput.PlayerIdArgument,
             AccessInput.FilePathArgument,
         };
 
-        UpsertProjectPolicyCommand
-            .SetHandler<AccessInput, IUnityEnvironment, IAccessService, ILogger, ILoadingIndicator,
-                CancellationToken>(UpsertProjectPolicyHandler.UpsertProjectPolicyAsync);
+        PlayerPolicyUpdateCommand
+            .SetHandler<PlayerPolicyInput, IUnityEnvironment, IAccessService, ILogger, ILoadingIndicator, CancellationToken>(
+                PlayerPolicyUpdateHandler.UpdatePlayerPolicyAsync);
 
-        UpsertPlayerPolicyCommand = new Command("upsert-player-policy",
-            new CommandDescription("Upsert statements in player policy.")
-                .WithReturn("Confirmation message.")
-                .Build())
+        PlayerPolicyDeleteCommand = new Command("delete", new CommandDescription("Delete statements from player policy by statement ID.")
+            .WithReturn("Confirmation message.")
+            .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
-            AccessInput.PlayerIdArgument,
-            AccessInput.FilePathArgument,
+            PlayerPolicyInput.PlayerIdArgument,
+            AccessInput.StatementIdsArgument,
         };
 
-        UpsertPlayerPolicyCommand
-            .SetHandler<AccessInput, IUnityEnvironment, IAccessService, ILogger, ILoadingIndicator,
-                CancellationToken>(UpsertPlayerPolicyHandler.UpsertPlayerPolicyAsync);
+        PlayerPolicyDeleteCommand
+            .SetHandler<PlayerPolicyInput, IUnityEnvironment, IAccessService, ILogger, ILoadingIndicator, CancellationToken>(
+                PlayerPolicyDeleteHandler.DeletePlayerPolicyAsync);
 
-        DeleteProjectPolicyStatementsCommand =
-            new Command("delete-project-policy-statements", new CommandDescription("Delete statements in project policy.")
-                .WithReturn("Confirmation message.")
-                .Build())
-            {
-                CommonInput.CloudProjectIdOption,
-                CommonInput.EnvironmentNameOption,
-                AccessInput.FilePathArgument
-            };
-
-        DeleteProjectPolicyStatementsCommand
-            .SetHandler<AccessInput, IUnityEnvironment, IAccessService, ILogger, ILoadingIndicator,
-                CancellationToken>(DeleteProjectPolicyStatementsHandler.DeleteProjectPolicyStatementsAsync);
-
-        DeletePlayerPolicyStatementsCommand =
-            new Command("delete-player-policy-statements", new CommandDescription("Delete statements in player policy.")
-                .WithReturn("Confirmation message.")
-                .Build())
-            {
-                CommonInput.CloudProjectIdOption,
-                CommonInput.EnvironmentNameOption,
-                AccessInput.PlayerIdArgument,
-                AccessInput.FilePathArgument
-            };
-
-        DeletePlayerPolicyStatementsCommand
-            .SetHandler<AccessInput, IUnityEnvironment, IAccessService, ILogger, ILoadingIndicator,
-                CancellationToken>(DeletePlayerPolicyStatementsHandler.DeletePlayerPolicyStatementsAsync);
+        PlayerPolicyCommand = new Command("player-policy", "Manage resource policies for players.")
+        {
+            PlayerPolicyListCommand,
+            PlayerPolicyUpdateCommand,
+            PlayerPolicyDeleteCommand,
+        };
 
         ModuleRootCommand = new Command("access", new CommandDescription("Manage resource policies to restrict read/write access.")
             .WithDocs("https://docs.unity.com/en-us/services/access-control")
             .WithAdminApi("https://services.docs.unity.com/access/v1/")
             .Build())
         {
-            GetProjectPolicyCommand,
-            GetPlayerPolicyCommand,
-            GetAllPlayerPoliciesCommand,
-            UpsertProjectPolicyCommand,
-            UpsertPlayerPolicyCommand,
-            DeleteProjectPolicyStatementsCommand,
-            DeletePlayerPolicyStatementsCommand,
-            ModuleRootCommand.AddNewFileCommand<NewProjectAccessFile>("ProjectAccess"),
+            ProjectPolicyCommand,
+            PlayerPolicyCommand,
         };
 
         ModuleRootCommand.AddAlias("ac");
@@ -163,7 +139,8 @@ public class AccessModule : ICommandModule
     {
         var config = new Configuration
         {
-            BasePath = EndpointHelper.GetCurrentEndpointFor<AccessEndpoints>()
+            BasePath = EndpointHelper.GetCurrentEndpointFor<AccessEndpoints>(),
+            UserAgent = RequestHeaderHelper.UserAgent,
         };
         config.DefaultHeaders.SetXClientIdHeader();
 

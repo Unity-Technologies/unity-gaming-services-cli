@@ -392,7 +392,8 @@ public class LeaderboardsModule : ICommandModule
     {
         var config = new Gateway.LeaderboardApiV1.Generated.Client.Configuration
         {
-            BasePath = EndpointHelper.GetCurrentEndpointFor<LeaderboardEndpoints>()
+            BasePath = EndpointHelper.GetCurrentEndpointFor<LeaderboardEndpoints>(),
+            UserAgent = RequestHeaderHelper.UserAgent,
         };
         config.DefaultHeaders.SetXClientIdHeader();
         AsyncPolicy<RestResponse> retryAfterPolicy = Policy
@@ -420,4 +421,3 @@ public class LeaderboardsModule : ICommandModule
         serviceCollection.AddTransient<LeaderboardExporter, LeaderboardExporter>();
     }
 }
-

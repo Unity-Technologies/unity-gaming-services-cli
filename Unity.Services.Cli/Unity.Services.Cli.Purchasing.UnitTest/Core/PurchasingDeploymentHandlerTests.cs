@@ -1,7 +1,10 @@
+using Moq;
 using NUnit.Framework;
 using UnityEditor.Purchasing.Editor.Authoring.Core;
 using UnityEditor.Purchasing.Editor.Authoring.Core.Deploy;
 using UnityEditor.Purchasing.Editor.Authoring.Core.Model;
+using UnityEditor.Purchasing.Editor.Authoring.Core.Service;
+using CoreLogger = UnityEditor.Purchasing.Editor.Authoring.Core.Logger;
 
 namespace Unity.Services.Cli.Purchasing.UnitTest.Core;
 
@@ -9,15 +12,13 @@ namespace Unity.Services.Cli.Purchasing.UnitTest.Core;
 class PurchasingDeploymentHandlerTests
 {
     FakeClient m_FakeClient = new();
-    FakeLogger m_FakeLogger = new();
     CatalogDeploymentHandler? m_Handler;
 
     [SetUp]
     public void SetUp()
     {
         m_FakeClient = new FakeClient();
-        m_FakeLogger = new FakeLogger();
-        m_Handler = new CatalogDeploymentHandler(m_FakeClient, m_FakeLogger);
+        m_Handler = new CatalogDeploymentHandler(m_FakeClient, new Mock<IWebshopCategoriesClient>().Object, new Mock<CoreLogger.ILogger>().Object);
     }
 
     [Test]

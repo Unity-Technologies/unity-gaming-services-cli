@@ -5,6 +5,8 @@ namespace Unity.Services.Cli.Common.Networking;
 
 public static class RequestHeaderHelper
 {
+    public static string UserAgent => $"ugs_cli/{GetCliVersion()}";
+
     /// <summary>
     /// Key of the header, the header is used to identify where the service request come from.
     /// </summary>
@@ -13,6 +15,9 @@ public static class RequestHeaderHelper
 #else
     public const string XClientIdHeaderKey = "x-client-id-staging";
 #endif
+
+    const string k_HeaderFeatureFlagKey = "X-Feature-Flag";
+    const string k_HeaderFeatureFlagValue = "file-repo-v2";
 
     internal static string XClientIdHeaderValue { get; } = InitXClientIdHeaderValue();
 
@@ -69,5 +74,21 @@ public static class RequestHeaderHelper
     {
         headers.Add(XClientIdHeaderKey, XClientIdHeaderValue);
         return headers;
+    }
+
+
+
+    /// <summary>
+    /// Set the `X-Feature-Flag` header in the header collection to enable LiveContent inline variant data structure
+    /// </summary>
+    /// <param name="self">
+    /// The header collection to add the header to.
+    /// </param>
+    /// <returns>
+    /// Returns the header collection for fluent interface.
+    /// </returns>
+    public static void SetInlineVariantFeatureFlag(this IDictionary<string, string> self)
+    {
+        self[k_HeaderFeatureFlagKey] = k_HeaderFeatureFlagValue;
     }
 }

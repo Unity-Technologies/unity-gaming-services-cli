@@ -144,6 +144,7 @@ public static class CommonModule
         var config = new IdentityClient.Configuration
         {
             BasePath = EndpointHelper.GetCurrentEndpointFor<UnityServicesGatewayEndpoints>(),
+            UserAgent = RequestHeaderHelper.UserAgent,
         };
         config.DefaultHeaders.SetXClientIdHeader();
 

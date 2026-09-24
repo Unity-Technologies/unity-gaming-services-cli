@@ -3,7 +3,6 @@ using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Purchasing.Authoring;
 using Unity.Services.DeploymentApi.Editor;
 using UnityEditor.Purchasing.Editor.Authoring.Core.Model;
-using Statuses = UnityEditor.Purchasing.Editor.Authoring.Core.Model.Statuses;
 
 namespace Unity.Services.Cli.Purchasing.UnitTest.Core;
 
@@ -122,13 +121,13 @@ class PurchasingDeploymentServiceTests : PurchasingDeployFetchTestBase
     public async Task Deploy_CsvFile_ParsesAndDeploysEntries()
     {
         m_FakeCsvCatalogLoader.ReadCatalogImpl = (_, _) =>
-            Task.FromResult<(List<CatalogEntryDeploymentItem>, List<IDeploymentItem>)>((
-                new List<CatalogEntryDeploymentItem>
+            Task.FromResult((
+                new List<CatalogItem>
                 {
-                    MakeEntry("item-a.ucat"),
-                    MakeEntry("item-b.ucat"),
+                    new() { uSku = "item-a", CatalogListingId = CatalogItem.CatalogListingIdPrefix + "item-a" },
+                    new() { uSku = "item-b", CatalogListingId = CatalogItem.CatalogListingIdPrefix + "item-b" },
                 },
-                new List<IDeploymentItem>()));
+                new List<AssetState>()));
 
         var files = new[] { new AuthoringFile("catalog.catalog.csv") };
 
@@ -147,16 +146,9 @@ class PurchasingDeploymentServiceTests : PurchasingDeployFetchTestBase
     [Test]
     public async Task Deploy_InvalidCsvFile_IncludesFailedInResult()
     {
-        m_FakeCsvCatalogLoader.ReadCatalogImpl = (path, _) =>
-            Task.FromResult<(List<CatalogEntryDeploymentItem>, List<IDeploymentItem>)>((
-                new List<CatalogEntryDeploymentItem>(),
-                new List<IDeploymentItem>
-                {
-                    new CatalogEntryDeploymentItem(path)
-                    {
-                        Status = Statuses.GetFailedToLoad(new IOException("file not found"), path),
-                    },
-                }));
+        m_FakeCsvCatalogLoader.ReadCatalogImpl = (_, _) =>
+            Task.FromException<(List<CatalogItem>, List<AssetState>)>(
+                new IOException("file not found"));
 
         var files = new[] { new AuthoringFile("missing.catalog.csv") };
 
@@ -174,15 +166,12 @@ class PurchasingDeploymentServiceTests : PurchasingDeployFetchTestBase
     [Test]
     public async Task Deploy_CsvParseException_IncludesFailedInResult()
     {
-        m_FakeCsvCatalogLoader.ReadCatalogImpl = (path, _) =>
-            Task.FromResult<(List<CatalogEntryDeploymentItem>, List<IDeploymentItem>)>((
-                new List<CatalogEntryDeploymentItem>(),
-                new List<IDeploymentItem>
+        m_FakeCsvCatalogLoader.ReadCatalogImpl = (_, _) =>
+            Task.FromResult((
+                new List<CatalogItem>(),
+                new List<AssetState>
                 {
-                    new CatalogEntryDeploymentItem(path)
-                    {
-                        Status = Statuses.GetFailedToRead(new FormatException("Invalid CSV"), path),
-                    },
+                    new("Invalid CSV", "bad format", SeverityLevel.Error),
                 }));
 
         var files = new[] { new AuthoringFile("bad.catalog.csv") };
@@ -201,15 +190,12 @@ class PurchasingDeploymentServiceTests : PurchasingDeployFetchTestBase
     [Test]
     public async Task Deploy_CsvWithNoValidItems_IncludesFailedInResult()
     {
-        m_FakeCsvCatalogLoader.ReadCatalogImpl = (path, _) =>
-            Task.FromResult<(List<CatalogEntryDeploymentItem>, List<IDeploymentItem>)>((
-                new List<CatalogEntryDeploymentItem>(),
-                new List<IDeploymentItem>
+        m_FakeCsvCatalogLoader.ReadCatalogImpl = (_, _) =>
+            Task.FromResult((
+                new List<CatalogItem>(),
+                new List<AssetState>
                 {
-                    new CatalogEntryDeploymentItem(path)
-                    {
-                        Status = Statuses.GetFailedToRead(new Exception("missing Sku"), path),
-                    },
+                    new("missing Sku", "Row 2 skipped: missing Sku", SeverityLevel.Error),
                 }));
 
         var files = new[] { new AuthoringFile("malformed.catalog.csv") };
@@ -229,12 +215,12 @@ class PurchasingDeploymentServiceTests : PurchasingDeployFetchTestBase
     public async Task Deploy_MixedUcatAndCsv_AllDeployed()
     {
         m_FakeCsvCatalogLoader.ReadCatalogImpl = (_, _) =>
-            Task.FromResult<(List<CatalogEntryDeploymentItem>, List<IDeploymentItem>)>((
-                new List<CatalogEntryDeploymentItem>
+            Task.FromResult((
+                new List<CatalogItem>
                 {
-                    MakeEntry("csv-item.ucat"),
+                    new() { uSku = "csv-item", CatalogListingId = CatalogItem.CatalogListingIdPrefix + "csv-item" },
                 },
-                new List<IDeploymentItem>()));
+                new List<AssetState>()));
 
         var files = new[]
         {

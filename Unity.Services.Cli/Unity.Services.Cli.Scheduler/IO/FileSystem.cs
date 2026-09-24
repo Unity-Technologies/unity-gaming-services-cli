@@ -1,4 +1,4 @@
-using Unity.Services.Scheduler.Authoring.Core.IO;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.IO;
 
 namespace Unity.Services.Cli.Scheduler.IO;
 

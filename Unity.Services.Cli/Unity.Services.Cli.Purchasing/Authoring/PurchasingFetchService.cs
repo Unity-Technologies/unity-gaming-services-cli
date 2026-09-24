@@ -3,8 +3,8 @@ using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.Authoring.Utils;
-using Unity.Services.Cli.Purchasing.IO;
 using Unity.Services.DeploymentApi.Editor;
+using UnityEditor.Purchasing.Editor.Authoring.Core;
 using UnityEditor.Purchasing.Editor.Authoring.Core.IO;
 using UnityEditor.Purchasing.Editor.Authoring.Core.Model;
 using UnityEditor.Purchasing.Editor.Authoring.Core.Service;
@@ -17,15 +17,12 @@ class PurchasingFetchService : PurchasingBaseService, IFetchService
     static readonly string[] k_FileExtensions = { Constants.FileExtension, Constants.CsvFileExtension };
     public override IReadOnlyList<string> FileExtensions => k_FileExtensions;
 
-    readonly CliCsvCatalogLoader m_CsvCatalogLoader;
-
     public PurchasingFetchService(
         ILiveContentConfigClient client,
-        ICatalogLoader catalogLoader,
-        CliCsvCatalogLoader csvCatalogLoader)
-        : base(client, catalogLoader)
+        ICatalogUcatLoader ucatCatalogLoader,
+        ICatalogCsvLoader csvCatalogLoader)
+        : base(client, ucatCatalogLoader, csvCatalogLoader)
     {
-        m_CsvCatalogLoader = csvCatalogLoader;
     }
 
     public async Task<FetchResult> FetchAsync(
@@ -41,9 +38,9 @@ class PurchasingFetchService : PurchasingBaseService, IFetchService
         loadingContext?.Status("Reading local Purchasing files...");
         var localPaths = authoringFiles.ToPaths();
         var (localEntries, failedToLoad) =
-            await LoadUcatFiles(localPaths, cancellationToken);
+            await LoadUcatFiles(FilterByExtension(localPaths, Constants.FileExtension), cancellationToken);
         var (csvEntries, csvFailed) =
-            await LoadCsvFiles(localPaths, m_CsvCatalogLoader, cancellationToken);
+            await LoadCsvFiles(FilterByExtension(localPaths, Constants.CsvFileExtension), cancellationToken);
         localEntries.AddRange(csvEntries);
         failedToLoad.AddRange(csvFailed);
 
@@ -91,7 +88,7 @@ class PurchasingFetchService : PurchasingBaseService, IFetchService
         var csvErrors = BuildCsvErrors(failedToLoad, duplicateItems);
 
         loadingContext?.Status("Applying fetched Purchasing data...");
-        await ApplyRemoteData(input, filteredEntries, remoteMap, allItems, csvErrors, cancellationToken);
+        await SyncLocalWithRemote(input, filteredEntries, remoteMap, allItems, csvErrors, cancellationToken);
 
         if (input.Reconcile)
             await ReconcileRemoteOnly(input, remoteMap, localIds, allItems, cancellationToken);
@@ -99,7 +96,7 @@ class PurchasingFetchService : PurchasingBaseService, IFetchService
         return new PurchasingFetchResult(allItems, input.DryRun);
     }
 
-    async Task ApplyRemoteData(
+    async Task SyncLocalWithRemote(
         FetchInput input,
         List<CatalogEntryDeploymentItem> filteredEntries,
         Dictionary<string, CatalogItem> remoteMap,
@@ -114,6 +111,12 @@ class PurchasingFetchService : PurchasingBaseService, IFetchService
             var id = entry.CatalogItem?.CatalogListingId;
             if (id != null && remoteMap.TryGetValue(id, out var remote))
             {
+                if (AreCatalogItemsEqual(entry.CatalogItem, remote))
+                {
+                    allItems.Add(entry);
+                    continue;
+                }
+
                 entry.CatalogItem = remote;
                 entry.CatalogItem.CatalogListingId = id;
 
@@ -338,15 +341,25 @@ class PurchasingFetchService : PurchasingBaseService, IFetchService
         return (filtered, duplicates);
     }
 
+    static bool AreCatalogItemsEqual(CatalogItem? local, CatalogItem remote)
+    {
+        if (local == null)
+        {
+            return false;
+        }
+
+        return local.ContentEquals(remote);
+    }
+
     class PurchasingFetchResult : FetchResult
     {
         public PurchasingFetchResult(IReadOnlyList<IDeploymentItem> authored, bool dryRun)
             : base(
-                GetItemsOfType(authored, Constants.Updated),
-                GetItemsOfType(authored, Constants.Deleted),
-                GetItemsOfType(authored, Constants.Created),
-                GetItemsOfType(authored, string.Empty),
-                authored.Where(a => a.Status.MessageSeverity == SeverityLevel.Error).ToList(),
+                GetItemsByAction(authored, Constants.Updated),
+                GetItemsByAction(authored, Constants.Deleted),
+                GetItemsByAction(authored, Constants.Created),
+                GetItemsByAction(authored, string.Empty),
+                authored.Where(a => a.Status.MessageSeverity is SeverityLevel.Error or SeverityLevel.Warning).ToList(),
                 dryRun)
         {
         }

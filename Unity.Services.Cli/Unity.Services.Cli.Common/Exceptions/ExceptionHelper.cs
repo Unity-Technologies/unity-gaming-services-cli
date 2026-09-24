@@ -15,7 +15,6 @@ using SchedulerApiException = Unity.Services.Gateway.SchedulerApiV1.Generated.Cl
 using CloudContentDeliveryApiException =
     Unity.Services.Gateway.ContentDeliveryManagementApiV1.Generated.Client.ApiException;
 using LiveContentApiException = Unity.Services.Gateway.LiveContentApiV1.Generated.Client.ApiException;
-using EconomyApiException = Unity.Services.Gateway.EconomyApiV2.Generated.Client.ApiException;
 using LobbyApiException = Unity.Services.MpsLobby.LobbyApiV1.Generated.Client.ApiException;
 using LeaderboardApiException = Unity.Services.Gateway.LeaderboardApiV1.Generated.Client.ApiException;
 using PlayerAdminApiException = Unity.Services.Gateway.PlayerAdminApiV3.Generated.Client.ApiException;
@@ -91,9 +90,6 @@ public partial class ExceptionHelper
                 break;
             case CloudSaveApiException cloudSaveApiException:
                 HandleApiException(exception, logger, cloudSaveApiException.ErrorCode);
-                break;
-            case EconomyApiException economyApiException:
-                HandleApiException(exception, logger, economyApiException.ErrorCode);
                 break;
             case LobbyApiException lobbyApiException:
                 HandleApiException(exception, logger, lobbyApiException.ErrorCode);

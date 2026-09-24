@@ -384,8 +384,8 @@ class ImportScriptsHandlerTests
                 activeScript: new GetScriptResponseActiveScript(
                     script.Body,
                     1,
-                    k_DateNow,
-                    new List<ScriptParameter>()),
+                    datePublished: k_DateNow,
+                    _params: new List<ScriptParameter>()),
                 new List<GetScriptResponseVersionsInner>(),
                 new List<ScriptParameter>());
 

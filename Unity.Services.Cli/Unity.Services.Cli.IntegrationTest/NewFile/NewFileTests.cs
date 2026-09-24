@@ -11,7 +11,6 @@ public class NewFileTests : UgsCliFixture
     const string k_NewFileBaseName = "new_file";
     const string k_RemoteConfigFileExtension = ".rc";
     const string k_CloudCodeFileExtension = ".js";
-    const string k_EconomyFileExtension = ".ec";
     const string k_PurchasingFileExtension = ".ucat";
     const string k_PurchasingCsvFileExtension = ".catalog.csv";
 
@@ -28,11 +27,6 @@ public class NewFileTests : UgsCliFixture
             File.Delete(Path.Combine(UgsCliBuilder.RootDirectory, $"{k_NewFileBaseName}{k_CloudCodeFileExtension}"));
         }
 
-        if (File.Exists(Path.Combine(UgsCliBuilder.RootDirectory, $"{k_NewFileBaseName}{k_EconomyFileExtension}")))
-        {
-            File.Delete(Path.Combine(UgsCliBuilder.RootDirectory, $"{k_NewFileBaseName}{k_EconomyFileExtension}"));
-        }
-
         if (File.Exists(Path.Combine(UgsCliBuilder.RootDirectory, $"{k_NewFileBaseName}{k_PurchasingFileExtension}")))
         {
             File.Delete(Path.Combine(UgsCliBuilder.RootDirectory, $"{k_NewFileBaseName}{k_PurchasingFileExtension}"));
@@ -46,9 +40,6 @@ public class NewFileTests : UgsCliFixture
 
     [TestCase("remote-config", k_RemoteConfigFileExtension)]
     [TestCase("cloud-code scripts", k_CloudCodeFileExtension)]
-#if FEATURE_ECONOMY
-    [TestCase("economy", k_EconomyFileExtension)]
-#endif
     public async Task NewFileCreatedWithNoErrorsAndCorrectOutput(string fullParentCommand, string serviceExtension)
     {
         var newFileOutPutString = $"[Information]: {Environment.NewLine}    Config file {k_NewFileBaseName}{serviceExtension} created successfully!{Environment.NewLine}";

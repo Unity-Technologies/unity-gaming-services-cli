@@ -133,8 +133,8 @@ class ExportScriptsHandlerTests
                         activeScript: new GetScriptResponseActiveScript(
                             script.Body,
                             1,
-                            DateNow,
-                            new List<ScriptParameter>()),
+                            datePublished: DateNow,
+                            _params: new List<ScriptParameter>()),
                         new List<GetScriptResponseVersionsInner>(),
                         new List<ScriptParameter>())));
         }

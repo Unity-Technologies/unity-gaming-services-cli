@@ -60,7 +60,8 @@ public class ObservabilityModule : ICommandModule
     {
         var config = new Gateway.ObservabilityApiV1.Generated.Client.Configuration
         {
-            BasePath = EndpointHelper.GetCurrentEndpointFor<ObservabilityEndpoints>()
+            BasePath = EndpointHelper.GetCurrentEndpointFor<ObservabilityEndpoints>(),
+            UserAgent = RequestHeaderHelper.UserAgent,
         };
         config.DefaultHeaders.SetXClientIdHeader();
         Gateway.ObservabilityApiV1.Generated.Client.RetryConfiguration.AsyncRetryPolicy =

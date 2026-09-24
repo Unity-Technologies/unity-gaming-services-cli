@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Model;
+using UnityEditor.Purchasing.Editor.Authoring.Core;
 using UnityEditor.Purchasing.Editor.Authoring.Core.Model;
 using Unity.Services.Cli.Purchasing.Authoring;
 
@@ -22,7 +23,7 @@ class PurchasingFetchHandlerTests : PurchasingDeployFetchTestBase
             (path, _) => Task.FromResult(MakeEntry(path));
         m_FakeClient.RemoteItems = new List<CatalogItem>
         {
-            new() { uSku = k_Stem, CatalogListingId = k_ListingId },
+            new() { uSku = k_Stem, CatalogListingId = k_ListingId, ProductType = ProductType.NonConsumable },
         };
         m_Service = new PurchasingFetchService(m_FakeClient, m_FakeUcatCatalogLoader, m_FakeCsvCatalogLoader);
     }

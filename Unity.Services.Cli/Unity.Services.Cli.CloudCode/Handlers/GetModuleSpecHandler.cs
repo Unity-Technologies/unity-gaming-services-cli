@@ -40,7 +40,12 @@ static class GetModuleSpecHandler
         var projectId = input.CloudProjectId!;
         var moduleName = input.ModuleName;
 
-        var spec = await cloudCodeService.GetModuleSpecAsync(projectId, environmentId, moduleName!, cancellationToken);
+        var spec = await cloudCodeService.GetModuleSpecAsync(
+            projectId,
+            environmentId,
+            moduleName!,
+            input.ModuleSpecVersion,
+            cancellationToken);
         logger.LogResultValue(new ModuleSpecOutput(spec));
     }
 }

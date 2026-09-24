@@ -13,16 +13,13 @@ public interface IAccessService
     Task<List<PlayerPolicy>> GetAllPlayerPoliciesAsync(string projectId, string environmentId,
         CancellationToken cancellationToken = default);
 
-    Task UpsertPolicyAsync(string projectId, string environmentId, FileInfo file,
-        CancellationToken cancellationToken = default);
-
     Task UpsertPlayerPolicyAsync(string projectId, string environmentId, string playerId, FileInfo file,
         CancellationToken cancellationToken = default);
 
-    Task DeletePolicyStatementsAsync(string projectId, string environmentId, FileInfo file,
+    Task DeletePolicyStatementsAsync(string projectId, string environmentId, IEnumerable<string> statementIds,
         CancellationToken cancellationToken = default);
 
-    Task DeletePlayerPolicyStatementsAsync(string projectId, string environmentId, string playerId, FileInfo file,
+    Task DeletePlayerPolicyStatementsAsync(string projectId, string environmentId, string playerId, IEnumerable<string> statementIds,
         CancellationToken cancellationToken = default);
 
     Task UpsertProjectAccessCaCAsync(string projectId, string environmentId, Policy policy,

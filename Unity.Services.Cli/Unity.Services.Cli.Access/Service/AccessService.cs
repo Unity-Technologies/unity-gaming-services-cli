@@ -110,36 +110,6 @@ class AccessService : IAccessService
         }
     }
 
-    public async Task UpsertPolicyAsync(string projectId, string environmentId, FileInfo file,
-        CancellationToken cancellationToken = default)
-    {
-        await AuthorizeServiceAsync(cancellationToken);
-
-        var jsonString = ReadFile(file);
-
-        Policy? policy;
-        try
-        {
-            policy = JsonConvert.DeserializeObject<Policy>(jsonString, new JsonSerializerSettings
-            {
-                MissingMemberHandling = MissingMemberHandling.Error,
-            });
-        }
-        catch
-        {
-            throw new CliException(k_JsonIncorrectFormatExceptionMessage, ExitCode.HandledError);
-        }
-
-        try
-        {
-            await m_ProjectPolicyApi.UpsertPolicyAsync(projectId, environmentId, policy, cancellationToken: cancellationToken);
-        }
-        catch (ApiException e)
-        {
-            throw new CliException(e.Message, ExitCode.HandledError);
-        }
-    }
-
     public async Task UpsertPlayerPolicyAsync(string projectId, string environmentId, string playerId, FileInfo file,
         CancellationToken cancellationToken = default)
     {
@@ -170,26 +140,12 @@ class AccessService : IAccessService
         }
     }
 
-    public async Task DeletePolicyStatementsAsync(string projectId, string environmentId, FileInfo file,
+    public async Task DeletePolicyStatementsAsync(string projectId, string environmentId, IEnumerable<string> statementIds,
         CancellationToken cancellationToken = default)
     {
         await AuthorizeServiceAsync(cancellationToken);
 
-        var jsonString = ReadFile(file);
-
-        DeleteOptions? deleteOptions;
-        try
-        {
-            deleteOptions = JsonConvert.DeserializeObject<DeleteOptions>(jsonString, new JsonSerializerSettings
-            {
-                MissingMemberHandling = MissingMemberHandling.Error,
-            });
-        }
-        catch
-        {
-            throw new CliException(k_JsonIncorrectFormatExceptionMessage, ExitCode.HandledError);
-        }
-
+        var deleteOptions = new DeleteOptions(statementIds.ToList());
         try
         {
             await m_ProjectPolicyApi.DeletePolicyStatementsAsync(projectId, environmentId, deleteOptions, cancellationToken: cancellationToken);
@@ -200,26 +156,12 @@ class AccessService : IAccessService
         }
     }
 
-    public async Task DeletePlayerPolicyStatementsAsync(string projectId, string environmentId, string playerId, FileInfo file,
+    public async Task DeletePlayerPolicyStatementsAsync(string projectId, string environmentId, string playerId, IEnumerable<string> statementIds,
         CancellationToken cancellationToken = default)
     {
         await AuthorizeServiceAsync(cancellationToken);
 
-        var jsonString = ReadFile(file);
-
-        DeleteOptions? deleteOptions;
-        try
-        {
-            deleteOptions = JsonConvert.DeserializeObject<DeleteOptions>(jsonString, new JsonSerializerSettings
-            {
-                MissingMemberHandling = MissingMemberHandling.Error,
-            });
-        }
-        catch
-        {
-            throw new CliException(k_JsonIncorrectFormatExceptionMessage, ExitCode.HandledError);
-        }
-
+        var deleteOptions = new DeleteOptions(statementIds.ToList());
         try
         {
             await m_PlayerPolicyApi.DeletePlayerPolicyStatementsAsync(projectId, environmentId, playerId, deleteOptions, cancellationToken: cancellationToken);

@@ -9,7 +9,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
     {
         public Task<FetchResult> FetchAsync(
             string rootDirectory,
-            IReadOnlyList<ICompoundResourceDeploymentItem> compoundLocalResources,
+            IReadOnlyList<CompoundResourceDeploymentItem> compoundLocalResources,
             bool dryRun = false,
             bool reconcile = false,
             CancellationToken token = default);

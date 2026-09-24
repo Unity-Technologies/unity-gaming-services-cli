@@ -1,15 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
-using Unity.Services.DeploymentApi.Editor;
 
 namespace Unity.Services.ModuleTemplate.Authoring.Core.Model
 {
     [DataContract]
-    public class SimpleResource : IResource
+    public class SimpleResource
     {
         [DataMember]
         public string Id { get; set; }
@@ -19,5 +13,14 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Model
         public string AStrValue { get; set; }
         [DataMember]
         public NestedObject NestedObj { get; set; }
+    }
+
+    [DataContract]
+    public class NestedObject
+    {
+        [DataMember]
+        public bool NestedObjectBoolean { get; set; }
+        [DataMember]
+        public string NestedObjectString { get; set; }
     }
 }

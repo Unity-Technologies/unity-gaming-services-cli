@@ -11,7 +11,6 @@ using Unity.Services.Cli.MockServer.ServiceMocks.CloudCode;
 
 namespace Unity.Services.Cli.IntegrationTest.CloudCodeTests;
 
-[Ignore("Temporarily ignoring, will fix in separate PR")]
 public class CloudCodeModuleTests : UgsCliFixture
 {
     static readonly string k_TestDirectory = Path.Combine(UgsCliBuilder.RootDirectory, ".tmp/FilesDir");
@@ -30,6 +29,10 @@ public class CloudCodeModuleTests : UgsCliFixture
     {
         DeleteLocalConfig();
         DeleteLocalCredentials();
+
+        // The export tests write here. Without this the first one to run alphabetically,
+        // …Export_FileAlreadyExists_Error, depends on a directory a later test creates.
+        Directory.CreateDirectory(k_TestDirectory);
 
         await MockApi.MockServiceAsync(new IdentityV1Mock());
         await MockApi.MockServiceAsync(new CloudCodeV1Mock());
@@ -82,14 +85,22 @@ public class CloudCodeModuleTests : UgsCliFixture
     [Test]
     public async Task CloudCodeListReturnsZeroExitCode()
     {
-        var expectedMessage = $"ExistingModule{Environment.NewLine}AnotherExistingModule";
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
+        // One AssertStandardOutput rather than two AssertStandardOutputContains: each assertion
+        // reads the process stream to the end, so a second read on the same stream sees nothing.
+        // Matched on the rendered "<name> -  Date Modified:" prefix rather than the bare name,
+        // because "ExistingModule" is a substring of "AnotherExistingModule".
         await GetLoggedInCli()
             .Command("cloud-code modules list")
             .AssertNoErrors()
-            .AssertStandardOutputContains(expectedMessage)
+            .AssertStandardOutput(
+                output =>
+                {
+                    StringAssert.Contains("ExistingModule -  Date Modified:", output);
+                    StringAssert.Contains("AnotherExistingModule -  Date Modified:", output);
+                })
             .ExecuteAsync();
     }
 
@@ -239,25 +250,29 @@ public class CloudCodeModuleTests : UgsCliFixture
     }
 
     [Test]
-    [Ignore("Temporarily ignored, will make a new PR to fix")]
     public async Task CloudCodeModulesImport_Success()
     {
-        const string expectedMsg = $"Module [test_3] successfully created";
-
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
 
         await GetLoggedInCli()
             .Command($"cloud-code modules import {k_ImportTestFileDirectory} test.ccmzip")
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardOutput(
+                output =>
+                {
+                    StringAssert.Contains("The following items were imported:", output);
+                    StringAssert.Contains("Created:", output);
+                    StringAssert.Contains("test_3", output);
+                })
             .ExecuteAsync();
     }
 
     [Test]
-    [Ignore("Temporarily ignored, will make a new PR to fix")]
     public async Task CloudCodeModulesImport_NoFilenameSpecified_Error()
     {
-        const string expectedMsg = $"The file at 'Unity.Services.Cli/Unity.Services.Cli.CloudCode.UnitTest/ModuleTestCases\\ugs.ccmzip' could not be found. Ensure the file exists and the specified path is correct";
+        // Matched without the directory separator so the assertion holds on every platform, and on
+        // standard error because that is where the CLI reports a handled error.
+        const string expectedMsg = "ugs.ccmzip' could not be found. Ensure the file exists and the specified path is correct";
 
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
@@ -265,12 +280,11 @@ public class CloudCodeModuleTests : UgsCliFixture
         await GetLoggedInCli()
             .Command($"cloud-code modules import {k_ImportTestFileDirectory}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 
     [Test]
-    [Ignore("Temporarily ignored, will make a new PR to fix")]
     public async Task CloudCodeModulesExport_Success()
     {
         const string filename = "test.ccmzip";
@@ -295,7 +309,6 @@ public class CloudCodeModuleTests : UgsCliFixture
     }
 
     [Test]
-    [Ignore("Temporarily ignored, will make a new PR to fix")]
     public async Task CloudCodeModulesExport_NoFilenameSpecified_Success()
     {
         const string filename = "ugs.ccmzip";
@@ -319,7 +332,6 @@ public class CloudCodeModuleTests : UgsCliFixture
     }
 
     [Test]
-    [Ignore("Temporarily ignored, will make a new PR to fix")]
     public async Task CloudCodeModulesExport_FileAlreadyExists_Error()
     {
         const string filename = "test.ccmzip";
@@ -328,7 +340,9 @@ public class CloudCodeModuleTests : UgsCliFixture
 
         if (!File.Exists(filePath))
         {
-            File.Create(filePath);
+            // Disposed immediately: File.Create leaves the handle open, which keeps the file
+            // locked while the CLI under test tries to inspect it.
+            File.Create(filePath).Dispose();
         }
 
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -337,7 +351,7 @@ public class CloudCodeModuleTests : UgsCliFixture
         await GetLoggedInCli()
             .Command($"cloud-code modules export {k_TestDirectory} {filename}")
             .AssertExitCode(ExitCode.HandledError)
-            .AssertStandardOutputContains(expectedMsg)
+            .AssertStandardErrorContains(expectedMsg)
             .ExecuteAsync();
     }
 

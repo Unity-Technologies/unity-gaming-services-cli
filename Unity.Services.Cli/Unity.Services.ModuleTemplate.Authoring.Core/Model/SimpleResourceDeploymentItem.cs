@@ -9,12 +9,13 @@ using Unity.Services.DeploymentApi.Editor;
 namespace Unity.Services.ModuleTemplate.Authoring.Core.Model
 {
     [DataContract]
-    public class SimpleResourceDeploymentItem : IResourceDeploymentItem
+    public class SimpleResourceDeploymentItem : IDeploymentItem, ITypedItem
     {
         internal const string SimpleResourceTypeName = "ModuleTemplate Simple Resource";
         float m_Progress;
         DeploymentStatus m_Status;
         string m_Path;
+        string m_Name;
 
         public SimpleResourceDeploymentItem(string path)
         {
@@ -22,12 +23,13 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Model
             Path = path;
         }
 
-        /// <summary>
-        /// Name of the item as shown for user feedback, normally file_name.ext
-        /// </summary>
         public virtual string Type => SimpleResourceTypeName;
 
-        public virtual string Name { get; }
+        public virtual string Name
+        {
+            get => m_Name;
+            set => SetField(ref m_Name, value);
+        }
 
         public string Path
         {
@@ -41,7 +43,8 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Model
             set => SetField(ref m_Progress, value);
         }
 
-        public IResource Resource { get; set; }
+        //TODO: Rename to match your model (e.g. script, entry, pool, etc)
+        public SimpleResource Resource { get; set; }
 
         public DeploymentStatus Status
         {
@@ -58,19 +61,8 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Model
             return $"'{Path}'";
         }
 
-        /// <summary>
-        /// Event will be raised when a property of the instance is changed
-        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
-        /// <summary>
-        /// Sets the field and raises an OnPropertyChanged event.
-        /// </summary>
-        /// <param name="field">The field to set.</param>
-        /// <param name="value">The value to set.</param>
-        /// <param name="onFieldChanged">The callback.</param>
-        /// <param name="propertyName">Name of the property to set.</param>
-        /// <typeparam name="T">Type of the parameter.</typeparam>
         protected void SetField<T>(
             ref T field,
             T value,
@@ -82,6 +74,20 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Model
             field = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             onFieldChanged?.Invoke(field);
+        }
+
+        public bool Validate()
+        {
+            if (Resource == null)
+                return false;
+
+            bool valid = true;
+            if (string.IsNullOrWhiteSpace(Resource.Id))
+            {
+                States.Add(new AssetState("Missing ID", "The ID is missing", SeverityLevel.Error));
+                valid = false;
+            }
+            return valid;
         }
     }
 }

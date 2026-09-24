@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.ModuleTemplate.Authoring.Core.Model;
 using Unity.Services.ModuleTemplate.Authoring.Core.Service;
-using Unity.Services.ModuleTemplate.Authoring.Core.Validations;
 
 namespace Unity.Services.ModuleTemplate.Authoring.Core.Deploy
 {
@@ -17,7 +15,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Deploy
             : base(client) { }
 
         public async Task<DeployResult> DeployAsync(
-            IReadOnlyList<ICompoundResourceDeploymentItem> compoundLocalResources,
+            IReadOnlyList<CompoundResourceDeploymentItem> compoundLocalResources,
             bool dryRun = false,
             bool reconcile = false,
             CancellationToken token = default)
@@ -30,10 +28,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Deploy
 
             var cmpdLocalResources = compoundLocalResources.ToList();
 
-            var filteredLocalResources = DuplicateResourceValidation.FilterDuplicateResources(
-                localResources, out var duplicateGroups);
-
-            UpdateDuplicateResourceStatus(duplicateGroups);
+            var filteredLocalResources = FilterInvalidItems(localResources);
 
             var remoteResources = await GetRemoteItems(cancellationToken: token);
 
@@ -47,7 +42,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Deploy
                 .Where(ExistsRemotely)
                 .ToList();
 
-            var toDelete = new List<IResourceDeploymentItem>();
+            var toDelete = new List<SimpleResourceDeploymentItem>();
             if (reconcile)
             {
                 toDelete = remoteResources
@@ -70,7 +65,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Deploy
             var updateTasks = GetTasks(toUpdate, Client.Update, Constants.Updated, token);
             var deleteTasks = reconcile
                 ? GetTasks(toDelete, Client.Delete, Constants.Deleted, token)
-                : new List<Task>();
+                : Enumerable.Empty<Func<Task>>();
 
             var allTasks = createTasks.Concat(updateTasks).Concat(deleteTasks);
 
@@ -81,32 +76,13 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Deploy
             return res;
         }
 
-        static IEnumerable<Task> GetTasks(
-            IReadOnlyList<IResourceDeploymentItem> resources,
-            Func<IResource, CancellationToken, Task> func,
+        static IEnumerable<Func<Task>> GetTasks(
+            IReadOnlyList<SimpleResourceDeploymentItem> resources,
+            Func<SimpleResource, CancellationToken, Task> func,
             string taskAction,
             CancellationToken token)
         {
-            return resources.Select(i => DeployResource(func, i, taskAction, token));
-        }
-
-        static async Task DeployResource(
-            Func<IResource, CancellationToken, Task> task,
-            IResourceDeploymentItem resource,
-            string taskAction,
-            CancellationToken token)
-        {
-            try
-            {
-                resource.Status = Statuses.GetDeploying();
-                await task(resource.Resource, token);
-                resource.Status = Statuses.GetDeployed(taskAction);
-                resource.Progress = 100f;
-            }
-            catch (Exception e)
-            {
-                resource.Status = Statuses.GetFailedToDeploy(e.Message);
-            }
+            return resources.Select(i => (Func<Task>)(() => DeployResource(func, i, taskAction, token)));
         }
 
         protected override DeploymentStatus GetSuccessStatus(string message)
@@ -114,12 +90,13 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Deploy
             return Statuses.GetDeployed(message);
         }
 
-        protected override DeploymentStatus GetFailedStatus(string message)
+        protected override DeploymentStatus GetFailedStatus(string message, IReadOnlyList<IDeploymentItem> failedItems = null)
         {
+            message = $"{message}\n{GetNestedDetails(failedItems)}";
             return Statuses.GetFailedToDeploy(message);
         }
 
-        protected override IResourceDeploymentItem CreateItem(string rootDirectory, IResource resource)
+        protected override SimpleResourceDeploymentItem CreateItem(string rootDirectory, SimpleResource resource)
         {
             return new NestedResourceDeploymentItem("Remote", resource);
         }

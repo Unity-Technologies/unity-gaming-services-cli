@@ -15,8 +15,8 @@
     </AssemblyAttribute>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Unity.Services.Gateway.LiveContentApiV1.Generated" Version="1.3.6" />
-    <PackageReference Include="Unity.Services.Purchasing.Authoring.Editor.Core" Version="0.0.4" />
+    <PackageReference Include="Unity.Services.Gateway.LiveContentApiV1.Generated" Version="1.4.3" />
+    <PackageReference Include="Unity.Services.Purchasing.Authoring.Editor.Core" Version="0.0.10" />
     <ProjectReference Include="..\Unity.Services.Cli.Common\Unity.Services.Cli.Common.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Authoring\Unity.Services.Cli.Authoring.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />

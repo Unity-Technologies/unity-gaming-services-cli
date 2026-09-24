@@ -6,8 +6,8 @@ using Unity.Services.Cli.ServiceAccountAuthentication;
 using Unity.Services.Gateway.SchedulerApiV1.Generated.Client;
 using Unity.Services.Gateway.SchedulerApiV1.Generated.Api;
 using Unity.Services.Gateway.SchedulerApiV1.Generated.Model;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Model;
 using Configuration = Unity.Services.Gateway.SchedulerApiV1.Generated.Client.Configuration;
-using ScheduleConfig = Unity.Services.Scheduler.Authoring.Core.Model.ScheduleConfig;
 
 namespace Unity.Services.Cli.Scheduler.UnitTest.Deploy;
 
@@ -22,13 +22,15 @@ public class SchedulerClientTests
 
     public SchedulerClientTests()
     {
-        m_Schedule = new("foo",
+        m_Schedule = new ScheduleConfig(new Guid("00000000-0000-0000-0000-000000000001"),
+            "foo",
             "EventType1",
             "recurring",
             "0 * * * *",
             1,
-            "{}") { Path = "path" };
-        m_Schedule.Id = "11111111-1111-1111-1111-111111111111";
+            "{}");
+        m_Schedule.StartAt = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc);
+        m_Schedule.EndAt = new DateTime(2026, 2, 3, 4, 5, 6, DateTimeKind.Utc);
     }
 
     [SetUp]
@@ -48,7 +50,6 @@ public class SchedulerClientTests
         await m_SchedulerClient.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
         Assert.That(m_SchedulerClient.EnvironmentId.ToString(), Is.EqualTo(TestValues.ValidEnvironmentId));
         Assert.That(m_SchedulerClient.ProjectId.ToString(), Is.EqualTo(TestValues.ValidProjectId));
-        Assert.That(m_SchedulerClient.CancellationToken, Is.EqualTo(CancellationToken.None));
     }
 
     [Test]
@@ -57,11 +58,11 @@ public class SchedulerClientTests
         await m_SchedulerClient.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
         var schedules = Enumerable.Range(0, 75)
             .Select(
-                i => new Gateway.SchedulerApiV1.Generated.Model.ScheduleConfig(
+                i => new ScheduleConfig(
                     Guid.NewGuid(),
                     "name" + i,
                     "event" + i,
-                    m_Schedule.ScheduleType,
+                    m_Schedule.Type,
                     m_Schedule.Schedule,
                     m_Schedule.PayloadVersion,
                     m_Schedule.Payload)).ToList();
@@ -114,7 +115,7 @@ public class SchedulerClientTests
                 Task.FromResult(
                     new SchedulerConfigPage(
                         null!,
-                        new List<Gateway.SchedulerApiV1.Generated.Model.ScheduleConfig>())));
+                        new List<ScheduleConfig>())));
 
         var list = await m_SchedulerClient.List();
 
@@ -130,36 +131,43 @@ public class SchedulerClientTests
                 api => api.DeleteScheduleConfigAsync(
                     It.Is<Guid>(g => g.ToString() == TestValues.ValidProjectId),
                     It.Is<Guid>(g => g.ToString() == TestValues.ValidEnvironmentId),
-                    Guid.Parse(m_Schedule.Id),
+                    m_Schedule.Id,
                     0,
                     It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
         m_MockApi.Setup(a => a.CreateScheduleConfigAsync(
             It.Is<Guid>(g => g.ToString() == TestValues.ValidProjectId),
             It.Is<Guid>(g => g.ToString() == TestValues.ValidEnvironmentId),
-            It.Is<ScheduleConfigBody>(sch => sch.Name == "foo"),
+            It.Is<ScheduleConfigBody>(sch =>
+                sch.Name == "foo"
+                && sch.StartAt == m_Schedule.StartAt
+                && sch.EndAt == m_Schedule.EndAt),
             0,
-            It.IsAny<CancellationToken>())).Returns(Task.FromResult(new ScheduleConfigId(Guid.Parse(m_Schedule.Id))));
+            It.IsAny<CancellationToken>())).Returns(Task.FromResult(new ScheduleConfigId(m_Schedule.Id)));
 
-        await m_SchedulerClient.Update(m_Schedule!);
+        await m_SchedulerClient.Update(SchedulerClient.FromResponse(m_Schedule));
 
         m_MockApi.VerifyAll();
     }
 
     [Test]
-    public async Task UpdateExceptionPropagates()
+    public async Task UpdateApiExceptionIsWrappedAsClientException()
     {
         await m_SchedulerClient.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        var apiException = new ApiException();
         m_MockApi.Setup(
                 api => api.DeleteScheduleConfigAsync(
                     It.Is<Guid>(g => g.ToString() == TestValues.ValidProjectId),
                     It.Is<Guid>(g => g.ToString() == TestValues.ValidEnvironmentId),
-                    Guid.Parse(m_Schedule.Id),
+                    m_Schedule.Id,
                     0,
                     It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new ApiException());
+            .ThrowsAsync(apiException);
 
-        Assert.ThrowsAsync<ApiException>( async () => await m_SchedulerClient.Update(m_Schedule!) );
+        var exception = Assert.ThrowsAsync<ClientException>(
+            async () => await m_SchedulerClient.Update(SchedulerClient.FromResponse(m_Schedule)));
+
+        Assert.That(exception!.InnerException, Is.SameAs(apiException));
     }
 
     [Test]
@@ -169,13 +177,35 @@ public class SchedulerClientTests
         m_MockApi.Setup(a => a.CreateScheduleConfigAsync(
             It.Is<Guid>(g => g.ToString() == TestValues.ValidProjectId),
             It.Is<Guid>(g => g.ToString() == TestValues.ValidEnvironmentId),
-            It.Is<ScheduleConfigBody>(sch => sch.Name == "foo"),
+            It.Is<ScheduleConfigBody>(sch =>
+                sch.Name == "foo"
+                && sch.StartAt == m_Schedule.StartAt
+                && sch.EndAt == m_Schedule.EndAt),
             0,
-            It.IsAny<CancellationToken>())).Returns(Task.FromResult(new ScheduleConfigId(Guid.Parse(m_Schedule.Id))));
+            It.IsAny<CancellationToken>())).Returns(Task.FromResult(new ScheduleConfigId(m_Schedule.Id)));
 
-        await m_SchedulerClient.Create(m_Schedule!);
+        await m_SchedulerClient.Create(SchedulerClient.FromResponse(m_Schedule));
 
         m_MockApi.VerifyAll();
+    }
+
+    [Test]
+    public async Task CreateApiExceptionIsWrappedAsClientException()
+    {
+        await m_SchedulerClient.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        var apiException = new ApiException();
+        m_MockApi.Setup(a => a.CreateScheduleConfigAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<ScheduleConfigBody>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(apiException);
+
+        var exception = Assert.ThrowsAsync<ClientException>(
+            async () => await m_SchedulerClient.Create(SchedulerClient.FromResponse(m_Schedule)));
+
+        Assert.That(exception!.InnerException, Is.SameAs(apiException));
     }
 
     [Test]
@@ -186,14 +216,33 @@ public class SchedulerClientTests
             api => api.DeleteScheduleConfigAsync(
                 It.Is<Guid>(g => g.ToString() == TestValues.ValidProjectId),
                 It.Is<Guid>(g => g.ToString() == TestValues.ValidEnvironmentId),
-                Guid.Parse(m_Schedule.Id),
+                m_Schedule.Id,
                 0,
                 It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        await m_SchedulerClient.Delete(m_Schedule!);
+        await m_SchedulerClient.Delete(SchedulerClient.FromResponse(m_Schedule));
 
         m_MockApi.VerifyAll();
+    }
+
+    [Test]
+    public async Task DeleteApiExceptionIsWrappedAsClientException()
+    {
+        await m_SchedulerClient.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        var apiException = new ApiException();
+        m_MockApi.Setup(api => api.DeleteScheduleConfigAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(apiException);
+
+        var exception = Assert.ThrowsAsync<ClientException>(
+            async () => await m_SchedulerClient.Delete(SchedulerClient.FromResponse(m_Schedule)));
+
+        Assert.That(exception!.InnerException, Is.SameAs(apiException));
     }
 
     [Test]
@@ -204,27 +253,31 @@ public class SchedulerClientTests
             api => api.GetScheduleConfigAsync(
                 It.Is<Guid>(g => g.ToString() == TestValues.ValidProjectId),
                 It.Is<Guid>(g => g.ToString() == TestValues.ValidEnvironmentId),
-                It.Is<Guid>(g => g.ToString() == m_Schedule.Id),
+                It.Is<Guid>(g => g == m_Schedule.Id),
                 0,
                 It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult(new Gateway.SchedulerApiV1.Generated.Model.ScheduleConfig(
-                Guid.Parse(m_Schedule.Id),
+            .Returns(Task.FromResult(new ScheduleConfig(
+                m_Schedule.Id,
                 m_Schedule.Name,
                 m_Schedule.EventName,
-                m_Schedule.ScheduleType,
+                m_Schedule.Type,
                 m_Schedule.Schedule,
                 m_Schedule.PayloadVersion,
-                m_Schedule.Payload)));
+                m_Schedule.Payload,
+                m_Schedule.StartAt,
+                m_Schedule.EndAt)));
 
-        var res = await m_SchedulerClient.Get(m_Schedule.Id);
+        var res = await m_SchedulerClient.Get(m_Schedule.Id.ToString());
 
-        Assert.That(m_Schedule.Id, Is.EqualTo(res.Id));
+        Assert.That(m_Schedule.Id.ToString(), Is.EqualTo(res.Id));
         Assert.That(m_Schedule.Name, Is.EqualTo(res.Name));
         Assert.That(m_Schedule.EventName, Is.EqualTo(res.EventName));
-        Assert.That(m_Schedule.ScheduleType, Is.EqualTo(res.ScheduleType));
+        Assert.That(m_Schedule.Type, Is.EqualTo(res.ScheduleType));
         Assert.That(m_Schedule.Schedule, Is.EqualTo(res.Schedule));
         Assert.That(m_Schedule.PayloadVersion, Is.EqualTo(res.PayloadVersion));
         Assert.That(m_Schedule.Payload, Is.EqualTo(res.Payload));
+        Assert.That(m_Schedule.StartAt, Is.EqualTo(res.StartAt));
+        Assert.That(m_Schedule.EndAt, Is.EqualTo(res.EndAt));
         m_MockApi.VerifyAll();
     }
 }

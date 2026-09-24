@@ -48,6 +48,7 @@ public class CloudCodeModule : ICommandModule
     internal Command ImportScriptsCommand { get; }
     internal Command ListCommand { get; }
     internal Command DeleteCommand { get; }
+    internal Command DeleteVersionCommand { get; }
     internal Command PublishCommand { get; }
     internal Command GetCommand { get; }
     internal Command CreateCommand { get; }
@@ -141,13 +142,36 @@ public class CloudCodeModule : ICommandModule
             CancellationToken>(
             DeleteHandler.DeleteAsync);
 
+        // A separate command rather than a --version flag on delete: a flag that silently changes a
+        // destructive command's target from the script to one of its versions is worth avoiding.
+        DeleteVersionCommand = new Command(
+            "delete-version",
+            new CommandDescription("Delete a single version of a Cloud-Code script.")
+                .WithReturn("Confirmation message.")
+                .Build())
+        {
+            CommonInput.CloudProjectIdOption,
+            CommonInput.EnvironmentNameOption,
+            CloudCodeInput.ScriptNameArgument,
+            CloudCodeInput.ScriptVersionArgument
+        };
+        DeleteVersionCommand.SetHandler<
+            CloudCodeInput,
+            IUnityEnvironment,
+            ICloudCodeService,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken>(
+            DeleteScriptVersionHandler.DeleteScriptVersionAsync);
+
         GetCommand = new Command("get", new CommandDescription("Get a Cloud-Code script.")
-            .WithReturn("Script details with name, language, type, versions, and activeScript (version, datePublished, params, code).")
+            .WithReturn("Script details with name, language, type, versions, and activeScript (version, datePublished, params, code). With --versions, each version is expanded rather than listed as a bare number.")
             .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
-            CloudCodeInput.ScriptNameArgument
+            CloudCodeInput.ScriptNameArgument,
+            CloudCodeInput.VersionsOption
         };
         GetCommand.SetHandler<
             CloudCodeInput,
@@ -207,6 +231,7 @@ public class CloudCodeModule : ICommandModule
             ListCommand,
             PublishCommand,
             DeleteCommand,
+            DeleteVersionCommand,
             GetCommand,
             CreateCommand,
             UpdateCommand,
@@ -237,12 +262,13 @@ public class CloudCodeModule : ICommandModule
         var getModuleCommand = new Command(
             "get",
             new CommandDescription("Get a Cloud-Code module.")
-                .WithReturn("Module details with name, language, dateModified, dateCreated, tags, signedDownloadUrl, and endpoints.")
+                .WithReturn("Module details with name, language, dateModified, dateCreated, tags, signedDownloadUrl, and endpoints. With --versions, also the module's retained versions.")
                 .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
-            CloudCodeInput.ModuleNameArgument
+            CloudCodeInput.ModuleNameArgument,
+            CloudCodeInput.VersionsOption
         };
         getModuleCommand.SetHandler<
             CloudCodeInput,
@@ -265,6 +291,22 @@ public class CloudCodeModule : ICommandModule
         };
         deleteModuleCommand.SetHandler<CloudCodeInput, IUnityEnvironment, ICloudCodeService, ILogger, ILoadingIndicator, CancellationToken>(
             DeleteModuleHandler.DeleteModuleAsync);
+
+        // A separate command rather than a --version flag on delete: a flag that silently changes a
+        // destructive command's target from the module to one of its versions is worth avoiding.
+        var deleteModuleVersionCommand = new Command(
+            "delete-version",
+            new CommandDescription("Delete a single version of a Cloud-Code module.")
+                .WithReturn("Confirmation message.")
+                .Build())
+        {
+            CommonInput.CloudProjectIdOption,
+            CommonInput.EnvironmentNameOption,
+            CloudCodeInput.ModuleNameArgument,
+            CloudCodeInput.ModuleVersionArgument
+        };
+        deleteModuleVersionCommand.SetHandler<CloudCodeInput, IUnityEnvironment, ICloudCodeService, ILogger, ILoadingIndicator, CancellationToken>(
+            DeleteModuleVersionHandler.DeleteModuleVersionAsync);
 
         var listModuleCommand = new Command(
             "list",
@@ -338,12 +380,13 @@ public class CloudCodeModule : ICommandModule
         var getSpecModuleCommand = new Command(
             "get-spec",
             new CommandDescription("Get the OpenAPI spec for a Cloud-Code module.")
-                .WithReturn("The raw OpenAPI YAML specification for the module's endpoints.")
+                .WithReturn("The raw OpenAPI YAML specification for the module's endpoints. Describes the live version unless --version names another.")
                 .Build())
         {
             CommonInput.CloudProjectIdOption,
             CommonInput.EnvironmentNameOption,
-            CloudCodeInput.ModuleNameArgument
+            CloudCodeInput.ModuleNameArgument,
+            CloudCodeInput.ModuleSpecVersionOption
         };
         getSpecModuleCommand.SetHandler<
             CloudCodeInput,
@@ -362,6 +405,7 @@ public class CloudCodeModule : ICommandModule
             getSpecModuleCommand,
             listModuleCommand,
             deleteModuleCommand,
+            deleteModuleVersionCommand,
             exportModulesCommand,
             importModulesCommand,
             newFileCommand
@@ -377,6 +421,7 @@ public class CloudCodeModule : ICommandModule
         var config = new Configuration
         {
             BasePath = EndpointHelper.GetCurrentEndpointFor<CloudCodeEndpoints>(),
+            UserAgent = RequestHeaderHelper.UserAgent,
         };
         config.DefaultHeaders.SetXClientIdHeader();
         serviceCollection.AddSingleton<ICloudCodeApiAsync>(new CloudCodeApi(config));

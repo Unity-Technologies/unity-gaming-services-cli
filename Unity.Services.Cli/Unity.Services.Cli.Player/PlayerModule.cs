@@ -108,12 +108,14 @@ public class PlayerModule : ICommandModule
 
         var playerAdminConfig = new Gateway.PlayerAdminApiV3.Generated.Client.Configuration()
         {
-            BasePath = EndpointHelper.GetCurrentEndpointFor<PlayerAdminEndpoints>()
+            BasePath = EndpointHelper.GetCurrentEndpointFor<PlayerAdminEndpoints>(),
+            UserAgent = RequestHeaderHelper.UserAgent,
         };
 
         var playerAuthConfig = new Gateway.PlayerAuthApiV1.Generated.Client.Configuration()
         {
-            BasePath = EndpointHelper.GetCurrentEndpointFor<PlayerAuthEndpoints>()
+            BasePath = EndpointHelper.GetCurrentEndpointFor<PlayerAuthEndpoints>(),
+            UserAgent = RequestHeaderHelper.UserAgent,
         };
 
         playerAdminConfig.DefaultHeaders.SetXClientIdHeader();

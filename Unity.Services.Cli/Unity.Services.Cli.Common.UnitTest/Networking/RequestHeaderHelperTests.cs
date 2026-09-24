@@ -7,6 +7,12 @@ namespace Unity.Services.Cli.Common.UnitTest;
 class RequestHeaderHelperTests
 {
     [Test]
+    public void UserAgentContainsCliVersion()
+    {
+        Assert.AreEqual($"ugs_cli/{RequestHeaderHelper.GetCliVersion()}", RequestHeaderHelper.UserAgent);
+    }
+
+    [Test]
     public void SetAccessTokenHeaderCreatesEntryIfNoneExist()
     {
         var map = new Dictionary<string, string>();

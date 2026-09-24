@@ -1,3 +1,4 @@
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.DeploymentDefinition;
 using Unity.Services.Cli.Authoring.Model;
@@ -104,5 +105,61 @@ class DeploymentDefinitionFactoryTest
         Assert.IsInstanceOf<string>(tagsList[0]);
         Assert.IsInstanceOf<string>(tagsList[1]);
         Assert.IsInstanceOf<string>(tagsList[2]);
+    }
+
+    [Test]
+    public void CreateTemplate_SetsName()
+    {
+        var ddef = CliDeploymentDefinition.CreateTemplate("my-deployment");
+        Assert.That(ddef.Name, Is.EqualTo("my-deployment"));
+    }
+
+    [Test]
+    public void CreateTemplate_HasEmptyExcludePaths()
+    {
+        var ddef = CliDeploymentDefinition.CreateTemplate("test");
+        Assert.That(ddef.ExcludePaths, Is.Empty);
+    }
+
+
+    [Test]
+    public void Serialize_ProducesValidJson()
+    {
+        var ddef = CliDeploymentDefinition.CreateTemplate("test");
+        Assert.DoesNotThrow(() => JObject.Parse(ddef.Serialize()));
+    }
+
+    [Test]
+    public void Serialize_ContainsExpectedFields()
+    {
+        var ddef = CliDeploymentDefinition.CreateTemplate("my-deployment");
+        var json = JObject.Parse(ddef.Serialize());
+
+        Assert.That(json["name"]!.Value<string>(), Is.EqualTo("my-deployment"));
+        Assert.That(json["excludePaths"]!.Type, Is.EqualTo(JTokenType.Array));
+        Assert.That(json["excludePaths"]!.ToObject<string[]>(), Is.Empty);
+    }
+
+    [Test]
+    public void Serialize_DoesNotContainPath()
+    {
+        var ddef = CliDeploymentDefinition.CreateTemplate("test");
+        var json = JObject.Parse(ddef.Serialize());
+
+        Assert.That(json["path"], Is.Null);
+    }
+
+    [Test]
+    public void Serialize_Roundtrip_CanBeReadByFactory()
+    {
+        var ddef = CliDeploymentDefinition.CreateTemplate("roundtrip-test");
+        var serialized = ddef.Serialize();
+
+        var tempFile = CreateTempJsonFile(serialized);
+        var deserialized = m_Factory.CreateDeploymentDefinition(tempFile) as CliDeploymentDefinition;
+
+        Assert.That(deserialized, Is.Not.Null);
+        Assert.That(deserialized!.Name, Is.EqualTo("roundtrip-test"));
+        Assert.That(deserialized.ExcludePaths, Is.Empty);
     }
 }

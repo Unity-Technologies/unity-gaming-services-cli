@@ -98,7 +98,7 @@ public class LobbyConfig
             config = Parse(response);
             return true;
         }
-        catch
+        catch (Exception e) when (e is CliException or InvalidOperationException)
         {
             config = null;
             return false;

@@ -91,9 +91,12 @@ public class CloudCodeScriptTests : UgsCliFixture
     [Test]
     public async Task CloudCodeListReturnsZeroExitCode()
     {
+        // The mock generates this from the spec's `example` for lastPublishedDate. It previously
+        // read as null only because the mock could not resolve that field's `allOf`.
+        var lastPublished = new DateTime(2022, 4, 5, 9, 12, 13, DateTimeKind.Utc);
         var res = Enumerable
             .Range(0, 3)
-            .Select(i => new CloudListScriptResult("example-string", null))
+            .Select(i => new CloudListScriptResult("example-string", lastPublished))
             .ToList();
         var expectedMessage = string.Join(Environment.NewLine, res);
         SetConfigValue("project-id", CommonKeys.ValidProjectId);

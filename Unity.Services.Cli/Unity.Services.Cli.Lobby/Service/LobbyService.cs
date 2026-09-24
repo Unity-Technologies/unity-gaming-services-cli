@@ -44,6 +44,7 @@ class LobbyService : ILobbyService
                 var configuration = new MpsLobby.LobbyApiV1.Generated.Client.Configuration();
                 configuration.AccessToken = m_ServiceToken!;
                 configuration.BasePath = EndpointHelper.GetCurrentEndpointFor<LobbyApiEndpoints>();
+                configuration.UserAgent = RequestHeaderHelper.UserAgent;
                 configuration.DefaultHeaders.SetXClientIdHeader();
                 m_LobbyApi = new LobbyApi(configuration);
             }
@@ -61,7 +62,17 @@ class LobbyService : ILobbyService
         get
         {
             // N.B.: Will not be accessed by multiple threads. Make thread-safe if that changes.
-            return m_AuthApi ??= new DefaultApi(EndpointHelper.GetCurrentEndpointFor<UnityServicesGatewayEndpoints>());
+            if (m_AuthApi is null)
+            {
+                var configuration = new Gateway.Auth.Generated.Client.Configuration
+                {
+                    BasePath = EndpointHelper.GetCurrentEndpointFor<UnityServicesGatewayEndpoints>(),
+                    UserAgent = RequestHeaderHelper.UserAgent,
+                };
+                m_AuthApi = new DefaultApi(configuration);
+            }
+
+            return m_AuthApi;
         }
     }
 

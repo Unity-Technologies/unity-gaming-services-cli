@@ -24,22 +24,48 @@ public class PurchasingApiMock : IServiceApiMock
         }
         """;
 
-    static readonly LcmGetAssets200ResponseInner k_CatalogConfigSample = new()
-    {
-        Id = "aaaa-bbbb-cccc-dddd",
-        Path = k_TestItemPath,
-        Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
-        ContentHash = "abc123",
-        ContentSize = 200,
-        VariantTag = [],
-        CreatedAt = DateTime.MinValue,
-        UpdatedAt = DateTime.MinValue,
-        Complete = true,
-        Metadata = new Dictionary<string, object>
-        {
-            ["managedBy"] = "In App Purchase"
-        }
-    };
+    static readonly LcmGetAssets200ResponseInnerOneOf1 k_CatalogConfigSample = new(
+        contentType: "application/json",
+        id: "aaaa-bbbb-cccc-dddd",
+        path: k_TestItemPath,
+        schemas: ["https://services.api.unity.com/schema-registry/v1/schemas/UnityRemoteCatalog/versions/1.1.0"],
+        type: LcmGetAssets200ResponseInnerOneOf1.TypeEnum.Config,
+        variants:
+        [
+            new LcmGetAssets200ResponseInnerOneOf1VariantsInner(
+                complete: true,
+                contentHash: "abc123",
+                contentSize: 200,
+                createdAt: DateTime.MinValue,
+                metadata: new Dictionary<string, object>
+                {
+                    ["managedBy"] = "In App Purchase"
+                },
+                updatedAt: DateTime.MinValue,
+                variantTag: [])
+        ]);
+
+    static readonly LcmGetConfigsContent200ResponseInner k_CatalogConfigWithContentSample = new(
+        contentType: "application/json",
+        id: "aaaa-bbbb-cccc-dddd",
+        path: k_TestItemPath,
+        schemas: ["https://services.api.unity.com/schema-registry/v1/schemas/UnityRemoteCatalog/versions/1.1.0"],
+        type: LcmGetConfigsContent200ResponseInner.TypeEnum.Config,
+        variants:
+        [
+            new LcmGetConfigsContent200ResponseInnerVariantsInner(
+                complete: true,
+                content: Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(k_CatalogItemDtoJson)!,
+                contentHash: "abc123",
+                contentSize: 200,
+                createdAt: DateTime.MinValue,
+                metadata: new Dictionary<string, object>
+                {
+                    ["managedBy"] = "In App Purchase"
+                },
+                updatedAt: DateTime.MinValue,
+                variantTag: [])
+        ]);
 
     public Task<IReadOnlyList<MappingModel>> CreateMappingModels()
     {
@@ -73,14 +99,14 @@ public class PurchasingApiMock : IServiceApiMock
             .Given(
                 Request.Create()
                     .WithPath(
-                        $"{k_BasePath}/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/configs/info")
+                        $"{k_BasePath}/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/configs/content")
                     .WithParam("path", "catalog/")
                     .UsingGet())
             .AtPriority(1)
             .RespondWith(
                 Response.Create()
                     .WithHeaders(listHeaders)
-                    .WithBodyAsJson(new List<LcmGetAssets200ResponseInner> { k_CatalogConfigSample })
+                    .WithBodyAsJson(new List<LcmGetConfigsContent200ResponseInner> { k_CatalogConfigWithContentSample })
                     .WithStatusCode(200));
     }
 

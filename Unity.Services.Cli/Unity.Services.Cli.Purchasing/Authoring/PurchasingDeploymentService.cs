@@ -3,7 +3,6 @@ using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.Authoring.Utils;
-using Unity.Services.Cli.Purchasing.IO;
 using Unity.Services.DeploymentApi.Editor;
 using UnityEditor.Purchasing.Editor.Authoring.Core.Deploy;
 using UnityEditor.Purchasing.Editor.Authoring.Core.IO;
@@ -19,17 +18,15 @@ class PurchasingDeploymentService : PurchasingBaseService, IDeploymentService
     public override IReadOnlyList<string> FileExtensions => k_FileExtensions;
 
     readonly ICatalogDeploymentHandler m_DeploymentHandler;
-    readonly CliCsvCatalogLoader m_CsvCatalogLoader;
 
     public PurchasingDeploymentService(
         ICatalogDeploymentHandler deploymentHandler,
         ILiveContentConfigClient client,
-        ICatalogLoader catalogLoader,
-        CliCsvCatalogLoader csvCatalogLoader)
-        : base(client, catalogLoader)
+        ICatalogUcatLoader ucatCatalogLoader,
+        ICatalogCsvLoader csvCatalogLoader)
+        : base(client, ucatCatalogLoader, csvCatalogLoader)
     {
         m_DeploymentHandler = deploymentHandler;
-        m_CsvCatalogLoader = csvCatalogLoader;
     }
 
     public async Task<DeploymentResult> Deploy(
@@ -45,9 +42,9 @@ class PurchasingDeploymentService : PurchasingBaseService, IDeploymentService
         loadingContext?.Status("Reading Purchasing files...");
         var filePaths = authoringFiles.ToPaths();
         var (entryItems, failedToLoad) =
-            await LoadUcatFiles(filePaths, cancellationToken);
+            await LoadUcatFiles(FilterByExtension(filePaths, Constants.FileExtension), cancellationToken);
         var (csvEntries, csvFailed) =
-            await LoadCsvFiles(filePaths, cancellationToken);
+            await LoadCsvFiles(FilterByExtension(filePaths, Constants.CsvFileExtension), cancellationToken);
         entryItems.AddRange(csvEntries);
         failedToLoad.AddRange(csvFailed);
 
@@ -81,38 +78,15 @@ class PurchasingDeploymentService : PurchasingBaseService, IDeploymentService
         }
     }
 
-    async Task<(List<CatalogEntryDeploymentItem> entries, List<IDeploymentItem> failed)> LoadCsvFiles(
-        IReadOnlyList<string> filePaths,
-        CancellationToken cancellationToken)
-    {
-        var entries = new List<CatalogEntryDeploymentItem>();
-        var failed = new List<IDeploymentItem>();
-
-        var csvFiles = filePaths
-            .Where(p => p.EndsWith(Constants.CsvFileExtension, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-
-        var csvTasks = csvFiles.Select(f => m_CsvCatalogLoader.ReadCatalog(f, cancellationToken));
-        var results = await Task.WhenAll(csvTasks);
-
-        foreach (var (csvEntries, csvFailed) in results)
-        {
-            entries.AddRange(csvEntries);
-            failed.AddRange(csvFailed);
-        }
-
-        return (entries, failed);
-    }
-
     class PurchasingDeploymentResult : DeploymentResult
     {
         public PurchasingDeploymentResult(IReadOnlyList<IDeploymentItem> authored, bool dryRun)
             : base(
-                GetItemsOfType(authored, Constants.Updated),
-                GetItemsOfType(authored, Constants.Deleted),
-                GetItemsOfType(authored, Constants.Created),
+                GetItemsByAction(authored, Constants.Updated),
+                GetItemsByAction(authored, Constants.Deleted),
+                GetItemsByAction(authored, Constants.Created),
                 authored.Where(a => a.Status.MessageSeverity == SeverityLevel.Success).ToList(),
-                authored.Where(a => a.Status.MessageSeverity == SeverityLevel.Error).ToList(),
+                authored.Where(a => a.Status.MessageSeverity is SeverityLevel.Error or SeverityLevel.Warning).ToList(),
                 dryRun)
         {
         }

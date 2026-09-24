@@ -1,4 +1,5 @@
 namespace Unity.Services.Cli.Access.UnitTest.Utils;
+
 static class TestValues
 {
     public const string ValidProjectId = "a912b1fd-541d-42e1-89f2-85436f27aabd";
@@ -14,6 +15,8 @@ static class TestValues
     public const string InvalidEnvironmentId = "foo";
 
     public const string FilePath = "policy.json";
+
+    public const string ValidStatementId = "statement-1";
 
     public const string PolicyJson =
         "{\"statements\":[{\"Sid\":\"Statement-1\",\"Action\":[\"*\"],\"Resource\":\"urn:ugs:*\",\"Principal\":\"Player\",\"Effect\":\"Deny\"}]}";

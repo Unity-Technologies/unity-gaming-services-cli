@@ -2,7 +2,6 @@ using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Gateway.LiveContentApiV1.Generated.Model;
 using WireMock.Admin.Mappings;
 using WireMock.Matchers;
-using WireMock.Net.OpenApiParser.Settings;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
@@ -14,374 +13,136 @@ public class LiveContentApiMock : IServiceApiMock
 {
     const string k_BasePath = "/v1";
 
-    static readonly LcmGetAssets200ResponseInner k_UploadedConfigSample = new()
-    {
-        Id = "00000-0000-0000-0000-000000000000",
-        Path = "configs/config.json",
-        Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
-        ContentUri = "https://cdn.example.com/file/id",
-        ContentType = "application/json",
-        ContentHash = "456fjakj=z/zveds878",
-        ContentSize = 100,
-        VariantTag = ["gameplay"],
-        CreatedAt = DateTime.MinValue,
-        UpdatedAt = DateTime.MinValue,
-        Complete = true,
-        Metadata = new Dictionary<string, object>
-        {
-            ["key"] = "value",
-            ["deployedBy"] = "FILES.lcf"
-        }
-    };
+    static readonly LcmGetAssets200ResponseInnerOneOf1 k_UploadedConfigSample = CreateConfigSample(
+        "00000-0000-0000-0000-000000000000", "configs/config.json", "456fjakj=z/zveds878", 100,
+        ["gameplay"], new Dictionary<string, object> { ["key"] = "value", ["deployedBy"] = "FILES.lcf" });
 
-    static readonly LcmGetAssets200ResponseInner k_UploadedConfigSampleAtl = new()
-    {
-        Id = "00000-0000-0000-0000-000000000000",
-        Path = "player.json",
-        Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
-        ContentUri = "https://cdn.example.com/player.json",
-        ContentType = "application/json",
-        ContentHash = "000fjakj=z/zveds000",
-        ContentSize = 200,
-        VariantTag = ["gameplay"],
-        CreatedAt = DateTime.MinValue,
-        UpdatedAt = DateTime.MinValue,
-        Complete = true,
-        Metadata = new Dictionary<string, object>
-        {
-            ["key"] = "value",
-            ["deployedBy"] = "FILES.lcf"
-        },
-        Schemas = ["https://schema.unity.com/example"]
-    };
+    static readonly LcmGetAssets200ResponseInnerOneOf1 k_UploadedConfigSampleAtl = CreateConfigSample(
+        "00000-0000-0000-0000-000000000000", "player.json", "000fjakj=z/zveds000", 200,
+        ["gameplay"], new Dictionary<string, object> { ["key"] = "value", ["deployedBy"] = "FILES.lcf" },
+        ["https://schema.unity.com/example"]);
 
-    static readonly LcmGetAssets200ResponseInner k_UploadedFileSample = new()
-    {
-        Id = "00000-0000-0000-0000-000000000001",
-        Path = "assets/background.ext",
-        Type = LcmGetAssets200ResponseInner.TypeEnum.File,
-        ContentUri = "invalidUrl",
-        ContentType = "application/json",
-        ContentHash = "456fjakj=z/zveds879",
-        ContentSize = 100,
-        VariantTag = ["assets"],
-        CreatedAt = DateTime.MinValue,
-        UpdatedAt = DateTime.MinValue,
-        Complete = true,
-        Metadata = new Dictionary<string, object>
-        {
-            ["type"] = "background",
-            ["deployedBy"] = "FILES.lcf"
-        }
-    };
+    static readonly LcmGetAssets200ResponseInnerOneOf k_UploadedFileSample = CreateFileSample(
+        "00000-0000-0000-0000-000000000001", "assets/background.ext", "invalidUrl", "application/json",
+        "456fjakj=z/zveds879", 100, ["assets"], true,
+        new Dictionary<string, object> { ["type"] = "background", ["deployedBy"] = "FILES.lcf" });
 
-    static readonly LcmGetAssets200ResponseInner k_NotUploadedFileSample = new()
-    {
-        Id = "00000-0000-0000-0000-000000000002",
-        Path = "assets/file.ext",
-        Type = LcmGetAssets200ResponseInner.TypeEnum.File,
-        ContentUri = "https://cdn.example.com/file/id",
-        ContentType = "application/json",
-        ContentHash = "456fjakj=z/zveds879",
-        ContentSize = 100,
-        VariantTag = ["assets"],
-        CreatedAt = DateTime.MinValue,
-        UpdatedAt = DateTime.MinValue,
-        Complete = false,
-        Metadata = new Dictionary<string, object>()
-        {
-            ["type"] = "background"
-        }
-    };
+    static readonly LcmGetAssets200ResponseInnerOneOf k_NotUploadedFileSample = CreateFileSample(
+        "00000-0000-0000-0000-000000000002", "assets/file.ext", "https://cdn.example.com/file/id",
+        "application/json", "456fjakj=z/zveds879", 100, ["assets"], false,
+        new Dictionary<string, object> { ["type"] = "background" });
 
-    static LcmGetAssets200ResponseInner CreateAuthoringFileSample0(string mockServerUrl)
-    {
-        return new LcmGetAssets200ResponseInner
-        {
-            Id = "00000-0000-0000-0000-000000000000",
-            Path = "file.0",
-            Type = LcmGetAssets200ResponseInner.TypeEnum.File,
-            ContentUri = $"{mockServerUrl}/content/example",
-            ContentType = "strean/octet-stream",
-            ContentHash = "056fjakj=z/zveds879",
-            ContentSize = 10,
-            VariantTag = ["ios"],
-            CreatedAt = DateTime.MinValue,
-            UpdatedAt = DateTime.MinValue,
-            Complete = true,
-            Metadata = new Dictionary<string, object>()
-            {
-                ["deployedBy"] = "FILES.lcf"
-            }
-        };
-    }
+    static LcmGetAssets200ResponseInnerOneOf CreateFileSample(
+        string id,
+        string path,
+        string contentUri,
+        string contentType,
+        string contentHash,
+        long contentSize,
+        List<string> variantTag,
+        bool complete,
+        Dictionary<string, object> metadata,
+        string? signedUrl = null) => new(
+            contentType: contentType,
+            id: id,
+            path: path,
+            type: LcmGetAssets200ResponseInnerOneOf.TypeEnum.File,
+            variants:
+            [
+                new LcmGetAssets200ResponseInnerOneOfVariantsInner(
+                    complete: complete,
+                    contentHash: contentHash,
+                    contentSize: contentSize,
+                    contentUri: contentUri,
+                    createdAt: DateTime.MinValue,
+                    metadata: metadata,
+                    signedUrl: signedUrl!,
+                    updatedAt: DateTime.MinValue,
+                    variantTag: variantTag)
+            ]);
 
-    static LcmGetAssets200ResponseInner CreateAuthoringFileSample1(string mockServerUrl)
-    {
-        return new LcmGetAssets200ResponseInner
-        {
-            Id = "00000-0000-0000-0000-000000000001",
-            Path = "file.1",
-            Type = LcmGetAssets200ResponseInner.TypeEnum.File,
-            ContentUri = $"{mockServerUrl}/content/example",
-            ContentType = "strean/octet-stream",
-            ContentHash = "156fjakj=z/zveds879",
-            ContentSize = 11,
-            VariantTag = ["ios"],
-            CreatedAt = DateTime.MinValue,
-            UpdatedAt = DateTime.MinValue,
-            Complete = true,
-            Metadata = new Dictionary<string, object>()
-            {
-                ["deployedBy"] = "FILES.lcf"
-            }
-        };
-    }
+    static LcmGetAssets200ResponseInnerOneOf1 CreateConfigSample(
+        string id,
+        string path,
+        string contentHash,
+        long contentSize,
+        List<string> variantTag,
+        Dictionary<string, object> metadata,
+        List<string>? schemas = null) => new(
+            contentType: "application/json",
+            id: id,
+            path: path,
+            schemas: schemas!,
+            type: LcmGetAssets200ResponseInnerOneOf1.TypeEnum.Config,
+            variants:
+            [
+                new LcmGetAssets200ResponseInnerOneOf1VariantsInner(
+                    complete: true,
+                    contentHash: contentHash,
+                    contentSize: contentSize,
+                    createdAt: DateTime.MinValue,
+                    metadata: metadata,
+                    updatedAt: DateTime.MinValue,
+                    variantTag: variantTag)
+            ]);
 
-    static LcmGetAssets200ResponseInner CreateAuthoringFileSample2(string mockServerUrl)
-    {
-        return new LcmGetAssets200ResponseInner
-        {
-            Id = "00000-0000-0000-0000-000000000002",
-            Path = "file.2",
-            Type = LcmGetAssets200ResponseInner.TypeEnum.File,
-            ContentUri = $"{mockServerUrl}/content/example",
-            ContentType = "application/octet-stream",
-            ContentHash = "lZfYmIFPFlt+1hGHIsJCcf7IwSVNRuQ3rWqyQFB2Pi0=",
-            ContentSize = 10,
-            VariantTag = ["ios"],
-            CreatedAt = DateTime.MinValue,
-            UpdatedAt = DateTime.MinValue,
-            Complete = true,
-            Metadata = new Dictionary<string, object>()
-            {
-                ["deployedBy"] = "FILES.lcf"
-            }
-        };
-    }
+    static LcmGetAssets200ResponseInnerOneOf CreateAuthoringFileSample0(string mockServerUrl) => CreateFileSample(
+        "00000-0000-0000-0000-000000000000", "file.0", $"{mockServerUrl}/content/example",
+        "strean/octet-stream", "056fjakj=z/zveds879", 10, ["ios"], true,
+        new Dictionary<string, object> { ["deployedBy"] = "FILES.lcf" });
 
-    static LcmGetAssets200ResponseInner CreateAuthoringFileSample3(string mockServerUrl)
-    {
-        return new LcmGetAssets200ResponseInner
-        {
-            Id = "00000-0000-0000-0000-000000000002",
-            Path = "file.3",
-            Type = LcmGetAssets200ResponseInner.TypeEnum.File,
-            ContentUri = $"{mockServerUrl}/content/example",
-            ContentType = "application/octet-stream",
-            ContentHash = "lZfYmIFPFlt+1hGHIsJCcf7IwSVNRuQ3rWqyQFB2Pi0=",
-            ContentSize = 10,
-            VariantTag = ["ios"],
-            CreatedAt = DateTime.MinValue,
-            UpdatedAt = DateTime.MinValue,
-            Complete = false,
-            SignedUrl = $"{mockServerUrl}/upload/example",
-            Metadata = new Dictionary<string, object>()
-            {
-                ["deployedBy"] = "FILES.lcf"
-            }
-        };
-    }
+    static LcmGetAssets200ResponseInnerOneOf CreateAuthoringFileSample1(string mockServerUrl) => CreateFileSample(
+        "00000-0000-0000-0000-000000000001", "file.1", $"{mockServerUrl}/content/example",
+        "strean/octet-stream", "156fjakj=z/zveds879", 11, ["ios"], true,
+        new Dictionary<string, object> { ["deployedBy"] = "FILES.lcf" });
 
-    static LcmGetAssets200ResponseInner CreateAuthoringConfigSample0(string mockServerUrl)
-    {
-        return new LcmGetAssets200ResponseInner
-        {
-            Id = "00000-0000-0000-0000-000000000000",
-            Path = "config.0",
-            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
-            ContentUri = $"{mockServerUrl}/content/example",
-            ContentType = "application/json",
-            ContentHash = "056fjakj=z/zveds879",
-            ContentSize = 10,
-            VariantTag = ["ios"],
-            CreatedAt = DateTime.MinValue,
-            UpdatedAt = DateTime.MinValue,
-            Complete = true,
-            Metadata = new Dictionary<string, object>()
-        };
-    }
+    static LcmGetAssets200ResponseInnerOneOf CreateAuthoringFileSample2(string mockServerUrl) => CreateFileSample(
+        "00000-0000-0000-0000-000000000002", "file.2", $"{mockServerUrl}/content/example",
+        "application/octet-stream", "lZfYmIFPFlt+1hGHIsJCcf7IwSVNRuQ3rWqyQFB2Pi0=", 10, ["ios"], true,
+        new Dictionary<string, object> { ["deployedBy"] = "FILES.lcf" });
 
-    static LcmGetAssets200ResponseInner CreateAuthoringConfigSample1(string mockServerUrl)
-    {
-        return new LcmGetAssets200ResponseInner
-        {
-            Id = "00000-0000-0000-0000-000000000001",
-            Path = "config.1",
-            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
-            ContentUri = $"{mockServerUrl}/content/example",
-            ContentType = "application/json",
-            ContentHash = "aDk+03NSSYDPprDBxbLQuA==",
-            ContentSize = 14,
-            VariantTag = ["ios"],
-            CreatedAt = DateTime.MinValue,
-            UpdatedAt = DateTime.MinValue,
-            Complete = true,
-            Metadata = new Dictionary<string, object>()
-        };
-    }
+    static LcmGetAssets200ResponseInnerOneOf CreateAuthoringFileSample3(string mockServerUrl) => CreateFileSample(
+        "00000-0000-0000-0000-000000000002", "file.3", $"{mockServerUrl}/content/example",
+        "application/octet-stream", "lZfYmIFPFlt+1hGHIsJCcf7IwSVNRuQ3rWqyQFB2Pi0=", 10, ["ios"], false,
+        new Dictionary<string, object> { ["deployedBy"] = "FILES.lcf" }, $"{mockServerUrl}/upload/example");
 
-    static LcmGetAssets200ResponseInner CreateAuthoringConfigSample2(string mockServerUrl)
-    {
-        return new LcmGetAssets200ResponseInner
-        {
-            Id = "00000-0000-0000-0000-000000000001",
-            Path = "config.2",
-            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
-            ContentUri = $"{mockServerUrl}/content/example",
-            ContentType = "application/json",
-            ContentHash = "Mb2dejoHkpqptLY50Uf5hg==",
-            ContentSize = 14,
-            VariantTag = ["ios"],
-            CreatedAt = DateTime.MinValue,
-            UpdatedAt = DateTime.MinValue,
-            Complete = true,
-            Metadata = new Dictionary<string, object>()
-        };
-    }
+    static LcmGetAssets200ResponseInnerOneOf1 CreateAuthoringConfigSample0() => CreateConfigSample(
+        "00000-0000-0000-0000-000000000000", "config.0", "056fjakj=z/zveds879", 10, ["ios"], []);
 
-    static LcmGetAssets200ResponseInner CreateAuthoringConfigSample3(string mockServerUrl)
-    {
-        return new LcmGetAssets200ResponseInner
-        {
-            Id = "00000-0000-0000-0000-000000000001",
-            Path = "config.3",
-            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
-            ContentUri = $"{mockServerUrl}/content/example",
-            ContentType = "application/json",
-            ContentHash = "sB6WFUDVrrwLPKUWUfE/cA==",
-            ContentSize = 14,
-            VariantTag = ["ios"],
-            CreatedAt = DateTime.MinValue,
-            UpdatedAt = DateTime.MinValue,
-            Complete = true,
-            Metadata = new Dictionary<string, object>()
-        };
-    }
+    static LcmGetAssets200ResponseInnerOneOf1 CreateAuthoringConfigSample1() => CreateConfigSample(
+        "00000-0000-0000-0000-000000000001", "config.1", "aDk+03NSSYDPprDBxbLQuA==", 14, ["ios"], []);
 
-    static LcmGetAssets200ResponseInner CreateAuthoringConfigSampleUpdate(string mockServerUrl)
-    {
-        return new LcmGetAssets200ResponseInner
-        {
-            Id = "00000-0000-0000-0000-000000000000",
-            Path = "updated.lcc",
-            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
-            ContentUri = $"{mockServerUrl}/content/example",
-            ContentType = "application/json",
-            ContentHash = "056fjakj=z/zveds879",
-            ContentSize = 10,
-            VariantTag = [],
-            CreatedAt = DateTime.MinValue,
-            UpdatedAt = DateTime.MinValue,
-            Complete = true,
-            Metadata = new Dictionary<string, object>()
-        };
-    }
+    static LcmGetAssets200ResponseInnerOneOf1 CreateAuthoringConfigSample2() => CreateConfigSample(
+        "00000-0000-0000-0000-000000000001", "config.2", "Mb2dejoHkpqptLY50Uf5hg==", 14, ["ios"], []);
 
-    static LcmGetAssets200ResponseInner CreateAuthoringConfigSampleNewRemote(string mockServerUrl)
-    {
-        return new LcmGetAssets200ResponseInner
-        {
-            Id = "00000-0000-0000-0000-000000000001",
-            Path = "new-remote.lcc",
-            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
-            ContentUri = $"{mockServerUrl}/content/example",
-            ContentType = "application/json",
-            ContentHash = "aDk+03NSSYDPprDBxbLQuA==",
-            ContentSize = 14,
-            VariantTag = [],
-            CreatedAt = DateTime.MinValue,
-            UpdatedAt = DateTime.MinValue,
-            Complete = true,
-            Metadata = new Dictionary<string, object>()
-        };
-    }
+    static LcmGetAssets200ResponseInnerOneOf1 CreateAuthoringConfigSample3() => CreateConfigSample(
+        "00000-0000-0000-0000-000000000001", "config.3", "sB6WFUDVrrwLPKUWUfE/cA==", 14, ["ios"], []);
 
-    static LcmGetAssets200ResponseInner CreateAuthoringConfigSampleNewLocal(string mockServerUrl)
-    {
-        return new LcmGetAssets200ResponseInner
-        {
-            Id = "00000-0000-0000-0000-000000000001",
-            Path = "new-local.lcc",
-            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
-            ContentUri = $"{mockServerUrl}/content/example",
-            ContentType = "application/json",
-            ContentHash = "aDk+03NSSYDPprDBxbLQuA==",
-            ContentSize = 14,
-            VariantTag = [],
-            CreatedAt = DateTime.MinValue,
-            UpdatedAt = DateTime.MinValue,
-            Complete = true,
-            Metadata = new Dictionary<string, object>()
-        };
-    }
+    static LcmGetAssets200ResponseInnerOneOf1 CreateAuthoringConfigSampleUpdate() => CreateConfigSample(
+        "00000-0000-0000-0000-000000000000", "updated.lcc", "056fjakj=z/zveds879", 10, [], []);
 
-    static LcmGetAssets200ResponseInner CreateAuthoringConfigVariantSampleUpdate(string mockServerUrl)
-    {
-        return new LcmGetAssets200ResponseInner
-        {
-            Id = "00000-0000-0000-0000-000000000000",
-            Path = "subfolder/config2.lcc",
-            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
-            ContentUri = $"{mockServerUrl}/content/example",
-            ContentType = "application/json",
-            ContentHash = "056fjakj=z/zveds879",
-            ContentSize = 10,
-            VariantTag = ["VARIANT1"],
-            CreatedAt = DateTime.MinValue,
-            UpdatedAt = DateTime.MinValue,
-            Complete = true,
-            Metadata = new Dictionary<string, object>()
-        };
-    }
+    static LcmGetAssets200ResponseInnerOneOf1 CreateAuthoringConfigSampleNewRemote() => CreateConfigSample(
+        "00000-0000-0000-0000-000000000001", "new-remote.lcc", "aDk+03NSSYDPprDBxbLQuA==", 14, [], []);
 
-    static LcmGetAssets200ResponseInner CreateAuthoringConfigVariantSampleNewRemote(string mockServerUrl)
-    {
-        return new LcmGetAssets200ResponseInner
-        {
-            Id = "00000-0000-0000-0000-000000000001",
-            Path = "config2.lcc",
-            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
-            ContentUri = $"{mockServerUrl}/content/example",
-            ContentType = "application/json",
-            ContentHash = "aDk+03NSSYDPprDBxbLQuA==",
-            ContentSize = 14,
-            VariantTag = ["VARIANT1"],
-            CreatedAt = DateTime.MinValue,
-            UpdatedAt = DateTime.MinValue,
-            Complete = true,
-            Metadata = new Dictionary<string, object>()
-        };
-    }
+    static LcmGetAssets200ResponseInnerOneOf1 CreateAuthoringConfigSampleNewLocal() => CreateConfigSample(
+        "00000-0000-0000-0000-000000000001", "new-local.lcc", "aDk+03NSSYDPprDBxbLQuA==", 14, [], []);
 
-    static LcmGetAssets200ResponseInner CreateAuthoringConfigVariantSampleNewLocal(string mockServerUrl)
-    {
-        return new LcmGetAssets200ResponseInner
-        {
-            Id = "00000-0000-0000-0000-000000000001",
-            Path = "config1.lcc",
-            Type = LcmGetAssets200ResponseInner.TypeEnum.Config,
-            ContentUri = $"{mockServerUrl}/content/example",
-            ContentType = "application/json",
-            ContentHash = "aDk+03NSSYDPprDBxbLQuA==",
-            ContentSize = 14,
-            VariantTag = ["VARIANT1"],
-            CreatedAt = DateTime.MinValue,
-            UpdatedAt = DateTime.MinValue,
-            Complete = true,
-            Metadata = new Dictionary<string, object>()
-        };
-    }
+    static LcmGetAssets200ResponseInnerOneOf1 CreateAuthoringConfigVariantSampleUpdate() => CreateConfigSample(
+        "00000-0000-0000-0000-000000000000", "subfolder/config2.lcc", "056fjakj=z/zveds879", 10,
+        ["VARIANT1"], []);
+
+    static LcmGetAssets200ResponseInnerOneOf1 CreateAuthoringConfigVariantSampleNewRemote() => CreateConfigSample(
+        "00000-0000-0000-0000-000000000001", "config2.lcc", "aDk+03NSSYDPprDBxbLQuA==", 14,
+        ["VARIANT1"], []);
+
+    static LcmGetAssets200ResponseInnerOneOf1 CreateAuthoringConfigVariantSampleNewLocal() => CreateConfigSample(
+        "00000-0000-0000-0000-000000000001", "config1.lcc", "aDk+03NSSYDPprDBxbLQuA==", 14,
+        ["VARIANT1"], []);
 
     // ~~~~~~~~~ INIT ~~~~~~~~~
 
-    public async Task<IReadOnlyList<MappingModel>> CreateMappingModels()
-    {
-        var liveContentServiceModels = await MappingModelUtils.ParseMappingModelsFromGeneratorConfigAsync(
-            "livecontent-v1-generator-config.yaml",
-            new WireMockOpenApiParserSettings());
-        return liveContentServiceModels.ToArray();
-    }
+    public Task<IReadOnlyList<MappingModel>> CreateMappingModels() =>
+        Task.FromResult<IReadOnlyList<MappingModel>>([]);
 
     public void CustomMock(WireMockServer mockServer)
     {
@@ -429,7 +190,7 @@ public class LiveContentApiMock : IServiceApiMock
                 Response.Create()
                     .WithHeaders(responseHeaders)
                     .WithBodyAsJson(
-                        new List<LcmGetAssets200ResponseInner>
+                        new List<LcmGetAssets200ResponseInnerOneOf>
                         {
                             k_UploadedFileSample,
                             k_NotUploadedFileSample
@@ -542,7 +303,7 @@ public class LiveContentApiMock : IServiceApiMock
                 Response.Create()
                     .WithHeaders(responseHeaders)
                     .WithBodyAsJson(
-                        new List<LcmGetAssets200ResponseInner>
+                        new List<LcmGetAssets200ResponseInnerOneOf1>
                         {
                             k_UploadedConfigSample,
                             k_UploadedConfigSampleAtl
@@ -595,7 +356,7 @@ public class LiveContentApiMock : IServiceApiMock
                     .WithStatusCode(200));
 
         // Get file with dynamic content URL for mock download
-        var fileSample = CreateAuthoringConfigSample0(mockServer.Url!);
+        var fileSample = CreateAuthoringConfigSample0();
         mockServer
             .Given(
                 Request.Create()
@@ -743,7 +504,7 @@ public class LiveContentApiMock : IServiceApiMock
                 Response.Create()
                     .WithHeaders(responseHeaders)
                     .WithBodyAsJson(
-                        new List<LcmGetAssets200ResponseInner>
+                        new List<LcmGetAssets200ResponseInnerOneOf>
                         {
                             authoringFileSample0,
                             authoringFileSample1,
@@ -779,7 +540,7 @@ public class LiveContentApiMock : IServiceApiMock
                     .WithBodyAsJson(
                         new
                         {
-                            updated = new List<LcmGetAssets200ResponseInner>
+                            updated = new List<LcmGetAssets200ResponseInnerOneOf>
                             {
                                 authoringFileSample1
                             },
@@ -815,7 +576,7 @@ public class LiveContentApiMock : IServiceApiMock
                     .WithBodyAsJson(
                         new
                         {
-                            created = new List<LcmGetAssets200ResponseInner>
+                            created = new List<LcmGetAssets200ResponseInnerOneOf>
                             {
                                 authoringFileSample3
                             },
@@ -857,10 +618,10 @@ public class LiveContentApiMock : IServiceApiMock
         WireMockServer mockServer,
         Dictionary<string, WireMockList<string>> responseHeaders)
     {
-        var authoringConfigSample0 = CreateAuthoringConfigSample0(mockServer.Url!);
-        var authoringConfigSample1 = CreateAuthoringConfigSample1(mockServer.Url!);
-        var authoringConfigSample2 = CreateAuthoringConfigSample2(mockServer.Url!);
-        var authoringConfigSample3 = CreateAuthoringConfigSample3(mockServer.Url!);
+        var authoringConfigSample0 = CreateAuthoringConfigSample0();
+        var authoringConfigSample1 = CreateAuthoringConfigSample1();
+        var authoringConfigSample2 = CreateAuthoringConfigSample2();
+        var authoringConfigSample3 = CreateAuthoringConfigSample3();
 
         // Mock the List
         responseHeaders["Content-Range"] = "items 0-2/3";
@@ -875,7 +636,7 @@ public class LiveContentApiMock : IServiceApiMock
                 Response.Create()
                     .WithHeaders(responseHeaders)
                     .WithBodyAsJson(
-                        new List<LcmGetAssets200ResponseInner>
+                        new List<LcmGetAssets200ResponseInnerOneOf1>
                         {
                             authoringConfigSample0,
                             authoringConfigSample1,
@@ -909,7 +670,7 @@ public class LiveContentApiMock : IServiceApiMock
                     .WithBodyAsJson(
                         new
                         {
-                            updated = new List<LcmGetAssets200ResponseInner>
+                            updated = new List<LcmGetAssets200ResponseInnerOneOf1>
                             {
                                 authoringConfigSample1
                             },
@@ -943,7 +704,7 @@ public class LiveContentApiMock : IServiceApiMock
                     .WithBodyAsJson(
                         new
                         {
-                            created = new List<LcmGetAssets200ResponseInner>
+                            created = new List<LcmGetAssets200ResponseInnerOneOf1>
                             {
                                 authoringConfigSample3
                             },
@@ -985,9 +746,9 @@ public class LiveContentApiMock : IServiceApiMock
         WireMockServer mockServer,
         Dictionary<string, WireMockList<string>> responseHeaders)
     {
-        var authoringConfigSampleUpdated = CreateAuthoringConfigSampleUpdate(mockServer.Url!);
-        var authoringConfigSampleNewRemote = CreateAuthoringConfigSampleNewRemote(mockServer.Url!);
-        var authoringConfigSampleNewLocal = CreateAuthoringConfigSampleNewLocal(mockServer.Url!);
+        var authoringConfigSampleUpdated = CreateAuthoringConfigSampleUpdate();
+        var authoringConfigSampleNewRemote = CreateAuthoringConfigSampleNewRemote();
+        var authoringConfigSampleNewLocal = CreateAuthoringConfigSampleNewLocal();
 
         // Mock the List
         responseHeaders["Content-Range"] = "items 0-2/3";
@@ -1006,7 +767,7 @@ public class LiveContentApiMock : IServiceApiMock
                 Response.Create()
                     .WithHeaders(responseHeaders)
                     .WithBodyAsJson(
-                        new List<LcmGetAssets200ResponseInner>
+                        new List<LcmGetAssets200ResponseInnerOneOf1>
                         {
                             authoringConfigSampleUpdated,
                             authoringConfigSampleNewRemote
@@ -1029,7 +790,7 @@ public class LiveContentApiMock : IServiceApiMock
                 Response.Create()
                     .WithHeaders(responseHeaders)
                     .WithBodyAsJson(
-                        new List<LcmGetAssets200ResponseInner>
+                        new List<LcmGetAssets200ResponseInnerOneOf1>
                         {
                             authoringConfigSampleUpdated,
                         })
@@ -1040,9 +801,9 @@ public class LiveContentApiMock : IServiceApiMock
         WireMockServer mockServer,
         Dictionary<string, WireMockList<string>> responseHeaders)
     {
-        var authoringConfigVariantSampleUpdated = CreateAuthoringConfigVariantSampleUpdate(mockServer.Url!);
-        var authoringConfigVariantSampleNewRemote = CreateAuthoringConfigVariantSampleNewRemote(mockServer.Url!);
-        var authoringConfigVariantSampleNewLocal = CreateAuthoringConfigVariantSampleNewLocal(mockServer.Url!);
+        var authoringConfigVariantSampleUpdated = CreateAuthoringConfigVariantSampleUpdate();
+        var authoringConfigVariantSampleNewRemote = CreateAuthoringConfigVariantSampleNewRemote();
+        var authoringConfigVariantSampleNewLocal = CreateAuthoringConfigVariantSampleNewLocal();
 
         // Mock the List
         mockServer
@@ -1060,7 +821,7 @@ public class LiveContentApiMock : IServiceApiMock
                 Response.Create()
                     .WithHeaders(responseHeaders)
                     .WithBodyAsJson(
-                        new List<LcmGetAssets200ResponseInner>
+                        new List<LcmGetAssets200ResponseInnerOneOf1>
                         {
                             authoringConfigVariantSampleUpdated,
                             authoringConfigVariantSampleNewRemote
@@ -1073,13 +834,13 @@ public class LiveContentApiMock : IServiceApiMock
         WireMockServer mockServer,
         Dictionary<string, WireMockList<string>> responseHeaders)
     {
-        var authoringConfigSampleUpdated = CreateAuthoringConfigSampleUpdate(mockServer.Url!);
-        var authoringConfigSampleNewRemote = CreateAuthoringConfigSampleNewRemote(mockServer.Url!);
-        var authoringConfigSampleNewLocal = CreateAuthoringConfigSampleNewLocal(mockServer.Url!);
+        var authoringConfigSampleUpdated = CreateAuthoringConfigSampleUpdate();
+        var authoringConfigSampleNewRemote = CreateAuthoringConfigSampleNewRemote();
+        var authoringConfigSampleNewLocal = CreateAuthoringConfigSampleNewLocal();
 
-        var authoringConfigVariantSampleUpdated = CreateAuthoringConfigVariantSampleUpdate(mockServer.Url!);
-        var authoringConfigVariantSampleNewRemote = CreateAuthoringConfigVariantSampleNewRemote(mockServer.Url!);
-        var authoringConfigVariantSampleNewLocal = CreateAuthoringConfigVariantSampleNewLocal(mockServer.Url!);
+        var authoringConfigVariantSampleUpdated = CreateAuthoringConfigVariantSampleUpdate();
+        var authoringConfigVariantSampleNewRemote = CreateAuthoringConfigVariantSampleNewRemote();
+        var authoringConfigVariantSampleNewLocal = CreateAuthoringConfigVariantSampleNewLocal();
 
         // Mock the Update Batch
         mockServer
@@ -1109,7 +870,7 @@ public class LiveContentApiMock : IServiceApiMock
                     .WithBodyAsJson(
                         new
                         {
-                            updated = new List<LcmGetAssets200ResponseInner>
+                            updated = new List<LcmGetAssets200ResponseInnerOneOf1>
                             {
                                 authoringConfigVariantSampleUpdated,
                                 authoringConfigSampleUpdated
@@ -1146,14 +907,20 @@ public class LiveContentApiMock : IServiceApiMock
                     .WithBodyAsJson(
                         new
                         {
-                            created = new List<LcmGetAssets200ResponseInner>
-                            {
-                                authoringConfigVariantSampleNewLocal,
-                                authoringConfigSampleNewLocal
-                            },
-                            error = new List<object>()
-                        })
-                    .WithStatusCode(200));
+                             created = new List<LcmGetAssets200ResponseInnerOneOf1>
+                             {
+                                 authoringConfigSampleNewLocal
+                             },
+                             error = new[]
+                             {
+                                 new LcmUpdateConfigs200ResponseErrorInner(
+                                     error: "schema origin is not permitted",
+                                     file: new LcmUpdateConfigs200ResponseErrorInnerFile(
+                                         path: authoringConfigVariantSampleNewLocal.Path,
+                                         variantTag: authoringConfigVariantSampleNewLocal.Variants[0].VariantTag))
+                             }
+                         })
+                     .WithStatusCode(200));
 
         // Mock the Delete Batch
         mockServer

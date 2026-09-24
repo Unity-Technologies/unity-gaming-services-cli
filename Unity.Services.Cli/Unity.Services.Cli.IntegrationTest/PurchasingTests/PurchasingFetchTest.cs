@@ -18,9 +18,22 @@ public class PurchasingFetchTest : PurchasingBaseFixture
     }
 
     [Test]
-    public async Task Fetch_ExistingLocalFile()
+    public async Task Fetch_IdenticalLocalFile_SkipsUpdate()
     {
         await File.WriteAllTextAsync(TestItemPath, k_TestItemJson);
+
+        await GetLoggedInCli()
+            .Command($"fetch {TestDirectory} --services purchasing -j")
+            .AssertStandardOutputContains("\"Result\": []")
+            .AssertNoErrors()
+            .ExecuteAsync();
+    }
+
+    [Test]
+    public async Task Fetch_DifferentLocalFile_Updates()
+    {
+        var differentItem = k_TestItemJson.Replace("4.99", "9.99");
+        await File.WriteAllTextAsync(TestItemPath, differentItem);
 
         await GetLoggedInCli()
             .Command($"fetch {TestDirectory} --services purchasing -j")
@@ -32,7 +45,8 @@ public class PurchasingFetchTest : PurchasingBaseFixture
     [Test]
     public async Task Fetch_DryRun()
     {
-        await File.WriteAllTextAsync(TestItemPath, k_TestItemJson);
+        var differentItem = k_TestItemJson.Replace("4.99", "9.99");
+        await File.WriteAllTextAsync(TestItemPath, differentItem);
 
         await GetLoggedInCli()
             .Command($"fetch {TestDirectory} --services purchasing --dry-run -j")

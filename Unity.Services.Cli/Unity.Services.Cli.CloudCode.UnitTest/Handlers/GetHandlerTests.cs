@@ -39,11 +39,11 @@ class GetHandlerTests
                     "foo",
                     "API",
                     "JS",
-                    new GetScriptResponseActiveScript("bar", 1, DateTime.Now, new List<ScriptParameter>()),
+                    new GetScriptResponseActiveScript("bar", 1, datePublished: DateTime.Now, _params: new List<ScriptParameter>()),
                     _params: new List<ScriptParameter>(),
                     versions: new List<GetScriptResponseVersionsInner>
                     {
-                        new("bar", 1)
+                        new("bar", _params: new List<ScriptParameter>(), version: 1)
                     }));
     }
 

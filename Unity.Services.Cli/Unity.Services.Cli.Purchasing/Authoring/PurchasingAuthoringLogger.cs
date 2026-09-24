@@ -14,7 +14,7 @@ class PurchasingAuthoringLogger : CoreLogger.ILogger
 
     public void LogError(object message)
     {
-        m_Logger.LogError("{Message}", message);
+        m_Logger.LogError("{Message}", message is Exception exception ? exception.Message : message);
     }
 
     public void LogWarning(object message)

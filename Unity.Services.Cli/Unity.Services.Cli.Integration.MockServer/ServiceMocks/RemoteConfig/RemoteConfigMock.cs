@@ -2,7 +2,6 @@ using System.Net;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.MockServer.Common;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
-using Unity.Services.Gateway.EconomyApiV2.Generated.Model;
 using WireMock.Admin.Mappings;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
@@ -62,31 +61,9 @@ public class RemoteConfigMock : IServiceApiMock
     public void CustomMock(WireMockServer mockServer)
     {
         MockListCloudCodeScriptEmpty(mockServer);
-        MockListEconomyResourceEmpty(mockServer);
         MockGetAllConfigsFromEnvironmentAsync(mockServer, ConfigId);
         MockUpdateConfigAsync(mockServer, ConfigId);
         MockDeleteConfigAsync(mockServer, ConfigId);
-    }
-
-    static void MockListEconomyResourceEmpty(WireMockServer mockServer)
-    {
-        var publishedResourcesResponse = new GetPublishedResourcesResponse(new List<GetResourcesResponseResultsInner>());
-        mockServer.Given(Request.Create().WithPath($"*/economy/v2/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/configs/published/resources").UsingGet())
-            .RespondWith(Response.Create().WithHeaders(new Dictionary<string, string>
-            {
-                {
-                    "Content-Type", "application/json"
-                }
-            }).WithBodyAsJson(publishedResourcesResponse).WithStatusCode(HttpStatusCode.OK));
-
-        var resourcesResponse = new GetResourcesResponse(new List<GetResourcesResponseResultsInner>());
-        mockServer.Given(Request.Create().WithPath($"*/economy/v2/projects/{CommonKeys.ValidProjectId}/environments/{CommonKeys.ValidEnvironmentId}/configs/draft/resources").UsingGet())
-            .RespondWith(Response.Create().WithHeaders(new Dictionary<string, string>
-            {
-                {
-                    "Content-Type", "application/json"
-                }
-            }).WithBodyAsJson(resourcesResponse).WithStatusCode(HttpStatusCode.OK));
     }
 
     static void MockListCloudCodeScriptEmpty(WireMockServer mockServer)

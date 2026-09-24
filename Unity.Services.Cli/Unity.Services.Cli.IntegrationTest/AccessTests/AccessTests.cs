@@ -15,7 +15,6 @@ namespace Unity.Services.Cli.IntegrationTest.AccessTests;
 
 public class AccessTests : UgsCliFixture
 {
-    const string k_FilePath = "policy.json";
     const string k_ProjectIdNotSetErrorMessage = "'project-id' is not set in project configuration."
                                                  + " '" + Keys.EnvironmentKeys.ProjectId + "' is not set in system environment variables.";
     const string k_LoggedOutErrorMessage = "You are not logged into any service account."
@@ -26,6 +25,7 @@ public class AccessTests : UgsCliFixture
     readonly string m_TestDirectory = Path.GetFullPath(Path.Combine(UgsCliBuilder.RootDirectory, "Unity.Services.Cli/Unity.Services.Cli.IntegrationTest/AccessTests/Data/"));
 
     const string k_RequiredArgumentMissing = "Required argument missing for command";
+    const string k_StatementId = "statement-1";
 
     [SetUp]
     public async Task SetUp()
@@ -73,11 +73,8 @@ public class AccessTests : UgsCliFixture
         await AssertException(command, k_EnvironmentNameNotSetErrorMessage);
     }
 
-    [TestCase("access get-player-policy")]
-    [TestCase("access upsert-player-policy")]
-    [TestCase("access delete-player-policy-statements")]
-    [TestCase("access upsert-player-policy XLwhjNi96BklAvFY")]
-    [TestCase("access delete-player-policy-statements XLwhjNi96BklAvFY")]
+    [TestCase("access player-policy update")]
+    [TestCase("access player-policy delete")]
     public async Task AccessCommandsThrowsPlayerIdNotSetException(string command)
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
@@ -90,18 +87,18 @@ public class AccessTests : UgsCliFixture
             .ExecuteAsync();
     }
 
-    // access get-project-policy
+    // access project-policy list
     [Test]
-    public async Task AccessGetProjectPolicyReturnsZeroExitCode()
+    public async Task AccessProjectPolicyListReturnsZeroExitCode()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        await AssertSuccess("access get-project-policy", expectedStdOut: "statement-1");
+        await AssertSuccess("access project-policy list", expectedStdOut: "statement-1");
     }
 
-    // access get-player-policy
+    // access player-policy list --player-id
     [Test]
-    public async Task AccessGetPlayerPolicyReturnsZeroExitCode()
+    public async Task AccessPlayerPolicyListWithPlayerIdReturnsZeroExitCode()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
@@ -112,12 +109,12 @@ public class AccessTests : UgsCliFixture
             statements = new List<PlayerStatement>()
         };
 
-        await AssertSuccess($"access get-player-policy {AccessApiMock.PlayerId}", expectedStdOut: JsonConvert.SerializeObject(playerPolicy, Formatting.Indented));
+        await AssertSuccess($"access player-policy list --player-id {AccessApiMock.PlayerId}", expectedStdOut: JsonConvert.SerializeObject(playerPolicy, Formatting.Indented));
     }
 
-    // access get-all-player-policies
+    // access player-policy list (all)
     [Test]
-    public async Task AccessGetAllPlayerPoliciesReturnsZeroExitCode()
+    public async Task AccessPlayerPolicyListAllReturnsZeroExitCode()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
@@ -131,43 +128,60 @@ public class AccessTests : UgsCliFixture
         List<object> obj = new List<object>();
         obj.Add(playerPolicy);
 
-        await AssertSuccess("access get-all-player-policies", expectedStdOut: JsonConvert.SerializeObject(obj, Formatting.Indented));
+        await AssertSuccess("access player-policy list", expectedStdOut: JsonConvert.SerializeObject(obj, Formatting.Indented));
     }
 
-    // access upsert-project-policy
+    // access player-policy update
     [Test]
-    public async Task AccessUpsertProjectPolicyReturnsZeroExitCode()
+    public async Task AccessPlayerPolicyUpdateReturnsZeroExitCode()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        await AssertSuccess($"access upsert-project-policy {Path.Combine(m_TestDirectory, "policy.json")}", $"Policy for project: '{CommonKeys.ValidProjectId}' and environment: '{CommonKeys.ValidEnvironmentId}' has been updated");
+        await AssertSuccess($"access player-policy update {AccessApiMock.PlayerId} {Path.Combine(m_TestDirectory, "policy.json")}", $"Policy for player: '{AccessApiMock.PlayerId}' has been updated");
     }
 
-    // access upsert-player-policy
+    // access project-policy delete
     [Test]
-    public async Task AccessUpsertPlayerPolicyReturnsZeroExitCode()
+    public async Task AccessProjectPolicyDeleteReturnsZeroExitCode()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        await AssertSuccess($"access upsert-player-policy {AccessApiMock.PlayerId} {Path.Combine(m_TestDirectory, "policy.json")}", $"Policy for player: '{AccessApiMock.PlayerId}' has been updated");
+        await AssertSuccess($"access project-policy delete {k_StatementId}", $"Given policy statements for project: '{CommonKeys.ValidProjectId}' and environment: '{CommonKeys.ValidEnvironmentId}' has been deleted");
     }
 
-    // access delete-project-policy-statements
+    // access player-policy delete
     [Test]
-    public async Task AccessDeleteProjectPolicyStatementsReturnsZeroExitCode()
+    public async Task AccessPlayerPolicyDeleteReturnsZeroExitCode()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        await AssertSuccess($"access delete-project-policy-statements {Path.Combine(m_TestDirectory, "statements.json")}", $"Given policy statements for project: '{CommonKeys.ValidProjectId}' and environment: '{CommonKeys.ValidEnvironmentId}' has been deleted");
+        await AssertSuccess($"access player-policy delete {AccessApiMock.PlayerId} {k_StatementId}", $"Given policy statements for player: '{AccessApiMock.PlayerId}' has been deleted");
     }
 
-    // access delete-player-policy-statements
     [Test]
-    public async Task AccessDeletePlayerPolicyStatementsReturnsZeroExitCode()
+    public async Task AccessProjectPolicyDeleteWithNoStatementIdsThrowsRequiredArgumentMissingException()
     {
         SetConfigValue("project-id", CommonKeys.ValidProjectId);
         SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
-        await AssertSuccess($"access delete-player-policy-statements {AccessApiMock.PlayerId} {Path.Combine(m_TestDirectory, "statements.json")}", $"Given policy statements for player: '{AccessApiMock.PlayerId}' has been deleted");
+
+        await GetLoggedInCli()
+            .Command("access project-policy delete")
+            .AssertExitCode(ExitCode.HandledError)
+            .AssertStandardErrorContains(k_RequiredArgumentMissing)
+            .ExecuteAsync();
+    }
+
+    [Test]
+    public async Task AccessPlayerPolicyDeleteWithNoStatementIdsThrowsRequiredArgumentMissingException()
+    {
+        SetConfigValue("project-id", CommonKeys.ValidProjectId);
+        SetConfigValue("environment-name", CommonKeys.ValidEnvironmentName);
+
+        await GetLoggedInCli()
+            .Command($"access player-policy delete {AccessApiMock.PlayerId}")
+            .AssertExitCode(ExitCode.HandledError)
+            .AssertStandardErrorContains(k_RequiredArgumentMissing)
+            .ExecuteAsync();
     }
 
     // helpers
@@ -175,13 +189,12 @@ public class AccessTests : UgsCliFixture
     {
         get
         {
-            yield return "access get-project-policy";
-            yield return $"access get-player-policy {AccessApiMock.PlayerId}";
-            yield return "access get-all-player-policies";
-            yield return $"access upsert-project-policy {k_FilePath}";
-            yield return $"access upsert-player-policy {AccessApiMock.PlayerId} {k_FilePath}";
-            yield return $"access delete-project-policy-statements {k_FilePath}";
-            yield return $"access delete-player-policy-statements {AccessApiMock.PlayerId} policy.json";
+            yield return "access project-policy list";
+            yield return $"access player-policy list --player-id {AccessApiMock.PlayerId}";
+            yield return "access player-policy list";
+            yield return $"access player-policy update {AccessApiMock.PlayerId} policy.json";
+            yield return $"access project-policy delete {k_StatementId}";
+            yield return $"access player-policy delete {AccessApiMock.PlayerId} {k_StatementId}";
         }
     }
 

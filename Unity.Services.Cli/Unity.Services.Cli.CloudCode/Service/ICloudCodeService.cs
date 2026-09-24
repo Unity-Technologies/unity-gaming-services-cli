@@ -126,8 +126,33 @@ public interface ICloudCodeService
     /// <param name="projectId">unique id of a unity project</param>
     /// <param name="environmentId">unique id of a unity environment</param>
     /// <param name="moduleName">name of a module</param>
+    /// <param name="version">
+    /// which version to describe: 'latest', or a version number. Null returns the live version.
+    /// </param>
     /// <param name="cancellationToken">token to cancel the task</param>
     /// <returns></returns>
     public Task<string> GetModuleSpecAsync(string projectId, string environmentId, string moduleName,
-        CancellationToken cancellationToken = default);
+        string? version = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Delete a single retained version of a Cloud Code Module
+    /// </summary>
+    /// <param name="projectId">unique id of a unity project</param>
+    /// <param name="environmentId">unique id of a unity environment</param>
+    /// <param name="moduleName">name of a module</param>
+    /// <param name="version">the version to delete</param>
+    /// <param name="cancellationToken">token to cancel the task</param>
+    public Task DeleteModuleVersionAsync(string projectId, string environmentId, string? moduleName,
+        long version, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Delete a single published version of a Cloud Code Script
+    /// </summary>
+    /// <param name="projectId">unique id of a unity project</param>
+    /// <param name="environmentId">unique id of a unity environment</param>
+    /// <param name="scriptName">name of a script</param>
+    /// <param name="version">the version to delete</param>
+    /// <param name="cancellationToken">token to cancel the task</param>
+    public Task DeleteScriptVersionAsync(string projectId, string environmentId, string? scriptName,
+        int version, CancellationToken cancellationToken = default);
 }

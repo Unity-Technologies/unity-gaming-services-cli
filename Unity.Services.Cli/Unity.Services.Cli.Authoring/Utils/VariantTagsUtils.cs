@@ -33,4 +33,7 @@ public static class VariantTagsUtils
 
     public static bool Equals(IReadOnlyList<string> lTags, IReadOnlyList<string> rTags)
         => VariantTags.Equals(lTags, rTags);
+
+    public static string ToString(IReadOnlyList<string>? tags)
+        => $"[{string.Join(", ", (tags ?? Array.Empty<string>()).Select(s => s.ToUpperInvariant()))}]";
 }

@@ -1,10 +1,9 @@
 using Moq;
-using Unity.Services.Cli.Scheduler.Deploy;
 using Unity.Services.DeploymentApi.Editor;
-using Unity.Services.Scheduler.Authoring.Core.Fetch;
-using Unity.Services.Scheduler.Authoring.Core.IO;
-using Unity.Services.Scheduler.Authoring.Core.Model;
-using Unity.Services.Scheduler.Authoring.Core.Service;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Fetch;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.IO;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Model;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Service;
 
 namespace Unity.Services.Cli.Scheduler.UnitTest.Deploy;
 
@@ -18,25 +17,25 @@ class SchedulerFetchHandlerTests
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulerClient = new();
-        Mock<IFileSystem> mockFileSystem = new();
-        var handler = new SchedulerFetchHandler(mockSchedulerClient.Object, mockFileSystem.Object, new SchedulesSerializer());
+        Mock<ISchedulerResourceLoader> mockResourceLoader = new();
+        var handler = CreateHandler(mockSchedulerClient, mockResourceLoader);
 
         mockSchedulerClient
-            .Setup(c => c.List())
-            .ReturnsAsync(remoteSchedules.ToList());
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteSchedules);
 
-        var actualRes = await handler.FetchAsync(
-            "dir",
-            localSchedules
-        );
+        var actualRes = await handler.FetchAsync("dir", localSchedules);
 
-        Assert.Contains(localSchedules.FirstOrDefault(l => l.Name == "schedule1"), actualRes.Updated);
-        Assert.Contains(localSchedules.FirstOrDefault(l => l.Name == "schedule1"), actualRes.Fetched);
-        Assert.Contains(localSchedules.FirstOrDefault(l => l.Name == "schedule2"), actualRes.Deleted);
-        Assert.Contains(localSchedules.FirstOrDefault(l => l.Name == "schedule2"), actualRes.Fetched);
-        Assert.Contains(localSchedules.FirstOrDefault(l => l.Name == "schedule3"), actualRes.Deleted);
-        Assert.Contains(localSchedules.FirstOrDefault(l => l.Name == "schedule3"), actualRes.Fetched);
-        Assert.IsEmpty(actualRes.Created);
+        Assert.Multiple(() =>
+        {
+            Assert.That(actualRes.Deployed, Does.Contain(localSchedules[0]));
+            Assert.That(actualRes.Deployed, Does.Contain(localSchedules[1]));
+            Assert.That(actualRes.Deployed, Does.Contain(localSchedules[2]));
+            Assert.That(localSchedules[0].Status.MessageDetail, Is.EqualTo(Constants.Updated));
+            Assert.That(localSchedules[1].Status.MessageDetail, Is.EqualTo(Constants.Deleted));
+            Assert.That(localSchedules[2].Status.MessageDetail, Is.EqualTo(Constants.Deleted));
+            Assert.That(actualRes.Deployed, Has.Count.EqualTo(3));
+        });
     }
 
     [Test]
@@ -46,31 +45,26 @@ class SchedulerFetchHandlerTests
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulerClient = new();
-        Mock<IFileSystem> mockFileSystem = new();
-        var handler = new SchedulerFetchHandler(mockSchedulerClient.Object, mockFileSystem.Object, new SchedulesSerializer());
+        Mock<ISchedulerResourceLoader> mockResourceLoader = new();
+        var handler = CreateHandler(mockSchedulerClient, mockResourceLoader);
 
         mockSchedulerClient
-            .Setup(c => c.List())
-            .ReturnsAsync(remoteSchedules.ToList());
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteSchedules);
 
-        var actualRes = await handler.FetchAsync(
-            "dir",
-            localSchedules
-        );
+        await handler.FetchAsync("dir", localSchedules);
 
-        mockFileSystem
-            .Verify(f => f.WriteAllText(
-                    "path1",
-                    It.Is<string>(s => s.Contains("1 * * * *")),
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
-
-        mockFileSystem
-            .Verify(f => f.WriteAllText(
-                    "echo",
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()),
-                Times.Never);  //Should not happen unless reconcile
+        mockResourceLoader.Verify(
+            loader => loader.CreateOrUpdateResource(
+                It.Is<SchedulerEntryDeploymentItem>(item =>
+                    item.Path == "path1" && item.entry.Schedule == "1 * * * *"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+        mockResourceLoader.Verify(
+            loader => loader.CreateOrUpdateResource(
+                It.Is<SchedulerEntryDeploymentItem>(item => item.entry.Name == "schedule4"),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Test]
@@ -80,28 +74,25 @@ class SchedulerFetchHandlerTests
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulerClient = new();
-        Mock<IFileSystem> mockFileSystem = new();
-        var handler = new SchedulerFetchHandler(mockSchedulerClient.Object, mockFileSystem.Object, new SchedulesSerializer());
+        Mock<ISchedulerResourceLoader> mockResourceLoader = new();
+        var handler = CreateHandler(mockSchedulerClient, mockResourceLoader);
 
         mockSchedulerClient
-            .Setup(c => c.List())
-            .ReturnsAsync(remoteSchedules.ToList());
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteSchedules);
 
-        var actualRes = await handler.FetchAsync(
-            "dir",
-            localSchedules
-        );
+        await handler.FetchAsync("dir", localSchedules);
 
-        mockFileSystem
-            .Verify(f => f.Delete(
-                    "path2",
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
-        mockFileSystem
-            .Verify(f => f.Delete(
-                    "path3",
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
+        mockResourceLoader.Verify(
+            loader => loader.DeleteResource(
+                It.Is<SchedulerEntryDeploymentItem>(item => item.Path == "path2"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+        mockResourceLoader.Verify(
+            loader => loader.DeleteResource(
+                It.Is<SchedulerEntryDeploymentItem>(item => item.Path == "path3"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Test]
@@ -111,30 +102,34 @@ class SchedulerFetchHandlerTests
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulerClient = new();
-        Mock<IFileSystem> mockFileSystem = new();
-        var handler = new SchedulerFetchHandler(mockSchedulerClient.Object, mockFileSystem.Object, new SchedulesSerializer());
+        Mock<ISchedulerResourceLoader> mockResourceLoader = new();
+        var handler = CreateHandler(mockSchedulerClient, mockResourceLoader);
 
         mockSchedulerClient
-            .Setup(c => c.List())
-            .ReturnsAsync(remoteSchedules.ToList());
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteSchedules);
 
         var actualRes = await handler.FetchAsync(
             "dir",
             localSchedules,
-            reconcile: true
-        );
+            reconcile: true);
 
-        mockFileSystem
-            .Verify(f => f.WriteAllText(
-                    Path.Combine("dir", "schedule4.sched"),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
+        mockResourceLoader.Verify(
+            loader => loader.CreateOrUpdateResource(
+                It.Is<SchedulerEntryDeploymentItem>(item =>
+                    item.Path == Path.Combine("dir", "schedule4.sched")),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
 
-        Assert.That(actualRes.Created.Count, Is.EqualTo(1));
-        Assert.That(actualRes.Created.First().Name, Is.EqualTo("schedule4"));
+        var created = actualRes.Deployed
+            .Where(item => item.Status.MessageDetail == Constants.Created)
+            .ToList();
+        Assert.Multiple(() =>
+        {
+            Assert.That(created, Has.Count.EqualTo(1));
+            Assert.That(created[0].entry.Name, Is.EqualTo("schedule4"));
+        });
     }
-
 
     [Test]
     public async Task FetchAsync_StatusesAreCorrect()
@@ -143,33 +138,30 @@ class SchedulerFetchHandlerTests
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulerClient = new();
-        Mock<IFileSystem> mockFileSystem = new();
-        var handler = new SchedulerFetchHandler(mockSchedulerClient.Object, mockFileSystem.Object, new SchedulesSerializer());
+        Mock<ISchedulerResourceLoader> mockResourceLoader = new();
+        var handler = CreateHandler(mockSchedulerClient, mockResourceLoader);
 
         mockSchedulerClient
-            .Setup(c => c.List())
-            .ReturnsAsync(remoteSchedules.ToList());
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteSchedules);
 
         var actualRes = await handler.FetchAsync(
             "dir",
             localSchedules,
-            reconcile: true
-        );
+            reconcile: true);
 
-        var expectedCreatedSchedule = actualRes.Fetched.FirstOrDefault(l => l.Name == "schedule4");
-        Assert.IsTrue(expectedCreatedSchedule?.Status.Message == "Fetched");
-        Assert.IsTrue(expectedCreatedSchedule?.Status.MessageDetail == "Created");
+        var expectedCreatedSchedule = actualRes.Deployed.FirstOrDefault(item => item.entry.Name == "schedule4");
+        Assert.That(expectedCreatedSchedule?.Status.Message, Is.EqualTo("Fetched"));
+        Assert.That(expectedCreatedSchedule?.Status.MessageDetail, Is.EqualTo(Constants.Created));
 
-        var expectedUpdatedSchedule = actualRes.Fetched.FirstOrDefault(l => l.Name == "schedule1");
-        Assert.IsTrue(expectedUpdatedSchedule?.Status.Message == "Fetched");
-        Assert.IsTrue(expectedUpdatedSchedule?.Status.MessageDetail == "Updated");
+        var expectedUpdatedSchedule = actualRes.Deployed.FirstOrDefault(item => item.entry.Name == "schedule1");
+        Assert.That(expectedUpdatedSchedule?.Status.Message, Is.EqualTo("Fetched"));
+        Assert.That(expectedUpdatedSchedule?.Status.MessageDetail, Is.EqualTo(Constants.Updated));
 
-        var expectedDeletedSchedule = actualRes.Fetched.FirstOrDefault(l => l.Name == "schedule2");
-        Assert.IsTrue(expectedDeletedSchedule?.Status.Message == "Fetched");
-        Assert.IsTrue(expectedDeletedSchedule?.Status.MessageDetail == "Deleted");
+        var expectedDeletedSchedule = actualRes.Deployed.FirstOrDefault(item => item.entry.Name == "schedule2");
+        Assert.That(expectedDeletedSchedule?.Status.Message, Is.EqualTo("Fetched"));
+        Assert.That(expectedDeletedSchedule?.Status.MessageDetail, Is.EqualTo(Constants.Deleted));
     }
-
-
 
     [Test]
     public async Task FetchAsync_DryRunNoCalls()
@@ -178,69 +170,62 @@ class SchedulerFetchHandlerTests
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulerClient = new();
-        Mock<IFileSystem> mockFileSystem = new();
-        var handler = new SchedulerFetchHandler(mockSchedulerClient.Object, mockFileSystem.Object, new SchedulesSerializer());
+        Mock<ISchedulerResourceLoader> mockResourceLoader = new();
+        var handler = CreateHandler(mockSchedulerClient, mockResourceLoader);
 
         mockSchedulerClient
-            .Setup(c => c.List())
-            .ReturnsAsync(remoteSchedules.ToList());
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteSchedules);
 
-        var actualRes = await handler.FetchAsync(
+        await handler.FetchAsync(
             "dir",
             localSchedules,
-            dryRun: true
-        );
+            dryRun: true);
 
-        mockFileSystem
-            .Verify(f => f.Delete(
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()),
-                Times.Never);
-
-        mockFileSystem
-            .Verify(f => f.WriteAllText(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()),
-                Times.Never);
+        mockResourceLoader.Verify(
+            loader => loader.DeleteResource(
+                It.IsAny<SchedulerEntryDeploymentItem>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+        mockResourceLoader.Verify(
+            loader => loader.CreateOrUpdateResource(
+                It.IsAny<SchedulerEntryDeploymentItem>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Test]
     public async Task FetchAsync_DuplicateNames()
     {
         var localSchedules = GetLocalConfigs();
-        localSchedules.Add(new ScheduleConfig("schedule1",
-            "EventType1",
-            "recurring",
-            "0 * * * *",
-            1,
-            "{}")
-        { Path = "otherpath" });
+        localSchedules.Add(CreateItem("schedule1", "EventType1", "otherpath"));
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulerClient = new();
-        Mock<IFileSystem> mockFileSystem = new();
-        var handler = new SchedulerFetchHandler(mockSchedulerClient.Object, mockFileSystem.Object, new SchedulesSerializer());
+        Mock<ISchedulerResourceLoader> mockResourceLoader = new();
+        var handler = CreateHandler(mockSchedulerClient, mockResourceLoader);
 
         mockSchedulerClient
-            .Setup(c => c.List())
-            .ReturnsAsync(remoteSchedules.ToList());
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteSchedules);
 
         var actualRes = await handler.FetchAsync(
             "dir",
             localSchedules,
-            dryRun: true
-        );
+            dryRun: true);
 
-        mockFileSystem
-            .Verify(f => f.Delete(
-                    It.Is<string>(s => s == "path3"),
-                    It.IsAny<CancellationToken>()),
-                Times.Never);
+        mockResourceLoader.Verify(
+            loader => loader.DeleteResource(
+                It.Is<SchedulerEntryDeploymentItem>(item => item.Path == "path3"),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+        var failed = actualRes.Deployed
+            .Where(item => item.Status.MessageSeverity == SeverityLevel.Error)
+            .ToList();
         Assert.Multiple(() =>
         {
-            Assert.That(actualRes.Failed[0].ToString(), Is.EqualTo("'schedule1' in 'path1'"));
-            Assert.That(actualRes.Failed[1].ToString(), Is.EqualTo("'schedule1' in 'otherpath'"));
+            Assert.That(failed[0].ToString(), Is.EqualTo("'schedule1' in 'path1'"));
+            Assert.That(failed[1].ToString(), Is.EqualTo("'schedule1' in 'otherpath'"));
         });
     }
 
@@ -251,82 +236,78 @@ class SchedulerFetchHandlerTests
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulerClient = new();
-        Mock<IFileSystem> mockFileSystem = new();
-        var handler = new SchedulerFetchHandler(mockSchedulerClient.Object, mockFileSystem.Object, new SchedulesSerializer());
+        Mock<ISchedulerResourceLoader> mockResourceLoader = new();
+        var handler = CreateHandler(mockSchedulerClient, mockResourceLoader);
 
         mockSchedulerClient
-            .Setup(c => c.List())
-            .ReturnsAsync(remoteSchedules.ToList());
-        mockFileSystem.Setup(c => c.WriteAllText(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteSchedules);
+        mockResourceLoader
+            .Setup(loader => loader.CreateOrUpdateResource(
+                It.IsAny<SchedulerEntryDeploymentItem>(),
+                It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception());
 
-        var actualRes = await handler.FetchAsync(
-            "dir",
-            localSchedules
-        );
+        var actualRes = await handler.FetchAsync("dir", localSchedules);
 
-        Assert.That(actualRes.Failed.Count, Is.EqualTo(1));
-        Assert.That(actualRes.Failed.First().Status.MessageSeverity, Is.EqualTo(SeverityLevel.Error));
+        var failed = actualRes.Deployed
+            .Where(item => item.Status.MessageSeverity == SeverityLevel.Error)
+            .ToList();
+        Assert.Multiple(() =>
+        {
+            Assert.That(failed, Has.Count.EqualTo(1));
+            Assert.That(failed[0].Status.MessageSeverity, Is.EqualTo(SeverityLevel.Error));
+        });
     }
 
-    static List<IScheduleConfig> GetLocalConfigs()
+    static SchedulerFetchHandler CreateHandler(
+        Mock<ISchedulerClient> client,
+        Mock<ISchedulerResourceLoader> resourceLoader)
     {
-        var schedules = new List<IScheduleConfig>()
-        {
-            new ScheduleConfig("schedule1",
-                "EventType1",
-                "recurring",
-                "0 * * * *",
-                1,
-                "{}")
-            {
-                Path = "path1"
-            },
-            new ScheduleConfig("schedule2",
-                "EventType1",
-                "recurring",
-                "0 * * * *",
-                1,
-                "{}")
-            {
-                Path = "path2"
-            },
-            new ScheduleConfig("schedule3",
-                "EventType1",
-                "recurring",
-                "0 * * * *",
-                1,
-                "{}")
-            {
-                Path = "path3"
-            }
-        };
-        return schedules;
+        return new SchedulerFetchHandler(
+            client.Object,
+            resourceLoader.Object,
+            Mock.Of<Tooling.Editor.Scheduler.Authoring.Core.Logger.ILogger>());
     }
 
-    static List<IScheduleConfig> GetRemoteConfigs()
+    static List<SchedulerEntryDeploymentItem> GetLocalConfigs()
     {
-        var schedules = new List<IScheduleConfig>()
+        return new List<SchedulerEntryDeploymentItem>
         {
-            new ScheduleConfig("schedule1",
-                "EventType1",
-                "recurring",
-                "1 * * * *",
-                1,
-                "{}")
-            {
-                Path = "Remote"
-            },
-            new ScheduleConfig("schedule4",
-                "EventType1",
-                "recurring",
-                "0 * * * *",
-                1,
-                "{}")
-            {
-                Path = "Remote"
-            }
+            CreateItem("schedule1", "EventType1", "path1"),
+            CreateItem("schedule2", "EventType1", "path2"),
+            CreateItem("schedule3", "EventType1", "path3")
         };
-        return schedules;
+    }
+
+    static IReadOnlyList<SchedulerEntry> GetRemoteConfigs()
+    {
+        return new List<SchedulerEntry>
+        {
+            CreateEntry("schedule1", "EventType1", "1 * * * *"),
+            CreateEntry("schedule4", "EventType1", "0 * * * *")
+        };
+    }
+
+    static SchedulerEntryDeploymentItem CreateItem(string name, string eventName, string path)
+    {
+        return new SchedulerEntryDeploymentItem(path)
+        {
+            Name = name,
+            entry = CreateEntry(name, eventName, "0 * * * *")
+        };
+    }
+
+    static SchedulerEntry CreateEntry(string name, string eventName, string schedule)
+    {
+        return new SchedulerEntry
+        {
+            Name = name,
+            EventName = eventName,
+            ScheduleType = "recurring",
+            Schedule = schedule,
+            PayloadVersion = 1,
+            Payload = "{}"
+        };
     }
 }

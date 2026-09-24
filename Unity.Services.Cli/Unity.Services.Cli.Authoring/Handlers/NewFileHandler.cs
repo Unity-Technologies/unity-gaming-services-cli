@@ -20,7 +20,7 @@ public static class NewFileHandler
             CommonInput.UseForceOption
         };
 
-        FileTemplateRegistry.Register(newFileCommand, template.Extension, template.FileBodyText);
+        FileTemplateRegistry.Register(newFileCommand, template.Extension, template.HelpBodyText);
 
         newFileCommand.SetHandler<NewFileInput, IFile, ILogger, CancellationToken>
         ((input, file, logger, token) => NewFileAsync(input, file, template, logger, token, defaultFileName));

@@ -1,8 +1,8 @@
 using Moq;
 using Unity.Services.DeploymentApi.Editor;
-using Unity.Services.Scheduler.Authoring.Core.Deploy;
-using Unity.Services.Scheduler.Authoring.Core.Model;
-using Unity.Services.Scheduler.Authoring.Core.Service;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Deploy;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Model;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Service;
 
 namespace Unity.Services.Cli.Scheduler.UnitTest.Deploy;
 
@@ -16,22 +16,23 @@ class SchedulerDeploymentHandlerTests
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulesClient = new();
-        var handler = new SchedulerDeploymentHandler(mockSchedulesClient.Object);
+        var handler = CreateHandler(mockSchedulesClient);
 
         mockSchedulesClient
-            .Setup(c => c.List())
-            .ReturnsAsync(remoteSchedules.ToList());
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteSchedules);
 
-        var actualRes = await handler.DeployAsync(
-            localSchedules
-        );
+        var actualRes = await handler.DeployAsync(localSchedules);
 
-        Assert.Contains(localSchedules.FirstOrDefault(l => l.Id == "foo"), actualRes.Updated);
-        Assert.Contains(localSchedules.FirstOrDefault(l => l.Id == "foo"), actualRes.Deployed);
-        Assert.Contains(localSchedules.FirstOrDefault(l => l.Id == "bar"), actualRes.Created);
-        Assert.Contains(localSchedules.FirstOrDefault(l => l.Id == "bar"), actualRes.Deployed);
-        Assert.Contains(localSchedules.FirstOrDefault(l => l.Id == "dup-id"), actualRes.Created);
-        Assert.Contains(localSchedules.FirstOrDefault(l => l.Id == "dup-id"), actualRes.Deployed);
+        Assert.Multiple(() =>
+        {
+            Assert.That(actualRes.Deployed, Does.Contain(localSchedules[0]));
+            Assert.That(actualRes.Deployed, Does.Contain(localSchedules[1]));
+            Assert.That(actualRes.Deployed, Does.Contain(localSchedules[2]));
+            Assert.That(localSchedules[0].Status.MessageDetail, Is.EqualTo(Constants.Updated));
+            Assert.That(localSchedules[1].Status.MessageDetail, Is.EqualTo(Constants.Created));
+            Assert.That(localSchedules[2].Status.MessageDetail, Is.EqualTo(Constants.Created));
+        });
     }
 
     [Test]
@@ -41,26 +42,24 @@ class SchedulerDeploymentHandlerTests
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulesClient = new();
-        var handler = new SchedulerDeploymentHandler(mockSchedulesClient.Object);
+        var handler = CreateHandler(mockSchedulesClient);
 
         mockSchedulesClient
-            .Setup(c => c.List())
-            .ReturnsAsync(remoteSchedules.ToList());
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteSchedules);
 
-        await handler.DeployAsync(
-            localSchedules
-        );
+        await handler.DeployAsync(localSchedules);
 
-        mockSchedulesClient
-            .Verify(
-                c => c.Create(
-                    It.Is<IScheduleConfig>(l => l.Id == "bar")),
-                Times.Once);
-        mockSchedulesClient
-            .Verify(
-                c => c.Create(
-                    It.Is<IScheduleConfig>(l => l.Id == "dup-id")),
-                Times.Once);
+        mockSchedulesClient.Verify(
+            c => c.Create(
+                It.Is<SchedulerEntry>(entry => entry.Id == "bar"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+        mockSchedulesClient.Verify(
+            c => c.Create(
+                It.Is<SchedulerEntry>(entry => entry.Id == "dup-id"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Test]
@@ -70,21 +69,19 @@ class SchedulerDeploymentHandlerTests
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulesClient = new();
-        var handler = new SchedulerDeploymentHandler(mockSchedulesClient.Object);
+        var handler = CreateHandler(mockSchedulesClient);
 
         mockSchedulesClient
-            .Setup(c => c.List())
-            .ReturnsAsync(remoteSchedules.ToList());
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteSchedules);
 
-        await handler.DeployAsync(
-            localSchedules
-        );
+        await handler.DeployAsync(localSchedules);
 
-        mockSchedulesClient
-            .Verify(
-                c => c.Update(
-                    It.Is<IScheduleConfig>(l => l.Id == "foo")),
-                Times.Once);
+        mockSchedulesClient.Verify(
+            c => c.Update(
+                It.Is<SchedulerEntry>(entry => entry.Id == "foo"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Test]
@@ -94,33 +91,32 @@ class SchedulerDeploymentHandlerTests
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulesClient = new();
-        var handler = new SchedulerDeploymentHandler(mockSchedulesClient.Object);
+        var handler = CreateHandler(mockSchedulesClient);
 
         mockSchedulesClient
-            .Setup(c => c.List())
-            .ReturnsAsync(remoteSchedules.ToList());
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteSchedules);
 
         var actualRes = await handler.DeployAsync(
             localSchedules,
-            reconcile: true
-        );
+            reconcile: true);
 
-        mockSchedulesClient
-            .Verify(
-                c => c.Update(
-                    It.Is<IScheduleConfig>(l => l.Id == "foo")),
-                Times.Once);
-        var expectedCreatedSchedule = actualRes.Deployed.FirstOrDefault(l => l.Id == "bar");
-        Assert.IsTrue(expectedCreatedSchedule?.Status.Message == "Deployed");
-        Assert.IsTrue(expectedCreatedSchedule?.Status.MessageDetail == "Created");
+        mockSchedulesClient.Verify(
+            c => c.Update(
+                It.Is<SchedulerEntry>(entry => entry.Id == "foo"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+        var expectedCreatedSchedule = actualRes.Deployed.FirstOrDefault(item => item.entry.Id == "bar");
+        Assert.That(expectedCreatedSchedule?.Status.Message, Is.EqualTo("Deployed"));
+        Assert.That(expectedCreatedSchedule?.Status.MessageDetail, Is.EqualTo(Constants.Created));
 
-        var expectedUpdatedSchedule = actualRes.Deployed.FirstOrDefault(l => l.Id == "foo");
-        Assert.IsTrue(expectedUpdatedSchedule?.Status.Message == "Deployed");
-        Assert.IsTrue(expectedUpdatedSchedule?.Status.MessageDetail == "Updated");
+        var expectedUpdatedSchedule = actualRes.Deployed.FirstOrDefault(item => item.entry.Id == "foo");
+        Assert.That(expectedUpdatedSchedule?.Status.Message, Is.EqualTo("Deployed"));
+        Assert.That(expectedUpdatedSchedule?.Status.MessageDetail, Is.EqualTo(Constants.Updated));
 
-        var expectedDeletedSchedule = actualRes.Deployed.FirstOrDefault(l => l.Id == "echo");
-        Assert.IsTrue(expectedDeletedSchedule?.Status.Message == "Deployed");
-        Assert.IsTrue(expectedDeletedSchedule?.Status.MessageDetail == "Deleted");
+        var expectedDeletedSchedule = actualRes.Deployed.FirstOrDefault(item => item.entry.Id == "echo");
+        Assert.That(expectedDeletedSchedule?.Status.Message, Is.EqualTo("Deployed"));
+        Assert.That(expectedDeletedSchedule?.Status.MessageDetail, Is.EqualTo(Constants.Deleted));
     }
 
     [Test]
@@ -130,21 +126,19 @@ class SchedulerDeploymentHandlerTests
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulesClient = new();
-        var handler = new SchedulerDeploymentHandler(mockSchedulesClient.Object);
+        var handler = CreateHandler(mockSchedulesClient);
 
         mockSchedulesClient
-            .Setup(c => c.List())
-            .ReturnsAsync(remoteSchedules.ToList());
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteSchedules);
 
-        await handler.DeployAsync(
-            localSchedules
-        );
+        await handler.DeployAsync(localSchedules);
 
-        mockSchedulesClient
-            .Verify(
-                c => c.Delete(
-                    It.Is<IScheduleConfig>(l => l.Id == "echo")),
-                Times.Never);
+        mockSchedulesClient.Verify(
+            c => c.Delete(
+                It.Is<SchedulerEntry>(entry => entry.Id == "echo"),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Test]
@@ -154,24 +148,22 @@ class SchedulerDeploymentHandlerTests
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulesClient = new();
-        var handler = new SchedulerDeploymentHandler(mockSchedulesClient.Object);
+        var handler = CreateHandler(mockSchedulesClient);
 
         mockSchedulesClient
-            .Setup(c => c.List())
-            .ReturnsAsync(remoteSchedules.ToList());
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteSchedules);
 
         await handler.DeployAsync(
             localSchedules,
-            reconcile: true
-        );
+            reconcile: true);
 
-        mockSchedulesClient
-            .Verify(
-                c => c.Delete(
-                    It.Is<IScheduleConfig>(l => l.Id == "echo")),
-                Times.Once);
+        mockSchedulesClient.Verify(
+            c => c.Delete(
+                It.Is<SchedulerEntry>(entry => entry.Id == "echo"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
-
 
     [Test]
     public async Task DeployAsync_DryRunNoCalls()
@@ -180,34 +172,25 @@ class SchedulerDeploymentHandlerTests
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulesClient = new();
-        var handler = new SchedulerDeploymentHandler(mockSchedulesClient.Object);
+        var handler = CreateHandler(mockSchedulesClient);
 
         mockSchedulesClient
-            .Setup(c => c.List())
-            .ReturnsAsync(remoteSchedules.ToList());
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteSchedules);
 
         await handler.DeployAsync(
             localSchedules,
-            true
-        );
+            true);
 
-        mockSchedulesClient
-            .Verify(
-                c => c.Create(
-                    It.IsAny<IScheduleConfig>()),
-                Times.Never);
-
-        mockSchedulesClient
-            .Verify(
-                c => c.Update(
-                    It.IsAny<IScheduleConfig>()),
-                Times.Never);
-
-        mockSchedulesClient
-            .Verify(
-                c => c.Delete(
-                    It.IsAny<IScheduleConfig>()),
-                Times.Never);
+        mockSchedulesClient.Verify(
+            c => c.Create(It.IsAny<SchedulerEntry>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        mockSchedulesClient.Verify(
+            c => c.Update(It.IsAny<SchedulerEntry>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        mockSchedulesClient.Verify(
+            c => c.Delete(It.IsAny<SchedulerEntry>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Test]
@@ -217,22 +200,22 @@ class SchedulerDeploymentHandlerTests
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulesClient = new();
-        var handler = new SchedulerDeploymentHandler(mockSchedulesClient.Object);
+        var handler = CreateHandler(mockSchedulesClient);
 
         mockSchedulesClient
-            .Setup(c => c.List())
-            .ReturnsAsync(remoteSchedules.ToList());
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteSchedules);
 
         var actualRes = await handler.DeployAsync(
             localSchedules,
-            dryRun: true
-        );
+            dryRun: true);
+
         Assert.Multiple(() =>
         {
-            Assert.That(actualRes.Updated, Does.Contain(localSchedules.FirstOrDefault(l => l.Id == "foo")));
-            Assert.That(actualRes.Created, Does.Contain(localSchedules.FirstOrDefault(l => l.Id == "bar")));
-            Assert.That(actualRes.Created, Does.Contain(localSchedules.FirstOrDefault(l => l.Id == "dup-id")));
-            Assert.That(actualRes.Deployed.Count, Is.EqualTo(0));
+            Assert.That(actualRes.Deployed, Has.Count.EqualTo(3));
+            Assert.That(localSchedules[0].Status.MessageDetail, Is.EqualTo(Constants.Updated));
+            Assert.That(localSchedules[1].Status.MessageDetail, Is.EqualTo(Constants.Created));
+            Assert.That(localSchedules[2].Status.MessageDetail, Is.EqualTo(Constants.Created));
         });
     }
 
@@ -240,33 +223,31 @@ class SchedulerDeploymentHandlerTests
     public async Task DeployAsync_DuplicateNames()
     {
         var localSchedules = GetLocalConfigs();
-        localSchedules.Add(new ScheduleConfig("dup-name",
+        localSchedules.Add(CreateItem(
+            "dup-id",
+            "dup-name",
             "EventType5",
-            "recurring",
-            "0 * * * *",
-            1,
-            "{}")
-        {
-            Id = "dup-id",
-            Path = "otherpath.sched"
-        });
+            "otherpath.sched"));
         var remoteSchedules = GetRemoteConfigs();
 
         Mock<ISchedulerClient> mockSchedulesClient = new();
-        var handler = new SchedulerDeploymentHandler(mockSchedulesClient.Object);
+        var handler = CreateHandler(mockSchedulesClient);
 
         mockSchedulesClient
-            .Setup(c => c.List())
-            .ReturnsAsync(remoteSchedules.ToList());
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteSchedules);
 
         var actualRes = await handler.DeployAsync(
             localSchedules,
-            dryRun: true
-        );
+            dryRun: true);
+
+        var failed = actualRes.Deployed
+            .Where(item => item.Status.MessageSeverity == SeverityLevel.Error)
+            .ToList();
         Assert.Multiple(() =>
         {
-            Assert.Contains(localSchedules.FirstOrDefault(l => l.Name == "dup-name"), actualRes.Failed);
-            Assert.That(actualRes.Failed.Count, Is.EqualTo(2));
+            Assert.That(failed, Does.Contain(localSchedules.First(item => item.entry.Name == "dup-name")));
+            Assert.That(failed, Has.Count.EqualTo(2));
         });
     }
 
@@ -276,86 +257,73 @@ class SchedulerDeploymentHandlerTests
         var localSchedules = GetLocalConfigs();
 
         Mock<ISchedulerClient> mockSchedulesClient = new();
-        var handler = new SchedulerDeploymentHandler(mockSchedulesClient.Object);
+        var handler = CreateHandler(mockSchedulesClient);
 
         mockSchedulesClient
-            .Setup(c => c.List())
-            .ReturnsAsync(new List<IScheduleConfig>());
+            .Setup(c => c.List(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<SchedulerEntry>());
         mockSchedulesClient
-            .Setup(c => c.Create(It.IsAny<IScheduleConfig>()))
+            .Setup(c => c.Create(It.IsAny<SchedulerEntry>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception());
 
-        var actualRes = await handler.DeployAsync(
-            localSchedules
-        );
+        var actualRes = await handler.DeployAsync(localSchedules);
 
-        Assert.That(actualRes.Failed.Count, Is.EqualTo(3));
-        Assert.That(actualRes.Failed.First().Status.MessageSeverity, Is.EqualTo(SeverityLevel.Error));
+        var failed = actualRes.Deployed
+            .Where(item => item.Status.MessageSeverity == SeverityLevel.Error)
+            .ToList();
+        Assert.That(failed, Has.Count.EqualTo(3));
     }
 
-    static List<IScheduleConfig> GetLocalConfigs()
+    static SchedulerDeploymentHandler CreateHandler(Mock<ISchedulerClient> client)
     {
-        var schedules = new List<IScheduleConfig>()
-        {
-            new ScheduleConfig("foo",
-                "EventType1",
-                "recurring",
-                "0 * * * *",
-                1,
-                "{}")
-            {
-                Id = "foo",
-                Path = "path1"
-            },
-            new ScheduleConfig("bar",
-                "EventType2",
-                "recurring",
-                "0 * * * *",
-                1,
-                "{}")
-            {
-                Id = "bar",
-                Path = "path2"
-            },
-            new ScheduleConfig("dup-name",
-                "EventType4",
-                "recurring",
-                "0 * * * *",
-                1,
-                "{}")
-            {
-                Id = "dup-id",
-                Path = "path3"
-            }
-        };
-        return schedules;
+        return new SchedulerDeploymentHandler(
+            client.Object,
+            Mock.Of<Tooling.Editor.Scheduler.Authoring.Core.Logger.ILogger>());
     }
 
-    static IReadOnlyList<IScheduleConfig> GetRemoteConfigs()
+    static List<SchedulerEntryDeploymentItem> GetLocalConfigs()
     {
-        var schedules = new List<IScheduleConfig>()
+        return new List<SchedulerEntryDeploymentItem>
         {
-            new ScheduleConfig("foo",
-                "EventType1",
-                "recurring",
-                "0 * * * *",
-                1,
-                "{}")
-            {
-                Id = "foo",
-                Path = "Remote"
-            },
-            new ScheduleConfig("echo",
-                "EventType3",
-                "recurring",
-                "0 * * * *",
-                1,
-                "{}")
-            {
-                Id = "echo",
-                Path = "Remote"
-            }
+            CreateItem("foo", "foo", "EventType1", "path1"),
+            CreateItem("bar", "bar", "EventType2", "path2"),
+            CreateItem("dup-id", "dup-name", "EventType4", "path3")
         };
-        return schedules;
+    }
+
+    static IReadOnlyList<SchedulerEntry> GetRemoteConfigs()
+    {
+        return new List<SchedulerEntry>
+        {
+            CreateEntry("foo", "foo", "EventType1"),
+            CreateEntry("echo", "echo", "EventType3")
+        };
+    }
+
+    static SchedulerEntryDeploymentItem CreateItem(
+        string id,
+        string name,
+        string eventName,
+        string path)
+    {
+        return new SchedulerEntryDeploymentItem(path)
+        {
+            Name = name,
+            entry = CreateEntry(id, name, eventName)
+        };
+    }
+
+    static SchedulerEntry CreateEntry(string id, string name, string eventName)
+    {
+        return new SchedulerEntry
+        {
+            Id = id,
+            Name = name,
+            EventName = eventName,
+            ScheduleType = "recurring",
+            Schedule = "0 * * * *",
+            PayloadVersion = 1,
+            Payload = "{}"
+        };
     }
 }

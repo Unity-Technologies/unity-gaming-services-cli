@@ -3,9 +3,12 @@ using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Scheduler.Deploy;
 using Unity.Services.DeploymentApi.Editor;
-using Unity.Services.Scheduler.Authoring.Core.Deploy;
-using Unity.Services.Scheduler.Authoring.Core.Model;
-using Unity.Services.Scheduler.Authoring.Core.Service;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Deploy;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.IO;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Model;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Service;
+using CoreDeploymentResult = Unity.Services.DeploymentApi.Editor.DeploymentResult<Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Model.SchedulerEntryDeploymentItem>;
+using Statuses = Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Model.Statuses;
 
 namespace Unity.Services.Cli.Scheduler.UnitTest.Deploy;
 
@@ -14,13 +17,15 @@ public class SchedulerDeploymentServiceTests
 {
     SchedulerDeploymentService? m_DeploymentService;
     readonly Mock<ISchedulerClient> m_MockScheduleClient = new();
-    readonly Mock<IScheduleDeploymentHandler> m_MockScheduleDeploymentHandler = new();
-    readonly Mock<IScheduleResourceLoader> m_MockScheduleConfigLoader = new();
+    readonly Mock<ISchedulerDeploymentHandler> m_MockScheduleDeploymentHandler = new();
+    readonly Mock<ISchedulerResourceLoader> m_MockScheduleConfigLoader = new();
 
     [SetUp]
     public void SetUp()
     {
         m_MockScheduleClient.Reset();
+        m_MockScheduleDeploymentHandler.Reset();
+        m_MockScheduleConfigLoader.Reset();
         m_DeploymentService = new SchedulerDeploymentService(
             m_MockScheduleDeploymentHandler.Object,
             m_MockScheduleClient.Object,
@@ -30,49 +35,55 @@ public class SchedulerDeploymentServiceTests
     [Test]
     public async Task DeployAsync_MapsResult()
     {
-        var schedule1 = new ScheduleConfig("foo",
-            "EventType1",
-            "recurring",
-            "0 * * * *",
-            1,
-            "{}");
-        var schedule2 = new ScheduleConfig("bar",
-            "EventType2",
-            "recurring",
-            "0 * * * *",
-            1,
-            "{}");
-
-        var fileItem = new ScheduleFileItem(
-            new ScheduleConfigFile(new Dictionary<string, ScheduleConfig>()
-            {
-                { "schedule1", schedule1 },
-                { "schedule2", schedule2 }
-            }),
-            "path");
-        m_MockScheduleConfigLoader
-            .Setup(
-                m =>
-                    m.LoadResource(
-                        It.IsAny<string>(),
-                        It.IsAny<CancellationToken>())
-            )
-            .ReturnsAsync(fileItem);
-        var deployResult = new DeployResult()
+        var schedule1 = new SchedulerEntry
         {
-            Created = new List<IScheduleConfig> { schedule2 },
-            Updated = new List<IScheduleConfig>(),
-            Deleted = new List<IScheduleConfig>(),
-            Deployed = new List<IScheduleConfig> { schedule2 },
-            Failed = new List<IScheduleConfig>()
+            Id = "foo",
+            Name = "schedule1",
+            EventName = "EventType1",
+            ScheduleType = "recurring",
+            Schedule = "0 * * * *",
+            PayloadVersion = 1,
+            Payload = "{}"
         };
-        m_MockScheduleDeploymentHandler.Setup(
-                d => d.DeployAsync(
-                    It.IsAny<IReadOnlyList<IScheduleConfig>>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<CancellationToken>()
-                ))
+        var schedule2 = new SchedulerEntry
+        {
+            Id = "bar",
+            Name = "schedule2",
+            EventName = "EventType2",
+            ScheduleType = "recurring",
+            Schedule = "0 * * * *",
+            PayloadVersion = 1,
+            Payload = "{}"
+        };
+
+        var files = new List<SchedulerEntryDeploymentItem>
+        {
+            new("schedule1.sched")
+            {
+                entry = schedule1
+            },
+            new("schedule2.sched")
+            {
+                entry = schedule2,
+                Status = Statuses.GetDeployed(Constants.Created)
+            }
+        };
+
+        m_MockScheduleConfigLoader
+            .Setup(m =>
+                m.ReadResource(
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(files);
+
+        var deployResult = new CoreDeploymentResult([files[1]]);
+        m_MockScheduleDeploymentHandler.Setup(d => d.DeployAsync(
+                It.IsAny<IReadOnlyList<SchedulerEntryDeploymentItem>>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()
+            ))
             .Returns(Task.FromResult(deployResult));
 
         var input = new DeployInput()
@@ -82,55 +93,48 @@ public class SchedulerDeploymentServiceTests
         var res = await m_DeploymentService!.Deploy(
             input,
             [new AuthoringFile("path")],
-            String.Empty,
+            string.Empty,
             string.Empty,
             null,
             CancellationToken.None);
         Assert.Multiple(() =>
         {
-            Assert.That(res.Created.Count, Is.EqualTo(1));
-            Assert.That(res.Updated.Count, Is.EqualTo(0));
-            Assert.That(res.Deleted.Count, Is.EqualTo(0));
-            Assert.That(res.Deployed.Count, Is.EqualTo(1));
-            Assert.That(res.Failed.Count, Is.EqualTo(0));
+            Assert.That(res.Created, Has.Count.EqualTo(1));
+            Assert.That(res.Updated, Is.Empty);
+            Assert.That(res.Deleted, Is.Empty);
+            Assert.That(res.Deployed, Has.Count.EqualTo(1));
+            Assert.That(res.Failed, Is.Empty);
         });
     }
 
     [Test]
     public async Task DeployAsync_MapsFailed()
     {
-        m_MockScheduleConfigLoader
-            .Setup(
-                m =>
-                    m.LoadResource(
-                        It.IsAny<string>(),
-                        It.IsAny<CancellationToken>())
-            )
-            .ReturnsAsync(new ScheduleFileItem(new ScheduleConfigFile(
-                    new Dictionary<string, ScheduleConfig>()),
-                "scheduleFile.sched",
-                status: new DeploymentStatus("failed", "failed", SeverityLevel.Error)));
-        var deployResult = new DeployResult()
+        var failedItem = new SchedulerEntryDeploymentItem("scheduleFile.sched")
         {
-            Created = new List<IScheduleConfig>(),
-            Updated = new List<IScheduleConfig>(),
-            Deleted = new List<IScheduleConfig>(),
-            Deployed = new List<IScheduleConfig>(),
-            Failed = new List<IScheduleConfig>()
+            Status = new DeploymentStatus("failed", "failed", SeverityLevel.Error)
         };
-        m_MockScheduleDeploymentHandler.Setup(
-                d => d.DeployAsync(
-                    It.IsAny<IReadOnlyList<IScheduleConfig>>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<CancellationToken>()
-                ))
+        m_MockScheduleConfigLoader
+            .Setup(m =>
+                m.ReadResource(
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync([failedItem]);
+        var deployResult = new CoreDeploymentResult();
+        m_MockScheduleDeploymentHandler.Setup(d => d.DeployAsync(
+                It.IsAny<IReadOnlyList<SchedulerEntryDeploymentItem>>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()
+            ))
             .Returns(Task.FromResult(deployResult));
 
         var input = new DeployInput()
         {
             CloudProjectId = string.Empty
         };
+
         var res = await m_DeploymentService!.Deploy(
             input,
             [new AuthoringFile("dir")],
@@ -138,13 +142,14 @@ public class SchedulerDeploymentServiceTests
             string.Empty,
             null,
             CancellationToken.None);
+
         Assert.Multiple(() =>
         {
-            Assert.That(res.Created.Count, Is.EqualTo(0));
-            Assert.That(res.Updated.Count, Is.EqualTo(0));
-            Assert.That(res.Deleted.Count, Is.EqualTo(0));
-            Assert.That(res.Deployed.Count, Is.EqualTo(0));
-            Assert.That(res.Failed.Count, Is.EqualTo(1));
+            Assert.That(res.Created, Is.Empty);
+            Assert.That(res.Updated, Is.Empty);
+            Assert.That(res.Deleted, Is.Empty);
+            Assert.That(res.Deployed, Is.Empty);
+            Assert.That(res.Failed, Has.Count.EqualTo(2));
         });
     }
 }

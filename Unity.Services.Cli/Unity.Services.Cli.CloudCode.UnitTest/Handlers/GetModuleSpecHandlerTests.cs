@@ -34,7 +34,12 @@ class GetModuleSpecHandlerTests
         m_MockLogger.Reset();
 
         m_MockCloudCode.Setup(
-                c => c.GetModuleSpecAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), CancellationToken.None))
+                c => c.GetModuleSpecAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    CancellationToken.None))
             .ReturnsAsync(k_TestSpec);
     }
 
@@ -43,7 +48,7 @@ class GetModuleSpecHandlerTests
     {
         var mockLoadingIndicator = new Mock<ILoadingIndicator>();
 
-        await GetModuleSpecHandler.GetModuleSpecAsync(null!, null!, null!, null!, mockLoadingIndicator.Object, CancellationToken.None);
+        await GetModuleSpecHandler.GetModuleSpecAsync(null!, null!, null!, null!, mockLoadingIndicator.Object, cancellationToken: CancellationToken.None);
 
         mockLoadingIndicator.Verify(
             ex => ex.StartLoadingAsync(It.IsAny<string>(), It.IsAny<Func<StatusContext?, Task>>()), Times.Once);
@@ -74,11 +79,45 @@ class GetModuleSpecHandlerTests
                 TestValues.ValidProjectId,
                 TestValues.ValidEnvironmentId,
                 cloudCodeInput.ModuleName,
+                // No --version supplied, so the selector must go through as null and the service
+                // returns the live version.
+                (string?)null,
                 CancellationToken.None),
             Times.Once);
 
         var expectedOutput = new ModuleSpecOutput(k_TestSpec);
         TestsHelper.VerifyLoggerWasCalled(
             m_MockLogger, LogLevel.Critical, LoggerExtension.ResultEventId, Times.Once, expectedOutput.ToString());
+    }
+
+    [TestCase("latest")]
+    [TestCase("1788856057800102")]
+    public async Task GetModuleSpecHandler_PassesVersionSelectorThrough(string selector)
+    {
+        CloudCodeInput cloudCodeInput = new()
+        {
+            CloudProjectId = TestValues.ValidProjectId,
+            ModuleName = "foo",
+            ModuleSpecVersion = selector
+        };
+        m_MockUnityEnvironment.Setup(x => x.FetchIdentifierAsync(CancellationToken.None))
+            .ReturnsAsync(TestValues.ValidEnvironmentId);
+
+        await GetModuleSpecHandler.GetModuleSpecAsync(
+            cloudCodeInput,
+            m_MockUnityEnvironment.Object,
+            m_MockCloudCode.Object,
+            m_MockLogger.Object,
+            CancellationToken.None
+        );
+
+        m_MockCloudCode.Verify(
+            api => api.GetModuleSpecAsync(
+                TestValues.ValidProjectId,
+                TestValues.ValidEnvironmentId,
+                cloudCodeInput.ModuleName,
+                selector,
+                CancellationToken.None),
+            Times.Once);
     }
 }

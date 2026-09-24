@@ -20,6 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Unity.Services.Cli.Scheduler\Unity.Services.Cli.Scheduler.csproj" />
-    <ProjectReference Include="..\Unity.Services.Scheduler.Authoring.Core\Unity.Services.Scheduler.Authoring.Core.csproj" />
+    <PackageReference Include="Unity.Services.Tooling.Editor.Scheduler.Authoring.Core" Version="0.0.1" />
   </ItemGroup>
 </Project>

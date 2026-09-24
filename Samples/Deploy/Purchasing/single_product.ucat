@@ -1,5 +1,5 @@
 {
-  "$schema": "https://ugs-config-schemas.unity3d.com/v1/purchasing/ucat.schema.json",
+  "$schema": "https://ugs-config-schemas.unity3d.com/v1/purchasing-catalog.schema.json",
   "uSKU": "com.example.sku",
   "type": "consumable",
   "productDetails": [

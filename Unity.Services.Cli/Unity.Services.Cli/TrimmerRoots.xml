@@ -14,7 +14,6 @@
   <assembly fullname="Unity.Services.Gateway.CloudCodeApiV1.Generated" preserve="all" />
   <assembly fullname="Unity.Services.Gateway.CloudSaveApiV1.Generated" preserve="all" />
   <assembly fullname="Unity.Services.Gateway.ContentDeliveryManagementApiV1.Generated" preserve="all" />
-  <assembly fullname="Unity.Services.Gateway.EconomyApiV2.Generated" preserve="all" />
   <assembly fullname="Unity.Services.Gateway.IdentityApiV1.Generated" preserve="all" />
   <assembly fullname="Unity.Services.Gateway.LeaderboardApiV1.Generated" preserve="all" />
   <assembly fullname="Unity.Services.Gateway.LiveContentApiV1.Generated" preserve="all" />

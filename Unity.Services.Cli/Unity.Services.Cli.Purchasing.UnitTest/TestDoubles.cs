@@ -1,10 +1,8 @@
-using Unity.Services.Cli.Purchasing.IO;
 using Unity.Services.DeploymentApi.Editor;
 using UnityEditor.Purchasing.Editor.Authoring.Core.Deploy;
 using UnityEditor.Purchasing.Editor.Authoring.Core.IO;
 using UnityEditor.Purchasing.Editor.Authoring.Core.Model;
 using UnityEditor.Purchasing.Editor.Authoring.Core.Service;
-using CoreLogger = UnityEditor.Purchasing.Editor.Authoring.Core.Logger;
 
 namespace Unity.Services.Cli.Purchasing.UnitTest;
 
@@ -53,7 +51,7 @@ class FakeClient : ILiveContentConfigClient
     }
 }
 
-class FakeUcatCatalogLoader : ICatalogLoader
+class FakeUcatCatalogLoader : ICatalogUcatLoader
 {
     public Func<string, CancellationToken, Task<CatalogEntryDeploymentItem>> ReadCatalogImpl =
         (path, _) => Task.FromResult(new CatalogEntryDeploymentItem(path));
@@ -164,30 +162,9 @@ class FakeFileSystem : IFileSystem
     }
 }
 
-class FakeCatalogCsvParser : ICatalogCsvParser
+class FakeCsvCatalogLoader : ICatalogCsvLoader
 {
-    public Func<string, (List<CatalogItem> items, List<AssetState> issues)> ParseImpl =
-        _ => (new List<CatalogItem>(), new List<AssetState>());
-
-    public int ParseCallCount;
-    public Exception? ParseException = null;
-
-    public List<CatalogItem> Parse(string csvContent, out List<AssetState> issues)
-    {
-        ParseCallCount++;
-        if (ParseException != null)
-            throw ParseException;
-        var result = ParseImpl(csvContent);
-        issues = result.issues;
-        return result.items;
-    }
-
-    public string Serialize(List<CatalogItem> items) => string.Empty;
-}
-
-class FakeCliCsvCatalogLoader : CliCsvCatalogLoader
-{
-    public Func<string, CancellationToken, Task<(List<CatalogEntryDeploymentItem>, List<IDeploymentItem>)>>?
+    public Func<string, CancellationToken, Task<(List<CatalogItem>, List<AssetState>)>>?
         ReadCatalogImpl;
 
     public int ReadCatalogCallCount;
@@ -197,21 +174,16 @@ class FakeCliCsvCatalogLoader : CliCsvCatalogLoader
     public Exception? WriteException = null;
     public Exception? DeleteException = null;
 
-    public FakeCliCsvCatalogLoader()
-        : base(new FakeFileSystem(), new FakeCatalogCsvParser())
-    {
-    }
-
-    public override async Task<(List<CatalogEntryDeploymentItem> entries, List<IDeploymentItem> failed)> ReadCatalog(
+    public async Task<(List<CatalogItem> items, List<AssetState> issues)> ReadCatalog(
         string path, CancellationToken token)
     {
         ReadCatalogCallCount++;
         if (ReadCatalogImpl != null)
             return await ReadCatalogImpl(path, token);
-        return (new List<CatalogEntryDeploymentItem>(), new List<IDeploymentItem>());
+        return (new List<CatalogItem>(), new List<AssetState>());
     }
 
-    public override Task WriteCatalog(string path, List<CatalogItem> items, CancellationToken token)
+    public Task WriteCatalog(string path, List<CatalogItem> items, CancellationToken token)
     {
         if (WriteException != null)
         {
@@ -223,7 +195,7 @@ class FakeCliCsvCatalogLoader : CliCsvCatalogLoader
         return Task.CompletedTask;
     }
 
-    public override Task DeleteCatalog(string path, CancellationToken token)
+    public Task DeleteCatalog(string path, CancellationToken token)
     {
         if (DeleteException != null)
         {
@@ -232,24 +204,5 @@ class FakeCliCsvCatalogLoader : CliCsvCatalogLoader
 
         DeletedPaths.Add(path);
         return Task.CompletedTask;
-    }
-}
-
-class FakeLogger : CoreLogger.ILogger
-{
-    public void LogError(object message)
-    {
-    }
-
-    public void LogWarning(object message)
-    {
-    }
-
-    public void LogInfo(object message)
-    {
-    }
-
-    public void LogVerbose(object message)
-    {
     }
 }

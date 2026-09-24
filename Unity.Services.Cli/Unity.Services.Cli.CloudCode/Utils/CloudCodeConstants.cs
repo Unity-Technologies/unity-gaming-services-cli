@@ -18,4 +18,8 @@ static class CloudCodeConstants
 
     internal static readonly string ServiceNameScripts = "cloud-code-scripts";
     internal static readonly string ServiceNameModules = "cloud-code-modules";
+
+    // Tag keys the service reserves for its own use. They are never caller-settable and do not count
+    // toward the user tag limit, so they are filtered out of the tags shown for a version.
+    internal const string ReservedTagPrefix = "releases.cloud.unity.com/";
 }

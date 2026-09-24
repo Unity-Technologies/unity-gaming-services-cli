@@ -17,8 +17,10 @@ using Unity.Services.Cli.Purchasing.Input;
 using Unity.Services.Cli.Purchasing.IO;
 using Unity.Services.Gateway.LiveContentApiV1.Generated.Api;
 using Unity.Services.Gateway.LiveContentApiV1.Generated.Client;
+using UnityEditor.Purchasing.Editor.Authoring.Core;
 using UnityEditor.Purchasing.Editor.Authoring.Core.Deploy;
 using UnityEditor.Purchasing.Editor.Authoring.Core.IO;
+using UnityEditor.Purchasing.Editor.Authoring.Core.Model;
 using UnityEditor.Purchasing.Editor.Authoring.Core.Service;
 using CoreLogger = UnityEditor.Purchasing.Editor.Authoring.Core.Logger;
 using CoreFileSystem = UnityEditor.Purchasing.Editor.Authoring.Core.IO.IFileSystem;
@@ -85,9 +87,10 @@ public class PurchasingModule : ICommandModule
         {
             BasePath = EndpointHelper.GetCurrentEndpointFor<LiveContentApiEndpoints>(),
             Timeout = 600000,
-            UserAgent = "ugs_cli/1.0.0",
+            UserAgent = RequestHeaderHelper.UserAgent,
         };
         config.DefaultHeaders.SetXClientIdHeader();
+        config.DefaultHeaders.SetInlineVariantFeatureFlag();
 
         RetryConfiguration.RetryPolicy = RetryPolicy.GetHttpRetryPolicy();
         RetryConfiguration.AsyncRetryPolicy = RetryPolicy.GetAsyncHttpRetryPolicy();
@@ -96,25 +99,59 @@ public class PurchasingModule : ICommandModule
 
         serviceCollection.AddSingleton<CoreLogger.ILogger, PurchasingAuthoringLogger>();
 
-        serviceCollection.AddSingleton<PurchasingClient>();
-        serviceCollection.AddSingleton<ILiveContentConfigClient>(
-            s => s.GetRequiredService<PurchasingClient>());
+        serviceCollection.AddSingleton<ILiveContentApiTransport, CliLiveContentApiTransport>();
+        serviceCollection.AddSingleton<ILiveContentConfigClient>(sp => CreateLiveContentConfigClient(
+            sp.GetRequiredService<ILiveContentApiTransport>(),
+            sp.GetRequiredService<CoreLogger.ILogger>()));
 
         serviceCollection.AddSingleton<CoreFileSystem, FileSystem>();
-        serviceCollection.AddSingleton<ICatalogLoader, CliUcatCatalogLoader>();
+        serviceCollection.AddSingleton<ICatalogUcatLoader, CliUcatCatalogLoader>();
 
         serviceCollection.AddSingleton<ICatalogCsvParser, CatalogCsvParser>();
-        serviceCollection.AddSingleton<CliCsvCatalogLoader>();
+        serviceCollection.AddSingleton<ICatalogCsvLoader, CatalogCsvLoader>();
 
-        serviceCollection.AddSingleton<ICatalogCsvParser, CatalogCsvParser>();
-        serviceCollection.AddSingleton<CliCsvCatalogLoader>();
-
+        serviceCollection.AddSingleton<IWebshopCategoriesClient, NullWebshopCategoriesClient>();
         serviceCollection.AddSingleton<ICatalogDeploymentHandler>(s =>
             new CatalogDeploymentHandler(
                 s.GetRequiredService<ILiveContentConfigClient>(),
+                s.GetRequiredService<IWebshopCategoriesClient>(),
                 s.GetRequiredService<CoreLogger.ILogger>()));
 
         serviceCollection.AddTransient<IDeploymentService, PurchasingDeploymentService>();
         serviceCollection.AddTransient<IFetchService, PurchasingFetchService>();
+    }
+
+    /// <summary>
+    /// Creates the Live Content client used to deploy and fetch catalog items.
+    /// The core client replaces the local <c>$schema</c> (the CDN URL used for editor autocompletion)
+    /// with the schema-registry URL Live Content validates against. The public constructor of the
+    /// core client hardcodes the production schema registry, so the base path is resolved here from
+    /// the CLI network target to also support staging and mock-server builds.
+    /// </summary>
+    internal static ILiveContentConfigClient CreateLiveContentConfigClient(
+        ILiveContentApiTransport transport,
+        CoreLogger.ILogger logger)
+    {
+        return new LiveContentConfigClient(transport, logger, GetSchemaRegistryBasePath());
+    }
+
+    /// <summary>
+    /// Returns the schema-registry base path (without the <c>/v1</c> segment) for the current network target.
+    /// The core client appends <c>/v1/schemas/...</c> itself.
+    /// </summary>
+    internal static string GetSchemaRegistryBasePath()
+    {
+        const string versionSegment = "/v1";
+        var endpoint = EndpointHelper.GetCurrentEndpointFor<SchemaRegistryApiEndpoints>().TrimEnd('/');
+        return endpoint.EndsWith(versionSegment, StringComparison.Ordinal)
+            ? endpoint[..^versionSegment.Length]
+            : endpoint;
+    }
+
+    class NullWebshopCategoriesClient : IWebshopCategoriesClient
+    {
+        public Task Initialize(string environmentId, string projectId, CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task<WebshopCategories> Get(CancellationToken cancellationToken) => Task.FromResult(new WebshopCategories());
+        public Task Upsert(WebshopCategories categories, CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }

@@ -5,7 +5,7 @@ using UnityEditor.Purchasing.Editor.Authoring.Core.Model;
 
 namespace Unity.Services.Cli.Purchasing.IO;
 
-class CliUcatCatalogLoader : ICatalogLoader
+class CliUcatCatalogLoader : ICatalogUcatLoader
 {
     readonly IFileSystem m_FileSystem;
     readonly JsonSerializerSettings m_SerializerSettings;

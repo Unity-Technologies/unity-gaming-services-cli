@@ -48,7 +48,7 @@ public class CloudContentDeliveryModule : ICommandModule
         {
             BasePath = EndpointHelper.GetCurrentEndpointFor<CloudContentDeliveryApiEndpoints>(),
             Timeout = 600000,
-            UserAgent = "ugs_cli/1.0.0"
+            UserAgent = RequestHeaderHelper.UserAgent
         };
         config.DefaultHeaders.SetXClientIdHeader();
 

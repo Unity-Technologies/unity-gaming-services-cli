@@ -27,6 +27,8 @@ class CatalogItemConfigFileTests
     {
         var template = new CatalogItemConfigFile();
         var json = JsonConvert.DeserializeObject<JObject>(template.FileBodyText)!;
-        Assert.That(json.ContainsKey("$schema"), Is.True);
+        Assert.That(
+            json.Value<string>("$schema"),
+            Is.EqualTo("https://ugs-config-schemas.unity3d.com/v1/purchasing-catalog.schema.json"));
     }
 }

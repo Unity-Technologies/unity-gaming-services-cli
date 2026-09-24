@@ -3,8 +3,8 @@ using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.Common.Utils;
-using Unity.Services.Scheduler.Authoring.Core.Model;
-using Unity.Services.Scheduler.Authoring.Core.Service;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Model;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Service;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -35,7 +35,7 @@ static class SchedulerListHandler
         var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         var projectId = input.CloudProjectId!;
         await schedulerAdminClient.Initialize(environmentId, projectId, cancellationToken);
-        var listResult = await schedulerAdminClient.List();
+        var listResult = await schedulerAdminClient.List(cancellationToken);
 
         var cliFriendlyList = listResult.Select(i => new ScheduleItem(i));
         logger.LogResultValue(cliFriendlyList);
@@ -43,7 +43,7 @@ static class SchedulerListHandler
 
     class ScheduleItem
     {
-        readonly IScheduleConfig  m_ServerModel;
+        readonly SchedulerEntry  m_ServerModel;
         public string Name { get; }
         public string EventName { get; }
         public string ScheduleType { get; }
@@ -51,7 +51,7 @@ static class SchedulerListHandler
         public int PayloadVersion { get; }
         public string Payload { get; }
 
-        public ScheduleItem(IScheduleConfig serverModel)
+        public ScheduleItem(SchedulerEntry serverModel)
         {
             m_ServerModel = serverModel;
             Name = serverModel.Name;

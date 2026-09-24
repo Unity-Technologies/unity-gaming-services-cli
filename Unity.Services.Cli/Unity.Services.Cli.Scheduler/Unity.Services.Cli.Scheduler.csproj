@@ -18,11 +18,11 @@
     <ProjectReference Include="..\Unity.Services.Cli.Common\Unity.Services.Cli.Common.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.Authoring\Unity.Services.Cli.Authoring.csproj" />
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
-    <ProjectReference Include="..\Unity.Services.Scheduler.Authoring.Core\Unity.Services.Scheduler.Authoring.Core.csproj" />
+    <PackageReference Include="Unity.Services.Tooling.Editor.Scheduler.Authoring.Core" Version="0.0.1" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Moq" Version="4.18.4" />
-    <PackageReference Include="Unity.Services.Gateway.SchedulerApiV1.Generated" Version="1.0.0" />
+    <PackageReference Include="Unity.Services.Gateway.SchedulerApiV1.Generated" Version="1.0.1" />
     <PackageReference Include="YamlDotNet" Version="13.4.0" />
   </ItemGroup>
   <PropertyGroup>

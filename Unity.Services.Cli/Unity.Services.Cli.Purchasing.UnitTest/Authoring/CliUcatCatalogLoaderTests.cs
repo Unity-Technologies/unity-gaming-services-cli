@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.DeploymentApi.Editor;
+using UnityEditor.Purchasing.Editor.Authoring.Core;
 using UnityEditor.Purchasing.Editor.Authoring.Core.Model;
 using Unity.Services.Cli.Purchasing.IO;
 
@@ -44,6 +45,39 @@ class CliUcatCatalogLoaderTests
         var result = await m_Loader!.ReadCatalog(path, CancellationToken.None);
 
         Assert.That(result.CatalogItem?.uSku, Is.EqualTo("stem-name"));
+    }
+
+    [Test]
+    public async Task ReadCatalog_PreservesAllFields()
+    {
+        const string path = "/data/full-item.ucat";
+        m_FakeFileSystem.Files[path] = JsonConvert.SerializeObject(new
+        {
+            uSKU = "full-item",
+            type = "NonConsumable",
+            productDetails = new[]
+            {
+                new { title = "Title", description = "Desc", language = "en-US" },
+            },
+            pricing = new[]
+            {
+                new { currencyCode = "USD", amount = 4.99 },
+            },
+            imageUrl = "https://example.com/img.png",
+            isWebshopAvailable = true,
+        });
+
+        var result = await m_Loader!.ReadCatalog(path, CancellationToken.None);
+
+        var item = result.CatalogItem;
+        Assert.That(item, Is.Not.Null);
+        Assert.That(item!.uSku, Is.EqualTo("full-item"));
+        Assert.That(item.ProductType, Is.EqualTo(ProductType.NonConsumable));
+        Assert.That(item.ProductDetails, Is.Not.Null.And.Count.EqualTo(1));
+        Assert.That(item.ProductDetails![0].Title, Is.EqualTo("Title"));
+        Assert.That(item.PricingDetails, Is.Not.Null.And.Count.EqualTo(1));
+        Assert.That(item.ImageUrl, Is.EqualTo("https://example.com/img.png"));
+        Assert.That(item.IsWebshopAvailable, Is.True);
     }
 
     [Test]

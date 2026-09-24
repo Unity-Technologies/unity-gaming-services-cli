@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.DeploymentApi.Editor;
+using UnityEditor.Purchasing.Editor.Authoring.Core;
 using UnityEditor.Purchasing.Editor.Authoring.Core.Model;
 using Unity.Services.Cli.Purchasing.Authoring;
 
@@ -23,7 +24,7 @@ class PurchasingFetchServiceTests : PurchasingDeployFetchTestBase
             (path, _) => Task.FromResult(MakeEntry(path));
         m_FakeClient.RemoteItems = new List<CatalogItem>
         {
-            new() { uSku = k_Stem, CatalogListingId = k_ListingId },
+            new() { uSku = k_Stem, CatalogListingId = k_ListingId, ProductType = ProductType.NonConsumable },
         };
         m_Service = new PurchasingFetchService(m_FakeClient, m_FakeUcatCatalogLoader, m_FakeCsvCatalogLoader);
     }
@@ -244,6 +245,39 @@ class PurchasingFetchServiceTests : PurchasingDeployFetchTestBase
     }
 
     [Test]
+    public async Task FetchAsync_IdenticalLocalAndRemote_SkipsUpdate()
+    {
+        m_FakeUcatCatalogLoader.ReadCatalogImpl = (path, _) =>
+        {
+            var entry = MakeEntry(path);
+            entry.CatalogItem.ProductType = ProductType.NonConsumable;
+            return Task.FromResult(entry);
+        };
+
+        var remoteItem = new CatalogItem
+        {
+            uSku = k_Stem,
+            CatalogListingId = k_ListingId,
+            ProductType = ProductType.NonConsumable,
+        };
+
+        m_FakeClient.RemoteItems = new List<CatalogItem> { remoteItem };
+
+        var result = await m_Service!.FetchAsync(
+            MakeFetchInput(),
+            [new AuthoringFile(k_Path)],
+            "proj",
+            "env",
+            null,
+            CancellationToken.None);
+
+        Assert.That(result.Updated, Is.Empty);
+        Assert.That(result.Fetched, Is.Empty);
+        Assert.That(result.Failed, Is.Empty);
+        Assert.That(m_FakeUcatCatalogLoader.CreateOrUpdateCalls, Is.Empty);
+    }
+
+    [Test]
     public async Task FetchAsync_DuplicateLocalFiles_MarkedAsFailed()
     {
         var path1 = k_Stem + "_a" + Constants.FileExtension;
@@ -366,23 +400,17 @@ class PurchasingFetchServiceTests : PurchasingDeployFetchTestBase
     public async Task FetchAsync_CsvFile_UpdatesAndRewritesCsv()
     {
         const string csvPath = "catalog.catalog.csv";
-        var ucatPath = Path.Combine(csvPath, k_Stem + Constants.FileExtension);
-        var csvEntry = new CatalogEntryDeploymentItem(ucatPath)
-        {
-            CatalogItem = new CatalogItem
-            {
-                uSku = k_Stem,
-                CatalogListingId = k_ListingId,
-            },
-        };
         m_FakeCsvCatalogLoader.ReadCatalogImpl = (_, _) =>
-            Task.FromResult<(List<CatalogEntryDeploymentItem>, List<IDeploymentItem>)>(
-                (new List<CatalogEntryDeploymentItem> { csvEntry },
-                 new List<IDeploymentItem>()));
+            Task.FromResult((
+                new List<CatalogItem>
+                {
+                    new() { uSku = k_Stem, CatalogListingId = k_ListingId },
+                },
+                new List<AssetState>()));
 
         m_FakeClient.RemoteItems = new List<CatalogItem>
         {
-            new() { uSku = k_Stem, CatalogListingId = k_ListingId },
+            new() { uSku = k_Stem, CatalogListingId = k_ListingId, ProductType = ProductType.NonConsumable },
         };
 
         await m_Service!.FetchAsync(
@@ -401,23 +429,17 @@ class PurchasingFetchServiceTests : PurchasingDeployFetchTestBase
     public async Task FetchAsync_CsvFile_DryRun_DoesNotWrite()
     {
         const string csvPath = "catalog.catalog.csv";
-        var ucatPath = Path.Combine(csvPath, k_Stem + Constants.FileExtension);
-        var csvEntry = new CatalogEntryDeploymentItem(ucatPath)
-        {
-            CatalogItem = new CatalogItem
-            {
-                uSku = k_Stem,
-                CatalogListingId = k_ListingId,
-            },
-        };
         m_FakeCsvCatalogLoader.ReadCatalogImpl = (_, _) =>
-            Task.FromResult<(List<CatalogEntryDeploymentItem>, List<IDeploymentItem>)>(
-                (new List<CatalogEntryDeploymentItem> { csvEntry },
-                 new List<IDeploymentItem>()));
+            Task.FromResult((
+                new List<CatalogItem>
+                {
+                    new() { uSku = k_Stem, CatalogListingId = k_ListingId },
+                },
+                new List<AssetState>()));
 
         m_FakeClient.RemoteItems = new List<CatalogItem>
         {
-            new() { uSku = k_Stem, CatalogListingId = k_ListingId },
+            new() { uSku = k_Stem, CatalogListingId = k_ListingId, ProductType = ProductType.NonConsumable },
         };
 
         var result = await m_Service!.FetchAsync(
@@ -436,19 +458,13 @@ class PurchasingFetchServiceTests : PurchasingDeployFetchTestBase
     public async Task FetchAsync_CsvFile_Reconcile_DeletesItemFromCsv()
     {
         const string csvPath = "catalog.catalog.csv";
-        var ucatPath = Path.Combine(csvPath, "local-only" + Constants.FileExtension);
-        var csvEntry = new CatalogEntryDeploymentItem(ucatPath)
-        {
-            CatalogItem = new CatalogItem
-            {
-                uSku = "local-only",
-                CatalogListingId = CatalogItem.CatalogListingIdPrefix + "local-only",
-            },
-        };
         m_FakeCsvCatalogLoader.ReadCatalogImpl = (_, _) =>
-            Task.FromResult<(List<CatalogEntryDeploymentItem>, List<IDeploymentItem>)>(
-                (new List<CatalogEntryDeploymentItem> { csvEntry },
-                 new List<IDeploymentItem>()));
+            Task.FromResult((
+                new List<CatalogItem>
+                {
+                    new() { uSku = "local-only", CatalogListingId = CatalogItem.CatalogListingIdPrefix + "local-only" },
+                },
+                new List<AssetState>()));
 
         m_FakeClient.RemoteItems = new List<CatalogItem>();
 
@@ -468,9 +484,9 @@ class PurchasingFetchServiceTests : PurchasingDeployFetchTestBase
     public async Task FetchAsync_CsvFile_Reconcile_RemoteOnlyCreatedAsUcat()
     {
         m_FakeCsvCatalogLoader.ReadCatalogImpl = (_, _) =>
-            Task.FromResult<(List<CatalogEntryDeploymentItem>, List<IDeploymentItem>)>(
-                (new List<CatalogEntryDeploymentItem>(),
-                 new List<IDeploymentItem>()));
+            Task.FromResult<(List<CatalogItem>, List<AssetState>)>(
+                (new List<CatalogItem>(),
+                 new List<AssetState>()));
 
         m_FakeClient.RemoteItems = new List<CatalogItem>
         {
@@ -494,24 +510,18 @@ class PurchasingFetchServiceTests : PurchasingDeployFetchTestBase
     public async Task FetchAsync_CsvWriteError_MarksItemsAsFailed()
     {
         const string csvPath = "catalog.catalog.csv";
-        var ucatPath = Path.Combine(csvPath, k_Stem + Constants.FileExtension);
-        var csvEntry = new CatalogEntryDeploymentItem(ucatPath)
-        {
-            CatalogItem = new CatalogItem
-            {
-                uSku = k_Stem,
-                CatalogListingId = k_ListingId,
-            },
-        };
         m_FakeCsvCatalogLoader.ReadCatalogImpl = (_, _) =>
-            Task.FromResult<(List<CatalogEntryDeploymentItem>, List<IDeploymentItem>)>(
-                (new List<CatalogEntryDeploymentItem> { csvEntry },
-                 new List<IDeploymentItem>()));
+            Task.FromResult((
+                new List<CatalogItem>
+                {
+                    new() { uSku = k_Stem, CatalogListingId = k_ListingId },
+                },
+                new List<AssetState>()));
         m_FakeCsvCatalogLoader.WriteException = new IOException("write failed");
 
         m_FakeClient.RemoteItems = new List<CatalogItem>
         {
-            new() { uSku = k_Stem, CatalogListingId = k_ListingId },
+            new() { uSku = k_Stem, CatalogListingId = k_ListingId, ProductType = ProductType.NonConsumable },
         };
 
         var result = await m_Service!.FetchAsync(
@@ -529,9 +539,9 @@ class PurchasingFetchServiceTests : PurchasingDeployFetchTestBase
     public async Task FetchAsync_Reconcile_FilePath_CreatesUcatInParentDir()
     {
         m_FakeCsvCatalogLoader.ReadCatalogImpl = (_, _) =>
-            Task.FromResult<(List<CatalogEntryDeploymentItem>, List<IDeploymentItem>)>(
-                (new List<CatalogEntryDeploymentItem>(),
-                 new List<IDeploymentItem>()));
+            Task.FromResult<(List<CatalogItem>, List<AssetState>)>(
+                (new List<CatalogItem>(),
+                 new List<AssetState>()));
 
         m_FakeClient.RemoteItems = new List<CatalogItem>
         {
@@ -555,28 +565,20 @@ class PurchasingFetchServiceTests : PurchasingDeployFetchTestBase
     public async Task FetchAsync_CsvWithParseErrors_DoesNotRewriteCsv()
     {
         const string csvPath = "catalog.catalog.csv";
-        var ucatPath = Path.Combine(csvPath, k_Stem + Constants.FileExtension);
-        var validEntry = new CatalogEntryDeploymentItem(ucatPath)
-        {
-            CatalogItem = new CatalogItem
-            {
-                uSku = k_Stem,
-                CatalogListingId = k_ListingId,
-            },
-        };
-        var failedEntry = new CatalogEntryDeploymentItem(csvPath)
-        {
-            Status = new DeploymentStatus(
-                "Failed to read", "Row 3 skipped: missing Sku", SeverityLevel.Error),
-        };
         m_FakeCsvCatalogLoader.ReadCatalogImpl = (_, _) =>
-            Task.FromResult<(List<CatalogEntryDeploymentItem>, List<IDeploymentItem>)>(
-                (new List<CatalogEntryDeploymentItem> { validEntry },
-                 new List<IDeploymentItem> { failedEntry }));
+            Task.FromResult((
+                new List<CatalogItem>
+                {
+                    new() { uSku = k_Stem, CatalogListingId = k_ListingId, ProductType = ProductType.NonConsumable },
+                },
+                new List<AssetState>
+                {
+                    new("Row 3 skipped: missing Sku", "missing Sku", SeverityLevel.Error),
+                }));
 
         m_FakeClient.RemoteItems = new List<CatalogItem>
         {
-            new() { uSku = k_Stem, CatalogListingId = k_ListingId },
+            new() { uSku = k_Stem, CatalogListingId = k_ListingId, ProductType = ProductType.NonConsumable },
         };
 
         var result = await m_Service!.FetchAsync(
@@ -596,25 +598,20 @@ class PurchasingFetchServiceTests : PurchasingDeployFetchTestBase
     public async Task FetchAsync_CsvWithDuplicateId_DoesNotRewriteCsv()
     {
         const string csvPath = "catalog.catalog.csv";
-        var csvEntry = new CatalogEntryDeploymentItem(Path.Combine(csvPath, "item-a.ucat"))
-        {
-            CatalogItem = new CatalogItem
-            {
-                uSku = "item-a",
-                CatalogListingId = k_ListingId,
-            },
-        };
         var ucatEntry = MakeEntry(k_Path);
         ucatEntry.CatalogItem.CatalogListingId = k_ListingId;
 
         m_FakeCsvCatalogLoader.ReadCatalogImpl = (_, _) =>
-            Task.FromResult<(List<CatalogEntryDeploymentItem>, List<IDeploymentItem>)>(
-                (new List<CatalogEntryDeploymentItem> { csvEntry },
-                 new List<IDeploymentItem>()));
+            Task.FromResult((
+                new List<CatalogItem>
+                {
+                    new() { uSku = "item-a", CatalogListingId = k_ListingId },
+                },
+                new List<AssetState>()));
 
         m_FakeClient.RemoteItems = new List<CatalogItem>
         {
-            new() { uSku = k_Stem, CatalogListingId = k_ListingId },
+            new() { uSku = k_Stem, CatalogListingId = k_ListingId, ProductType = ProductType.NonConsumable },
         };
 
         var result = await m_Service!.FetchAsync(

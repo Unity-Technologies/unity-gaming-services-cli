@@ -10,7 +10,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Validations
         public static List<T> FilterDuplicateResources<T>(
             IReadOnlyList<T> resources,
             out IReadOnlyList<IGrouping<string, T>> duplicateGroups)
-                where T: IResourceDeploymentItem
+                where T : SimpleResourceDeploymentItem
         {
             //TODO: Revisit this to use name, or whatever ID is appropriate for your implementation
             duplicateGroups = resources
@@ -26,8 +26,8 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Validations
         }
 
         public static (string, string) GetDuplicateResourceErrorMessages(
-            IResourceDeploymentItem targetResource,
-            IReadOnlyList<IResourceDeploymentItem> group)
+            SimpleResourceDeploymentItem targetResource,
+            IReadOnlyList<SimpleResourceDeploymentItem> group)
         {
             var duplicates = group
                 .Except(new[] { targetResource })

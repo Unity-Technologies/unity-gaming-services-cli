@@ -10,11 +10,11 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Service
     {
         Task Initialize(string environmentId, string projectId, CancellationToken cancellationToken);
 
-        Task<IResource> Get(string id, CancellationToken cancellationToken);
-        Task Update(IResource resource, CancellationToken cancellationToken);
-        Task Create(IResource resource, CancellationToken cancellationToken);
-        Task Delete(IResource resource, CancellationToken cancellationToken);
-        Task<IReadOnlyList<IResource>> List(CancellationToken cancellationToken);
+        Task<SimpleResource> Get(string id, CancellationToken cancellationToken);
+        Task Update(SimpleResource resource, CancellationToken cancellationToken);
+        Task Create(SimpleResource resource, CancellationToken cancellationToken);
+        Task Delete(SimpleResource resource, CancellationToken cancellationToken);
+        Task<IReadOnlyList<SimpleResource>> List(CancellationToken cancellationToken);
         Task<string> RawGetRequest(string address, CancellationToken cancellationToken = default);
     }
 }

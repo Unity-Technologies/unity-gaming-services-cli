@@ -8,7 +8,6 @@ using Unity.Services.ModuleTemplate.Authoring.Core.Deploy;
 using Unity.Services.ModuleTemplate.Authoring.Core.IO;
 using Unity.Services.ModuleTemplate.Authoring.Core.Model;
 using Unity.Services.ModuleTemplate.Authoring.Core.Service;
-using Unity.Services.ModuleTemplate.Authoring.Core.Validations;
 
 namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
 {
@@ -26,17 +25,14 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
 
         public async Task<FetchResult> FetchAsync(
             string rootDirectory,
-            IReadOnlyList<IResourceDeploymentItem> localResources,
+            IReadOnlyList<SimpleResourceDeploymentItem> localResources,
             bool dryRun = false,
             bool reconcile = false,
             CancellationToken token = default)
         {
             localResources.ToList().ForEach(l => l.Progress = 0f);
 
-            var filteredLocalResources = DuplicateResourceValidation.FilterDuplicateResources(
-                localResources, out var duplicateGroups);
-
-            UpdateDuplicateResourceStatus(duplicateGroups);
+            var filteredLocalResources = FilterInvalidItems(localResources);
 
             var remoteResources = await GetRemoteItems(rootDirectory, token);
 
@@ -50,7 +46,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
                 .Where(DoesNotExistRemotely)
                 .ToList();
 
-            var toCreate = new List<IResourceDeploymentItem>();
+            var toCreate = new List<SimpleResourceDeploymentItem>();
             if (reconcile)
             {
                 toCreate = remoteResources
@@ -75,7 +71,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
 
             var deleteTasks = DeleteResources(toDelete, token);
 
-            var createTasks = new List<(IResourceDeploymentItem, Task)>();
+            var createTasks = new List<(SimpleResourceDeploymentItem, Task)>();
             if (reconcile)
             {
                 createTasks = CreateOrUpdateResources(toCreate, token);
@@ -88,9 +84,9 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
             return res;
         }
 
-        List<(IResourceDeploymentItem, Task)> CreateOrUpdateResources(List<IResourceDeploymentItem> toUpdate, CancellationToken token)
+        List<(SimpleResourceDeploymentItem, Task)> CreateOrUpdateResources(List<SimpleResourceDeploymentItem> toUpdate, CancellationToken token)
         {
-            List<(IResourceDeploymentItem, Task)> updateTasks = new List<(IResourceDeploymentItem, Task)>();
+            List<(SimpleResourceDeploymentItem, Task)> updateTasks = new List<(SimpleResourceDeploymentItem, Task)>();
             foreach (var item in toUpdate)
             {
                 item.Resource = GetRemoteResourceItem(item.Resource.Id).Resource;
@@ -101,9 +97,9 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
             return updateTasks;
         }
 
-        List<(IResourceDeploymentItem, Task)> DeleteResources(List<IResourceDeploymentItem> toDelete, CancellationToken token)
+        List<(SimpleResourceDeploymentItem, Task)> DeleteResources(List<SimpleResourceDeploymentItem> toDelete, CancellationToken token)
         {
-            List<(IResourceDeploymentItem, Task)> deleteTasks = new List<(IResourceDeploymentItem, Task)>();
+            List<(SimpleResourceDeploymentItem, Task)> deleteTasks = new List<(SimpleResourceDeploymentItem, Task)>();
             foreach (var resource in toDelete)
             {
                 var task = m_ResourceLoader.DeleteResource(
@@ -116,7 +112,7 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
         }
 
         static async Task WaitForTasks(
-            List<(IResourceDeploymentItem, Task)> tasks,
+            List<(SimpleResourceDeploymentItem, Task)> tasks,
             string taskAction)
         {
             foreach (var (resource, task) in tasks)
@@ -139,9 +135,16 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Fetch
             return Statuses.GetFetched(message);
         }
 
-        protected override DeploymentStatus GetFailedStatus(string message)
+        protected override DeploymentStatus GetFailedStatus(string message, IReadOnlyList<IDeploymentItem> failedItems = null)
         {
+            message = $"{message}\n{GetNestedDetails(failedItems)}";
             return Statuses.GetFailedToFetch(message);
+        }
+
+        protected override DeploymentStatus GetPartialStatus(string message, IReadOnlyList<IDeploymentItem> failedItems = null)
+        {
+            message = $"{message}\n{GetNestedDetails(failedItems)}";
+            return Statuses.GetPartialFetch(message);
         }
     }
 }

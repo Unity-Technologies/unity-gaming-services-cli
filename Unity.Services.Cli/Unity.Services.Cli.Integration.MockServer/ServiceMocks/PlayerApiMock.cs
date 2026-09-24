@@ -7,16 +7,16 @@ namespace Unity.Services.Cli.MockServer.ServiceMocks;
 
 public class PlayerApiMock : IServiceApiMock
 {
-    const string k_PlayerAuthApiUrl = "https://services.docs.unity.com/specs/v1/706c617965722d61757468.yaml";
-    const string k_AdminApiUrl = "https://services.docs.unity.com/specs/v1/706c617965722d617574682d61646d696e.yaml";
+    const string k_PlayerAuthConfig = "playerauth-api-v1-generator-config.yaml";
+    const string k_AdminConfig = "player-admin-api-v3-generator-config.yaml";
     public const string PlayerId = "player-id";
 
     public async Task<IReadOnlyList<MappingModel>> CreateMappingModels()
     {
-        var playerAuthenticationAdminServiceModels = await MappingModelUtils.ParseMappingModelsAsync(k_AdminApiUrl, new());
+        var playerAuthenticationAdminServiceModels = await MappingModelUtils.ParseMappingModelsFromGeneratorConfigAsync(k_AdminConfig, new());
         playerAuthenticationAdminServiceModels = playerAuthenticationAdminServiceModels.Select(m => m.ConfigMappingPathWithKey(CommonKeys.ProjectIdKey, CommonKeys.ValidProjectId));
 
-        var playerAuthenticationServiceModels = await MappingModelUtils.ParseMappingModelsAsync(k_PlayerAuthApiUrl, new());
+        var playerAuthenticationServiceModels = await MappingModelUtils.ParseMappingModelsFromGeneratorConfigAsync(k_PlayerAuthConfig, new());
         playerAuthenticationServiceModels = playerAuthenticationServiceModels.Select(m => m.ConfigMappingPathWithKey(CommonKeys.ProjectIdKey, CommonKeys.ValidProjectId));
 
         return playerAuthenticationAdminServiceModels.Concat(playerAuthenticationServiceModels).ToArray();

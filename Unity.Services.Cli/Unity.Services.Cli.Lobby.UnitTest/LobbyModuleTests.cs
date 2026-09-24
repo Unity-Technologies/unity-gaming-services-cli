@@ -3,10 +3,11 @@ using System.CommandLine.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
-using Unity.Services.Cli.Authoring.Export.Input;
-using Unity.Services.Cli.Authoring.Import.Input;
+using Unity.Services.Cli.Authoring.Input;
+using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.Common;
 using Unity.Services.Cli.Common.Input;
+using Unity.Services.Cli.Lobby.Deploy;
 using Unity.Services.Cli.Lobby.Input;
 using Unity.Services.Cli.Lobby.Service;
 using Unity.Services.Cli.ServiceAccountAuthentication;
@@ -109,12 +110,9 @@ class LobbyModuleTests
                     new List<Option>(){ CommonInput.CloudProjectIdOption }),
             }
         ),
-        new CommandTestCase("import",
-            new List<Argument>() { ImportInput.InputDirectoryArgument, ImportInput.FileNameArgument },
-            new List<Option>() { CommonInput.CloudProjectIdOption, CommonInput.EnvironmentNameOption, ImportInput.DryRunOption, ImportInput.ReconcileOption }),
-        new CommandTestCase("export",
-            new List<Argument>() { ExportInput.OutputDirectoryArgument, ExportInput.FileNameArgument },
-            new List<Option>() { CommonInput.CloudProjectIdOption, CommonInput.EnvironmentNameOption, ImportInput.DryRunOption }),
+        new CommandTestCase("new-file",
+            new List<Argument>() { NewFileInput.FileArgument },
+            new List<Option>() { CommonInput.UseForceOption }),
     };
 
     [Test]
@@ -157,8 +155,10 @@ class LobbyModuleTests
         var hostBuilder = TestsHelper.CreateAndSetupMockHostBuilder(services);
         hostBuilder.ConfigureServices(LobbyModule.RegisterServices);
 
-        Assert.AreEqual(4, services.Count);
+        Assert.AreEqual(8, services.Count);
         TestsHelper.AssertHasServiceSingleton<ILobbyService, LobbyService>(services);
+        Assert.That(services.Any(d => d.ServiceType == typeof(IDeploymentService)), Is.True);
+        Assert.That(services.Any(d => d.ServiceType == typeof(IFetchService)), Is.True);
     }
 
     static void VerifyCommand(Command parentCommand, CommandTestCase testCase)

@@ -1,13 +1,14 @@
 using Moq;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
-using Unity.Services.Cli.Scheduler.Deploy;
 using Unity.Services.Cli.Scheduler.Fetch;
 using Unity.Services.DeploymentApi.Editor;
-using Unity.Services.Scheduler.Authoring.Core.Fetch;
-using Unity.Services.Scheduler.Authoring.Core.Model;
-using Unity.Services.Scheduler.Authoring.Core.Service;
-using FetchResult = Unity.Services.Scheduler.Authoring.Core.Fetch.FetchResult;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Fetch;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.IO;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Model;
+using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Service;
+using CoreDeploymentResult = Unity.Services.DeploymentApi.Editor.DeploymentResult<Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Model.SchedulerEntryDeploymentItem>;
+using Statuses = Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Model.Statuses;
 
 namespace Unity.Services.Cli.Scheduler.UnitTest.Deploy;
 
@@ -16,13 +17,15 @@ public class SchedulerFetchServiceTests
 {
     SchedulerFetchService? m_FetchService;
     readonly Mock<ISchedulerClient> m_MockScheduleClient = new();
-    readonly Mock<IScheduleFetchHandler> m_MockScheduleFetchHandler = new();
-    readonly Mock<IScheduleResourceLoader> m_MockScheduleConfigLoader = new();
+    readonly Mock<ISchedulerFetchHandler> m_MockScheduleFetchHandler = new();
+    readonly Mock<ISchedulerResourceLoader> m_MockScheduleConfigLoader = new();
 
     [SetUp]
     public void SetUp()
     {
         m_MockScheduleClient.Reset();
+        m_MockScheduleFetchHandler.Reset();
+        m_MockScheduleConfigLoader.Reset();
         m_FetchService = new SchedulerFetchService(
             m_MockScheduleFetchHandler.Object,
             m_MockScheduleClient.Object,
@@ -32,58 +35,59 @@ public class SchedulerFetchServiceTests
     [Test]
     public async Task FetchAsync_MapsResult()
     {
-        var schedule1 = new ScheduleConfig(
-            "schedule1",
-            "EventType1",
-            "recurring",
-            "0 * * * *",
-            1,
-            "{}")
+        var schedule1 = new SchedulerEntry
         {
             Id = "schedule1",
-            Path = "scheduleFile.sched",
+            Name = "schedule1",
+            EventName = "EventType1",
+            ScheduleType = "recurring",
+            Schedule = "0 * * * *",
+            PayloadVersion = 1,
+            Payload = "{}"
         };
-        var schedule2 = new ScheduleConfig(
-            "schedule2",
-            "EventType1",
-            "recurring",
-            "0 * * * *",
-            1,
-            "{}")
+        var schedule2 = new SchedulerEntry
         {
             Id = "schedule2",
-            Path = "scheduleFile.sched",
+            Name = "schedule2",
+            EventName = "EventType1",
+            ScheduleType = "recurring",
+            Schedule = "0 * * * *",
+            PayloadVersion = 1,
+            Payload = "{}"
+        };
+        var files = new List<SchedulerEntryDeploymentItem>
+        {
+            new("scheduleFile.sched")
+            {
+                Name = schedule1.Name,
+                entry = schedule1,
+                Status = Statuses.GetFetched(Constants.Updated)
+            },
+            new("scheduleFile.sched")
+            {
+                Name = schedule2.Name,
+                entry = schedule2,
+                Status = Statuses.GetFetched(Constants.Created)
+            }
         };
         m_MockScheduleConfigLoader
             .Setup(
                 m =>
-                    m.LoadResource(
+                    m.ReadResource(
                         It.IsAny<string>(),
                         It.IsAny<CancellationToken>())
             )
-            .ReturnsAsync(new ScheduleFileItem(new ScheduleConfigFile(
-                new Dictionary<string, ScheduleConfig>()
-                {
-                    { "schedule1", schedule1 },
-                    { "schedule2", schedule2 }
-                }), "scheduleFile.sched"));
-        var deployResult = new FetchResult()
-        {
-            Created = new List<IScheduleConfig> { schedule2 },
-            Updated = new List<IScheduleConfig>(),
-            Deleted = new List<IScheduleConfig>(),
-            Fetched = new List<IScheduleConfig> { schedule2 },
-            Failed = new List<IScheduleConfig>()
-        };
+            .ReturnsAsync(files);
+        var fetchResult = new CoreDeploymentResult(files);
         m_MockScheduleFetchHandler.Setup(
                 d => d.FetchAsync(
                     It.IsAny<string>(),
-                    It.IsAny<IReadOnlyList<IScheduleConfig>>(),
+                    It.IsAny<IReadOnlyList<SchedulerEntryDeploymentItem>>(),
                     It.IsAny<bool>(),
                     It.IsAny<bool>(),
                     It.IsAny<CancellationToken>()
                 ))
-            .Returns(Task.FromResult(deployResult));
+            .Returns(Task.FromResult(fetchResult));
 
         var input = new FetchInput()
         {
@@ -100,9 +104,9 @@ public class SchedulerFetchServiceTests
         Assert.Multiple(() =>
         {
             Assert.That(res.Created.Count, Is.EqualTo(1));
-            Assert.That(res.Updated.Count, Is.EqualTo(0));
+            Assert.That(res.Updated.Count, Is.EqualTo(1));
             Assert.That(res.Deleted.Count, Is.EqualTo(0));
-            Assert.That(res.Fetched.Count, Is.EqualTo(2));
+            Assert.That(res.Fetched.Count, Is.EqualTo(1));
             Assert.That(res.Failed.Count, Is.EqualTo(0));
         });
     }
@@ -110,34 +114,28 @@ public class SchedulerFetchServiceTests
     [Test]
     public async Task FetchAsync_MapsFailed()
     {
+        var failedItem = new SchedulerEntryDeploymentItem("scheduleFile.sched")
+        {
+            Status = new DeploymentStatus("failed", "failed", SeverityLevel.Error)
+        };
         m_MockScheduleConfigLoader
             .Setup(
                 m =>
-                    m.LoadResource(
+                    m.ReadResource(
                         It.IsAny<string>(),
                         It.IsAny<CancellationToken>())
             )
-            .ReturnsAsync(new ScheduleFileItem(new ScheduleConfigFile(
-                new Dictionary<string, ScheduleConfig>()),
-                "scheduleFile.sched",
-                status: new DeploymentStatus("failed", "failed", SeverityLevel.Error)));
-        var deployResult = new FetchResult()
-        {
-            Created = new List<IScheduleConfig>(),
-            Updated = new List<IScheduleConfig>(),
-            Deleted = new List<IScheduleConfig>(),
-            Fetched = new List<IScheduleConfig>(),
-            Failed = new List<IScheduleConfig>()
-        };
+            .ReturnsAsync([failedItem]);
+        var fetchResult = new CoreDeploymentResult();
         m_MockScheduleFetchHandler.Setup(
                 d => d.FetchAsync(
                     It.IsAny<string>(),
-                    It.IsAny<IReadOnlyList<IScheduleConfig>>(),
+                    It.IsAny<IReadOnlyList<SchedulerEntryDeploymentItem>>(),
                     It.IsAny<bool>(),
                     It.IsAny<bool>(),
                     It.IsAny<CancellationToken>()
                 ))
-            .Returns(Task.FromResult(deployResult));
+            .Returns(Task.FromResult(fetchResult));
 
         var input = new FetchInput()
         {
@@ -157,7 +155,7 @@ public class SchedulerFetchServiceTests
             Assert.That(res.Updated.Count, Is.EqualTo(0));
             Assert.That(res.Deleted.Count, Is.EqualTo(0));
             Assert.That(res.Fetched.Count, Is.EqualTo(0));
-            Assert.That(res.Failed.Count, Is.EqualTo(1));
+            Assert.That(res.Failed.Count, Is.EqualTo(2));
         });
     }
 }

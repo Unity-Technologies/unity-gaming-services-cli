@@ -2,6 +2,10 @@ namespace Unity.Services.Cli.Lobby.Handlers;
 
 static class LobbyConstants
 {
+    internal const string ServiceType = "Lobby";
+
+    internal const string ServiceName = "lobby";
+
     internal const string ConfigType = "lobby";
 
     internal const string SchemaId = "lobby";
@@ -12,9 +16,17 @@ static class LobbyConstants
 
     internal const string ConfigKey = "lobbyConfig";
 
-    internal const string ZipName = "ugs.lozip";
+    internal const string FileExtension = ".lo";
 
-    internal const string EntryName = "lobby";
+    internal const string FileName = "lobby.lo";
 
     internal const string ConfigDisplayName = "Lobby configuration";
+
+    internal const string ActiveLifespanSecondsKey = "activeLifespanSeconds";
+    internal const string DisconnectRemovalTimeSecondsKey = "disconnectRemovalTimeSeconds";
+    internal const string DisconnectHostMigrationTimeSecondsKey = "disconnectHostMigrationTimeSeconds";
+    internal const string PlayerSlotsKey = "playerSlots";
+    internal const string PlayerSlotsMinimumKey = "minimum";
+    internal const string PlayerSlotsMaximumKey = "maximum";
+    internal const string SocialProfilesEnabledKey = "socialProfilesEnabled";
 }

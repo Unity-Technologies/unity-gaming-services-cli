@@ -79,11 +79,11 @@ class CloudCodeServiceTests
             "foo",
             "API",
             "JS",
-            new GetScriptResponseActiveScript("bar", 1, DateTime.Now, new List<ScriptParameter>()),
+            new GetScriptResponseActiveScript("bar", 1, datePublished: DateTime.Now, _params: new List<ScriptParameter>()),
             _params: new List<ScriptParameter>(),
             versions: new List<GetScriptResponseVersionsInner>
             {
-                new("bar", 1)
+                new("bar", _params: new List<ScriptParameter>(), version: 1)
             });
         m_CloudCodeApiV1AsyncMock.GetResponse = m_ExpectedGetScript!;
 
@@ -122,6 +122,47 @@ class CloudCodeServiceTests
         m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
             .Returns(true);
         m_ExpectedScripts!.Clear();
+
+        var actualScripts = await m_CloudCodeService!.ListAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, CancellationToken.None);
+
+        Assert.AreEqual(0, actualScripts.Count());
+    }
+
+    [Test]
+    public async Task ListAsync_NullResultsSucceeds()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        // Distinct from the empty-list case above: a project with no scripts sends no "results" key
+        // at all, so the deserialised property is null rather than an empty list.
+        m_CloudCodeApiV1AsyncMock.ListResponse.Results = null!;
+
+        var actualScripts = await m_CloudCodeService!.ListAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, CancellationToken.None);
+
+        Assert.AreEqual(0, actualScripts.Count());
+    }
+
+    [Test]
+    public async Task ListAsync_NullResponseSucceeds()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        // An empty body deserialises to a null response rather than a response with null results.
+        m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Setup(
+                a => a.ListScriptsAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<int>(),
+                    CancellationToken.None))
+            .ReturnsAsync((ListScriptsResponse)null!);
 
         var actualScripts = await m_CloudCodeService!.ListAsync(
             TestValues.ValidProjectId, TestValues.ValidEnvironmentId, CancellationToken.None);
@@ -279,6 +320,44 @@ class CloudCodeServiceTests
         m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
             .Returns(true);
         m_ExpectedModules!.Clear();
+
+        var actualModules = await m_CloudCodeService!.ListModulesAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, CancellationToken.None);
+
+        Assert.AreEqual(0, actualModules.Count());
+    }
+
+    [Test]
+    public async Task ListModulesAsync_NullResultsSucceeds()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+        m_CloudCodeApiV1AsyncMock.ListModulesResponse.Results = null!;
+
+        var actualModules = await m_CloudCodeService!.ListModulesAsync(
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, CancellationToken.None);
+
+        Assert.AreEqual(0, actualModules.Count());
+    }
+
+    [Test]
+    public async Task ListModulesAsync_NullResponseSucceeds()
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        // Also pins that a null next-page token terminates the loop instead of spinning forever.
+        m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Setup(
+                ex => ex.ListModulesAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ListModulesResponse)null!);
 
         var actualModules = await m_CloudCodeService!.ListModulesAsync(
             TestValues.ValidProjectId, TestValues.ValidEnvironmentId, CancellationToken.None);
@@ -737,7 +816,7 @@ class CloudCodeServiceTests
             .Returns(true);
 
         var actualSpec = await m_CloudCodeService!.GetModuleSpecAsync(
-            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_TestModuleName, CancellationToken.None);
+            TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_TestModuleName, cancellationToken: CancellationToken.None);
 
         Assert.AreEqual(m_CloudCodeApiV1AsyncMock.ModuleSpecResponse, actualSpec);
 
@@ -746,6 +825,7 @@ class CloudCodeServiceTests
                 TestValues.ValidProjectId,
                 TestValues.ValidEnvironmentId,
                 k_TestModuleName,
+                It.IsAny<string>(),
                 0,
                 CancellationToken.None),
             Times.Once);
@@ -759,10 +839,11 @@ class CloudCodeServiceTests
 
         Assert.ThrowsAsync<ConfigValidationException>(
             () => m_CloudCodeService!.GetModuleSpecAsync(
-                k_InvalidProjectId, TestValues.ValidEnvironmentId, k_TestModuleName, CancellationToken.None));
+                k_InvalidProjectId, TestValues.ValidEnvironmentId, k_TestModuleName, cancellationToken: CancellationToken.None));
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             a => a.ModuleSpecAsync(
+                It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
@@ -779,10 +860,11 @@ class CloudCodeServiceTests
 
         Assert.ThrowsAsync<ConfigValidationException>(
             () => m_CloudCodeService!.GetModuleSpecAsync(
-                TestValues.ValidProjectId, k_InvalidEnvironmentId, k_TestModuleName, CancellationToken.None));
+                TestValues.ValidProjectId, k_InvalidEnvironmentId, k_TestModuleName, cancellationToken: CancellationToken.None));
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             a => a.ModuleSpecAsync(
+                It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
@@ -798,7 +880,7 @@ class CloudCodeServiceTests
     {
         Assert.ThrowsAsync<CliException>(
             () => m_CloudCodeService!.GetModuleSpecAsync(
-                TestValues.ValidProjectId, k_InvalidEnvironmentId, invalidModuleName, CancellationToken.None));
+                TestValues.ValidProjectId, k_InvalidEnvironmentId, invalidModuleName, cancellationToken: CancellationToken.None));
         m_ValidatorObject.Verify(
             v => v.ThrowExceptionIfConfigInvalid(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
@@ -1153,4 +1235,148 @@ class CloudCodeServiceTests
             Times.Once);
     }
 
+    const long k_TestModuleVersion = 1788856057800102L;
+    const int k_TestScriptVersion = 3;
+
+    void SetupDeleteModuleVersionThrows(HttpStatusCode status)
+    {
+        m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Setup(
+                ex => ex.DeleteModuleVersionAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<long>(),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ApiException((int)status, ""));
+    }
+
+    void SetupDeleteScriptVersionThrows(HttpStatusCode status)
+    {
+        m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Setup(
+                ex => ex.DeleteScriptVersionAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ApiException((int)status, ""));
+    }
+
+    [Test]
+    public void DeleteModuleVersionAsync_ValidInputCallsApi()
+    {
+        m_ValidatorObject.Setup(ex => ex.ThrowExceptionIfConfigInvalid(It.IsAny<string>(), It.IsAny<string>()));
+
+        Assert.DoesNotThrowAsync(
+            () => m_CloudCodeService!.DeleteModuleVersionAsync(
+                TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_TestModuleName, k_TestModuleVersion));
+
+        m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            ex => ex.DeleteModuleVersionAsync(
+                TestValues.ValidProjectId,
+                TestValues.ValidEnvironmentId,
+                k_TestModuleName,
+                k_TestModuleVersion,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    // The message matters more than the status here: asserting only the code is how a script-worded
+    // message on a module path, or the wrong problem code, gets locked in by a passing test.
+    [TestCase(HttpStatusCode.BadRequest, "is not a valid module version")]
+    [TestCase(HttpStatusCode.Forbidden, "Module versions are not enabled for this project")]
+    [TestCase(HttpStatusCode.NotFound, "could not be found")]
+    [TestCase(HttpStatusCode.Conflict, "it is the live version or is assigned to a release")]
+    public void DeleteModuleVersionAsync_MapsStatusToDistinctMessage(HttpStatusCode status, string expectedFragment)
+    {
+        m_ValidatorObject.Setup(ex => ex.ThrowExceptionIfConfigInvalid(It.IsAny<string>(), It.IsAny<string>()));
+        SetupDeleteModuleVersionThrows(status);
+
+        var ex = Assert.ThrowsAsync<CliException>(
+            () => m_CloudCodeService!.DeleteModuleVersionAsync(
+                TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_TestModuleName, k_TestModuleVersion));
+
+        Assert.That(ex!.Message, Does.Contain(expectedFragment));
+        // Module wording, never the script vocabulary.
+        Assert.That(ex.Message, Does.Not.Contain("active version"));
+    }
+
+    [Test]
+    public void DeleteModuleVersionAsync_NotFoundNamesTheModuleAndVersion()
+    {
+        m_ValidatorObject.Setup(ex => ex.ThrowExceptionIfConfigInvalid(It.IsAny<string>(), It.IsAny<string>()));
+        SetupDeleteModuleVersionThrows(HttpStatusCode.NotFound);
+
+        var ex = Assert.ThrowsAsync<CliException>(
+            () => m_CloudCodeService!.DeleteModuleVersionAsync(
+                TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_TestModuleName, k_TestModuleVersion));
+
+        Assert.That(ex!.Message, Does.Contain(k_TestModuleName));
+        Assert.That(ex.Message, Does.Contain(k_TestModuleVersion.ToString()));
+    }
+
+    [Test]
+    public void DeleteModuleVersionAsync_UnmappedStatusRethrowsApiException()
+    {
+        m_ValidatorObject.Setup(ex => ex.ThrowExceptionIfConfigInvalid(It.IsAny<string>(), It.IsAny<string>()));
+        SetupDeleteModuleVersionThrows(HttpStatusCode.InternalServerError);
+
+        Assert.ThrowsAsync<ApiException>(
+            () => m_CloudCodeService!.DeleteModuleVersionAsync(
+                TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_TestModuleName, k_TestModuleVersion));
+    }
+
+    [Test]
+    public void DeleteScriptVersionAsync_ValidInputCallsApi()
+    {
+        m_ValidatorObject.Setup(ex => ex.ThrowExceptionIfConfigInvalid(It.IsAny<string>(), It.IsAny<string>()));
+
+        Assert.DoesNotThrowAsync(
+            () => m_CloudCodeService!.DeleteScriptVersionAsync(
+                TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_TestScriptName, k_TestScriptVersion));
+
+        m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
+            ex => ex.DeleteScriptVersionAsync(
+                TestValues.ValidProjectId,
+                TestValues.ValidEnvironmentId,
+                k_TestScriptName,
+                k_TestScriptVersion,
+                0,
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [TestCase(HttpStatusCode.BadRequest, "is not a valid script version")]
+    [TestCase(HttpStatusCode.NotFound, "could not be found")]
+    [TestCase(HttpStatusCode.Conflict, "it is the active version or is assigned to a release")]
+    public void DeleteScriptVersionAsync_MapsStatusToDistinctMessage(HttpStatusCode status, string expectedFragment)
+    {
+        m_ValidatorObject.Setup(ex => ex.ThrowExceptionIfConfigInvalid(It.IsAny<string>(), It.IsAny<string>()));
+        SetupDeleteScriptVersionThrows(status);
+
+        var ex = Assert.ThrowsAsync<CliException>(
+            () => m_CloudCodeService!.DeleteScriptVersionAsync(
+                TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_TestScriptName, k_TestScriptVersion));
+
+        Assert.That(ex!.Message, Does.Contain(expectedFragment));
+        Assert.That(ex.Message, Does.Contain(k_TestScriptName));
+        // Script wording, never the module vocabulary.
+        Assert.That(ex.Message, Does.Not.Contain("live version"));
+    }
+
+    [Test]
+    public void DeleteScriptVersionAsync_ForbiddenIsNotMapped()
+    {
+        // The script version route is not gated on the module versions flag, so a 403 is not a case
+        // this path claims to understand and must not be dressed up as one.
+        m_ValidatorObject.Setup(ex => ex.ThrowExceptionIfConfigInvalid(It.IsAny<string>(), It.IsAny<string>()));
+        SetupDeleteScriptVersionThrows(HttpStatusCode.Forbidden);
+
+        Assert.ThrowsAsync<ApiException>(
+            () => m_CloudCodeService!.DeleteScriptVersionAsync(
+                TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_TestScriptName, k_TestScriptVersion));
+    }
 }

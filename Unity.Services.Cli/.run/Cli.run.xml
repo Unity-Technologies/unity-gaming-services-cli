@@ -1,8 +1,8 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Cli" type="DotNetProject" factoryName=".NET Project" activateToolWindowBeforeRun="false">
-    <option name="EXE_PATH" value="$PROJECT_DIR$/Unity.Services.Cli/bin/Debug/net8.0/ugs" />
+    <option name="EXE_PATH" value="$PROJECT_DIR$/Unity.Services.Cli/bin/Debug/net10.0/ugs" />
     <option name="PROGRAM_PARAMETERS" value="-h" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Unity.Services.Cli/bin/Debug/net8.0" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Unity.Services.Cli/bin/Debug/net10.0" />
     <option name="PASS_PARENT_ENVS" value="1" />
     <option name="ENV_FILE_PATHS" value="" />
     <option name="REDIRECT_INPUT_PATH" value="" />
@@ -15,7 +15,7 @@
     <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
     <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="1" />
     <option name="PROJECT_KIND" value="DotNetCore" />
-    <option name="PROJECT_TFM" value="net8.0" />
+    <option name="PROJECT_TFM" value="net10.0" />
     <method v="2">
       <option name="Build" />
     </method>

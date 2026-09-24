@@ -22,7 +22,7 @@ public class PurchasingBaseFixture : UgsCliFixture
 
     protected const string k_TestItemJson = """
         {
-            "$schema": "https://ugs-config-schemas.unity3d.com/v1/purchasing/ucat.schema.json",
+            "$schema": "https://ugs-config-schemas.unity3d.com/v1/purchasing-catalog.schema.json",
             "uSKU": "test-item",
             "type": "Consumable",
             "productDetails": [

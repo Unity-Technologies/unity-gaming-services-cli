@@ -35,6 +35,6 @@ static class GetHandler
         var projectId = input.CloudProjectId!;
         var script = await cloudCodeService.GetAsync(projectId, environmentId, scriptName!, cancellationToken);
 
-        logger.LogResultValue(new GetScriptResponseOutput(script));
+        logger.LogResultValue(new GetScriptResponseOutput(script, input.Versions));
     }
 }

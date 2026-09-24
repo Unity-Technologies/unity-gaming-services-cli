@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Model;
+using UnityEditor.Purchasing.Editor.Authoring.Core;
 using UnityEditor.Purchasing.Editor.Authoring.Core.Model;
 using Unity.Services.Cli.Purchasing.Authoring;
 
@@ -27,6 +28,7 @@ class PurchasingFetchServiceMultiFileTests : PurchasingDeployFetchTestBase
         {
             uSku = s,
             CatalogListingId = CatalogItem.CatalogListingIdPrefix + s,
+            ProductType = ProductType.NonConsumable,
         }).ToList();
 
         var files = stems
@@ -52,6 +54,7 @@ class PurchasingFetchServiceMultiFileTests : PurchasingDeployFetchTestBase
         {
             uSku = s,
             CatalogListingId = CatalogItem.CatalogListingIdPrefix + s,
+            ProductType = ProductType.NonConsumable,
         }).ToList();
 
         await m_Service!.FetchAsync(

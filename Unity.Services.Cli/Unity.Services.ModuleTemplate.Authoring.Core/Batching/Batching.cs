@@ -18,9 +18,10 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Batching
             "One or more exceptions were thrown during the batching execution. See inner exceptions.";
 
         /// <summary>
-        /// Asynchronously execute a collection of delegates in batches with delay between them
+        /// Asynchronously execute a collection of delegates in batches with delay between them.
+        /// Delegates are only invoked once their batch starts, so no work begins during the delay.
         /// </summary>
-        /// <param name="tasks">IEnumerable of the delegates you want to run in batches</param>
+        /// <param name="taskFactories">IEnumerable of the delegates you want to run in batches</param>
         /// <param name="cancellationToken"></param>
         /// <param name="batchSize">Size of the batches</param>
         /// <param name="secondsDelay">Delay in seconds between batches</param>
@@ -28,34 +29,34 @@ namespace Unity.Services.ModuleTemplate.Authoring.Core.Batching
         /// <warning>You need to handle the AggregateException's innerExceptions (that's where you'll get
         /// the exceptions related to the individual batch items executed)</warning>
         public static async Task ExecuteInBatchesAsync(
-            IEnumerable<Task> tasks,
+            IEnumerable<Func<Task>> taskFactories,
             CancellationToken cancellationToken,
             int batchSize = k_BatchSize,
             double secondsDelay = k_SecondsDelay)
         {
             var exceptions = new List<Exception>();
-            var iterator = tasks.GetEnumerator();
+            var iterator = taskFactories.GetEnumerator();
+            var isFirstBatch = true;
 
             while (true)
             {
-                var chunk = new List<Task>();
-                for (int i = 0; i < batchSize; ++i)
+                var chunk = new List<Func<Task>>();
+                for (int i = 0; i < batchSize && iterator.MoveNext(); ++i)
                 {
-                    if (!iterator.MoveNext())
-                        break;
                     chunk.Add(iterator.Current);
                 }
 
                 if (chunk.Count == 0)
                     break;
 
-                var innerExceptions = await ExecuteBatchAsync(chunk);
+                if (!isFirstBatch)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(secondsDelay), cancellationToken);
+                }
+                isFirstBatch = false;
+
+                var innerExceptions = await ExecuteBatchAsync(chunk.Select(factory => factory()));
                 exceptions.AddRange(innerExceptions);
-
-                if (cancellationToken.IsCancellationRequested)
-                    break;
-
-                await Task.Delay(TimeSpan.FromSeconds(secondsDelay), cancellationToken);
 
                 if (cancellationToken.IsCancellationRequested)
                     break;
