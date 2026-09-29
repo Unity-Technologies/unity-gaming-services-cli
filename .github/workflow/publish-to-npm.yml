@@ -1,0 +1,150 @@
+name: Publish CLI to npm
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-version:
+        description: "Version to release in the format of v0.0.0. Once a version has been published, it can be unpublished/deprecated but never republished."
+        required: true
+        type: string
+      dry-run-only:
+        description: "Run dry-run publish only, skip actual publish to npm."
+        required: false
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      release-version:
+        description: "Version to release in the format of v0.0.0. Once a version has been published, it can be unpublished/deprecated but never republished."
+        required: true
+        type: string
+      dry-run-only:
+        description: "Run dry-run publish only, skip actual publish to npm."
+        required: false
+        type: boolean
+        default: false
+
+env:
+  INTERNAL_GITHUB_TOKEN: ${{ secrets.OPERATE_BOT_INTERNAL_REPO_TOKEN }}
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  RELEASE_VERSION: ${{ github.event.inputs.release-version }}
+
+jobs:
+  publish-to-npm:
+    name: Publish to npm
+    runs-on: unity-linux-runner
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+    - uses: actions/checkout@v3.1.0
+    - name: Validate Version
+      run: |
+        if [[ ! $RELEASE_VERSION =~ ^v[0-9] ]]
+        then
+          echo "Version should start with v and be immediately followed by the version's major digit."
+          exit 1
+        fi
+        if echo "$RELEASE_VERSION" | grep -q "internal"; then
+          echo "Cannot publish an internal version to npm. Make sure to select a public facing version."
+          exit 1
+        fi
+    - name: Install Dependencies
+      run: |
+        sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+        sudo chmod a+x /usr/local/bin/yq
+        node --version
+        npm --version
+    - name: Update package.json Version
+      run: |
+        export SHORTHAND_VERSION="${RELEASE_VERSION:1}"
+        echo "SHORTHAND_VERSION=$SHORTHAND_VERSION" >> $GITHUB_ENV
+        cd npm
+        eval "yq '.version = \"$SHORTHAND_VERSION\"' "ugs/package.json" -i"
+    - name: Add License.md to package
+      run: |
+        cd npm
+        cp "../License.md" "ugs"
+    - name: Validate ugs Package Contents
+      run: |
+        cd "npm/ugs"
+        echo "ugs package contents:"
+        ls
+        export VERSION=$(yq e '.version' 'package.json')
+        export VERSION=${VERSION//\"}
+        if [[ $VERSION != $SHORTHAND_VERSION ]]
+        then
+          echo "Version is not set correctly for package."
+          exit 1
+        fi
+        if ! test -e License.md
+        then
+          echo "License file is missing."
+          exit 1
+        fi
+        if ! test -e install.js
+        then
+          echo "Installer script is missing."
+          exit 1
+        fi
+        if ! test -e ugs.js
+        then
+          echo "Wrapper 'ugs.js' is missing."
+          exit 1
+        fi
+    - name: Login to npm
+      run: |
+        npm set "//registry.npmjs.org/:_authToken" ${{ secrets.NPM_TOKEN }}
+        npm whoami
+    - name: Verify Public Release Exists
+      run: |
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+          "https://api.github.com/repos/Unity-Technologies/unity-gaming-services-cli/releases/tags/$RELEASE_VERSION")
+        if [[ "$STATUS" != "200" ]]; then
+          echo "Public release $RELEASE_VERSION not found on Unity-Technologies/unity-gaming-services-cli (HTTP $STATUS)"
+          echo "Run the 'CLI Public Release' workflow first to create the public release before publishing to npm."
+          exit 1
+        fi
+    - name: Test Install Script
+      run: |
+        cd "npm/ugs"
+        npm install
+        npm run dry-publish
+    - name: Reset directory
+      run: |
+        cd "npm/ugs"
+        rm -r "node_modules"
+        rm -r "bin"
+        rm "package-lock.json"
+    - name: Dry-run Publish
+      if: ${{ inputs.dry-run-only }}
+      run: |
+        cd "npm/ugs"
+        if [[ $SHORTHAND_VERSION == *"-exp."* ]]; then
+          npm publish --dry-run --tag experimental
+        else
+          npm publish --dry-run
+        fi
+    - name: Dry-run Summary
+      if: ${{ inputs.dry-run-only }}
+      run: |
+        if [[ $SHORTHAND_VERSION == *"-exp."* ]]; then
+          echo "DRY RUN: Would publish $SHORTHAND_VERSION with --tag experimental"
+          echo "Install with: npm install -g ugs@experimental"
+        else
+          echo "DRY RUN: Would publish $SHORTHAND_VERSION with --tag latest"
+          echo "Install with: npm install -g ugs"
+        fi
+    - name: Publish Package to npm
+      if: ${{ !inputs.dry-run-only }}
+      run: |
+        cd "npm/ugs"
+        if [[ $SHORTHAND_VERSION == *"-exp."* ]]; then
+          npm publish --tag experimental
+        else
+          npm publish
+        fi
