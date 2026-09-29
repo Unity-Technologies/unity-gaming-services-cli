@@ -1,0 +1,177 @@
+name: Publish CLI to npm
+
+# Runs on the public GitHub.com repository only: npm trusted publishing (OIDC) requires GitHub-hosted runners.
+# Must be started directly (workflow_dispatch), since npm validates the calling workflow's filename.
+on:
+  workflow_dispatch:
+    inputs:
+      release-version:
+        description: "Version to release in the format of v0.0.0. Once a version has been published, it can be unpublished/deprecated but never republished."
+        required: true
+        type: string
+      dry-run-only:
+        description: "Run dry-run publish only, skip actual publish to npm."
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  RELEASE_VERSION: ${{ github.event.inputs.release-version }}
+
+jobs:
+  publish-to-npm:
+    name: Publish to npm
+    if: ${{ github.repository == 'Unity-Technologies/unity-gaming-services-cli' }}
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.OPERATE_BOT_SLACK_WEBHOOK }}
+    steps:
+    - name: Check Slack Webhook
+      if: ${{ env.SLACK_WEBHOOK_URL == '' }}
+      run: echo "::warning title=Slack notifications disabled::OPERATE_BOT_SLACK_WEBHOOK secret is not set; npm publish failures will not be reported to Slack."
+    - uses: actions/checkout@v4
+    - name: Use Node.js 24.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 24.x
+        registry-url: https://registry.npmjs.org
+    - name: Validate Version
+      run: |
+        if [[ ! $RELEASE_VERSION =~ ^v[0-9] ]]
+        then
+          echo "Version should start with v and be immediately followed by the version's major digit."
+          exit 1
+        fi
+        if echo "$RELEASE_VERSION" | grep -q "internal"; then
+          echo "Cannot publish an internal version to npm. Make sure to select a public facing version."
+          exit 1
+        fi
+    - name: Install Dependencies
+      run: |
+        sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+        sudo chmod a+x /usr/local/bin/yq
+        npm install -g npm@latest
+        node --version
+        npm --version
+    - name: Update package.json Version
+      run: |
+        export SHORTHAND_VERSION="${RELEASE_VERSION:1}"
+        echo "SHORTHAND_VERSION=$SHORTHAND_VERSION" >> $GITHUB_ENV
+        cd npm
+        eval "yq '.version = \"$SHORTHAND_VERSION\"' "ugs/package.json" -i"
+    - name: Add License.md to package
+      run: |
+        cd npm
+        cp "../License.md" "ugs"
+    - name: Validate ugs Package Contents
+      run: |
+        cd "npm/ugs"
+        echo "ugs package contents:"
+        ls
+        export VERSION=$(yq e '.version' 'package.json')
+        export VERSION=${VERSION//\"}
+        if [[ $VERSION != $SHORTHAND_VERSION ]]
+        then
+          echo "Version is not set correctly for package."
+          exit 1
+        fi
+        if ! test -e License.md
+        then
+          echo "License file is missing."
+          exit 1
+        fi
+        if ! test -e install.js
+        then
+          echo "Installer script is missing."
+          exit 1
+        fi
+        if ! test -e ugs.js
+        then
+          echo "Wrapper 'ugs.js' is missing."
+          exit 1
+        fi
+    - name: Verify Public Release Exists
+      run: |
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+          "https://api.github.com/repos/Unity-Technologies/unity-gaming-services-cli/releases/tags/$RELEASE_VERSION")
+        if [[ "$STATUS" != "200" ]]; then
+          echo "Public release $RELEASE_VERSION not found on Unity-Technologies/unity-gaming-services-cli (HTTP $STATUS)"
+          echo "Run the 'CLI Public Release' workflow first to create the public release before publishing to npm."
+          exit 1
+        fi
+    - name: Test Install Script
+      run: |
+        cd "npm/ugs"
+        npm install
+        npm run dry-publish
+    - name: Reset directory
+      run: |
+        cd "npm/ugs"
+        rm -r "node_modules"
+        rm -r "bin"
+        rm "package-lock.json"
+    - name: Dry-run Publish
+      if: ${{ inputs.dry-run-only }}
+      run: |
+        cd "npm/ugs"
+        if [[ $SHORTHAND_VERSION == *"-exp."* ]]; then
+          npm publish --dry-run --tag experimental
+        else
+          npm publish --dry-run
+        fi
+    - name: Dry-run Summary
+      if: ${{ inputs.dry-run-only }}
+      run: |
+        if [[ $SHORTHAND_VERSION == *"-exp."* ]]; then
+          echo "DRY RUN: Would publish $SHORTHAND_VERSION with --tag experimental"
+          echo "Install with: npm install -g ugs@experimental"
+        else
+          echo "DRY RUN: Would publish $SHORTHAND_VERSION with --tag latest"
+          echo "Install with: npm install -g ugs"
+        fi
+    - name: Publish Package to npm
+      if: ${{ !inputs.dry-run-only }}
+      run: |
+        cd "npm/ugs"
+        if [[ $SHORTHAND_VERSION == *"-exp."* ]]; then
+          npm publish --tag experimental
+        else
+          npm publish
+        fi
+    - name: Send Failure Message to Slack
+      if: ${{ failure() && env.SLACK_WEBHOOK_URL != '' }}
+      uses: slackapi/slack-github-action@v1.23.0
+      env:
+        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ":x: *CLI npm Publish Failed*"
+                  }
+                }
+              ],
+              "attachments": [
+                {
+                  "color": "#D14D4D",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "Publishing version ${{ env.RELEASE_VERSION }} of the CLI to npm failed.\n*Triggered by:* ${{ github.actor }} | *Job:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|#${{ github.run_id }}>"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }

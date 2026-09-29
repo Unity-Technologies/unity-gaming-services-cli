@@ -1,0 +1,34 @@
+{
+  "name": "ugs",
+  "version": "",
+  "author": "Unity Technologies",
+  "description": "The unity gaming services (UGS) CLI is a unified command line interface tool for gaming services.",
+  "license": "SEE LICENSE IN License.md",
+  "homepage": "https://github.com/Unity-Technologies/unity-gaming-services-cli#ugs-cli",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Unity-Technologies/unity-gaming-services-cli.git"
+  },
+  "keywords": [
+    "ugs",
+    "cli",
+    "api",
+    "unity",
+    "services"
+  ],
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "scripts": {
+    "install": "node ./install.js",
+    "dry-publish": "node ./install.js dryrun"
+  },
+  "bin": {
+    "ugs": "./ugs.js"
+  },
+  "dependencies": {
+    "node-fetch": "2.6.7"
+  }
+}
