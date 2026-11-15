@@ -21,8 +21,11 @@
     <ProjectReference Include="..\Unity.Services.Triggers.Authoring.Core\Unity.Services.Triggers.Authoring.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Unity.Services.Gateway.TriggersApiV1.Generated" Version="1.2.0" />
+    <PackageReference Include="Unity.Services.Gateway.TriggersApiV1.Generated" Version="1.3.0" />
   </ItemGroup>
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);</DefineConstants>
+  </PropertyGroup>
   <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>
   </PropertyGroup>

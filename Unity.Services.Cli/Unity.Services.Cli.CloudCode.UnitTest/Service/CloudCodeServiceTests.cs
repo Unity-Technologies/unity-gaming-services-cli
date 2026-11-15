@@ -1098,6 +1098,7 @@ class CloudCodeServiceTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<bool?>(),
                     stream,
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()))
@@ -1112,7 +1113,7 @@ class CloudCodeServiceTests
                 CancellationToken.None));
 
         Assert.ThrowsAsync<ApiException>(() => m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Object.UpdateModuleAsync(
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), stream, 0, CancellationToken.None));
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), null, stream, 0, CancellationToken.None));
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             ex => ex.CreateModuleAsync(
@@ -1139,7 +1140,7 @@ class CloudCodeServiceTests
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             ex => ex.UpdateModuleAsync(
-                It.IsAny<string>(), It.IsAny<string>(), k_TestModuleName, stream, 0, CancellationToken.None),
+                It.IsAny<string>(), It.IsAny<string>(), k_TestModuleName, It.IsAny<bool?>(), stream, 0, CancellationToken.None),
             Times.Once);
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
@@ -1147,6 +1148,7 @@ class CloudCodeServiceTests
                 It.IsAny<string>(), It.IsAny<string>(), "", "CS", stream,0, CancellationToken.None),
             Times.Never);
     }
+
 
     [Test]
     public void UpdateModuleAsync_ThrowsWhenNon404ApiExceptionInUpdateCall()
@@ -1160,6 +1162,7 @@ class CloudCodeServiceTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<bool?>(),
                     stream,
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()))
@@ -1176,7 +1179,7 @@ class CloudCodeServiceTests
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             ex => ex.UpdateModuleAsync(
-                It.IsAny<string>(), It.IsAny<string>(), k_TestModuleName, stream, 0, CancellationToken.None),
+                It.IsAny<string>(), It.IsAny<string>(), k_TestModuleName, It.IsAny<bool?>(), stream, 0, CancellationToken.None),
             Times.Once);
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
@@ -1199,6 +1202,7 @@ class CloudCodeServiceTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<bool?>(),
                     stream,
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()))
@@ -1226,7 +1230,7 @@ class CloudCodeServiceTests
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
             ex => ex.UpdateModuleAsync(
-                It.IsAny<string>(), It.IsAny<string>(), k_TestModuleName, stream, 0, CancellationToken.None),
+                It.IsAny<string>(), It.IsAny<string>(), k_TestModuleName, It.IsAny<bool?>(), stream, 0, CancellationToken.None),
             Times.Once);
 
         m_CloudCodeApiV1AsyncMock.DefaultApiAsyncObject.Verify(
@@ -1379,4 +1383,5 @@ class CloudCodeServiceTests
             () => m_CloudCodeService!.DeleteScriptVersionAsync(
                 TestValues.ValidProjectId, TestValues.ValidEnvironmentId, k_TestScriptName, k_TestScriptVersion));
     }
+
 }

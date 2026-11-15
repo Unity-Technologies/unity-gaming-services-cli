@@ -86,7 +86,8 @@ public interface ICloudCodeService
     /// <param name="moduleStream">module stream</param>
     /// <param name="cancellationToken">token to cancel the task</param>
     /// <returns></returns>
-    public Task UpdateModuleAsync(string projectId, string environmentId, string moduleName, Stream moduleStream, CancellationToken cancellationToken = default);
+    public Task UpdateModuleAsync(string projectId, string environmentId, string moduleName, Stream moduleStream, CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Get a Cloud Code module
@@ -155,4 +156,5 @@ public interface ICloudCodeService
     /// <param name="cancellationToken">token to cancel the task</param>
     public Task DeleteScriptVersionAsync(string projectId, string environmentId, string? scriptName,
         int version, CancellationToken cancellationToken = default);
+
 }

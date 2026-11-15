@@ -132,6 +132,7 @@ class CloudCodeApiV1AsyncMock
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
+                It.IsAny<bool?>(),
                 It.IsAny<Stream>(),
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()))

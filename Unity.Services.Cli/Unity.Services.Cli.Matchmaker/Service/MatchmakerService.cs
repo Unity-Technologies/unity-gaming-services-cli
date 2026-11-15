@@ -17,6 +17,7 @@ namespace Unity.Services.Cli.Matchmaker.Service;
 
 class MatchmakerService : IMatchmakerService
 {
+
     readonly IMatchmakerAdminApi m_MatchmakerAdminApi;
     readonly IServiceAccountAuthenticationService m_AuthenticationService;
     readonly IConfigurationValidator m_ConfigValidator;
@@ -44,6 +45,7 @@ class MatchmakerService : IMatchmakerService
 
         return string.Empty;
     }
+
 
     public async Task<(bool, EnvironmentConfig)> GetEnvironmentConfig(CancellationToken ct = default)
     {

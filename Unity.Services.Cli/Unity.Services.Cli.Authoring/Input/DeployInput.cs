@@ -14,4 +14,5 @@ public class DeployInput : AuthoringInput
 
     [InputBinding(nameof(PathsArgument))]
     public IReadOnlyList<string> Paths { get; set; } = new List<string>();
+
 }

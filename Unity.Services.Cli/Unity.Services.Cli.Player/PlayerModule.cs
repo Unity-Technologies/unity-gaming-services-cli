@@ -6,8 +6,10 @@ using Unity.Services.Cli.Common;
 using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Common.Networking;
+using Unity.Services.Cli.Common.SystemEnvironment;
 using Unity.Services.Cli.Common.Validator;
 using Unity.Services.Cli.Player.Handlers;
+using Unity.Services.Cli.Player.IdProvider;
 using Unity.Services.Cli.Player.Input;
 using Unity.Services.Cli.Player.Networking;
 using Unity.Services.Cli.Player.Service;
@@ -28,8 +30,12 @@ public class PlayerModule : ICommandModule
     internal Command? DisableCommand { get; }
     internal Command? GetCommand { get; }
     internal Command? ListCommand { get; }
+    internal Command? IdProviderCommand { get; }
 
     public PlayerModule()
+        : this(null) { }
+
+    internal PlayerModule(ISystemEnvironmentProvider? environment)
     {
         CreateCommand = new Command("create", new CommandDescription("Create player account in Unity Authentication Service.")
             .WithReturn("Confirmation message with the new player ID.")
@@ -98,6 +104,12 @@ public class PlayerModule : ICommandModule
             GetCommand,
             ListCommand
         };
+
+        if (PreviewFeatures.IsEnabled(PreviewFeatures.PlayerIdProviders, environment))
+        {
+            IdProviderCommand = IdProviderCommands.Build();
+            ModuleRootCommand.Add(IdProviderCommand);
+        }
     }
 
     /// <summary>
@@ -126,5 +138,6 @@ public class PlayerModule : ICommandModule
 
         serviceCollection.AddTransient<IConfigurationValidator, ConfigurationValidator>();
         serviceCollection.AddTransient<IPlayerService, PlayerService>();
+        IdProviderCommands.RegisterServices(serviceCollection);
     }
 }

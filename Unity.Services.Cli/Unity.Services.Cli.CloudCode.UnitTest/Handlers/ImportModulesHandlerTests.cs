@@ -436,13 +436,6 @@ class ImportModuleHandlerTests
 
     void SetupCreateOrUpdate(bool throws = false)
     {
-        var setup = m_MockCloudCodeService.Setup(
-            cs => cs.UpdateModuleAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<Stream>(),
-                It.IsAny<CancellationToken>()));
         if (throws)
         {
             setup.Throws(new Exception("mock exception"));
@@ -529,14 +522,6 @@ class ImportModuleHandlerTests
             listTimes);
 
         var createOrUpdateTimes = apiCallTypes.Contains(ModuleApiCallType.CreateOrUpdate) ? Times.Once() : Times.Never();
-        m_MockCloudCodeService.Verify(
-            cs => cs.UpdateModuleAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<Stream>(),
-                It.IsAny<CancellationToken>()),
-            createOrUpdateTimes);
 
         var deleteTimes = apiCallTypes.Contains(ModuleApiCallType.Delete) ? Times.Once() : Times.Never();
         m_MockCloudCodeService.Verify(

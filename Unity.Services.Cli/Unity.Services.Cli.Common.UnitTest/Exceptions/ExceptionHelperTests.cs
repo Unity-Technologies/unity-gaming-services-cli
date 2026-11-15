@@ -13,6 +13,9 @@ using Unity.Services.Cli.Common.Telemetry;
 using Unity.Services.Cli.TestUtils;
 using IdentityApiException = Unity.Services.Gateway.IdentityApiV1.Generated.Client.ApiException;
 using CloudCodeApiException = Unity.Services.Gateway.CloudCodeApiV1.Generated.Client.ApiException;
+using TriggersApiException = Unity.Services.Gateway.TriggersApiV1.Generated.Client.ApiException;
+using SchedulerApiException = Unity.Services.Gateway.SchedulerApiV1.Generated.Client.ApiException;
+using MatchmakerApiException = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Client.ApiException;
 
 namespace Unity.Services.Cli.Common.UnitTest.Exceptions;
 
@@ -31,6 +34,9 @@ class ExceptionHelperTests
         {
             yield return new TestCaseData(new IdentityApiException());
             yield return new TestCaseData(new CloudCodeApiException());
+            yield return new TestCaseData(new TriggersApiException());
+            yield return new TestCaseData(new SchedulerApiException());
+            yield return new TestCaseData(new MatchmakerApiException());
         }
     }
 
@@ -187,6 +193,23 @@ class ExceptionHelperTests
         var identityApiException = new IdentityApiException(Convert.ToInt32(HttpStatusCode.Forbidden), null);
         Assert.DoesNotThrow(() => m_ExceptionHelper!.HandleException(
             identityApiException,
+            k_MockHelper.MockLogger.Object,
+            m_Context!));
+        TestsHelper.VerifyLoggerWasCalled(
+            k_MockHelper.MockLogger,
+            LogLevel.Error,
+            null,
+            Times.Once,
+            $"{ExceptionHelper.TroubleshootingHelp}{System.Environment.NewLine}" +
+            $"{m_ExceptionHelper!.httpErrorTroubleshootingLinks[HttpStatusCode.Forbidden]}");
+    }
+
+    [Test]
+    public void HandleSchedulerForbidden403Exception()
+    {
+        var schedulerApiException = new SchedulerApiException(Convert.ToInt32(HttpStatusCode.Forbidden), "");
+        Assert.DoesNotThrow(() => m_ExceptionHelper!.HandleException(
+            schedulerApiException,
             k_MockHelper.MockLogger.Object,
             m_Context!));
         TestsHelper.VerifyLoggerWasCalled(

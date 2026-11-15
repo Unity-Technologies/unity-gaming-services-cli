@@ -1,5 +1,8 @@
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
+using Unity.Services.Cli.CloudCode.Model;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Common.Models;
 using Unity.Services.Cli.Common.Validator;
@@ -16,6 +19,7 @@ class CloudCodeService : ICloudCodeService
     readonly IServiceAccountAuthenticationService m_AuthenticationService;
     readonly ICloudCodeApiAsync m_CloudCodeAsyncApi;
     readonly IConfigurationValidator m_ConfigValidator;
+
 
     internal const int ListLimit = 100;
     internal const int MaxFileSizeLimitInMb = 10;
@@ -166,7 +170,8 @@ class CloudCodeService : ICloudCodeService
 
     /// <inheritdoc cref="ICloudCodeService.UpdateModuleAsync" />
     public async Task UpdateModuleAsync(string projectId, string environmentId, string? moduleName,
-        Stream moduleStream, CancellationToken cancellationToken = default)
+        Stream moduleStream, CancellationToken cancellationToken = default
+    )
     {
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.ProjectId, projectId);
         m_ConfigValidator.ThrowExceptionIfConfigInvalid(Keys.ConfigKeys.EnvironmentId, environmentId);
@@ -182,7 +187,7 @@ class CloudCodeService : ICloudCodeService
                 projectId,
                 environmentId,
                 moduleName,
-                moduleStream,
+                file: moduleStream,
                 cancellationToken: cancellationToken);
         }
         catch (ApiException ex)
@@ -199,6 +204,7 @@ class CloudCodeService : ICloudCodeService
                 cancellationToken: cancellationToken);
         }
     }
+
 
     /// <inheritdoc cref="ICloudCodeService.GetModuleAsync" />
     public async Task<GetModuleResponse> GetModuleAsync(string projectId, string environmentId, string moduleName,
@@ -307,6 +313,7 @@ class CloudCodeService : ICloudCodeService
             };
         }
     }
+
 
     /// <inheritdoc cref="ICloudCodeService.GetModuleSpecAsync" />
     public async Task<string> GetModuleSpecAsync(string projectId, string environmentId, string moduleName,

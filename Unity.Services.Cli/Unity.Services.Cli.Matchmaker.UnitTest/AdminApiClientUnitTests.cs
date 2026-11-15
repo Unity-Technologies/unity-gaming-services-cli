@@ -6,6 +6,7 @@ using Unity.Services.Cli.Matchmaker.Parser;
 using Unity.Services.Cli.Matchmaker.Service;
 using Unity.Services.Cli.Matchmaker.UnitTest.SampleConfigs;
 using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.ConfigApi;
+using ApiException = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Client.ApiException;
 using Core = Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
 using Generated = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model;
 
@@ -268,6 +269,38 @@ class AdminApiClientUnitTests
         Assert.That(configService.Invocations.Count, Is.EqualTo(1));
         var name = configService.Invocations[0].Arguments[0];
         Assert.That(name, Is.EqualTo("ToDelete"));
+    }
+
+    [TestCase("GetEnvironmentConfig")]
+    [TestCase("UpsertEnvironmentConfig")]
+    [TestCase("ListQueues")]
+    [TestCase("UpsertQueue")]
+    [TestCase("DeleteQueue")]
+    public void ApiException_IsRethrownAsMatchmakerClientExceptionWithStatusCode(string method)
+    {
+        var apiException = new ApiException(409, "Error calling " + method);
+        var configService = new Mock<IMatchmakerService>();
+        configService.Setup(x => x.GetEnvironmentConfig(default)).ThrowsAsync(apiException);
+        configService.Setup(x => x.UpsertEnvironmentConfig(It.IsAny<Generated.EnvironmentConfig>(), false, default)).ThrowsAsync(apiException);
+        configService.Setup(x => x.ListQueues(default)).ThrowsAsync(apiException);
+        configService.Setup(x => x.UpsertQueueConfig(It.IsAny<Generated.QueueConfig>(), false, default)).ThrowsAsync(apiException);
+        configService.Setup(x => x.DeleteQueue("q", false, default)).ThrowsAsync(apiException);
+        var client = new AdminApiClient.MatchmakerAdminClient(configService.Object);
+        var coreSampleConfig = new CoreSampleConfig();
+
+        Func<Task> call = method switch
+        {
+            "GetEnvironmentConfig" => () => client.GetEnvironmentConfig(default),
+            "UpsertEnvironmentConfig" => () => client.UpsertEnvironmentConfig(coreSampleConfig.EnvironmentConfig, false),
+            "ListQueues" => () => client.ListQueues(default),
+            "UpsertQueue" => () => client.UpsertQueue(coreSampleConfig.QueueConfig, new Core.MultiplayResources(), false),
+            _ => () => client.DeleteQueue(new Core.QueueName("q"), false),
+        };
+
+        var thrown = Assert.ThrowsAsync<MatchmakerClientException>(async () => await call());
+
+        Assert.That(thrown!.StatusCode, Is.EqualTo(409));
+        Assert.That(thrown.InnerException, Is.SameAs(apiException));
     }
 
     [Test]

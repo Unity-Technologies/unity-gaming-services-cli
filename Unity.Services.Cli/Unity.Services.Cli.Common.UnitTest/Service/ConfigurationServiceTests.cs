@@ -46,6 +46,7 @@ class ConfigurationServiceTests
         Assert.AreEqual(m_PrefObj!.CloudProjectId, value);
     }
 
+
     [Test]
     public void SetConfigArgumentsAsync_InvalidValueTest()
     {

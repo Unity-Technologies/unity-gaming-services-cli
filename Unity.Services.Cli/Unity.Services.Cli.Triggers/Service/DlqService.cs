@@ -127,6 +127,7 @@ class DlqService : IDlqService
             cancellationToken: cancellationToken);
     }
 
+
     async Task AuthorizeServiceAsync(CancellationToken cancellationToken = default)
     {
         var token = await m_AuthenticationService.GetAccessTokenAsync(cancellationToken);

@@ -784,4 +784,5 @@ public class CloudCodeScriptTests : UgsCliFixture
             .AssertStandardOutputContains(expectedMsg)
             .ExecuteAsync();
     }
+
 }

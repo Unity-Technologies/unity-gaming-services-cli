@@ -91,6 +91,7 @@ public class TriggerDeploymentServiceTests
         Assert.AreEqual(0, res.Failed.Count);
     }
 
+
     [Test]
     public async Task DeployAsync_MapsFailed()
     {

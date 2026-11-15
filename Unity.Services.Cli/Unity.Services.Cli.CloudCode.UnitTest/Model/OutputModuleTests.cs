@@ -160,7 +160,7 @@ public class OutputModuleTests
         Assert.That(yaml, Does.Contain("returnType: System.String"));
     }
 
-    const string k_ReleaseTagKey = "releases.cloud.unity.com/aaedbb7b-4047-46bf-b20d-0f16bf1a9a9b";
+    const string k_ReleaseId = "aaedbb7b-4047-46bf-b20d-0f16bf1a9a9b";
 
     // signedDownloadURL, dateCreated and endpoints are all required by the contract, so the
     // generated constructor rejects null for them even where a test does not care about the value.
@@ -170,6 +170,7 @@ public class OutputModuleTests
         long version,
         bool isLive,
         Dictionary<string, string>? tags = null,
+        List<string>? releaseIds = null,
         DateTime? dateCreated = null,
         string signedDownloadURL = "https://example.com/signed",
         Dictionary<string, ModuleEndpoints1>? endpoints = null)
@@ -178,6 +179,7 @@ public class OutputModuleTests
             version: version,
             isLive: isLive,
             tags: tags,
+            releaseIds: releaseIds,
             signedDownloadURL: signedDownloadURL,
             dateCreated: dateCreated ?? new DateTime(2026, 9, 1, 9, 14, 2, DateTimeKind.Utc),
             endpoints: endpoints ?? new Dictionary<string, ModuleEndpoints1>());
@@ -241,39 +243,34 @@ public class OutputModuleTests
     }
 
     [Test]
-    public void ConstructOutputModule_VersionTags_ExcludeReservedKeys()
+    public void ConstructOutputModule_VersionReleaseIds_AreShownApartFromTags()
     {
         var response = ModuleWithVersions(
             Version(
                 1788856057800102L,
                 isLive: false,
-                tags: new Dictionary<string, string>
-                {
-                    { "tier", "a" },
-                    { k_ReleaseTagKey, "true" }
-                }));
+                tags: new Dictionary<string, string> { { "tier", "a" } },
+                releaseIds: new List<string> { k_ReleaseId }));
 
         var output = new GetModuleResponseOutput(response, includeVersions: true);
         var yaml = output.ToString();
 
         Assert.That(output.Versions![0].Tags, Is.EqualTo(new Dictionary<string, string> { { "tier", "a" } }));
-        Assert.That(yaml, Does.Contain("tier: a"));
-        Assert.That(yaml, Does.Not.Contain("releases.cloud.unity.com"));
+        Assert.That(output.Versions![0].ReleaseIds, Is.EqualTo(new List<string> { k_ReleaseId }));
+        Assert.That(yaml, Does.Contain("releaseIds:"));
+        Assert.That(yaml, Does.Contain(k_ReleaseId));
     }
 
     [Test]
-    public void ConstructOutputModule_VersionWithOnlyReservedTags_OmitsTags()
+    public void ConstructOutputModule_VersionWithoutReleases_OmitsReleaseIds()
     {
-        var response = ModuleWithVersions(
-            Version(
-                1788856057800102L,
-                isLive: false,
-                tags: new Dictionary<string, string> { { k_ReleaseTagKey, "true" } }));
+        var response = ModuleWithVersions(Version(1788856057800102L, isLive: false));
 
         var output = new GetModuleResponseOutput(response, includeVersions: true);
 
-        Assert.That(output.Versions![0].Tags, Is.Null);
-        Assert.That(output.ToString(), Does.Not.Contain("tags:"));
+        Assert.That(output.Versions![0].ReleaseIds, Is.Null);
+        Assert.That(output.ToString(), Does.Not.Contain("releaseIds:"));
+        Assert.That(Newtonsoft.Json.JsonConvert.SerializeObject(output), Does.Not.Contain("ReleaseIds"));
     }
 
     [Test]
@@ -310,11 +307,8 @@ public class OutputModuleTests
             Version(
                 1788856057800102L,
                 isLive: true,
-                tags: new Dictionary<string, string>
-                {
-                    { "tier", "a" },
-                    { k_ReleaseTagKey, "true" }
-                },
+                tags: new Dictionary<string, string> { { "tier", "a" } },
+                releaseIds: new List<string> { k_ReleaseId },
                 dateCreated: created));
 
         var json = Newtonsoft.Json.JsonConvert.SerializeObject(
@@ -324,8 +318,8 @@ public class OutputModuleTests
         Assert.That(json, Does.Contain("\"IsLive\":true"));
         Assert.That(json, Does.Contain("2026-09-08T11:47:37"));
         Assert.That(json, Does.Contain("tier"));
+        Assert.That(json, Does.Contain($"\"ReleaseIds\":[\"{k_ReleaseId}\"]"));
         // The same omissions must hold in JSON as in YAML, or -j leaks what the default format hides.
-        Assert.That(json, Does.Not.Contain("releases.cloud.unity.com"));
         Assert.That(json, Does.Not.Contain("https://example.com/signed"));
         Assert.That(json, Does.Contain("\"Versions\""));
     }

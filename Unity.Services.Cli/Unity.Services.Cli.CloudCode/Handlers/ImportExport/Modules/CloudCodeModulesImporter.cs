@@ -126,11 +126,5 @@ class CloudCodeModulesImporter : BaseImporter<Module>
         await entry.Stream.CopyToAsync(stream, cancellationToken);
         //after finishing the copy, reset the head of the stream so it can be sent
         stream.Position = 0;
-        await m_CloudCodeService.UpdateModuleAsync(
-            projectId,
-            environmentId,
-            module.Name.ToString(),
-            stream,
-            cancellationToken);
     }
 }

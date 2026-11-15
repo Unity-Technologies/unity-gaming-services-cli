@@ -16,7 +16,8 @@ class MatchmakerDeploymentService : IDeploymentService
 
     public MatchmakerDeploymentService(
         IConfigApiClient client,
-        IMatchmakerDeployHandler deploymentHandler)
+        IMatchmakerDeployHandler deploymentHandler
+    )
     {
         m_Client = client;
         m_DeploymentHandler = deploymentHandler;

@@ -15,6 +15,8 @@ using Unity.Services.Cli.Scheduler.Authoring;
 using Unity.Services.Cli.Scheduler.Deploy;
 using Unity.Services.Cli.Scheduler.Fetch;
 using Unity.Services.Cli.Scheduler.Handlers;
+using Unity.Services.Cli.Scheduler.Input;
+using Unity.Services.Cli.Scheduler.Service;
 using Unity.Services.Gateway.SchedulerApiV1.Generated.Api;
 using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Deploy;
 using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Fetch;
@@ -53,7 +55,7 @@ public class SchedulerModule : ICommandModule
     public SchedulerModule()
     {
         var schedulerListCommand = new Command("list", new CommandDescription("List online schedules.")
-            .WithReturn("List of schedule items with name, eventName, scheduleType, schedule, payloadVersion, and payload.")
+            .WithReturn("List of schedule items with id, name, eventName, scheduleType, schedule, payloadVersion, payload, and status.")
             .Build())
         {
             CommonInput.CloudProjectIdOption,
@@ -62,11 +64,43 @@ public class SchedulerModule : ICommandModule
         schedulerListCommand.SetHandler<
             CommonInput,
             IUnityEnvironment,
-            ISchedulerClient,
+            ISchedulerStatusClient,
             ILogger,
             ILoadingIndicator,
             CancellationToken>(
             SchedulerListHandler.SchedulerListHandlerHandlerAsync);
+
+        var activateCommand = new Command("activate", new CommandDescription("Activate a schedule so it fires.")
+            .WithReturn("Confirmation message.")
+            .Build())
+        {
+            UpdateScheduleStatusInput.ScheduleIdArgument,
+            CommonInput.CloudProjectIdOption,
+            CommonInput.EnvironmentNameOption,
+        };
+        activateCommand.SetHandler<
+            UpdateScheduleStatusInput,
+            IUnityEnvironment,
+            ISchedulerStatusClient,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken>(UpdateScheduleStatusHandler.ActivateAsync);
+
+        var deactivateCommand = new Command("deactivate", new CommandDescription("Deactivate a schedule. It is kept but does not fire.")
+            .WithReturn("Confirmation message.")
+            .Build())
+        {
+            UpdateScheduleStatusInput.ScheduleIdArgument,
+            CommonInput.CloudProjectIdOption,
+            CommonInput.EnvironmentNameOption,
+        };
+        deactivateCommand.SetHandler<
+            UpdateScheduleStatusInput,
+            IUnityEnvironment,
+            ISchedulerStatusClient,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken>(UpdateScheduleStatusHandler.DeactivateAsync);
 
         ModuleRootCommand = new Command("scheduler", new CommandDescription("Manage Scheduler.")
             .WithDocs("https://docs.unity.com/en-us/triggers/tutorials/schedule-events")
@@ -74,7 +108,9 @@ public class SchedulerModule : ICommandModule
             .Build())
         {
             ModuleRootCommand.AddNewFileCommand<ScheduleConfigFile>("Schedule"),
-            schedulerListCommand
+            schedulerListCommand,
+            activateCommand,
+            deactivateCommand
         };
         ModuleRootCommand.AddAlias("sched");
     }
@@ -92,6 +128,7 @@ public class SchedulerModule : ICommandModule
         config.DefaultHeaders.SetXClientIdHeader();
 
         serviceCollection.AddSingleton<ISchedulerClient, SchedulerClient>();
+        serviceCollection.AddSingleton<ISchedulerStatusClient>(sp => (SchedulerClient)sp.GetRequiredService<ISchedulerClient>());
         serviceCollection.AddSingleton<ISchedulerApiAsync, SchedulerApi>(_ => new SchedulerApi(config));
 
         serviceCollection.AddTransient<IDeploymentService, SchedulerDeploymentService>();

@@ -22,6 +22,7 @@
   <ItemGroup>
     <PackageReference Include="Unity.Services.Gateway.PlayerAdminApiV3.Generated" Version="1.0.1" />
     <PackageReference Include="Unity.Services.Gateway.PlayerAuthApiV1.Generated" Version="1.0.1" />
+    <PackageReference Include="Unity.Services.Gateway.PlayerIdentityApiV2.Generated" Version="1.0.0" />
   </ItemGroup>
   <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>

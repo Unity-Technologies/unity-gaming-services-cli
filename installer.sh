@@ -209,7 +209,18 @@ then
     exit 1
 fi
 
-ASSET_NAME="ugs-$OPERATING_SYSTEM-x64"
+# Pick the build that matches the CPU. Apple Silicon gets the native arm64 build,
+# including when this script runs in a Rosetta-translated shell.
+ARCHITECTURE="x64"
+if [[ $OPERATING_SYSTEM == "macos" ]]
+then
+    if [[ $(uname -m) == "arm64" || $(sysctl -n sysctl.proc_translated 2>/dev/null) == "1" ]]
+    then
+        ARCHITECTURE="arm64"
+    fi
+fi
+
+ASSET_NAME="ugs-$OPERATING_SYSTEM-$ARCHITECTURE"
 
 # Determine the asset download url
 if [[ ! -z $version ]]
@@ -238,6 +249,15 @@ then
         exit 1
     fi
 
+    # Releases made before macOS arm64 builds existed only have the x64 build
+    if [[ $ARCHITECTURE == "arm64" && "$response" != *"\"$ASSET_NAME\""* ]]
+    then
+        echo -e "$WARNING_TAG UGS CLI version $RELEASE_TAG has no native Apple Silicon build."
+        echo -e "$TAB Installing the x64 build instead, which runs through Rosetta 2."
+        echo -e "$TAB If ugs does not start, install Rosetta 2 with 'softwareupdate --install-rosetta'."
+        ASSET_NAME="ugs-$OPERATING_SYSTEM-x64"
+    fi
+
     GITHUB_API_URL="https://github.com/$ORGANIZATION/$REPO_NAME/releases/download/$RELEASE_TAG/$ASSET_NAME"
 else
     GITHUB_API_URL="https://github.com/$ORGANIZATION/$REPO_NAME/releases/latest/download/$ASSET_NAME"
@@ -249,7 +269,7 @@ fi
 # Download UGS CLI to /usr/local/bin
 echo -e "$TAB Downloading binaries to $INSTALL_DIRECTORY..."
 sudo mkdir -p "$INSTALL_DIRECTORY"
-sudo curl -o "$INSTALL_DIRECTORY/ugs" -L --progress-bar $GITHUB_API_URL
+sudo curl -f -o "$INSTALL_DIRECTORY/ugs" -L --progress-bar $GITHUB_API_URL
 
 # Use chmod +x on the binaries to mark them as executable
 echo -e "$TAB Marking binaries as executable..."

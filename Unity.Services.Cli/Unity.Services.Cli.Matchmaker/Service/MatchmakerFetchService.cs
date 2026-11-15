@@ -1,3 +1,4 @@
+using System.Runtime.ExceptionServices;
 using Spectre.Console;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Service;
@@ -14,7 +15,10 @@ class MatchmakerFetchService : IFetchService
     readonly IMatchmakerFetchHandler m_FetchHandler;
     readonly IConfigApiClient m_Client;
 
-    public MatchmakerFetchService(IConfigApiClient client, IMatchmakerFetchHandler fetchHandler)
+    public MatchmakerFetchService(
+        IConfigApiClient client,
+        IMatchmakerFetchHandler fetchHandler
+    )
     {
         m_Client = client;
         m_FetchHandler = fetchHandler;
@@ -42,12 +46,20 @@ class MatchmakerFetchService : IFetchService
             throw new MatchmakerException("The provided path is not a directory.");
         }
 
-        var res = await m_FetchHandler.FetchAsync(input.Path, authoringFiles.ToPaths(), input.Reconcile, input.DryRun, cancellationToken);
+        try
+        {
+            var res = await m_FetchHandler.FetchAsync(input.Path, authoringFiles.ToPaths(), input.Reconcile, input.DryRun, cancellationToken);
 
-        if (!string.IsNullOrEmpty(res.AbortMessage))
-            throw new MatchmakerException(res.AbortMessage);
+            if (!string.IsNullOrEmpty(res.AbortMessage))
+                throw new MatchmakerException(res.AbortMessage);
 
-        return new FetchResult(res.Updated, res.Deleted, res.Created, res.Authored, res.Failed, input.DryRun);
+            return new FetchResult(res.Updated, res.Deleted, res.Created, res.Authored, res.Failed, input.DryRun);
+        }
+        catch (MatchmakerClientException e) when (e.InnerException is not null)
+        {
+            ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+            throw;
+        }
     }
 }
 

@@ -102,6 +102,24 @@ class TriggersService : ITriggersService
         return response;
     }
 
+    public async Task UpdateTriggerStatusAsync(
+        string projectId,
+        string environmentId,
+        string triggerId,
+        TriggerStatus status,
+        CancellationToken cancellationToken = default)
+    {
+        await AuthorizeServiceAsync(cancellationToken);
+        ValidateProjectIdAndEnvironmentId(projectId, environmentId);
+
+        await m_TriggersApiAsync.UpdateTriggerConfigAsync(
+            Guid.Parse(projectId),
+            Guid.Parse(environmentId),
+            Guid.Parse(triggerId),
+            new UpdateTriggerConfigBody(status),
+            cancellationToken: cancellationToken);
+    }
+
     public async Task DeleteTriggerAsync(
         string projectId,
         string environmentId,
@@ -117,6 +135,7 @@ class TriggersService : ITriggersService
             Guid.Parse(id),
             cancellationToken: cancellationToken);
     }
+
 
     public async Task AuthorizeServiceAsync(CancellationToken cancellationToken = default)
     {

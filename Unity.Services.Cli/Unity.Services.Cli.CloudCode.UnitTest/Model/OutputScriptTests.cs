@@ -92,7 +92,7 @@ class OutputScriptTests
         Assert.AreEqual(expectedString, outputScriptString);
     }
 
-    const string k_ScriptReleaseTagKey = "releases.cloud.unity.com/aaedbb7b-4047-46bf-b20d-0f16bf1a9a9b";
+    const string k_ScriptReleaseId = "aaedbb7b-4047-46bf-b20d-0f16bf1a9a9b";
 
     // code and params are required by the contract, so the generated constructor rejects null even
     // where a test does not care about them.
@@ -102,6 +102,7 @@ class OutputScriptTests
         DateTime dateUpdated,
         DateTime dateCreated = default,
         Dictionary<string, string>? tags = null,
+        List<string>? releaseIds = null,
         string code = "module.exports = () => {};")
     {
         var inner = new GetScriptResponseVersionsInner(
@@ -110,6 +111,7 @@ class OutputScriptTests
             version: version ?? 1,
             isDraft: isDraft,
             tags: tags,
+            releaseIds: releaseIds,
             dateUpdated: dateUpdated,
             dateCreated: dateCreated);
 
@@ -201,23 +203,33 @@ class OutputScriptTests
     }
 
     [Test]
-    public void ConstructOutputScript_DetailedVersionTags_ExcludeReservedKeys()
+    public void ConstructOutputScript_DetailedVersionReleaseIds_AreShownApartFromTags()
     {
         var response = ScriptWithVersions(
             ScriptVersion(
                 version: 1,
                 isDraft: false,
                 dateUpdated: DateTime.UtcNow,
-                tags: new Dictionary<string, string>
-                {
-                    { "tier", "a" },
-                    { k_ScriptReleaseTagKey, "true" }
-                }));
+                tags: new Dictionary<string, string> { { "tier", "a" } },
+                releaseIds: new List<string> { k_ScriptReleaseId }));
 
         var yaml = new GetScriptResponseOutput(response, detailedVersions: true).ToString();
 
         Assert.That(yaml, Does.Contain("tier: a"));
-        Assert.That(yaml, Does.Not.Contain("releases.cloud.unity.com"));
+        Assert.That(yaml, Does.Contain("releaseIds:"));
+        Assert.That(yaml, Does.Contain(k_ScriptReleaseId));
+    }
+
+    [Test]
+    public void ConstructOutputScript_DetailedVersionWithoutReleases_OmitsReleaseIds()
+    {
+        var response = ScriptWithVersions(
+            ScriptVersion(version: 1, isDraft: false, dateUpdated: DateTime.UtcNow));
+
+        var output = new GetScriptResponseOutput(response, detailedVersions: true);
+
+        Assert.That(output.ToString(), Does.Not.Contain("releaseIds:"));
+        Assert.That(Newtonsoft.Json.JsonConvert.SerializeObject(output), Does.Not.Contain("ReleaseIds"));
     }
 
     [Test]
@@ -229,11 +241,8 @@ class OutputScriptTests
                 version: 1,
                 isDraft: false,
                 dateUpdated: updated,
-                tags: new Dictionary<string, string>
-                {
-                    { "tier", "a" },
-                    { k_ScriptReleaseTagKey, "true" }
-                }));
+                tags: new Dictionary<string, string> { { "tier", "a" } },
+                releaseIds: new List<string> { k_ScriptReleaseId }));
 
         var json = Newtonsoft.Json.JsonConvert.SerializeObject(
             new GetScriptResponseOutput(response, detailedVersions: true));
@@ -242,7 +251,7 @@ class OutputScriptTests
         Assert.That(json, Does.Contain("\"IsDraft\":false"));
         Assert.That(json, Does.Contain("2026-09-08T11:47:37"));
         Assert.That(json, Does.Contain("tier"));
-        Assert.That(json, Does.Not.Contain("releases.cloud.unity.com"));
+        Assert.That(json, Does.Contain($"\"ReleaseIds\":[\"{k_ScriptReleaseId}\"]"));
         Assert.That(json, Does.Not.Contain("module.exports"));
     }
 }

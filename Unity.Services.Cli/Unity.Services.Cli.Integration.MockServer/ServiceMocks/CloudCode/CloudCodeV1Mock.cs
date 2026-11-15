@@ -84,7 +84,8 @@ public class CloudCodeV1Mock : IServiceApiMock
         return models.Select(
             m => m.ConfigMappingPathWithKey(CommonKeys.ProjectIdKey, CommonKeys.ValidProjectId)
                 .ConfigMappingPathWithKey(CommonKeys.EnvironmentIdKey, CommonKeys.ValidEnvironmentId)
-                .ConfigMappingPathWithKey("scripts", validScriptName));
+                .ConfigMappingPathWithKey("scripts", validScriptName)
+                .ConfigMappingPathWithKey("versions", "*"));
     }
 
     static async Task<IEnumerable<MappingModel>> GetModuleModels(string validModuleName = "test_module")
@@ -93,6 +94,7 @@ public class CloudCodeV1Mock : IServiceApiMock
         return models.Select(
             m => m.ConfigMappingPathWithKey(CommonKeys.ProjectIdKey, CommonKeys.ValidProjectId)
                 .ConfigMappingPathWithKey(CommonKeys.EnvironmentIdKey, CommonKeys.ValidEnvironmentId)
-                .ConfigMappingPathWithKey("modules", validModuleName));
+                .ConfigMappingPathWithKey("modules", validModuleName)
+                .ConfigMappingPathWithKey("versions", "*"));
     }
 }

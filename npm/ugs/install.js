@@ -4,6 +4,7 @@ const FETCH = require("node-fetch");
 const { exec } = require("child_process");
 
 const PLATFORM = process.platform;
+const ARCH = process.arch;
 const ARGS = process.argv.slice(2);
 const VERSION = PACKAGE_INFO.version;
 const RELEASE_TAG = "v" + VERSION;
@@ -13,6 +14,7 @@ const USERNAME = "Unity-Technologies";
 const REPO_NAME = "unity-gaming-services-cli";
 const WINDOWS_X64_ASSET_NAME = "ugs-windows-x64.exe";
 const MACOS_X64_ASSET_NAME = "ugs-macos-x64";
+const MACOS_ARM64_ASSET_NAME = "ugs-macos-arm64";
 const LINUX_X64_ASSET_NAME = "ugs-linux-x64";
 const API_URL = `https://api.github.com/repos/${USERNAME}/${REPO_NAME}/releases/tags/${RELEASE_TAG}`;
 
@@ -48,11 +50,11 @@ async function sendAnalyticsAndExit(success, message) {
     }
 }
 
-// Determine GitHub asset name based on OS
+// Determine GitHub asset name based on OS and CPU architecture
 function getAssetName() {
     switch (PLATFORM) {
         case "darwin":
-            return MACOS_X64_ASSET_NAME;
+            return ARCH === "arm64" ? MACOS_ARM64_ASSET_NAME : MACOS_X64_ASSET_NAME;
             break;
         case "win32":
             return WINDOWS_X64_ASSET_NAME;
@@ -162,6 +164,7 @@ FETCH(API_URL)
         if (DRY_RUN) {
             await findGithubAsset(data, WINDOWS_X64_ASSET_NAME);
             await findGithubAsset(data, MACOS_X64_ASSET_NAME);
+            await findGithubAsset(data, MACOS_ARM64_ASSET_NAME);
             await findGithubAsset(data, LINUX_X64_ASSET_NAME);
         } else {
             const githubAsset = await findGithubAsset(data, assetName);

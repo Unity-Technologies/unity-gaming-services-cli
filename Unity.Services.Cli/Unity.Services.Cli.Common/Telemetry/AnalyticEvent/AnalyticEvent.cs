@@ -7,7 +7,7 @@ public class AnalyticEvent : AnalyticEventBase, IAnalyticEvent
 {
     readonly ISystemEnvironmentProvider m_SystemEnvironmentProvider;
 
-    bool IsDisabled => TelemetryConfigurationProvider.IsTelemetryDisabled(m_SystemEnvironmentProvider);
+    internal bool IsDisabled => !TelemetryConfigurationProvider.IsAnalyticsAllowed(m_SystemEnvironmentProvider);
 
     public AnalyticEvent(ISystemEnvironmentProvider environmentProvider, string taxonomyName) : base(taxonomyName)
     {

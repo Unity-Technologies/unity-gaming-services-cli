@@ -2,6 +2,7 @@ using Moq;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Scheduler.Fetch;
+using Unity.Services.Cli.Scheduler.Service;
 using Unity.Services.DeploymentApi.Editor;
 using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Fetch;
 using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.IO;
@@ -16,7 +17,7 @@ namespace Unity.Services.Cli.Scheduler.UnitTest.Deploy;
 public class SchedulerFetchServiceTests
 {
     SchedulerFetchService? m_FetchService;
-    readonly Mock<ISchedulerClient> m_MockScheduleClient = new();
+    readonly Mock<ISchedulerStatusClient> m_MockScheduleClient = new();
     readonly Mock<ISchedulerFetchHandler> m_MockScheduleFetchHandler = new();
     readonly Mock<ISchedulerResourceLoader> m_MockScheduleConfigLoader = new();
 
@@ -31,6 +32,7 @@ public class SchedulerFetchServiceTests
             m_MockScheduleClient.Object,
             m_MockScheduleConfigLoader.Object);
     }
+
 
     [Test]
     public async Task FetchAsync_MapsResult()

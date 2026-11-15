@@ -7,7 +7,10 @@ using Unity.Services.Cli.Player.Networking;
 using Unity.Services.Cli.Player.Service;
 using Unity.Services.Cli.Common;
 using Unity.Services.Cli.Common.Input;
+using Unity.Services.Cli.Common.Models;
 using Unity.Services.Cli.Common.Networking;
+using Unity.Services.Cli.Common.SystemEnvironment;
+using Unity.Services.Cli.Player.IdProvider.Service;
 using Unity.Services.Cli.ServiceAccountAuthentication;
 using Unity.Services.Cli.TestUtils;
 
@@ -16,7 +19,7 @@ namespace Unity.Services.Cli.Player.UnitTest;
 [TestFixture]
 public class PlayerModuleTests
 {
-    static readonly PlayerModule k_PlayerModule = new ();
+    static readonly PlayerModule k_PlayerModule = new();
 
     [Test]
     public void BuildCommands_CreateCommands()
@@ -57,13 +60,41 @@ public class PlayerModuleTests
         });
     }
 
+    static ISystemEnvironmentProvider Preview(string? value)
+    {
+        var environment = new Mock<ISystemEnvironmentProvider>();
+        var error = "";
+        environment.Setup(e => e.GetSystemEnvironmentVariable(Keys.EnvironmentKeys.Preview, out error)).Returns(value);
+        return environment.Object;
+    }
+
+    [TestCase(null)]
+    [TestCase("")]
+    [TestCase("some-other-preview")]
+    public void IdProviderCommands_AreOffUnlessTheirPreviewIsEnabled(string? preview)
+    {
+        var module = new PlayerModule(Preview(preview));
+
+        Assert.That(module.IdProviderCommand, Is.Null);
+        Assert.That(module.ModuleRootCommand!.Subcommands.Select(c => c.Name), Does.Not.Contain("id-provider"));
+    }
+
+    [Test]
+    public void IdProviderCommands_AreAddedWhenTheirPreviewIsEnabled()
+    {
+        var module = new PlayerModule(Preview(PreviewFeatures.PlayerIdProviders));
+
+        Assert.That(module.ModuleRootCommand!.Subcommands, Does.Contain(module.IdProviderCommand));
+    }
+
     [Test]
     public void RegisterServices_ExpectedServices()
     {
         EndpointHelper.InitializeNetworkTargetEndpoints(
         [
             new PlayerAdminEndpoints(),
-            new PlayerAuthEndpoints()
+            new PlayerAuthEndpoints(),
+            new PlayerIdentityEndpoints(),
         ]);
 
         var services = new List<ServiceDescriptor>
@@ -73,5 +104,6 @@ public class PlayerModuleTests
         var hostBuilder = TestsHelper.CreateAndSetupMockHostBuilder(services);
         hostBuilder.ConfigureServices(PlayerModule.RegisterServices);
         TestsHelper.AssertHasServiceType<IPlayerService>(services);
+        TestsHelper.AssertHasServiceType<IIdProviderService>(services);
     }
 }

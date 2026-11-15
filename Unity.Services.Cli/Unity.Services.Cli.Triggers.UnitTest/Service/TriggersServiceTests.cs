@@ -46,6 +46,7 @@ class TriggersServiceTests
             m_AuthenticationServiceObject.Object);
     }
 
+
     [Test]
     public async Task AuthorizeTriggerService()
     {
@@ -145,7 +146,7 @@ class TriggersServiceTests
             "cc/blah",
             null!,
             "",
-            new WebhookConfigBody(
+            webhook: new WebhookConfigBody(
                 "https://example.com",
                 "POST",
                 new Dictionary<string, string>() { {"Content-Type",  "application/json"} },
@@ -253,6 +254,30 @@ class TriggersServiceTests
             ));
         await m_TriggersService!.DeleteTriggerAsync(
             k_ValidProjectId, k_ValidEnvironmentId, k_TriggerId, CancellationToken.None);
+
+        m_TriggersApiMock.VerifyAll();
+    }
+
+    [TestCase(TriggerStatus.Active)]
+    [TestCase(TriggerStatus.Inactive)]
+    public async Task UpdateTriggerStatusAsync_CallsApiWithStatus(TriggerStatus status)
+    {
+        string mockErrorMsg;
+        m_ValidatorObject.Setup(v => v.IsConfigValid(It.IsAny<string>(), It.IsAny<string>(), out mockErrorMsg))
+            .Returns(true);
+
+        m_TriggersApiMock.Setup(
+            t => t.UpdateTriggerConfigAsync(
+                It.Is<Guid>(id => id.ToString() == k_ValidProjectId),
+                It.Is<Guid>(id => id.ToString() == k_ValidEnvironmentId),
+                It.Is<Guid>(id => id.ToString() == k_TriggerId),
+                It.Is<UpdateTriggerConfigBody>(b => b.Status == status),
+                0,
+                CancellationToken.None
+            ));
+
+        await m_TriggersService!.UpdateTriggerStatusAsync(
+            k_ValidProjectId, k_ValidEnvironmentId, k_TriggerId, status, CancellationToken.None);
 
         m_TriggersApiMock.VerifyAll();
     }

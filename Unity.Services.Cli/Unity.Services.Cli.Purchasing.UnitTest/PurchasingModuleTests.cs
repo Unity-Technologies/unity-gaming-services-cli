@@ -72,6 +72,7 @@ class PurchasingModuleTests
     [TestCase(typeof(ICatalogUcatLoader))]
     [TestCase(typeof(ICatalogCsvParser))]
     [TestCase(typeof(ICatalogCsvLoader))]
+    [TestCase(typeof(IWebshopCategoriesClient))]
     public void RegisterServices_RegistersExpectedServices(Type serviceType)
     {
         InitializeEndpoints();

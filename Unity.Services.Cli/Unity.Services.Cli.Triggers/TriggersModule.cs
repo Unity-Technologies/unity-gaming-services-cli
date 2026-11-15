@@ -33,7 +33,7 @@ public class TriggersModule : ICommandModule
     public Command? ModuleRootCommand { get; }
 
     static readonly Command k_ListCommand = new("list", new CommandDescription("List trigger configurations.")
-        .WithReturn("JSON array of triggers with id, name, eventType, actionType, actionUrn, and timestamps.")
+        .WithReturn("JSON array of triggers with id, name, eventType, actionType, actionUrn, status, and timestamps.")
         .Build())
     {
         ListTriggersInput.LimitOption,
@@ -42,7 +42,7 @@ public class TriggersModule : ICommandModule
     };
 
     static readonly Command k_GetCommand = new("get", new CommandDescription("Get a trigger configuration by ID.")
-        .WithReturn("JSON trigger object with id, name, eventType, actionType, actionUrn, filter, and optional webhook config.")
+        .WithReturn("JSON trigger object with id, name, eventType, actionType, actionUrn, filter, and status, and optional webhook config.")
         .Build())
     {
         GetTriggerInput.TriggerIdArgument,
@@ -55,6 +55,24 @@ public class TriggersModule : ICommandModule
         .Build())
     {
         DeleteTriggerInput.TriggerIdArgument,
+        CommonInput.CloudProjectIdOption,
+        CommonInput.EnvironmentNameOption,
+    };
+
+    static readonly Command k_ActivateCommand = new("activate", new CommandDescription("Activate a trigger configuration so it dispatches its action.")
+        .WithReturn("Confirmation message.")
+        .Build())
+    {
+        UpdateTriggerStatusInput.TriggerIdArgument,
+        CommonInput.CloudProjectIdOption,
+        CommonInput.EnvironmentNameOption,
+    };
+
+    static readonly Command k_DeactivateCommand = new("deactivate", new CommandDescription("Deactivate a trigger configuration. It keeps receiving events but does not dispatch its action.")
+        .WithReturn("Confirmation message.")
+        .Build())
+    {
+        UpdateTriggerStatusInput.TriggerIdArgument,
         CommonInput.CloudProjectIdOption,
         CommonInput.EnvironmentNameOption,
     };
@@ -152,6 +170,22 @@ public class TriggersModule : ICommandModule
             ILoadingIndicator,
             CancellationToken>(DeleteTriggersHandler.DeleteAsync);
 
+        k_ActivateCommand.SetHandler<
+            UpdateTriggerStatusInput,
+            IUnityEnvironment,
+            ITriggersService,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken>(UpdateTriggerStatusHandler.ActivateAsync);
+
+        k_DeactivateCommand.SetHandler<
+            UpdateTriggerStatusInput,
+            IUnityEnvironment,
+            ITriggersService,
+            ILogger,
+            ILoadingIndicator,
+            CancellationToken>(UpdateTriggerStatusHandler.DeactivateAsync);
+
         k_DlqListCommand.SetHandler<
             ListDlqEventsInput,
             IUnityEnvironment,
@@ -209,6 +243,8 @@ public class TriggersModule : ICommandModule
             k_ListCommand,
             k_GetCommand,
             k_DeleteCommand,
+            k_ActivateCommand,
+            k_DeactivateCommand,
             k_DlqCommand,
         };
 

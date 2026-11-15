@@ -10,6 +10,7 @@ using Unity.Services.Cli.RemoteConfig.Exceptions;
 using Unity.Services.Cli.RemoteConfig.Model;
 using Unity.Services.Cli.RemoteConfig.Types;
 using Unity.Services.Cli.ServiceAccountAuthentication;
+using Unity.Services.Cli.ServiceAccountAuthentication.Token;
 
 namespace Unity.Services.Cli.RemoteConfig.Service;
 
@@ -322,6 +323,7 @@ public class RemoteConfigService : IRemoteConfigService
     async Task AuthorizeServiceAsync(CancellationToken cancellationToken = default)
     {
         var token = await m_AuthService.GetAccessTokenAsync(cancellationToken);
-        m_HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", token);
+        m_HttpClient.DefaultRequestHeaders.Authorization =
+            System.Net.Http.Headers.AuthenticationHeaderValue.Parse(token.ToHeaderValue());
     }
 }

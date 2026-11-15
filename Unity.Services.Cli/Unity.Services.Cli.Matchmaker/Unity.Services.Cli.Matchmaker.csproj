@@ -20,9 +20,12 @@
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Unity.Services.Gateway.MatchmakerAdminApiV3.Generated" Version="0.1.7" />
-    <PackageReference Include="Unity.Services.Matchmaker.Authoring.Core" Version="0.0.44" />
+    <PackageReference Include="Unity.Services.Gateway.MatchmakerAdminApiV3.Generated" Version="0.2.0" />
+    <PackageReference Include="Unity.Services.Matchmaker.Authoring.Core" Version="0.0.45" />
   </ItemGroup>
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);</DefineConstants>
+  </PropertyGroup>
   <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>
   </PropertyGroup>

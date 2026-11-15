@@ -242,6 +242,7 @@ public class CloudCodeModule : ICommandModule
 
         ScriptsCommand.AddAlias("s");
 
+
         ModuleRootCommand = new Command(
             "cloud-code",
             new CommandDescription("Manage Cloud-Code scripts and modules.")
@@ -412,6 +413,7 @@ public class CloudCodeModule : ICommandModule
         };
 
         modulesHandlerCommand.AddAlias("m");
+
 
         root.Add(modulesHandlerCommand);
     }

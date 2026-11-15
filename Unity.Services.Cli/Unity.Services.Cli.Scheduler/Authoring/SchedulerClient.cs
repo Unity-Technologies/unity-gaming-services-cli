@@ -1,5 +1,7 @@
+using System.Net;
 using Unity.Services.Cli.Common.Models;
 using Unity.Services.Cli.Common.Validator;
+using Unity.Services.Cli.Scheduler.Service;
 using Unity.Services.Cli.ServiceAccountAuthentication;
 using Unity.Services.Cli.ServiceAccountAuthentication.Token;
 using Unity.Services.Gateway.SchedulerApiV1.Generated.Api;
@@ -10,7 +12,7 @@ using SchedulerApiException = Unity.Services.Gateway.SchedulerApiV1.Generated.Cl
 
 namespace Unity.Services.Cli.Scheduler.Deploy;
 
-class SchedulerClient : ISchedulerClient
+class SchedulerClient : ISchedulerClient, ISchedulerStatusClient
 {
     readonly ISchedulerApiAsync m_SchedulerApi;
     readonly IServiceAccountAuthenticationService m_AuthenticationService;
@@ -40,11 +42,13 @@ class SchedulerClient : ISchedulerClient
         ValidateProjectIdAndEnvironmentId(projectId, environmentId);
     }
 
+
     async Task AuthorizeServiceAsync(CancellationToken cancellationToken = default)
     {
         var token = await m_AuthenticationService.GetAccessTokenAsync(cancellationToken);
         m_SchedulerApi.Configuration.DefaultHeaders.SetAccessTokenHeader(token);
     }
+
 
     void ValidateProjectIdAndEnvironmentId(string projectId, string environmentId)
     {
@@ -69,17 +73,44 @@ class SchedulerClient : ISchedulerClient
     {
         await ExecuteRequest(async () =>
         {
+            var existing = await GetExistingOrNull(resource.Id, cancellationToken);
             await m_SchedulerApi.DeleteScheduleConfigAsync(
                 ProjectId,
                 EnvironmentId,
                 new Guid(resource.Id),
                 cancellationToken: cancellationToken);
-            await m_SchedulerApi.CreateScheduleConfigAsync(
+            var created = await m_SchedulerApi.CreateScheduleConfigAsync(
                 ProjectId,
                 EnvironmentId,
                 ToRequest(resource),
                 cancellationToken: cancellationToken);
+
+            if (existing?.Status == ScheduleStatus.Inactive)
+            {
+                await m_SchedulerApi.UpdateScheduleConfigAsync(
+                    ProjectId,
+                    EnvironmentId,
+                    created.Id,
+                    new UpdateScheduleConfigRequest(ScheduleStatusUpdate.Inactive),
+                    cancellationToken: cancellationToken);
+            }
         });
+    }
+
+    async Task<ScheduleConfig?> GetExistingOrNull(string id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await m_SchedulerApi.GetScheduleConfigAsync(
+                ProjectId,
+                EnvironmentId,
+                new Guid(id),
+                cancellationToken: cancellationToken);
+        }
+        catch (SchedulerApiException e) when (e.ErrorCode == (int)HttpStatusCode.NotFound)
+        {
+            return null;
+        }
     }
 
     public async Task Create(SchedulerEntry resource, CancellationToken cancellationToken = default)
@@ -128,28 +159,47 @@ class SchedulerClient : ISchedulerClient
     {
         return await ExecuteRequest(async () =>
         {
-            const int limit = 50;
-            var schedules = new List<ScheduleConfig>();
-            string? cursor = null;
-            List<ScheduleConfig> newBatch;
-            do
-            {
-                var results = await m_SchedulerApi.ListSchedulerConfigsAsync(
-                    ProjectId,
-                    EnvironmentId,
-                    limit,
-                    cursor,
-                    cancellationToken: cancellationToken);
-                newBatch = results.Configs;
-                cursor = newBatch.LastOrDefault()?.Id.ToString();
-                schedules.AddRange(newBatch);
-
-                if (cancellationToken.IsCancellationRequested)
-                    break;
-            } while (newBatch.Count >= limit);
-
+            var schedules = await ListConfigs(cancellationToken);
             return schedules.Select(FromResponse).ToList();
         });
+    }
+
+    public async Task<IReadOnlyList<ScheduleConfig>> ListConfigs(CancellationToken cancellationToken = default)
+    {
+        const int limit = 50;
+        var schedules = new List<ScheduleConfig>();
+        string? cursor = null;
+        List<ScheduleConfig> newBatch;
+        do
+        {
+            var results = await m_SchedulerApi.ListSchedulerConfigsAsync(
+                ProjectId,
+                EnvironmentId,
+                limit,
+                cursor,
+                cancellationToken: cancellationToken);
+            newBatch = results.Configs;
+            cursor = newBatch.LastOrDefault()?.Id.ToString();
+            schedules.AddRange(newBatch);
+
+            if (cancellationToken.IsCancellationRequested)
+                break;
+        } while (newBatch.Count >= limit);
+
+        return schedules;
+    }
+
+    public async Task UpdateStatus(
+        string id,
+        ScheduleStatusUpdate status,
+        CancellationToken cancellationToken = default)
+    {
+        await m_SchedulerApi.UpdateScheduleConfigAsync(
+            ProjectId,
+            EnvironmentId,
+            new Guid(id),
+            new UpdateScheduleConfigRequest(status),
+            cancellationToken: cancellationToken);
     }
 
     static ScheduleConfigBody ToRequest(SchedulerEntry resource)

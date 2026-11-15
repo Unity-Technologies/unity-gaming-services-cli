@@ -110,7 +110,10 @@ public class PurchasingModule : ICommandModule
         serviceCollection.AddSingleton<ICatalogCsvParser, CatalogCsvParser>();
         serviceCollection.AddSingleton<ICatalogCsvLoader, CatalogCsvLoader>();
 
-        serviceCollection.AddSingleton<IWebshopCategoriesClient, NullWebshopCategoriesClient>();
+        serviceCollection.AddSingleton<IWebshopCategoriesClient>(sp =>
+            new CliWebshopCategoriesClient(
+                sp.GetRequiredService<ILiveContentApiTransport>(),
+                GetSchemaRegistryBasePath()));
         serviceCollection.AddSingleton<ICatalogDeploymentHandler>(s =>
             new CatalogDeploymentHandler(
                 s.GetRequiredService<ILiveContentConfigClient>(),
@@ -148,10 +151,4 @@ public class PurchasingModule : ICommandModule
             : endpoint;
     }
 
-    class NullWebshopCategoriesClient : IWebshopCategoriesClient
-    {
-        public Task Initialize(string environmentId, string projectId, CancellationToken cancellationToken) => Task.CompletedTask;
-        public Task<WebshopCategories> Get(CancellationToken cancellationToken) => Task.FromResult(new WebshopCategories());
-        public Task Upsert(WebshopCategories categories, CancellationToken cancellationToken) => Task.CompletedTask;
-    }
 }

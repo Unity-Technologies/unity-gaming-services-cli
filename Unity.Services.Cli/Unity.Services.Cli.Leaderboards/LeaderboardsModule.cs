@@ -39,8 +39,6 @@ public class LeaderboardsModule : ICommandModule
     internal Command ImportCommand { get; }
     internal Command ListLeaderboardsCommand { get; }
     internal Command GetLeaderboardCommand { get; }
-    internal Command CreateLeaderboardCommand { get; }
-    internal Command UpdateLeaderboardCommand { get; }
     internal Command DeleteLeaderboardCommand { get; }
     internal Command ResetLeaderboardCommand { get; }
     internal Command ScoresCommand { get; }
@@ -120,36 +118,6 @@ public class LeaderboardsModule : ICommandModule
             ILoadingIndicator,
             CancellationToken>(
             GetLeaderboardHandler.GetLeaderboardConfigAsync);
-        CreateLeaderboardCommand = new Command("create", new CommandDescription("Create a new leaderboard.")
-            .WithReturn("Confirmation message.")
-            .Build())
-        {
-            CreateInput.RequestBodyArgument,
-        };
-        CreateLeaderboardCommand.SetHandler<
-            CreateInput,
-            IUnityEnvironment,
-            ILeaderboardsService,
-            ILogger,
-            ILoadingIndicator,
-            CancellationToken>(CreateLeaderboardHandler.CreateLeaderboardAsync);
-
-        UpdateLeaderboardCommand = new Command("update", new CommandDescription("Update a leaderboard.")
-            .WithReturn("Confirmation message.")
-            .Build())
-        {
-            LeaderboardIdInput.RequestLeaderboardIdArgument,
-            UpdateInput.RequestBodyArgument,
-            CommonInput.CloudProjectIdOption,
-            CommonInput.EnvironmentNameOption,
-        };
-        UpdateLeaderboardCommand.SetHandler<
-            UpdateInput,
-            IUnityEnvironment,
-            ILeaderboardsService,
-            ILogger,
-            ILoadingIndicator,
-            CancellationToken>(UpdateLeaderboardHandler.UpdateLeaderboardAsync);
 
         DeleteLeaderboardCommand = new Command("delete", new CommandDescription("Delete a leaderboard.")
             .WithReturn("Confirmation message.")
@@ -363,8 +331,6 @@ public class LeaderboardsModule : ICommandModule
             .WithAdminApi("https://services.docs.unity.com/leaderboards-admin/v1/")
             .Build())
         {
-            CreateLeaderboardCommand,
-            UpdateLeaderboardCommand,
             DeleteLeaderboardCommand,
             GetLeaderboardCommand,
             ListLeaderboardsCommand,

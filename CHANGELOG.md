@@ -5,6 +5,30 @@ All notable changes to UGS CLI will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-11-15
+
+### Added
+- [Player] `ugs player id-provider` commands to manage a project's Unity Authentication identity providers, as a preview that may change or be removed: set `UGS_CLI_PREVIEW=player-id-providers` to turn them on.
+- `UGS_CLI_PREVIEW` environment variable that turns on preview commands by name.
+- Added a native Apple Silicon macOS binary (`ugs-macos-arm64`). npm and the bash installer select it automatically.
+- [Triggers] `triggers activate` and `triggers deactivate` commands to pause and resume a trigger configuration. `triggers list` and `triggers get` show the trigger `status`.
+- [Scheduler] `scheduler activate` and `scheduler deactivate` commands to pause and resume a schedule. `scheduler list` shows each schedule's `id` and `status`.
+
+### Changed
+- When run as `unity ugs`, telemetry is sent only if `UNITY_CLI_CTX_ANALYTICS_ENABLED` is `1`, so the `unity` CLI's analytics setting applies to ugs. `UGS_CLI_TELEMETRY_DISABLED` still turns it off.
+- [Cloud Code] `cloud-code modules get --versions` and `cloud-code scripts get --versions` show each version's releases as `releaseIds`, separate from its tags.
+- [Cloud Code] `cloud-code modules delete` and `cloud-code scripts delete` explain when a module or script cannot be deleted because one of its versions is assigned to a release.
+- [Cloud Code] `cloud-code scripts publish` explains when a script cannot be published because it has the maximum number of versions and every older version is assigned to a release.
+- [Matchmaker] `ugs deploy` reports a queue that cannot be created, updated or deleted as a failure for that queue and still deploys the other queues. Queues that already match the remote are reported as `Up to date`.
+
+### Fixed
+- [Matchmaker] Matchmaker API errors are reported like other services' errors instead of as a stack trace.
+- [Remote Config] `ugs remote-config` commands no longer fail with 401 Unauthorized when logged in through Unity Hub.
+- [Purchasing] `ugs deploy` updates the webshop categories of In-App Purchasing catalog items. A category update that fails is reported without failing the deployment.
+
+### Removed
+- [Leaderboards] Removed the `leaderboards create` and `leaderboards update` commands, which were unintentionally released in 2.0.0. Use `ugs leaderboards new-file` with `ugs deploy` and `ugs fetch` instead.
+
 ## [2.0.0] - 2026-09-23
 
 ### Breaking

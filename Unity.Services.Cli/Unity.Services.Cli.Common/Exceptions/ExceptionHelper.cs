@@ -22,6 +22,8 @@ using PlayerAuthException = Unity.Services.Gateway.PlayerAuthApiV1.Generated.Cli
 using LiveReleasesApiException = Unity.Services.Gateway.LiveReleasesApiV1.Generated.Client.ApiException;
 using CloudSaveApiException = Unity.Services.Gateway.CloudSaveApiV1.Generated.Client.ApiException;
 using SchemaRegistryApiException = Unity.Services.Gateway.SchemaRegistryApiV1.Generated.Client.ApiException;
+using TriggersApiException = Unity.Services.Gateway.TriggersApiV1.Generated.Client.ApiException;
+using MatchmakerApiException = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Client.ApiException;
 
 namespace Unity.Services.Cli.Common.Exceptions;
 
@@ -108,6 +110,12 @@ public partial class ExceptionHelper
                 break;
             case SchemaRegistryApiException schemaRegistryApiException:
                 HandleApiException(exception, logger, schemaRegistryApiException.ErrorCode);
+                break;
+            case TriggersApiException triggersApiException:
+                HandleApiException(exception, logger, triggersApiException.ErrorCode);
+                break;
+            case MatchmakerApiException matchmakerApiException:
+                HandleApiException(exception, logger, matchmakerApiException.ErrorCode);
                 break;
             case AggregateException aggregateException:
                 foreach (var ex in aggregateException.InnerExceptions)

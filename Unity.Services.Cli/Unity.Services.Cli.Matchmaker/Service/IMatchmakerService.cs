@@ -9,6 +9,7 @@ interface IMatchmakerService
 {
     Task<string> Initialize(string projectId, string environmentId, CancellationToken ct = default);
 
+
     Task<(bool, EnvironmentConfig)> GetEnvironmentConfig(CancellationToken ct = default);
 
     Task<List<ErrorResponse>> UpsertEnvironmentConfig(EnvironmentConfig environmentConfig, bool dryRun, CancellationToken ct = default);

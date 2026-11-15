@@ -21,7 +21,7 @@
     <ProjectReference Include="..\Unity.Services.Cli.ServiceAccountAuthentication\Unity.Services.Cli.ServiceAccountAuthentication.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.4.2" />
+    <PackageReference Include="Unity.Services.Gateway.CloudCodeApiV1.Generated" Version="1.4.5" />
     <PackageReference Include="Unity.Services.CloudCode.Authoring.Editor.Core" Version="0.7.4" />
     <PackageReference Include="YamlDotNet" Version="13.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
@@ -33,6 +33,9 @@
   <ItemGroup>
     <Folder Include="Handlers\ImportExport\Modules\" />
   </ItemGroup>
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);</DefineConstants>
+  </PropertyGroup>
   <PropertyGroup>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>
   </PropertyGroup>

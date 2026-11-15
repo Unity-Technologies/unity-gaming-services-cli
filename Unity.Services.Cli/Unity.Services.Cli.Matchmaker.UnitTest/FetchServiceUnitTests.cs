@@ -7,6 +7,7 @@ using Unity.Services.Cli.Matchmaker.Service;
 using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.ConfigApi;
 using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Fetch;
 using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
+using ApiException = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Client.ApiException;
 using FetchResult = Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Fetch.FetchResult;
 
 namespace Unity.Services.Cli.Matchmaker.UnitTest;
@@ -29,7 +30,10 @@ public class MatchmakerFetchServiceUnitTests
                 Failed = { resource },
                 Deleted = { resource }
             });
-        var service = new MatchmakerFetchService(mockClient.Object, mockFetchHandler.Object);
+        var service = new MatchmakerFetchService(
+            mockClient.Object,
+            mockFetchHandler.Object
+        );
         var fetchInput = new FetchInput();
         var filePaths = new List<AuthoringFile> { new("test.mme") };
         var projectId = "testProjectId";
@@ -51,7 +55,10 @@ public class MatchmakerFetchServiceUnitTests
         var mockFetchHandler = new Mock<IMatchmakerFetchHandler>();
         mockFetchHandler.Setup(m => m.FetchAsync(It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new FetchResult { AbortMessage = "Abort" });
-        var service = new MatchmakerFetchService(mockClient.Object, mockFetchHandler.Object);
+        var service = new MatchmakerFetchService(
+            mockClient.Object,
+            mockFetchHandler.Object
+        );
         var fetchInput = new FetchInput();
         var filePaths = new List<AuthoringFile> { new("test.mm") };
         var projectId = "testProjectId";
@@ -60,4 +67,22 @@ public class MatchmakerFetchServiceUnitTests
 
         Assert.ThrowsAsync<MatchmakerException>(async () => await service.FetchAsync(fetchInput, filePaths, projectId, environmentId, null, cancellationToken));
     }
+
+    [Test]
+    public void FetchAsync_RethrowsTheApiExceptionWrappedByTheAdminClient()
+    {
+        var apiException = new ApiException(400, "Error calling ListQueues");
+        var mockFetchHandler = new Mock<IMatchmakerFetchHandler>();
+        mockFetchHandler.Setup(m => m.FetchAsync(It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new MatchmakerClientException(apiException.Message, apiException) { StatusCode = 400 });
+        var service = new MatchmakerFetchService(
+            new Mock<IConfigApiClient>().Object,
+            mockFetchHandler.Object
+        );
+
+        var thrown = Assert.ThrowsAsync<ApiException>(async () => await service.FetchAsync(new FetchInput { Path = "dir" }, new List<AuthoringFile>(), "testProjectId", "testEnvironmentId", null, CancellationToken.None));
+
+        Assert.That(thrown, Is.SameAs(apiException));
+    }
+
 }

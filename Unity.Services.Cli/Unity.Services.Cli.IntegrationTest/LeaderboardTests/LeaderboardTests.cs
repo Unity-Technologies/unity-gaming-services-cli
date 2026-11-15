@@ -1,6 +1,5 @@
 using System.IO;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using NUnit.Framework;
 using Unity.Services.Cli.Common.Exceptions;
 using Unity.Services.Cli.Authoring.Compression;
@@ -15,9 +14,6 @@ namespace Unity.Services.Cli.IntegrationTest.LeaderboardTests;
 public class LeaderboardTests : UgsCliFixture
 {
     static readonly string k_TestDirectory = Path.Combine(UgsCliBuilder.RootDirectory, ".tmp/FilesDir");
-    static readonly string k_LeaderboardFileName = "foo";
-    static readonly string k_MissingFieldLeaderboardFileName = "missing";
-    const string k_BrokenFile = "broken";
 
     const string k_DefaultFileName = "ugs.lbzip";
     const string k_AlternateFileName = "other.lbzip";
@@ -43,9 +39,6 @@ public class LeaderboardTests : UgsCliFixture
             Directory.Delete(k_TestDirectory, true);
         }
         Directory.CreateDirectory(k_TestDirectory);
-        await File.WriteAllTextAsync(Path.Join(k_TestDirectory, k_LeaderboardFileName), JsonConvert.SerializeObject(LeaderboardApiMock.Leaderboard1));
-        await File.WriteAllTextAsync(Path.Join(k_TestDirectory, k_MissingFieldLeaderboardFileName), "{ \"id\": \"lb1\", \"name\": \"leaderboard 1\" }");
-        await File.WriteAllTextAsync(Path.Join(k_TestDirectory, k_BrokenFile), "{");
 
         MockApi.Server?.ResetMappings();
         await MockApi.MockServiceAsync(new IdentityV1Mock());
@@ -178,20 +171,6 @@ versions: []";
         var expectedMessage = "leaderboard reset! Version Id: v10";
         await AssertSuccess("leaderboards reset lb1", expectedMessage);
     }
-    [Test]
-    public async Task LeaderboardCreateSucceed()
-    {
-
-        var expectedMessage = "leaderboard created!";
-        await AssertSuccess($"leaderboards create {k_TestDirectory}/{k_LeaderboardFileName}", expectedMessage);
-    }
-
-    [Test]
-    public async Task LeaderboardUpdateSucceed()
-    {
-        var expectedMessage = "leaderboard updated!";
-        await AssertSuccess($"leaderboards update lb1 {k_TestDirectory}/{k_LeaderboardFileName}", expectedMessage);
-    }
 
     [Test]
     public async Task LeaderboardExportSucceed()
@@ -214,30 +193,6 @@ versions: []";
         await AssertSuccess($"leaderboards export {k_TestDirectory} {k_AlternateFileName}", expectedResult: expectedMessage);
         var errorMessage = "The filename to export to already exists. Please create a new file";
         await AssertException($"leaderboards export {k_TestDirectory} {k_AlternateFileName}", errorMessage);
-    }
-    [TestCase("create")]
-    [TestCase("update foo")]
-    public async Task LeaderboardInvalidFilePath(string command)
-    {
-        var expectedMessage = "Invalid file path.";
-        await AssertException($"leaderboards {command} /InvalidFilePath/foo.lb", expectedMessage);
-    }
-
-
-    [TestCase("create")]
-    [TestCase("update foo")]
-    public async Task LeaderboardWrongField(string command)
-    {
-        var expectedMessage = "Failed to deserialize object for Leaderboard request: Unexpected end when reading JSON.";
-        await AssertException($"leaderboards {command} {k_TestDirectory}/{k_BrokenFile}", expectedMessage);
-    }
-
-    [Test]
-    public async Task LeaderboardCreateMissingRequiredField()
-    {
-        var expectedMessage = "Failed to deserialize object for Leaderboard request: Required property 'sortOrder' not found";
-        await AssertException($"leaderboards create {k_TestDirectory}/{k_MissingFieldLeaderboardFileName}", expectedMessage);
-
     }
 
     async Task AssertSuccess(string command, string? expectedMessage = null, string? expectedResult = null)

@@ -28,7 +28,10 @@ public class DeploymentServiceUnitTests
                 Failed = { resource },
                 Deleted = { resource }
             });
-        var service = new MatchmakerDeploymentService(mockClient.Object, mockDeploymentHandler.Object);
+        var service = new MatchmakerDeploymentService(
+            mockClient.Object,
+            mockDeploymentHandler.Object
+        );
         var deployInput = new DeployInput();
         var filePaths = new List<AuthoringFile> { new AuthoringFile("test.mmq") };
         var projectId = "testProjectId";
@@ -53,7 +56,10 @@ public class DeploymentServiceUnitTests
         var mockDeploymentHandler = new Mock<IMatchmakerDeployHandler>();
         mockDeploymentHandler.Setup(m => m.DeployAsync(It.IsAny<IReadOnlyList<string>>(), It.IsAny<MultiplayResources>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DeployResult { AbortMessage = "Abort" });
-        var service = new MatchmakerDeploymentService(mockClient.Object, mockDeploymentHandler.Object);
+        var service = new MatchmakerDeploymentService(
+            mockClient.Object,
+            mockDeploymentHandler.Object
+        );
         var deployInput = new DeployInput();
         var filePaths = new List<AuthoringFile> { new("test.mmq") };
         var projectId = "testProjectId";
@@ -63,4 +69,5 @@ public class DeploymentServiceUnitTests
         // Act & Assert
         Assert.ThrowsAsync<MatchmakerException>(async () => await service.Deploy(deployInput, filePaths, projectId, environmentId, null, cancellationToken));
     }
+
 }

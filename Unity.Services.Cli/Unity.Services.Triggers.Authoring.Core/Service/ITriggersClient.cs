@@ -9,6 +9,7 @@ namespace Unity.Services.Triggers.Authoring.Core.Service
     {
         void Initialize(string environmentId, string projectId, CancellationToken cancellationToken);
 
+
         Task<ITriggerConfig> Get(string name);
         Task Update(ITriggerConfig triggerConfig);
         Task Create(ITriggerConfig triggerConfig);

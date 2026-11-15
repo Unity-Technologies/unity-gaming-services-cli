@@ -68,6 +68,7 @@ public class TriggerFetchServiceTests
             .Returns(fromResult);
     }
 
+
     [Test]
     public async Task FetchAsync_MapsResult()
     {

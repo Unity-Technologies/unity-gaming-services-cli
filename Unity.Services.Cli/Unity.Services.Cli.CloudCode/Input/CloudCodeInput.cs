@@ -54,10 +54,10 @@ public class CloudCodeInput : DeployInput
     // Typed as a number so an indirect selector such as 'latest' is rejected at parse time: a delete
     // never resolves a selector on the caller's behalf.
     public static readonly Argument<long> ModuleVersionArgument =
-        new("version", "The module version to delete, as listed by 'modules get --versions'");
+        new("version", "The module version, as listed by 'modules get --versions'");
 
     public static readonly Argument<int> ScriptVersionArgument =
-        new("version", "The script version to delete, as listed by 'scripts get --versions'");
+        new("version", "The script version, as listed by 'scripts get --versions'");
 
     public static readonly Option<string?> TargetFrameworkOption =
         new("--target-framework","Target framework for the module (e.g., net8.0); defaults to net9.0 if not specified");

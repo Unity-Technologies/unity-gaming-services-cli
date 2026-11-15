@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Unity.Services.Cli.Authoring.Service;
 using Unity.Services.Cli.Common;
+using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Common.Networking;
 using Unity.Services.Cli.Matchmaker.Service;
 using Unity.Services.Cli.TestUtils;
@@ -69,6 +70,7 @@ public class MatchmakerModuleTest
             k_MatchmakerModule.ModuleRootCommand!, "queue", out var queueCommand);
         TestsHelper.AssertContainsCommand(queueCommand, "list", out _);
     }
+
 
     [Test]
     public void BuildCommands_ContainsRestrictionsCommand()

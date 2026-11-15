@@ -65,7 +65,7 @@ class TriggersClient : ITriggersClient
                 triggerConfig.ActionUrn,
                 triggerConfig.ActionScopeType,
                 triggerConfig.Filter,
-                ToApiWebhookConfigBody(triggerConfig.Webhook)),
+                webhook: ToApiWebhookConfigBody(triggerConfig.Webhook)),
             CancellationToken);
     }
 
@@ -81,7 +81,7 @@ class TriggersClient : ITriggersClient
                 triggerConfig.ActionUrn,
                 triggerConfig.ActionScopeType,
                 triggerConfig.Filter,
-                ToApiWebhookConfigBody(triggerConfig.Webhook)),
+                webhook: ToApiWebhookConfigBody(triggerConfig.Webhook)),
             CancellationToken);
     }
 

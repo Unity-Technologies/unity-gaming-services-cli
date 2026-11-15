@@ -16,6 +16,7 @@ class CloudCodeModuleClient : ICSharpClient
 
     internal CancellationToken CancellationToken { get; set; }
 
+
     public CloudCodeModuleClient(
         ICloudCodeService service,
         ICloudCodeInputParser parser,
@@ -41,12 +42,6 @@ class CloudCodeModuleClient : ICSharpClient
     {
         var moduleNameWithoutExt = module.Name.GetNameWithoutExtension();
         await using var fileHandle = await m_CloudCodeInputParser.LoadModuleContentsAsync(module.Path);
-        await m_CloudCodeService.UpdateModuleAsync(
-            ProjectId,
-            EnvironmentId,
-            moduleNameWithoutExt,
-            fileHandle,
-            CancellationToken);
 
         return module.Name;
     }

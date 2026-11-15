@@ -13,9 +13,11 @@ Usage:
     --exclude-staging
 """
 import argparse
+import glob
 import os
 import re
 import shutil
+import sys
 import yaml
 
 
@@ -61,6 +63,30 @@ def is_unlisted(filepath):
     return False
 
 
+def pages_missing_required_front_matter(pages_dir):
+    missing = []
+    for filepath in sorted(glob.glob(os.path.join(pages_dir, "**", "*.mdx"), recursive=True)):
+        with open(filepath, "r", encoding="utf-8") as f:
+            match = re.match(r'^---\n(.*?)\n---\n', f.read(), re.DOTALL)
+        fm = (yaml.safe_load(match.group(1)) if match else None) or {}
+        if not fm.get("title") or not fm.get("description"):
+            missing.append(os.path.relpath(filepath, pages_dir))
+    return missing
+
+
+DOCS_DOMAIN_URL = re.compile(r'https?://docs\.unity\.com\S*')
+
+
+def pages_linking_to_docs_domain(pages_dir):
+    found = []
+    for filepath in sorted(glob.glob(os.path.join(pages_dir, "**", "*.mdx"), recursive=True)):
+        with open(filepath, "r", encoding="utf-8") as f:
+            for number, line in enumerate(f, start=1):
+                for url in DOCS_DOMAIN_URL.findall(line):
+                    found.append(f"{os.path.relpath(filepath, pages_dir)}:{number}: {url}")
+    return found
+
+
 def build_sidebar_items(dir_path, url_prefix):
     items = []
     entries = sorted(os.listdir(dir_path))
@@ -99,13 +125,19 @@ def generate_service_sidebar(service_dir, service_name, version, display_names):
 
 def generate_root_sidebar(pages_dir, version, display_names):
     url_base = f"/services-cli/{version}"
-    sections = [{"title": "Unity Gaming Services CLI", "items": [{"title": "Overview", "href": f"{url_base}/"}]}]
+    root_items = [{"title": "Overview", "href": f"{url_base}/"}]
+    if os.path.isfile(os.path.join(pages_dir, "whats-new.mdx")):
+        root_items.append({"title": f"What's New in {version}", "href": f"{url_base}/whats-new"})
+    sections = [{"title": "Unity Gaming Services CLI", "items": root_items}]
 
     general_dir = os.path.join(pages_dir, "manual", "general")
     for subsection in ["get-started", "base-commands", "deployment-definition", "samples", "troubleshooting"]:
         sub_dir = os.path.join(general_dir, subsection)
         if os.path.isdir(sub_dir):
-            items = build_sidebar_items(sub_dir, f"{url_base}/manual/general/{subsection}")
+            subsection_url = f"{url_base}/manual/general/{subsection}"
+            items = build_sidebar_items(sub_dir, subsection_url)
+            if os.path.exists(os.path.join(sub_dir, "_index.mdx")):
+                items.insert(0, {"title": "Overview", "href": subsection_url})
             if items:
                 label = DIRECTORY_DISPLAY_NAMES.get(subsection, subsection.replace("-", " ").title())
                 sections.append({"title": label, "items": items})
@@ -135,6 +167,11 @@ def copy_sources(input_dir, pages_dir, services):
         content = content.replace('href="general/', 'href="./manual/general/')
         with open(os.path.join(pages_dir, "_index.mdx"), "w", encoding="utf-8") as f:
             f.write(content)
+
+    # Root What's New page
+    whats_new = os.path.join(input_dir, "whats-new.mdx")
+    if os.path.isfile(whats_new):
+        shutil.copy2(whats_new, os.path.join(pages_dir, "whats-new.mdx"))
 
     # General section → manual/general/
     general_src = os.path.join(input_dir, "general")
@@ -220,6 +257,50 @@ def fix_relative_links(pages_dir):
                     fh.write(new_content)
 
 
+REFERENCE_DEFINITION = re.compile(r'^[ \t]*\[([^\]]+)\]:[ \t]')
+REFERENCE_USE = re.compile(r'(?<!\[)\[([^\[\]]+)\](?!\(|:|\[)')
+INLINE_CODE = re.compile(r'(`[^`]*`)')
+
+
+def prose_line_flags(lines):
+    """True for each line outside a fenced code block."""
+    flags = []
+    in_code = False
+    for line in lines:
+        if line.startswith("```"):
+            in_code = not in_code
+            flags.append(False)
+        else:
+            flags.append(not in_code)
+    return flags
+
+
+def outside_inline_code(line, transform):
+    """Apply transform to the parts of a line that are not inline code spans."""
+    parts = INLINE_CODE.split(line)
+    return "".join(part if i % 2 else transform(part) for i, part in enumerate(parts))
+
+
+def is_unused_definition(line, used_refs):
+    match = REFERENCE_DEFINITION.match(line)
+    return match is not None and match.group(1) not in used_refs
+
+
+def remove_unused_definitions(lines, prose, used_refs):
+    """Replace each unused definition, with the blank lines directly above it, by one blank line."""
+    kept = []
+    original_blanks = 0
+    for line, is_prose in zip(lines, prose):
+        if is_prose and is_unused_definition(line, used_refs):
+            del kept[len(kept) - original_blanks:]
+            kept.append("")
+            original_blanks = 0
+            continue
+        kept.append(line)
+        original_blanks = original_blanks + 1 if line.strip() == "" else 0
+    return kept
+
+
 def apply_build_time_fixes(pages_dir):
     """Orphan bracket escaping and unused reference cleanup, skipping code blocks."""
     for root, _, files in os.walk(pages_dir):
@@ -230,41 +311,39 @@ def apply_build_time_fixes(pages_dir):
             with open(filepath, "r", encoding="utf-8") as fh:
                 content = fh.read()
 
+            # Code blocks and inline code are left untouched by every pass below:
+            # lines such as "[Error]:" in sample output are not reference definitions.
+            lines = content.split("\n")
+            prose = prose_line_flags(lines)
+
             # Collect defined references
             defined_refs = set()
-            for ref_match in re.finditer(r'^\s*\[([^\]]+)\]:\s', content, re.MULTILINE):
-                defined_refs.add(ref_match.group(1))
+            for line, is_prose in zip(lines, prose):
+                ref_match = REFERENCE_DEFINITION.match(line)
+                if is_prose and ref_match:
+                    defined_refs.add(ref_match.group(1))
 
             def escape_orphan_ref(match):
                 if match.group(1) in defined_refs:
                     return match.group(0)
                 return f"\\[{match.group(1)}\\]"
 
-            # Process line by line, skip code blocks
-            lines = content.split("\n")
-            in_code = False
-            processed = []
-            for line in lines:
-                if line.startswith("```"):
-                    in_code = not in_code
-                    processed.append(line)
-                elif in_code:
-                    processed.append(line)
-                else:
-                    processed.append(
-                        re.sub(r'(?<!\[)\[([^\[\]]+)\](?!\(|:|\[)', escape_orphan_ref, line))
-            new_content = "\n".join(processed)
+            lines = [
+                outside_inline_code(line, lambda text: REFERENCE_USE.sub(escape_orphan_ref, text))
+                if is_prose else line
+                for line, is_prose in zip(lines, prose)]
 
             # Remove unused reference definitions
             used_refs = set()
-            for ref_match in re.finditer(r'(?<!\[)\[([^\[\]]+)\](?!\(|:|\[)', new_content):
-                text = ref_match.group(1)
-                if not text.startswith("\\"):
-                    used_refs.add(text)
-            new_content = re.sub(
-                r'^\s*\[([^\]]+)\]:\s+.*$',
-                lambda m: m.group(0) if m.group(1) in used_refs else '',
-                new_content, flags=re.MULTILINE)
+            for line, is_prose in zip(lines, prose):
+                if not is_prose:
+                    continue
+                for ref_match in REFERENCE_USE.finditer(line):
+                    text = ref_match.group(1)
+                    if not text.startswith("\\"):
+                        used_refs.add(text)
+            lines = remove_unused_definitions(lines, prose, used_refs)
+            new_content = "\n".join(lines)
 
             if not new_content.endswith("\n"):
                 new_content += "\n"
@@ -337,6 +416,16 @@ def main():
     rewrite_versioned_links(pages_dir, version)
     fix_relative_links(pages_dir)
     apply_build_time_fixes(pages_dir)
+
+    missing = pages_missing_required_front_matter(pages_dir)
+    if missing:
+        sys.exit("ERROR: pages missing a title or description in front matter "
+                 "(required by the docs-content lint):\n  " + "\n  ".join(missing))
+
+    docs_domain_links = pages_linking_to_docs_domain(pages_dir)
+    if docs_domain_links:
+        sys.exit("ERROR: links to docs.unity.com must be site paths (e.g. /cloud/automation), "
+                 "as required by the docs-content lint:\n  " + "\n  ".join(docs_domain_links))
 
     print(f"UDP bundle generated at {output_dir}")
     print(f"  Version: {version}")

@@ -15,5 +15,7 @@ class ApiJsonProblem
 class ApiJsonProblemError
 {
     public string? Field { get; set; }
+
+    public string? Key { get; set; }
     public IList<string>? Messages { get; set; }
 }

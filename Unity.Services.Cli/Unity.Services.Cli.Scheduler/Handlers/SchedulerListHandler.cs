@@ -3,8 +3,8 @@ using Unity.Services.Cli.Common.Console;
 using Unity.Services.Cli.Common.Input;
 using Unity.Services.Cli.Common.Logging;
 using Unity.Services.Cli.Common.Utils;
-using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Model;
-using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Service;
+using Unity.Services.Cli.Scheduler.Service;
+using Unity.Services.Gateway.SchedulerApiV1.Generated.Model;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -15,7 +15,7 @@ static class SchedulerListHandler
     public static async Task SchedulerListHandlerHandlerAsync(
         CommonInput input,
         IUnityEnvironment unityEnvironment,
-        ISchedulerClient schedulerAdminClient,
+        ISchedulerStatusClient schedulerAdminClient,
         ILogger logger,
         ILoadingIndicator loadingIndicator,
         CancellationToken cancellationToken)
@@ -28,38 +28,43 @@ static class SchedulerListHandler
     static async Task SchedulerListAsync(
         CommonInput input,
         IUnityEnvironment unityEnvironment,
-        ISchedulerClient schedulerAdminClient,
+        ISchedulerStatusClient schedulerAdminClient,
         ILogger logger,
         CancellationToken cancellationToken)
     {
         var environmentId = await unityEnvironment.FetchIdentifierAsync(cancellationToken);
         var projectId = input.CloudProjectId!;
-        await schedulerAdminClient.Initialize(environmentId, projectId, cancellationToken);
-        var listResult = await schedulerAdminClient.List(cancellationToken);
+        var listResult = await schedulerAdminClient.ListConfigs(cancellationToken);
 
         var cliFriendlyList = listResult.Select(i => new ScheduleItem(i));
         logger.LogResultValue(cliFriendlyList);
     }
 
-    class ScheduleItem
+    internal class ScheduleItem
     {
-        readonly SchedulerEntry  m_ServerModel;
+        public string Id { get; }
         public string Name { get; }
         public string EventName { get; }
         public string ScheduleType { get; }
         public string Schedule { get; }
         public int PayloadVersion { get; }
         public string Payload { get; }
+        public DateTime? StartAt { get; }
+        public DateTime? EndAt { get; }
+        public string Status { get; }
 
-        public ScheduleItem(SchedulerEntry serverModel)
+        public ScheduleItem(ScheduleConfig serverModel)
         {
-            m_ServerModel = serverModel;
+            Id = serverModel.Id.ToString();
             Name = serverModel.Name;
             Schedule = serverModel.Schedule;
             EventName = serverModel.EventName;
-            ScheduleType = serverModel.ScheduleType;
+            ScheduleType = serverModel.Type;
             PayloadVersion = serverModel.PayloadVersion;
             Payload = serverModel.Payload;
+            StartAt = serverModel.StartAt == default ? null : serverModel.StartAt;
+            EndAt = serverModel.EndAt == default ? null : serverModel.EndAt;
+            Status = serverModel.Status.ToString().ToLowerInvariant();
         }
 
         public override string ToString()
@@ -68,7 +73,7 @@ static class SchedulerListHandler
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
                 .DisableAliases()
                 .Build();
-            return serializer.Serialize(m_ServerModel);
+            return serializer.Serialize(this);
         }
     }
 }

@@ -29,6 +29,13 @@ interface ITriggersService
         string triggerId,
         CancellationToken cancellationToken = default);
 
+    Task UpdateTriggerStatusAsync(
+        string projectId,
+        string environmentId,
+        string triggerId,
+        TriggerStatus status,
+        CancellationToken cancellationToken = default);
+
     Task DeleteTriggerAsync(
         string projectId,
         string environmentId,

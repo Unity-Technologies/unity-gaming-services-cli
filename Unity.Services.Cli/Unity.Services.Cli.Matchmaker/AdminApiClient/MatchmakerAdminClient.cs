@@ -3,6 +3,7 @@ using Unity.Services.Cli.Matchmaker.Parser;
 using Unity.Services.Cli.Matchmaker.Service;
 using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.ConfigApi;
 using Unity.Services.Multiplayer.Editor.Matchmaker.Authoring.Core.Model;
+using ApiException = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Client.ApiException;
 using Generated = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model;
 
 namespace Unity.Services.Cli.Matchmaker.AdminApiClient;
@@ -28,7 +29,7 @@ class MatchmakerAdminClient : IConfigApiClient
     public async Task<(bool, EnvironmentConfig)> GetEnvironmentConfig(CancellationToken ct = default)
     {
 
-        var (exist, genEnvConfig) = await m_Service.GetEnvironmentConfig(ct);
+        var (exist, genEnvConfig) = await ThrowAsClientException(() => m_Service.GetEnvironmentConfig(ct));
         if (!exist)
             return (false, new EnvironmentConfig());
         return (true, new EnvironmentConfig
@@ -45,12 +46,12 @@ class MatchmakerAdminClient : IConfigApiClient
             defaultQueueName: environmentConfig.DefaultQueueName.ToString() ?? string.Empty,
             enabled: environmentConfig.Enabled
         );
-        return await m_Service.UpsertEnvironmentConfig(genEnvConfig, dryRun, ct);
+        return await ThrowAsClientException(() => m_Service.UpsertEnvironmentConfig(genEnvConfig, dryRun, ct));
     }
 
     public async Task<List<(QueueConfig, List<ErrorResponse>)>> ListQueues(CancellationToken ct = default)
     {
-        var genQueues = await m_Service.ListQueues(ct);
+        var genQueues = await ThrowAsClientException(() => m_Service.ListQueues(ct));
         var emptyResources = new MultiplayResources();
         return genQueues?.Select(f => ModelGeneratedToCore.FromGeneratedQueueConfig(f, emptyResources)).ToList() ?? new List<(QueueConfig, List<ErrorResponse>)>();
     }
@@ -60,15 +61,34 @@ class MatchmakerAdminClient : IConfigApiClient
         var (genQueueConfig, errors) = ModelCoreToGenerated.FromCoreQueueConfig(queueConfig, new MultiplayResources(), dryRun);
         if (errors.Count > 0)
             return errors;
-        return await m_Service.UpsertQueueConfig(
+        return await ThrowAsClientException(() => m_Service.UpsertQueueConfig(
             genQueueConfig,
             dryRun,
-            ct);
+            ct));
     }
 
     public async Task DeleteQueue(QueueName queueName, bool dryRun, CancellationToken ct = default)
     {
-        await m_Service.DeleteQueue(queueName.ToString() ?? string.Empty, dryRun, ct);
+        await ThrowAsClientException(async () =>
+        {
+            await m_Service.DeleteQueue(queueName.ToString() ?? string.Empty, dryRun, ct);
+            return true;
+        });
+    }
+
+    static async Task<T> ThrowAsClientException<T>(Func<Task<T>> call)
+    {
+        try
+        {
+            return await call();
+        }
+        catch (ApiException e)
+        {
+            throw new MatchmakerClientException(e.Message, e)
+            {
+                StatusCode = e.ErrorCode
+            };
+        }
     }
 
     MultiplayResources IConfigApiClient.GetRemoteMultiplayResources() => new MultiplayResources();

@@ -52,6 +52,8 @@ public class SchedulerClientTests
         Assert.That(m_SchedulerClient.ProjectId.ToString(), Is.EqualTo(TestValues.ValidProjectId));
     }
 
+
+
     [Test]
     public async Task ListMoreThanLimit()
     {
@@ -72,6 +74,7 @@ public class SchedulerClientTests
                 It.Is<Guid>(g => g.ToString() == TestValues.ValidEnvironmentId),
                 It.Is<int>(i => i == 50),
                 It.Is<string>(s => s == null),
+                It.IsAny<string>(),
                 It.IsAny<int>(),
                 It.IsAny<CancellationToken>()))
             .Returns(
@@ -85,6 +88,7 @@ public class SchedulerClientTests
                     It.Is<Guid>(g => g.ToString() == TestValues.ValidEnvironmentId),
                     It.Is<int>(i => i == 50),
                     It.Is<string>(s => s == schedules[49].Id.ToString()),
+                    It.IsAny<string>(),
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()))
             .Returns(
@@ -109,6 +113,7 @@ public class SchedulerClientTests
                     It.Is<Guid>(g => g.ToString() == TestValues.ValidEnvironmentId),
                     It.Is<int>(i => i == 50),
                     It.Is<string>(s => s == null),
+                    It.IsAny<string>(),
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()))
             .Returns(
@@ -150,6 +155,84 @@ public class SchedulerClientTests
         m_MockApi.VerifyAll();
     }
 
+    [TestCase(ScheduleStatus.Inactive, 1)]
+    [TestCase(ScheduleStatus.Active, 0)]
+    public async Task Update_PreservesInactiveStatus(ScheduleStatus existingStatus, int expectedPatches)
+    {
+        await m_SchedulerClient.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        var newId = Guid.NewGuid();
+        m_MockApi.Setup(a => a.GetScheduleConfigAsync(
+                It.IsAny<Guid>(), It.IsAny<Guid>(), m_Schedule.Id, It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ScheduleConfig(
+                m_Schedule.Id,
+                m_Schedule.Name,
+                m_Schedule.EventName,
+                m_Schedule.Type,
+                m_Schedule.Schedule,
+                m_Schedule.PayloadVersion,
+                m_Schedule.Payload,
+                status: existingStatus));
+        m_MockApi.Setup(a => a.CreateScheduleConfigAsync(
+                It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<ScheduleConfigBody>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ScheduleConfigId(newId));
+
+        await m_SchedulerClient.Update(SchedulerClient.FromResponse(m_Schedule));
+
+        m_MockApi.Verify(
+            a => a.UpdateScheduleConfigAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                newId,
+                It.Is<UpdateScheduleConfigRequest>(r => r.Status == ScheduleStatusUpdate.Inactive),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()),
+            Times.Exactly(expectedPatches));
+        m_MockApi.Verify(
+            a => a.DeleteScheduleConfigAsync(
+                It.IsAny<Guid>(), It.IsAny<Guid>(), m_Schedule.Id, It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task Update_ScheduleNotFoundOnRead_StillDeletesAndCreates()
+    {
+        await m_SchedulerClient.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        m_MockApi.Setup(a => a.GetScheduleConfigAsync(
+                It.IsAny<Guid>(), It.IsAny<Guid>(), m_Schedule.Id, It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ApiException(404, "not found"));
+        m_MockApi.Setup(a => a.CreateScheduleConfigAsync(
+                It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<ScheduleConfigBody>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ScheduleConfigId(Guid.NewGuid()));
+
+        Assert.DoesNotThrowAsync(() => m_SchedulerClient.Update(SchedulerClient.FromResponse(m_Schedule)));
+
+        m_MockApi.Verify(
+            a => a.CreateScheduleConfigAsync(
+                It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<ScheduleConfigBody>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+        m_MockApi.Verify(
+            a => a.UpdateScheduleConfigAsync(
+                It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<UpdateScheduleConfigRequest>(),
+                It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Test]
+    public async Task Update_NonNotFoundReadError_IsWrappedAsClientException()
+    {
+        await m_SchedulerClient.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        m_MockApi.Setup(a => a.GetScheduleConfigAsync(
+                It.IsAny<Guid>(), It.IsAny<Guid>(), m_Schedule.Id, It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ApiException(500, "boom"));
+
+        Assert.ThrowsAsync<ClientException>(
+            () => m_SchedulerClient.Update(SchedulerClient.FromResponse(m_Schedule)));
+        m_MockApi.Verify(
+            a => a.DeleteScheduleConfigAsync(
+                It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
     [Test]
     public async Task UpdateApiExceptionIsWrappedAsClientException()
     {
@@ -185,6 +268,10 @@ public class SchedulerClientTests
             It.IsAny<CancellationToken>())).Returns(Task.FromResult(new ScheduleConfigId(m_Schedule.Id)));
 
         await m_SchedulerClient.Create(SchedulerClient.FromResponse(m_Schedule));
+        m_MockApi.Verify(
+            a => a.GetScheduleConfigAsync(
+                It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Never);
 
         m_MockApi.VerifyAll();
     }
@@ -279,5 +366,44 @@ public class SchedulerClientTests
         Assert.That(m_Schedule.StartAt, Is.EqualTo(res.StartAt));
         Assert.That(m_Schedule.EndAt, Is.EqualTo(res.EndAt));
         m_MockApi.VerifyAll();
+    }
+
+    [TestCase(ScheduleStatusUpdate.Active)]
+    [TestCase(ScheduleStatusUpdate.Inactive)]
+    public async Task UpdateStatus_CallsApiWithStatus(ScheduleStatusUpdate status)
+    {
+        await m_SchedulerClient.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        m_MockApi.Setup(
+            api => api.UpdateScheduleConfigAsync(
+                It.Is<Guid>(g => g.ToString() == TestValues.ValidProjectId),
+                It.Is<Guid>(g => g.ToString() == TestValues.ValidEnvironmentId),
+                m_Schedule.Id,
+                It.Is<UpdateScheduleConfigRequest>(r => r.Status == status),
+                0,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(m_Schedule);
+
+        await m_SchedulerClient.UpdateStatus(m_Schedule.Id.ToString(), status);
+
+        m_MockApi.VerifyAll();
+    }
+
+    [Test]
+    public async Task UpdateStatus_PropagatesApiException()
+    {
+        await m_SchedulerClient.Initialize(TestValues.ValidEnvironmentId, TestValues.ValidProjectId, CancellationToken.None);
+        m_MockApi.Setup(
+            api => api.UpdateScheduleConfigAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<Guid>(),
+                It.IsAny<UpdateScheduleConfigRequest>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ApiException(403, "forbidden"));
+
+        var exception = Assert.ThrowsAsync<ApiException>(
+            () => m_SchedulerClient.UpdateStatus(m_Schedule.Id.ToString(), ScheduleStatusUpdate.Inactive));
+        Assert.That(exception!.ErrorCode, Is.EqualTo(403));
     }
 }

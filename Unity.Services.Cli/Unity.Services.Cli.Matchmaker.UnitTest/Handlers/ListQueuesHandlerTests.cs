@@ -66,4 +66,5 @@ class ListQueuesHandlerTests
         m_MockService.Verify(x => x.ListQueues(CancellationToken.None), Times.Once);
         TestsHelper.VerifyLoggerWasCalled(m_MockLogger, LogLevel.Critical, expectedTimes: Times.Once);
     }
+
 }

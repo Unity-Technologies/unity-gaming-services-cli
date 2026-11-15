@@ -43,7 +43,6 @@ class TriggersFetchService : TriggerDeployFetchBase, IFetchService
         StatusContext? loadingContext,
         CancellationToken cancellationToken)
     {
-        m_Client.Initialize(environmentId, projectId, cancellationToken);
         loadingContext?.Status($"Reading {ServiceType} files...");
         var (deserializedFiles, failedToDeserialize) = await GetResourcesFromFiles(filePaths.ToPaths(), cancellationToken);
 

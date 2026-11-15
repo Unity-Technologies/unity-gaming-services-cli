@@ -55,6 +55,12 @@ public static class Keys
 
         public const string TelemetryDisabled = "UGS_CLI_TELEMETRY_DISABLED";
 
+        public const string Preview = "UGS_CLI_PREVIEW";
+
+        // Set by the `unity` CLI when it runs ugs as `unity ugs`. Unset when ugs runs on its own.
+        public const string UnityCliContextVersion = "UNITY_CLI_CTX_VERSION";
+        public const string UnityCliAnalyticsEnabled = "UNITY_CLI_CTX_ANALYTICS_ENABLED";
+
         // Env variables used for identifying the cicd platform being used
         public const string RunningOnDocker = "DOTNET_RUNNING_IN_CONTAINER";
         public const string RunningOnJenkins = "JENKINS_HOME";

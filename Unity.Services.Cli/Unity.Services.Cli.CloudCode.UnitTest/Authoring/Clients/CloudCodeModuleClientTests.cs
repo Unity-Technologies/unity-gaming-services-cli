@@ -64,6 +64,7 @@ class CloudCodeModuleClientTests
         Assert.AreEqual(k_ModuleName, scriptName.GetNameWithoutExtension());
     }
 
+
     [Test]
     public void UploadFromFileUpdateThrowException()
     {

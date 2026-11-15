@@ -1,6 +1,5 @@
 using System.Globalization;
 using Newtonsoft.Json;
-using Unity.Services.Cli.CloudCode.Utils;
 using Unity.Services.Gateway.CloudCodeApiV1.Generated.Model;
 
 namespace Unity.Services.Cli.CloudCode.Model;
@@ -21,6 +20,9 @@ class ScriptVersionOutput
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
     public Dictionary<string, string>? Tags { get; }
 
+    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    public List<string>? ReleaseIds { get; }
+
     public ScriptVersionOutput(GetScriptResponseVersionsInner version)
     {
         Version = version._Version;
@@ -30,10 +32,8 @@ class ScriptVersionOutput
             ? null
             : version.DateCreated.ToString("s", CultureInfo.InvariantCulture);
 
-        var userTags = version.Tags?
-            .Where(tag => !tag.Key.StartsWith(CloudCodeConstants.ReservedTagPrefix, StringComparison.Ordinal))
-            .ToDictionary(tag => tag.Key, tag => tag.Value);
-        Tags = userTags is { Count: > 0 } ? userTags : null;
+        Tags = version.Tags is { Count: > 0 } ? new Dictionary<string, string>(version.Tags) : null;
+        ReleaseIds = version.ReleaseIds is { Count: > 0 } ? new List<string>(version.ReleaseIds) : null;
     }
 
     internal Dictionary<string, object?> ToDictionary()
@@ -49,6 +49,8 @@ class ScriptVersionOutput
             data["dateCreated"] = DateCreated;
         if (Tags is { Count: > 0 })
             data["tags"] = Tags;
+        if (ReleaseIds is { Count: > 0 })
+            data["releaseIds"] = ReleaseIds;
         return data;
     }
 }

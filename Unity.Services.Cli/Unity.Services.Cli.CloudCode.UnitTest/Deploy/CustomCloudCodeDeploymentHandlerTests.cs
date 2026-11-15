@@ -44,4 +44,5 @@ class CustomCloudCodeDeploymentHandlerTests
         Assert.AreEqual(expectedStatus, m_ExpectedContent.Status.Message);
         Assert.AreEqual(expectedDetail, m_ExpectedContent.Detail);
     }
+
 }

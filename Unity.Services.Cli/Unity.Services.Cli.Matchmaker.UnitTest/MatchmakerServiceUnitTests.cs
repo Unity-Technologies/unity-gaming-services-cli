@@ -9,6 +9,7 @@ using Unity.Services.Cli.ServiceAccountAuthentication;
 using Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Api;
 using Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Client;
 using Generated = Unity.Services.Gateway.MatchmakerAdminApiV3.Generated.Model;
+using Keys = Unity.Services.Cli.Common.Models.Keys;
 
 namespace Unity.Services.Cli.Matchmaker.UnitTest;
 
@@ -56,6 +57,7 @@ public class MatchmakerServiceTests
         Assert.That(actualKey, Is.EqualTo("Authorization"));
         Assert.That(actualValue, Is.EqualTo("Basic testToken"));
     }
+
 
     [Test]
     public async Task GetEnvironmentConfig_ReturnsEnvironmentConfig()

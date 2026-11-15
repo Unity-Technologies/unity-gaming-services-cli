@@ -51,6 +51,7 @@ public class TriggersApiMock : IServiceApiMock
         MockGetTrigger(mockServer, Trigger1);
         MockDeleteTrigger(mockServer, Trigger1.Id.ToString());
         MockCreateTrigger(mockServer, Trigger1);
+        MockUpdateTrigger(mockServer, Trigger1);
     }
 
     void MockListTriggers(WireMockServer mockServer, List<TriggerConfigListItem> triggerConfigs,
@@ -80,6 +81,15 @@ public class TriggersApiMock : IServiceApiMock
     void MockCreateTrigger(WireMockServer mockServer, TriggerConfig triggerConfig, HttpStatusCode code = HttpStatusCode.Created)
     {
         mockServer.Given(Request.Create().WithPath(k_BaseUrl).UsingPost())
+            .RespondWith(Response.Create()
+                .WithHeaders(m_RequestHeader)
+                .WithBodyAsJson(triggerConfig)
+                .WithStatusCode(code));
+    }
+
+    void MockUpdateTrigger(WireMockServer mockServer, TriggerConfig triggerConfig, HttpStatusCode code = HttpStatusCode.OK)
+    {
+        mockServer.Given(Request.Create().WithPath(k_BaseUrl + "/" + triggerConfig.Id).UsingPatch())
             .RespondWith(Response.Create()
                 .WithHeaders(m_RequestHeader)
                 .WithBodyAsJson(triggerConfig)

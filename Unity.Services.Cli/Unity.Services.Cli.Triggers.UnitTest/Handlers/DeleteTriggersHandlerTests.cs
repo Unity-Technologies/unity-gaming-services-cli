@@ -86,4 +86,5 @@ class DeleteTriggersHandlerTests
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
+
 }

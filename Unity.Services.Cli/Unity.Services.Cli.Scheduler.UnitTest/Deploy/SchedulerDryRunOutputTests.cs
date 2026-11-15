@@ -2,6 +2,7 @@ using Moq;
 using Unity.Services.Cli.Authoring.Input;
 using Unity.Services.Cli.Authoring.Model;
 using Unity.Services.Cli.Scheduler.Deploy;
+using Unity.Services.Cli.Scheduler.Service;
 using Unity.Services.Cli.Scheduler.Fetch;
 using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Deploy;
 using Unity.Services.Tooling.Editor.Scheduler.Authoring.Core.Fetch;
@@ -16,14 +17,16 @@ namespace Unity.Services.Cli.Scheduler.UnitTest.Deploy;
 public class SchedulerDryRunOutputTests
 {
     readonly Mock<ISchedulerClient> m_Client = new();
+    readonly Mock<ISchedulerStatusClient> m_StatusClient = new();
     readonly Mock<ISchedulerResourceLoader> m_ResourceLoader = new();
 
     [SetUp]
     public void SetUp()
     {
         m_Client.Reset();
+        m_StatusClient.Reset();
         m_ResourceLoader.Reset();
-        m_Client
+        m_StatusClient
             .Setup(client => client.Initialize(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
@@ -54,7 +57,7 @@ public class SchedulerDryRunOutputTests
 
         var service = new SchedulerDeploymentService(
             handler.Object,
-            m_Client.Object,
+            m_StatusClient.Object,
             m_ResourceLoader.Object);
 
         var result = await service.Deploy(
@@ -107,7 +110,7 @@ public class SchedulerDryRunOutputTests
             .ReturnsAsync(Array.Empty<SchedulerEntry>());
         var service = new SchedulerDeploymentService(
             handler,
-            m_Client.Object,
+            m_StatusClient.Object,
             m_ResourceLoader.Object);
 
         var result = await service.Deploy(
@@ -152,7 +155,7 @@ public class SchedulerDryRunOutputTests
 
         var service = new SchedulerFetchService(
             handler.Object,
-            m_Client.Object,
+            m_StatusClient.Object,
             m_ResourceLoader.Object);
 
         var result = await service.FetchAsync(
@@ -241,7 +244,7 @@ public class SchedulerDryRunOutputTests
 
         var service = new SchedulerFetchService(
             handler.Object,
-            m_Client.Object,
+            m_StatusClient.Object,
             m_ResourceLoader.Object);
 
         var result = await service.FetchAsync(
@@ -292,7 +295,7 @@ public class SchedulerDryRunOutputTests
             .ReturnsAsync(Array.Empty<SchedulerEntry>());
         var service = new SchedulerDeploymentService(
             handler,
-            m_Client.Object,
+            m_StatusClient.Object,
             m_ResourceLoader.Object);
 
         var result = await service.Deploy(
@@ -334,7 +337,7 @@ public class SchedulerDryRunOutputTests
             .ReturnsAsync(Array.Empty<SchedulerEntry>());
         var service = new SchedulerDeploymentService(
             handler,
-            m_Client.Object,
+            m_StatusClient.Object,
             m_ResourceLoader.Object);
 
         var result = await service.Deploy(
@@ -379,7 +382,7 @@ public class SchedulerDryRunOutputTests
 
         var service = new SchedulerDeploymentService(
             handler.Object,
-            m_Client.Object,
+            m_StatusClient.Object,
             m_ResourceLoader.Object);
 
         var result = await service.Deploy(
