@@ -27,6 +27,7 @@ jobs:
     name: Publish to npm
     if: ${{ github.repository == 'Unity-Technologies/unity-gaming-services-cli' }}
     runs-on: ubuntu-latest
+    environment: npm-publish
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.OPERATE_BOT_SLACK_WEBHOOK }}
     steps:
